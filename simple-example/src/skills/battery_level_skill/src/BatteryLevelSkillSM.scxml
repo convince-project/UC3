@@ -1,0 +1,32 @@
+<scxml 
+  initial="idle" 
+  version="1.0" 
+  name="BatteryLevelSkillSM"
+  datamodel="cplusplus:BatteryLevelDataModel:BatteryLevelDataModel.h"
+  xmlns="http://www.w3.org/2005/07/scxml">
+
+    <state id="idle">
+        <transition event="CMD_START" target="get" />
+    </state>
+
+    <state id="get">
+        <onentry>
+            <script>
+                QTimer::singleShot(0, stateMachine(), [=](){
+                    stateMachine()->submitEvent((m_level > 30) ? "STATUS_SUCCESS" : "STATUS_FAILED");
+                });
+            </script>
+        </onentry>
+        <transition event="STATUS_SUCCESS" target="success" />
+        <transition event="STATUS_FAILED" target="failure" />
+    </state>
+
+    <state id="success">
+        <transition event="CMD_OK" target="idle" />
+    </state>
+
+    <state id="failure">
+        <transition event="CMD_OK" target="idle" />
+    </state>
+</scxml>
+
