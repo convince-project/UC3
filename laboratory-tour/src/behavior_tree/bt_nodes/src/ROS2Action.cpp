@@ -16,6 +16,7 @@
 ROS2Action::ROS2Action(const std::string name, const BT::NodeConfiguration& config) :
         ActionNodeBase(name, config)
 {
+    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "name %s", this->name().c_str());
     BT::Optional<std::string> node_name = BT::TreeNode::getInput<std::string>("nodeName");
     if (node_name)
     {
