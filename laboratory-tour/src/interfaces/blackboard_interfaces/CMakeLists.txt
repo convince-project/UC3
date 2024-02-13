@@ -15,6 +15,8 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(blackboard_interfaces
 "srv/GetDoubleBlackboard.srv"
 "srv/SetDoubleBlackboard.srv"
+"srv/SetIntBlackboard.srv"
+"srv/GetIntBlackboard.srv"
 "srv/GetStringBlackboard.srv"
 "srv/SetStringBlackboard.srv"
 DEPENDENCIES sensor_msgs
