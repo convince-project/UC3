@@ -44,7 +44,7 @@
                     <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsAtChargingStation" nodeName="IsAtChargingStation"/>
                     <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="GoToChargingStation" nodeName="GoToChargingStation"/>
                 </ReactiveFallback>
-                <Action ID="AlwaysRunning" name="Wait"/>
+                <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="Wait" nodeName="Wait"/>
             </ReactiveSequence>
         </ReactiveFallback>
     </BehaviorTree>
@@ -70,7 +70,6 @@
     </BehaviorTree>
     <!-- ////////// -->
     <TreeNodesModel>
-        <Action ID="AlwaysRunning"/>
         <SubTree ID="CheckArtworkAndExplain"/>
         <SubTree ID="NetworkManagement"/>
         <Action ID="ROS2Action">
@@ -88,3 +87,4 @@
     </TreeNodesModel>
     <!-- ////////// -->
 </root>
+
