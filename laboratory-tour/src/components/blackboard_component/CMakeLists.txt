@@ -34,7 +34,7 @@ target_include_directories(${PROJECT_NAME}
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
 target_sources( ${PROJECT_NAME} PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/BlackboardComponent.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
+${CMAKE_CURRENT_SOURCE_DIR}/src/BlackboardComponent.cpp  ${CMAKE_CURRENT_SOURCE_DIR}/include/BlackboardComponent.h ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
 
 install(TARGETS ${PROJECT_NAME}
