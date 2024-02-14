@@ -16,6 +16,7 @@
 ROS2Condition::ROS2Condition(const std::string name, const BT::NodeConfiguration& config) :
         ConditionNode(name, config)
 {
+    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "name %s", name_.c_str());
     BT::Optional<std::string> node_name = BT::TreeNode::getInput<std::string>("nodeName");
     if (node_name)
     {
