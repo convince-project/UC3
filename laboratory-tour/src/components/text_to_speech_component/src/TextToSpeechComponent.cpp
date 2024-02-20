@@ -51,6 +51,9 @@ bool TextToSpeechComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
         yError() << "Error opening iSpeechSynth interface. Device not available";
         return false;
     }
+
+    //Audio Device Helper
+    m_audioDeviceHelper.ConfigureYARP(rf);
     return true;
 }
 
@@ -99,8 +102,13 @@ void TextToSpeechComponent::Speak(const std::shared_ptr<text_to_speech_interface
     yarp::sig::Sound sound;
     if (request->text=="")
     {
-        //TODO How do I stop speaking?
-
+        //If I receive a blank text I should stop playing
+        if (! m_audioDeviceHelper.stopPlaying())
+        {
+            response->error_msg="Unable to stop speaking";
+            response->is_ok=false;
+        }
+        
         response->is_ok=true;
     }
     else if (!m_iSpeechSynth->synthesize(request->text, sound))
@@ -110,8 +118,11 @@ void TextToSpeechComponent::Speak(const std::shared_ptr<text_to_speech_interface
     }
     else
     {
-        //TODO pass sound to audio device
-
+        if(!m_audioDeviceHelper.playSound(sound))
+        {
+            response->is_ok=false;
+            response->error_msg="Unable to play sound";
+        }
         response->is_ok=true;
     }
 }

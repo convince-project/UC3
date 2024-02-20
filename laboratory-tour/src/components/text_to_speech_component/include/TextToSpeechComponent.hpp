@@ -18,7 +18,7 @@
 #include <text_to_speech_interfaces/srv/get_language.hpp>
 #include <text_to_speech_interfaces/srv/set_language.hpp>
 #include <text_to_speech_interfaces/srv/speak.hpp>
-
+#include <AudioDeviceHelper.hpp>
 
 class TextToSpeechComponent 
 {
@@ -45,6 +45,7 @@ private:
     rclcpp::Service<text_to_speech_interfaces::srv::SetLanguage>::SharedPtr m_setLanguageService;
     rclcpp::Service<text_to_speech_interfaces::srv::Speak>::SharedPtr m_speakService;
     std::mutex m_mutex;
+    AudioDeviceHelper m_audioDeviceHelper;
 };
 
 #endif
