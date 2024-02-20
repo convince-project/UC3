@@ -63,17 +63,17 @@ bool TextToSpeechComponent::start(int argc, char*argv[])
     m_node = rclcpp::Node::make_shared("TextToSpeechComponentNode");
 
     m_setLanguageService = m_node->create_service<text_to_speech_interfaces::srv::SetLanguage>("",
-                                                                                        std::bind(TextToSpeechComponent::SetLanguage,
+                                                                                        std::bind(&TextToSpeechComponent::SetLanguage,
                                                                                                 this,
                                                                                                 std::placeholders::_1,
                                                                                                 std::placeholders::_2));
     m_getLanguageService = m_node->create_service<text_to_speech_interfaces::srv::GetLanguage>("",
-                                                                                        std::bind(TextToSpeechComponent::GetLanguage,
+                                                                                        std::bind(&TextToSpeechComponent::GetLanguage,
                                                                                                 this,
                                                                                                 std::placeholders::_1,
                                                                                                 std::placeholders::_2));
     m_speakService = m_node->create_service<text_to_speech_interfaces::srv::Speak>("",
-                                                                                        std::bind(TextToSpeechComponent::Speak,
+                                                                                        std::bind(&TextToSpeechComponent::Speak,
                                                                                                 this,
                                                                                                 std::placeholders::_1,
                                                                                                 std::placeholders::_2));
@@ -111,7 +111,7 @@ void TextToSpeechComponent::Speak(const std::shared_ptr<text_to_speech_interface
     else
     {
         //TODO pass sound to audio device
-        
+
         response->is_ok=true;
     }
 }
