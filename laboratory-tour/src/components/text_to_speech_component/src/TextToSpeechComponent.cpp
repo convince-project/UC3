@@ -14,7 +14,7 @@ bool TextToSpeechComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
     bool okCheck = rf.check("SPEECHSYNTHESIZER-CLIENT");
     std::string device = "speechSynthesizer_nwc_yarp";
     std::string local = "/TextToSpeechComponentNode/speechClient";
-    std::string remote = "/TBD/speechServer";
+    std::string remote = "/speechSynthesizer/speechServer";
 
     if (okCheck)
     {
