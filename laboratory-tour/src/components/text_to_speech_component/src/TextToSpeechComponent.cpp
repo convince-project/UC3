@@ -12,7 +12,7 @@
 bool TextToSpeechComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
 {
     bool okCheck = rf.check("SPEECHSYNTHESIZER-CLIENT");
-    std::string device = "SpeechSynthesizer_nwc_yarp";
+    std::string device = "speechSynthesizer_nwc_yarp";
     std::string local = "/TextToSpeechComponentNode/speechClient";
     std::string remote = "/TBD/speechServer";
 
@@ -65,17 +65,17 @@ bool TextToSpeechComponent::start(int argc, char*argv[])
     }
     m_node = rclcpp::Node::make_shared("TextToSpeechComponentNode");
 
-    m_setLanguageService = m_node->create_service<text_to_speech_interfaces::srv::SetLanguage>("",
+    m_setLanguageService = m_node->create_service<text_to_speech_interfaces::srv::SetLanguage>("/TextToSpeechComponent/SetLanguage",
                                                                                         std::bind(&TextToSpeechComponent::SetLanguage,
                                                                                                 this,
                                                                                                 std::placeholders::_1,
                                                                                                 std::placeholders::_2));
-    m_getLanguageService = m_node->create_service<text_to_speech_interfaces::srv::GetLanguage>("",
+    m_getLanguageService = m_node->create_service<text_to_speech_interfaces::srv::GetLanguage>("/TextToSpeechComponent/GetLanguage",
                                                                                         std::bind(&TextToSpeechComponent::GetLanguage,
                                                                                                 this,
                                                                                                 std::placeholders::_1,
                                                                                                 std::placeholders::_2));
-    m_speakService = m_node->create_service<text_to_speech_interfaces::srv::Speak>("",
+    m_speakService = m_node->create_service<text_to_speech_interfaces::srv::Speak>("/TextToSpeechComponent/Speak",
                                                                                         std::bind(&TextToSpeechComponent::Speak,
                                                                                                 this,
                                                                                                 std::placeholders::_1,
