@@ -12,6 +12,7 @@
 #include <vector>
 #include <mutex>
 #include <yarp/os/BufferedPort.h>
+#include <yarp/os/LogStream.h>
 #include <yarp/os/Network.h>
 #include <yarp/os/RFModule.h>
 #include <yarp/dev/IAudioRender.h>

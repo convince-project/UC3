@@ -36,6 +36,8 @@ target_include_directories(${PROJECT_NAME}
 target_sources( ${PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/TextToSpeechComponent.cpp  
   ${CMAKE_CURRENT_SOURCE_DIR}/include/TextToSpeechComponent.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/AudioDeviceHelper.cpp  
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/AudioDeviceHelper.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
 install(TARGETS ${PROJECT_NAME}
