@@ -92,4 +92,5 @@ void AlarmBatteryLowSkill::halt( [[maybe_unused]] const std::shared_ptr<bt_inter
                 m_stateMachine.submitEvent("CMD_HALT");
             }
         }
-    } while (!halted);}
+    } while (!halted);
+}
