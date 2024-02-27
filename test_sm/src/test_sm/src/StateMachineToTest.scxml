@@ -1,0 +1,41 @@
+<scxml 
+  initial="idle" 
+  version="1.0" 
+  name="StateMachineToTest"
+    datamodel="cplusplus:TestStateMachineDataModel:TestStateMachineDataModel.h"
+
+  xmlns="http://www.w3.org/2005/07/scxml">
+
+    <state id="idle">
+      <onentry>
+      <script>
+       log("state idle");
+       </script>
+      </onentry>
+
+      <transition event="CMD_START" target="alarm" />
+    </state>
+
+    <state id="ready">
+          <onentry>
+      <script>
+       log("state idle");
+       </script>
+      </onentry>
+          <!-- <log expr="state ready"/> -->
+      <transition event="CMD_ALARM" target="alarm" />
+      <transition event="CMD_HALT" target="idle" />
+    </state>
+
+
+    <state id="alarm">
+          <onentry>
+      <script>
+       log("state idle");
+       </script>
+      </onentry>
+              <!-- <log expr="state alarm"/> -->
+      <transition event="CMD_HALT" target="idle" />
+    </state>
+</scxml>
+
