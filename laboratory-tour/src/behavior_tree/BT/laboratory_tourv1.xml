@@ -14,10 +14,6 @@
     <!-- ////////// -->
     <BehaviorTree ID="CheckArtworkAndExplain">
         <Sequence>
-            <ReactiveFallback>
-                <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsPointingAtArtwork" nodeName="IsPointingAtArtwork"/>
-                <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="PointAtArtwork" nodeName="PointAtArtwork"/>
-            </ReactiveFallback>
             <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="NarratePOI" nodeName="NarratePOI"/>
             <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="UpdatePOI" nodeName="UpdatePOI"/>
         </Sequence>
