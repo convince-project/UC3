@@ -4,8 +4,6 @@ project(test_sm)
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
-find_package(ament_cmake REQUIRED)
-find_package(rclcpp REQUIRED)
 find_package(Qt6 COMPONENTS Core Scxml StateMachine REQUIRED)
 add_executable(${PROJECT_NAME} )
 
@@ -18,7 +16,6 @@ endif()
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-ament_target_dependencies(${PROJECT_NAME} rclcpp )
 target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Scxml Qt6::StateMachine )
 target_include_directories(${PROJECT_NAME}
   PUBLIC
@@ -44,4 +41,3 @@ if(BUILD_TESTING)
 endif()
 qt6_add_statecharts(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/src/StateMachineToTestSM.scxml)
 
-ament_package()
