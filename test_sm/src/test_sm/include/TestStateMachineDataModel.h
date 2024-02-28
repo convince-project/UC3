@@ -8,6 +8,7 @@
 #pragma once
 
 #include <QScxmlCppDataModel>
+#include <QVariant>
 #include <string>
 
 
@@ -20,6 +21,7 @@ public:
     bool setup(const QVariantMap& initialDataValues) override;
     void log(std::string to_log);
 private: 
+    QVariant m_parameter;
 };
 
 Q_DECLARE_METATYPE(::TestStateMachineDataModel*)

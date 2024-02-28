@@ -45,7 +45,9 @@ int main(int argc, char *argv[])
   stateMachineToTest.setDataModel(&dataModel);
   stateMachineToTest.start();
 
-  stateMachineToTest.connectToEvent("SEND_OUTSIDE", [](const QScxmlEvent &){
+  stateMachineToTest.connectToEvent("SEND_OUTSIDE", [](const QScxmlEvent & event){
+    std::cout << event.data().isNull() << std::endl;
+    std::cout << event.data().toMap()["state"].toString().toStdString() << std::endl;
     std::cout << "received!" << std::endl;
   });
 
