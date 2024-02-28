@@ -1,26 +1,30 @@
 <scxml 
   initial="idle" 
   version="1.0" 
-  name="StateMachineToTest"
-    datamodel="cplusplus:TestStateMachineDataModel:TestStateMachineDataModel.h"
-
+  name="StateMachineToTestSM"
+  datamodel="cplusplus:TestStateMachineDataModel:TestStateMachineDataModel.h"
   xmlns="http://www.w3.org/2005/07/scxml">
 
     <state id="idle">
       <onentry>
+
       <script>
        log("state idle");
        </script>
+                    <send event="SEND_OUTSIDE">
+      </send>
       </onentry>
 
-      <transition event="CMD_START" target="alarm" />
+      <transition event="CMD_START" target="ready" />
     </state>
 
     <state id="ready">
           <onentry>
       <script>
-       log("state idle");
+       log("state ready");
        </script>
+              <send event="SEND_OUTSIDE">
+      </send>
       </onentry>
           <!-- <log expr="state ready"/> -->
       <transition event="CMD_ALARM" target="alarm" />
@@ -31,7 +35,7 @@
     <state id="alarm">
           <onentry>
       <script>
-       log("state idle");
+       log("state alarm");
        </script>
       </onentry>
               <!-- <log expr="state alarm"/> -->
