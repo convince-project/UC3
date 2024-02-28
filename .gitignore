@@ -5,3 +5,6 @@ simple-example/install/
 laboratory-tour/build/
 laboratory-tour/log/
 laboratory-tour/install/
+test_sm/build/
+test_sm/log/
+test_sm/install/
