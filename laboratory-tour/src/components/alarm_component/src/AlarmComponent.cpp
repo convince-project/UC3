@@ -14,6 +14,7 @@ bool AlarmComponent::start(int argc, char*argv[])
     {
         rclcpp::init(/*argc*/ argc, /*argv*/ argv);
     }
+    m_alarmActive = std::make_shared<std::atomic<bool>>();
     *m_alarmActive = false;
     m_node = rclcpp::Node::make_shared("AlarmComponentNode");
     m_startAlarmService = m_node->create_service<alarm_interfaces::srv::StartAlarm>("/AlarmComponent/StartAlarm",  
@@ -26,8 +27,7 @@ bool AlarmComponent::start(int argc, char*argv[])
                                                                                 this,
                                                                                 std::placeholders::_1,
                                                                                 std::placeholders::_2));
-    RCLCPP_DEBUG(m_node->get_logger(), "AlarmComponent::start");
-    std::cout << "AlarmComponent::start";        
+    RCLCPP_INFO(m_node->get_logger(), "AlarmComponent::start");
     return true;
 
 }
@@ -66,7 +66,7 @@ void AlarmComponent::StopAlarm([[maybe_unused]] const std::shared_ptr<alarm_inte
 void AlarmComponent::Alarm(std::shared_ptr<std::atomic<bool>> alarmActive) 
 {
     while(*alarmActive) {
-        std::cout << "alarm";
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "alarm");
         std::this_thread::sleep_for (std::chrono::milliseconds(500));
     }
     std::this_thread::sleep_for (std::chrono::milliseconds(500));
