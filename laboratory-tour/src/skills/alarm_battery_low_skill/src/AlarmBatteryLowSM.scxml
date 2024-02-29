@@ -4,18 +4,64 @@
   name="AlarmBatteryLowSM"
   xmlns="http://www.w3.org/2005/07/scxml">
 
+  <datamodel>
+    <data id="response" />
+  </datamodel>
+
     <state id="idle">
-      <transition event="CMD_START" target="alarm" />
+      <transition event="CMD_TICK" target="startAlarm" />
+      <transition event="CMD_HALT" target="sendHalted" />
     </state>
 
-    <state id="ready">
-      <transition event="CMD_ALARM" target="alarm" />
-      <transition event="CMD_HALT" target="idle" />
+    <state id="startAlarm">
+      <onentry>
+        <send event="START_ALARM">
+        </send>
+      </onentry>
+      <transition target="resultStart" />
     </state>
 
+    <state id="resultStart">
+      <transition event="START_SUCCEDED" target="sendRunning" />
+      <transition event="START_FAILED" target="sendFailure" />
+    </state>
+
+
+    <state id="sendHalted">
+      <onentry>
+        <send event="HALT_RESPONSE">
+        </send>
+      </onentry>
+      <transition target="idle" />
+    </state>
 
     <state id="alarm">
-      <transition event="CMD_HALT" target="idle" />
+      <transition event="CMD_TICK" target="sendRunning" />
+      <transition event="CMD_HALT" target="sendHalted" />
+    </state>
+
+    <state id="sendFailure">
+      <onentry>
+        <script>
+          response = failure; 
+        </script> <!-- maybe here we can consider an enum in the data model -->
+        <send event="TICK_RESPONSE">
+          <param name="state" expr="response"/>
+        </send>
+      </onentry>
+      <transition target="idle" />
+    </state>
+
+    <state id="sendRunning">
+      <onentry>
+        <script>
+          response = running;
+        </script>
+        <send event="TICK_RESPONSE">
+          <param name="state" expr="response"/>
+        </send>
+      </onentry>
+      <transition target="alarm" />
     </state>
 </scxml>
 
