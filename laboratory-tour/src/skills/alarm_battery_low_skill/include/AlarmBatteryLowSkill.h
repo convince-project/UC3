@@ -13,6 +13,7 @@
 #include <bt_interfaces/msg/action_response.hpp>
 #include <bt_interfaces/srv/tick_action.hpp>
 #include <bt_interfaces/srv/halt_action.hpp>
+#include <alarm_interfaces/srv/start_alarm.hpp>
 #include <mutex>
 
 class AlarmBatteryLowSkill
@@ -34,5 +35,6 @@ private:
     rclcpp::Service<bt_interfaces::srv::HaltAction>::SharedPtr m_haltService;
     std::string m_name;
     std::mutex m_requestMutex;
+    rclcpp::Client<alarm_interfaces::srv::StartAlarm>::SharedPtr m_clientStartAlarm;
     AlarmBatteryLowSM m_stateMachine;
 };

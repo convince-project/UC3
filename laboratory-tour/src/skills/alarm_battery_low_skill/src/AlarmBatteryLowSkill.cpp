@@ -6,7 +6,7 @@
  ******************************************************************************/
 
 #include "AlarmBatteryLowSkill.h"
-
+#include <future>
 #include <QTimer>
 #include <QDebug>
 #include <QTime>
@@ -47,9 +47,33 @@ bool AlarmBatteryLowSkill::start(int argc, char*argv[])
                                                                                                                  
     RCLCPP_DEBUG(m_node->get_logger(), "AlarmBatteryLowSkill::start");
     std::cout << "AlarmBatteryLowSkill::start";
-
     m_stateMachine.start();
     m_threadSpin = std::make_shared<std::thread>(spin, m_node);
+    m_clientStartAlarm = m_node->create_client<alarm_interfaces::srv::StartAlarm>(m_name + "Component/StartAlarm");
+
+    m_stateMachine.connectToEvent("SEND_ALARM", [this]([[maybe_unused]]const QScxmlEvent & event){
+    auto request = std::make_shared<alarm_interfaces::srv::StartAlarm::Request>();
+    bool wait_succeded{false};
+    while (!m_clientStartAlarm->wait_for_service(std::chrono::seconds(1))) {
+        if (!rclcpp::ok()) {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service StartAlarm. Exiting.");
+            m_stateMachine.submitEvent("START_FAILED");
+        }
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "service StartAlarm not available, waiting again...");
+    }
+    if (wait_succeded) {
+        auto result = m_clientStartAlarm->async_send_request(request);
+        std::this_thread::sleep_for (std::chrono::milliseconds(100));
+        if (rclcpp::spin_until_future_complete(m_node, result) ==
+            rclcpp::FutureReturnCode::SUCCESS) {
+            if( result.get()->is_ok ==true) {
+                m_stateMachine.submitEvent("START_SUCCEDED");
+            } else {
+                m_stateMachine.submitEvent("START_FAILED");
+            }
+        }
+    }
+    });
     return true;
 }
 
@@ -60,19 +84,23 @@ void AlarmBatteryLowSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_inter
 {
     std::lock_guard<std::mutex> lock(m_requestMutex);
     RCLCPP_DEBUG(m_node->get_logger(), "AlarmBatteryLowSkill::tick");
-    std::cout << "AlarmBatteryLowSkill::tick";
-    for (const auto& state : m_stateMachine.activeStateNames()) {
-            std::cout << state.toStdString() << std::endl;
-            auto message = bt_interfaces::msg::ActionResponse();
-            if (state == "alarm") {
-                response->status.status = message.SKILL_SUCCESS;
-            } else if (state == "idle") {
-                response->status.status = message.SKILL_RUNNING; //here goes also the initialisation
-                m_stateMachine.submitEvent("CMD_START");
-            } else if (state == "ready") {
-                response->status.status = message.SKILL_RUNNING;
-                m_stateMachine.submitEvent("CMD_ALARM");
-            }
+    auto message = bt_interfaces::msg::ActionResponse();
+    m_stateMachine.submitEvent("CMD_TICK");
+    std::shared_ptr<std::promise<std::string>> futureResult;
+    //to check if this doesn't add other callbacks
+    m_stateMachine.connectToEvent("TICK_RESPONSE", [futureResult](const QScxmlEvent & event){
+        futureResult->set_value(event.data().toMap()["state"].toString().toStdString());
+        std::cout << "received!" << std::endl;
+    }, Qt::SingleShotConnection);
+    std::future<std::string> future = futureResult->get_future();
+    future.wait();
+    std::string status = future.get();
+    if (status == "running") {
+        response->status.status = message.SKILL_RUNNING;
+    } else if (status == "failure") {
+        response->status.status = message.SKILL_FAILURE;
+    } else if (status == "success") {
+        response->status.status = message.SKILL_SUCCESS;
     }
     response->is_ok = true;
 }
@@ -81,16 +109,13 @@ void AlarmBatteryLowSkill::halt( [[maybe_unused]] const std::shared_ptr<bt_inter
                [[maybe_unused]] std::shared_ptr<bt_interfaces::srv::HaltAction::Response> response)
 {
     std::lock_guard<std::mutex> lock(m_requestMutex);
-    bool halted = false;
-
-    do {
-        for (const auto& state : m_stateMachine.activeStateNames()) {
-            RCLCPP_DEBUG_STREAM(m_node->get_logger(), state.toStdString());
-            if (state == "idle") {
-                halted = true;
-            } else {
-                m_stateMachine.submitEvent("CMD_HALT");
-            }
-        }
-    } while (!halted);
+    m_stateMachine.submitEvent("CMD_HALT");
+    std::shared_ptr<std::promise<bool>> futureResult;
+    m_stateMachine.connectToEvent("HALT_RESPONSE", [futureResult]([[maybe_unused]]const QScxmlEvent & event){
+        futureResult->set_value(true);
+        std::cout << "received!" << std::endl;
+    },Qt::SingleShotConnection);
+    std::future<bool> future = futureResult->get_future();
+    future.wait();
+    response->is_ok = true;
 }
