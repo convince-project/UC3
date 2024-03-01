@@ -50,6 +50,7 @@ void AlarmComponent::StartAlarm([[maybe_unused]] const std::shared_ptr<alarm_int
     *m_alarmActive = true;
     m_threadAlarm = std::make_shared<std::thread>(Alarm,m_alarmActive);
     response->is_ok = true;
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "----------------------- alarm started ------------------------------");
 }
 
 
@@ -70,4 +71,5 @@ void AlarmComponent::Alarm(std::shared_ptr<std::atomic<bool>> alarmActive)
         std::this_thread::sleep_for (std::chrono::milliseconds(500));
     }
     std::this_thread::sleep_for (std::chrono::milliseconds(500));
+
 }
