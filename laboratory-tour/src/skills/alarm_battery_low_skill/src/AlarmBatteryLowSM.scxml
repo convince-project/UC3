@@ -2,12 +2,12 @@
   initial="idle" 
   version="1.0" 
   name="AlarmBatteryLowSM"
-  datamodel="cplusplus:AlarmBatteryLowSkillDataModel:AlarmBatteryLowSkillDataModel.h"
+  datamodel="ecmascript"
   xmlns="http://www.w3.org/2005/07/scxml">
-<!-- 
+
   <datamodel>
     <data id="response" />
-  </datamodel> -->
+  </datamodel>
 
     <state id="idle">
       <transition event="CMD_TICK" target="startAlarm" />
@@ -16,29 +16,28 @@
 
     <state id="startAlarm">
       <onentry>
-        <send event="START_ALARM">
+        <send event="AlarmCmpInterface.START_ALARM">
         </send>
       </onentry>
       <transition target="resultStart" />
     </state>
 
     <state id="resultStart">
-      <transition event="START_SUCCEDED" target="sendRunning" />
-      <transition event="START_FAILED" target="sendFailure" />
+      <transition event="AlarmCmpInterface.START_ALARM_SUCCEDED" target="sendRunning" />
+      <transition event="AlarmCmpInterface.START_ALARM_FAILED" target="sendFailure" />
     </state>
 
     <state id="stopAlarm">
       <onentry>
-        <send event="STOP_ALARM">
+        <send event="AlarmCmpInterface.STOP_ALARM">
         </send>
       </onentry>
       <transition target="resultStop" />
     </state>
 
     <state id="resultStop">
-      <transition event="STOP_SUCCEDED" target="sendHalted" />
+      <transition event="AlarmCmpInterface.STOP_ALARM_SUCCEDED" target="sendHalted" />
     </state>
-l
     <state id="sendHalted">
       <onentry>
         <send event="HALT_RESPONSE">
@@ -54,11 +53,8 @@ l
 
     <state id="sendFailure">
       <onentry>
-        <script>
-          response = "failure"; 
-        </script> <!-- maybe here we can consider an enum in the data model -->
         <send event="TICK_RESPONSE">
-          <param name="state" expr="response"/>
+          <param name="state" expr='"failure"'/>
         </send>
       </onentry>
       <transition target="idle" />
@@ -66,11 +62,8 @@ l
 
     <state id="sendRunning">
       <onentry>
-        <script>
-          response = "running";
-        </script>
         <send event="TICK_RESPONSE">
-          <param name="state" expr="response"/>
+          <param name="state" expr='"running"'/>
         </send>
       </onentry>
       <transition target="alarm" />
