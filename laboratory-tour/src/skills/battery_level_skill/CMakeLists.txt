@@ -10,7 +10,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(bt_interfaces REQUIRED)
 find_package(sensor_msgs REQUIRED)
-find_package(Qt6 COMPONENTS Core Scxml StateMachine  REQUIRED)
+find_package(Qt6 COMPONENTS Core Scxml StateMachine Qml Widgets REQUIRED)
 add_executable(${PROJECT_NAME} )
 
 if (NOT Qt6_FOUND)
@@ -23,7 +23,8 @@ endif()
 # find_package(<dependency> REQUIRED)
 
 ament_target_dependencies(${PROJECT_NAME} bt_interfaces sensor_msgs rclcpp)
-target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Scxml Qt6::StateMachine)
+target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Scxml Qt6::StateMachine Qt6::Qml Qt6::Widgets)
+
 target_include_directories(${PROJECT_NAME}
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -31,9 +32,7 @@ target_include_directories(${PROJECT_NAME}
 target_sources( ${PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp 
   ${CMAKE_CURRENT_SOURCE_DIR}/src/BatteryLevelSkill.cpp 
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/BatteryLevelSkill.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/BatteryLevelDataModel.cpp 
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/BatteryLevelDataModel.h)
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/BatteryLevelSkill.h)
 
 
 install(TARGETS ${PROJECT_NAME}
@@ -52,3 +51,8 @@ endif()
 qt6_add_statecharts(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/src/BatteryLevelSkillSM.scxml)
 
 ament_package()
+
+
+
+# ${CMAKE_CURRENT_SOURCE_DIR}/src/BatteryLevelDataModel.cpp 
+# ${CMAKE_CURRENT_SOURCE_DIR}/include/BatteryLevelDataModel.h
