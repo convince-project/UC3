@@ -6,14 +6,10 @@
  ******************************************************************************/
 
 #pragma once
-#include <rclcpp/rclcpp.hpp>
 
 #include <QScxmlCppDataModel>
-#include <QVariantMap>
-#include <QTime>
-#include <QTimer>
-#include <QDebug>
-#include <sensor_msgs/msg/battery_state.hpp>
+#include <QVariant>
+#include <string>
 
 
 class BatteryLevelDataModel: public QScxmlCppDataModel
@@ -22,18 +18,10 @@ class BatteryLevelDataModel: public QScxmlCppDataModel
 
 public:
     BatteryLevelDataModel() = default;
-    void set_name(std::string name);
-    void topic_callback(const sensor_msgs::msg::BatteryState::SharedPtr msg);
-    bool close();
-    void spin();
-    bool start() ;
     bool setup(const QVariantMap& initialDataValues) override;
+    void log(std::string to_log);
 private: 
-    std::shared_ptr<rclcpp::Node> m_node;
-    rclcpp::Subscription<sensor_msgs::msg::BatteryState>::SharedPtr m_subscription;
-    std::string m_name = "";
-    double m_level = 100.0;
-    std::shared_ptr<std::thread> m_thread;
+    QVariant m_level;
 };
 
 Q_DECLARE_METATYPE(::BatteryLevelDataModel*)
