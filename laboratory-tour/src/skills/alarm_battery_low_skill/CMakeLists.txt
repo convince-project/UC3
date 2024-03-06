@@ -29,9 +29,7 @@ target_include_directories(${PROJECT_NAME}
 target_sources( ${PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp 
   ${CMAKE_CURRENT_SOURCE_DIR}/src/AlarmBatteryLowSkill.cpp 
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/AlarmBatteryLowSkill.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/AlarmBatteryLowSkillDataModel.cpp 
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/AlarmBatteryLowSkillDataModel.h)
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/AlarmBatteryLowSkill.h)
 
 install(TARGETS ${PROJECT_NAME}
 DESTINATION lib/${PROJECT_NAME})
