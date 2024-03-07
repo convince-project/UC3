@@ -10,51 +10,51 @@
   </datamodel>
 
     <state id="idle">
-      <transition event="CMD_TICK" target="startAlarm" />
-      <transition event="CMD_HALT" target="sendHalted" />
+      <transition event="tickCall" target="startAlarm" />
+      <transition event="haltCall" target="sendHalted" />
     </state>
 
     <state id="startAlarm">
       <onentry>
-        <send event="AlarmCmpInterface.START_ALARM">
+        <send event="AlarmCmpInterface.StartAlarmCall">
         </send>
       </onentry>
       <transition target="resultStart" />
     </state>
 
     <state id="resultStart">
-      <transition event="AlarmCmpInterface.START_ALARM_SUCCEDED" target="sendRunning" />
-      <transition event="AlarmCmpInterface.START_ALARM_FAILED" target="sendFailure" />
+      <transition event="AlarmCmpInterface.StartAlarmReturn" cond='_event.data.result == "SUCCESS"' target="sendRunning" />
+      <transition event="AlarmCmpInterface.StartAlarmReturn" cond='_event.data.result == "FAILURE"' target="sendFailure" />
     </state>
 
     <state id="stopAlarm">
       <onentry>
-        <send event="AlarmCmpInterface.STOP_ALARM">
+        <send event="AlarmCmpInterface.stopAlarmCall">
         </send>
       </onentry>
       <transition target="resultStop" />
     </state>
 
     <state id="resultStop">
-      <transition event="AlarmCmpInterface.STOP_ALARM_SUCCEDED" target="sendHalted" />
+      <transition event="AlarmCmpInterface.stopAlarmReturn" target="sendHalted" />
     </state>
     <state id="sendHalted">
       <onentry>
-        <send event="HALT_RESPONSE">
+        <send event="haltReturn">
         </send>
       </onentry>
       <transition target="idle" />
     </state>
 
     <state id="alarm">
-      <transition event="CMD_TICK" target="sendRunning" />
-      <transition event="CMD_HALT" target="stopAlarm" />
+      <transition event="tickCall" target="sendRunning" />
+      <transition event="haltCall" target="stopAlarm" />
     </state>
 
     <state id="sendFailure">
       <onentry>
-        <send event="TICK_RESPONSE">
-          <param name="state" expr='"failure"'/>
+        <send event="tickReturn">
+          <param name="result" expr='"FAILURE"'/>
         </send>
       </onentry>
       <transition target="idle" />
@@ -62,8 +62,8 @@
 
     <state id="sendRunning">
       <onentry>
-        <send event="TICK_RESPONSE">
-          <param name="state" expr='"running"'/>
+        <send event="tickReturn">
+          <param name="result" expr='"RUNNING"'/>
         </send>
       </onentry>
       <transition target="alarm" />

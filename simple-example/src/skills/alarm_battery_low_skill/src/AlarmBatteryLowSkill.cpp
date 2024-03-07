@@ -48,7 +48,7 @@ bool AlarmBatteryLowSkill::start(int argc, char*argv[])
     m_threadSpin = std::make_shared<std::thread>(spin, m_node);
 
 
-    m_stateMachine.connectToEvent("AlarmCmpInterface.START_ALARM", [this]([[maybe_unused]]const QScxmlEvent & event){
+    m_stateMachine.connectToEvent("AlarmCmpInterface.StartAlarmCall", [this]([[maybe_unused]]const QScxmlEvent & event){
         std::shared_ptr<rclcpp::Node> nodeStartAlarm = rclcpp::Node::make_shared(m_name + "SkillNodeStartAlarm");
         // RCLCPP_INFO(nodeStartAlarm->get_logger(), "start alarm");
         std::shared_ptr<rclcpp::Client<alarm_interfaces::srv::StartAlarm>> clientStartAlarm = nodeStartAlarm->create_client<alarm_interfaces::srv::StartAlarm>("/AlarmComponent/StartAlarm");
@@ -59,7 +59,9 @@ bool AlarmBatteryLowSkill::start(int argc, char*argv[])
             if (!rclcpp::ok()) {
                 RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service StartAlarm. Exiting.");
                 wait_succeded = false;
-                m_stateMachine.submitEvent("AlarmCmpInterface.START_ALARM_FAILED");
+                QVariantMap data;
+                data.insert("result", "FAILURE");
+                m_stateMachine.submitEvent("AlarmCmpInterface.StartAlarmReturn", data);
             } 
             RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "service StartAlarm not available, waiting again...");
         }
@@ -71,17 +73,21 @@ bool AlarmBatteryLowSkill::start(int argc, char*argv[])
                 rclcpp::FutureReturnCode::SUCCESS) 
             {
                 if( result.get()->is_ok ==true) {
-                    m_stateMachine.submitEvent("AlarmCmpInterface.START_ALARM_SUCCEDED  ");
+                    QVariantMap data;
+                    data.insert("result", "SUCCESS");
+                    m_stateMachine.submitEvent("AlarmCmpInterface.StartAlarmReturn", data);
                     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "AlarmCmpInterface.START_ALARM_SUCCEDED");
                 } else {
-                    m_stateMachine.submitEvent("AlarmCmpInterface.START_ALARM_FAILED");
+                    QVariantMap data;
+                    data.insert("result", "FAILURE");
+                    m_stateMachine.submitEvent("AlarmCmpInterface.StartAlarmReturn", data);
                     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "AlarmCmpInterface.START_ALARM_FAILED");
                 }
             }       
         }
     });
 
-    m_stateMachine.connectToEvent("AlarmCmpInterface.STOP_ALARM", [this]([[maybe_unused]]const QScxmlEvent & event){
+    m_stateMachine.connectToEvent("AlarmCmpInterface.stopAlarmCall", [this]([[maybe_unused]]const QScxmlEvent & event){
         std::shared_ptr<rclcpp::Node> nodeStopAlarm = rclcpp::Node::make_shared(m_name + "SkillNodeStopAlarm");
         // RCLCPP_INFO(nodeStopAlarm->get_logger(), "stop alarm");
         std::shared_ptr<rclcpp::Client<alarm_interfaces::srv::StopAlarm>> clientStopAlarm = nodeStopAlarm->create_client<alarm_interfaces::srv::StopAlarm>("/AlarmComponent/StopAlarm");
@@ -92,7 +98,9 @@ bool AlarmBatteryLowSkill::start(int argc, char*argv[])
             if (!rclcpp::ok()) {
                 RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service StopAlarm. Exiting.");
                 wait_succeded = false;
-                m_stateMachine.submitEvent("AlarmCmpInterface.STOP_ALARM_FAILED");
+                QVariantMap data;
+                data.insert("result", "FAILURE");
+                m_stateMachine.submitEvent("AlarmCmpInterface.StopAlarmReturn", data);
             } 
             RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "service StopAlarm not available, waiting again...");
         }
@@ -104,33 +112,37 @@ bool AlarmBatteryLowSkill::start(int argc, char*argv[])
                 rclcpp::FutureReturnCode::SUCCESS) 
             {
                 if( result.get()->is_ok ==true) {
-                    m_stateMachine.submitEvent("AlarmCmpInterface.STOP_ALARM_SUCCEDED");
+                    QVariantMap data;
+                    data.insert("result", "SUCCESS");
+                    m_stateMachine.submitEvent("AlarmCmpInterface.StopAlarmReturn", data);
                     // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "STOP_SUCCEDED");
                 } else {
-                    m_stateMachine.submitEvent("AlarmCmpInterface.STOP_ALARM_FAILED");
+                    QVariantMap data;
+                    data.insert("result", "FAILURE");
+                    m_stateMachine.submitEvent("AlarmCmpInterface.StopAlarmReturn", data);
                     // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "STOP_FAILED");
                 }
             }       
         }
     });
 
-    m_stateMachine.connectToEvent("TICK_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){
+    m_stateMachine.connectToEvent("tickReturn", [this]([[maybe_unused]]const QScxmlEvent & event){
         // RCLCPP_INFO(m_node->get_logger(), "AlarmBatteryLowSkill::tickresponse");
         std::string result = event.data().toMap()["state"].toString().toStdString();
-        if (result == "running" )
+        if (result == "RUNNING" )
         { 
             m_tickResult.store(Status::running);
-        } else if (result == "success" )
+        } else if (result == "SUCCESS" )
         { 
             m_tickResult.store(Status::success);
-        } else if (result == "failure" )
+        } else if (result == "FAILURE" )
         { 
             m_tickResult.store(Status::failure);
         }
     });
 
 
-    m_stateMachine.connectToEvent("HALT_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){
+    m_stateMachine.connectToEvent("haltReturn", [this]([[maybe_unused]]const QScxmlEvent & event){
         // RCLCPP_INFO(m_node->get_logger(), "AlarmBatteryLowSkill::haltresponse");
         m_haltResult.store(true);
     });
@@ -148,7 +160,7 @@ void AlarmBatteryLowSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_inter
     // RCLCPP_INFO(m_node->get_logger(), "AlarmBatteryLowSkill::tick");
     auto message = bt_interfaces::msg::ActionResponse();
     m_tickResult.store(Status::undefined); //here we can put a struct
-    m_stateMachine.submitEvent("CMD_TICK");
+    m_stateMachine.submitEvent("tickCall");
 
     while(m_tickResult.load()== Status::undefined) 
     {
@@ -178,7 +190,7 @@ void AlarmBatteryLowSkill::halt( [[maybe_unused]] const std::shared_ptr<bt_inter
     std::lock_guard<std::mutex> lock(m_requestMutex);
     // RCLCPP_INFO(m_node->get_logger(), "AlarmBatteryLowSkill::halt");
     m_haltResult.store(false); //here we can put a struct
-    m_stateMachine.submitEvent("CMD_HALT");
+    m_stateMachine.submitEvent("haltCall");
 
     while(!m_haltResult.load()) 
     {
