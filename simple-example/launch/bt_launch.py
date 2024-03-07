@@ -28,6 +28,10 @@ def generate_launch_description():
             executable='battery_drainer_component'
         ),
         Node(
+            package='alarm_component',
+            executable='alarm_component'
+        ),
+        Node(
             package='bt_executable',
             executable='bt_executable',
             arguments=[ './src/behavior_tree/BT/simple_bt.xml']
