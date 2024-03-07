@@ -2,18 +2,71 @@
   initial="idle" 
   version="1.0" 
   name="AlarmBatteryLowSM"
+  datamodel="ecmascript"
   xmlns="http://www.w3.org/2005/07/scxml">
 
+  <datamodel>
+    <data id="response" />
+  </datamodel>
+
     <state id="idle">
-      <transition event="CMD_START" target="alarm" />
+      <transition event="CMD_TICK" target="startAlarm" />
+      <transition event="CMD_HALT" target="sendHalted" />
     </state>
 
-    <state id="ready">
-      <transition event="CMD_ALARM" target="alarm" />
+    <state id="startAlarm">
+      <onentry>
+        <send event="AlarmCmpInterface.START_ALARM">
+        </send>
+      </onentry>
+      <transition target="resultStart" />
     </state>
 
+    <state id="resultStart">
+      <transition event="AlarmCmpInterface.START_ALARM_SUCCEDED" target="sendRunning" />
+      <transition event="AlarmCmpInterface.START_ALARM_FAILED" target="sendFailure" />
+    </state>
+
+    <state id="stopAlarm">
+      <onentry>
+        <send event="AlarmCmpInterface.STOP_ALARM">
+        </send>
+      </onentry>
+      <transition target="resultStop" />
+    </state>
+
+    <state id="resultStop">
+      <transition event="AlarmCmpInterface.STOP_ALARM_SUCCEDED" target="sendHalted" />
+    </state>
+    <state id="sendHalted">
+      <onentry>
+        <send event="HALT_RESPONSE">
+        </send>
+      </onentry>
+      <transition target="idle" />
+    </state>
 
     <state id="alarm">
+      <transition event="CMD_TICK" target="sendRunning" />
+      <transition event="CMD_HALT" target="stopAlarm" />
+    </state>
+
+    <state id="sendFailure">
+      <onentry>
+        <send event="TICK_RESPONSE">
+          <param name="state" expr='"failure"'/>
+        </send>
+      </onentry>
+      <transition target="idle" />
+    </state>
+
+    <state id="sendRunning">
+      <onentry>
+        <send event="TICK_RESPONSE">
+          <param name="state" expr='"running"'/>
+        </send>
+      </onentry>
+      <transition target="alarm" />
     </state>
 </scxml>
 
