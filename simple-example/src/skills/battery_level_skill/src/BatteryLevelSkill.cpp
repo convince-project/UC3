@@ -53,7 +53,7 @@ bool BatteryLevelSkill::start(int argc, char*argv[])
 
 
 
-    m_stateMachine.connectToEvent("TICK_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){
+    m_stateMachine.connectToEvent("tickReturn", [this]([[maybe_unused]]const QScxmlEvent & event){
         std::string result = event.data().toMap()["result"].toString().toStdString();
         // RCLCPP_INFO(m_node->get_logger(), "BatteryLevelSkill::tickresponse----------------%s--------------------------------", result.c_str());
 
@@ -76,7 +76,7 @@ void BatteryLevelSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfac
     // RCLCPP_INFO(m_node->get_logger(), "BatteryLevelSkill::tick");
     auto message = bt_interfaces::msg::ConditionResponse();
     m_tickResult.store(Status::undefined); //here we can put a struct
-    m_stateMachine.submitEvent("CMD_TICK");
+    m_stateMachine.submitEvent("tickCall");
 
     while(m_tickResult.load()== Status::undefined) 
     {
@@ -107,6 +107,6 @@ void BatteryLevelSkill::topic_callback(const sensor_msgs::msg::BatteryState::Sha
     // {
     //     qInfo()<<"-- key:"<<key<<" value:"<<data.value(key);
     // }
-    m_stateMachine.submitEvent("BATTERY_LEVEL", data);
+    m_stateMachine.submitEvent("BatteryDriverCmpInterface.readLevel", data);
 
 }
