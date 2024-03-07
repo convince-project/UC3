@@ -1,32 +1,31 @@
-<scxml 
-  initial="idle" 
-  version="1.0" 
-  name="BatteryLevelSkillSM"
-  datamodel="cplusplus:BatteryLevelDataModel:BatteryLevelDataModel.h"
-  xmlns="http://www.w3.org/2005/07/scxml">
-
-    <state id="idle">
-        <transition event="CMD_START" target="get" />
-    </state>
-
-    <state id="get">
+<scxml datamodel="ecmascript" initial="idle" name="BatteryLevelSkillSM" version="1.0" xmlns="http://www.w3.org/2005/07/scxml" xmlns:viz="http://phrogz.net/visual-scxml">
+	<datamodel>
+		<data expr="100" id="m_level"/>
+	</datamodel>
+	<state id="idle" viz:xywh="-10 -20 120 40">
         <onentry>
-            <script>
-                QTimer::singleShot(0, stateMachine(), [=](){
-                    stateMachine()->submitEvent((m_level > 30) ? "STATUS_SUCCESS" : "STATUS_FAILED");
-                });
-            </script>
+            <log expr='"idle"'/>
         </onentry>
-        <transition event="STATUS_SUCCESS" target="success" />
-        <transition event="STATUS_FAILED" target="failure" />
-    </state>
-
-    <state id="success">
-        <transition event="CMD_OK" target="idle" />
-    </state>
-
-    <state id="failure">
-        <transition event="CMD_OK" target="idle" />
-    </state>
+		<!-- This skill is a condition so there is no halt -->
+		<transition event="CMD_TICK" target="levelCheck"/>
+		<transition event="BATTERY_LEVEL" target="idle">
+			<assign expr="_event.data.result" location="m_level"/>
+		</transition>
+	</state>
+	<state id="levelCheck" viz:xywh="200 0 120 40">
+		<onentry>
+            <log expr='"levelCheck"'/>
+			<if cond="m_level > 30.0">
+				<send event="TICK_RESPONSE">
+					<param expr="&quot;SUCCESS&quot;" name="result"/>
+				</send>
+				<else/>
+				<send event="TICK_RESPONSE">
+					<param expr="&quot;FAILURE&quot;" name="result"/>
+				</send>
+			</if>
+		</onentry>
+		<transition target="idle"/>
+	</state>
 </scxml>
-
+<!-- datamodel="cplusplus:BatteryLevelDataModel:BatteryLevelDataModel.h" -->
