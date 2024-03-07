@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(other_interfaces)
+project(drain_interfaces)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -12,10 +12,10 @@ find_package(sensor_msgs REQUIRED)
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
-rosidl_generate_interfaces(other_interfaces
-"srv/RpcWithoutParameters.srv"
+rosidl_generate_interfaces(drain_interfaces
+"srv/Drain.srv"
 DEPENDENCIES sensor_msgs
-LIBRARY_NAME other_interfaces 
+LIBRARY_NAME drain_interfaces 
 )
 ament_export_dependencies( sensor_msgs)
 
