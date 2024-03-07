@@ -7,7 +7,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(bt_interfaces REQUIRED)
-find_package(other_interfaces REQUIRED)
+find_package(drain_interfaces REQUIRED)
 find_package(Qt6 COMPONENTS Core Scxml StateMachine  REQUIRED)
 add_executable(${PROJECT_NAME} )
 
@@ -20,7 +20,7 @@ endif()
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-ament_target_dependencies(${PROJECT_NAME} bt_interfaces other_interfaces rclcpp)
+ament_target_dependencies(${PROJECT_NAME} bt_interfaces drain_interfaces rclcpp)
 target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Scxml Qt6::StateMachine)
 target_include_directories(${PROJECT_NAME}
   PUBLIC
@@ -29,9 +29,7 @@ target_include_directories(${PROJECT_NAME}
 target_sources( ${PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp 
   ${CMAKE_CURRENT_SOURCE_DIR}/src/BatteryDrainerSkill.cpp 
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/BatteryDrainerSkill.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/BatteryDrainerDataModel.cpp 
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/BatteryDrainerDataModel.h)
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/BatteryDrainerSkill.h)
 
 
 install(TARGETS ${PROJECT_NAME}
