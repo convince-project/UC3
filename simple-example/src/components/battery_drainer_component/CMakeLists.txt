@@ -15,7 +15,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(other_interfaces REQUIRED)
+find_package(drain_interfaces REQUIRED)
 find_package(sensor_msgs REQUIRED)
 add_executable(${PROJECT_NAME} )
 
@@ -26,7 +26,7 @@ add_executable(${PROJECT_NAME} )
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-ament_target_dependencies(${PROJECT_NAME} other_interfaces rclcpp sensor_msgs)
+ament_target_dependencies(${PROJECT_NAME} drain_interfaces rclcpp sensor_msgs)
 
 target_include_directories(${PROJECT_NAME}
   PUBLIC

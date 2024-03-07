@@ -8,7 +8,7 @@
 
 #include <mutex>
 #include <rclcpp/rclcpp.hpp>
-#include <other_interfaces/srv/rpc_without_parameters.hpp>
+#include <drain_interfaces/srv/drain.hpp>
 #include <set>
 
 class BatteryDrainerComponent
@@ -26,13 +26,13 @@ public:
 
 
         m_node = rclcpp::Node::make_shared("BatteryDrainerComponentNode");
-        m_drainService = m_node->create_service<other_interfaces::srv::RpcWithoutParameters>("/BatteryDrainerComponent/Drain",  
+        m_drainService = m_node->create_service<drain_interfaces::srv::Drain>("/BatteryDrainerComponent/Drain",  
                                                                                     std::bind(&BatteryDrainerComponent::drain,
                                                                                     this,
                                                                                     std::placeholders::_1,
                                                                                     std::placeholders::_2));
-        RCLCPP_DEBUG(m_node->get_logger(), "BatteryDrainerComponent::start");
-        std::cout << "BatteryDrainerComponent::start";        
+        // RCLCPP_DEBUG(m_node->get_logger(), "BatteryDrainerComponent::start");
+        std::cout << "BatteryDrainerComponent::start" << std::endl;        
         return true;
 
 
@@ -49,18 +49,20 @@ public:
         rclcpp::spin(m_node);  
     }
 
-    void drain([[maybe_unused]] const std::shared_ptr<other_interfaces::srv::RpcWithoutParameters::Request> request,
-               [[maybe_unused]] std::shared_ptr<other_interfaces::srv::RpcWithoutParameters::Response>      response) 
+    void drain([[maybe_unused]] const std::shared_ptr<drain_interfaces::srv::Drain::Request> request,
+               [[maybe_unused]] std::shared_ptr<drain_interfaces::srv::Drain::Response>      response) 
     {
         //m_ibattery->getBatteryCharge(m_level);
         
-        std::cout <<"draining";  
+        // std::cout <<"draining" << std::endl;
+        response->is_ok = true;
+        std::this_thread::sleep_for (std::chrono::milliseconds(500));
 
     }
 
 private:
     //double m_level { 100.0 };
     rclcpp::Node::SharedPtr m_node;
-    rclcpp::Service<other_interfaces::srv::RpcWithoutParameters>::SharedPtr m_drainService;
+    rclcpp::Service<drain_interfaces::srv::Drain>::SharedPtr m_drainService;
 
 };
