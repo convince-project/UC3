@@ -1,33 +1,74 @@
-<scxml 
-  initial="idle" 
-  version="1.0" 
-  name="BatteryDrainerSkillSM"
-  datamodel="cplusplus:BatteryDrainerDataModel:BatteryDrainerDataModel.h"
-  xmlns="http://www.w3.org/2005/07/scxml">
+<scxml
+    initial="idle"
+    version="1.0"
+    name="BatteryDrainerSkillSM"
+    datamodel="ecmascript"
+    xmlns="http://www.w3.org/2005/07/scxml">
 
-    <state id="success">
-        <transition event="CMD_OK" target="idle" />
-        <transition event="CMD_HALT" target="idle" />
+
+    <state id="idle">
+        <onentry>
+            <log expr='"idle"'/>
+        </onentry>
+        <transition event="haltCall" target="halt" />
+        <transition event="tickCall" target="drain" />
+
+    </state>
+
+    <state id="halt">
+        <onentry>
+            <log expr='"halt"'/>
+           <send event="haltReturn" />
+        </onentry>
+        <transition target="idle" />
     </state>
 
     <state id="drain">
         <onentry>
-            <script>
-                drain();
-            </script>
+            <log expr='"drain"'/>
+            <send event="BatteryDriverCmp.drainCall"/>
         </onentry>
-        <transition event="CMD_SUCCESS" target="success"/>
-        <transition event="CMD_HALT" target="idle" />
+        <transition target="drainRunning"/>
     </state>
 
-    <state id="active">
-        <transition event="CMD_DRAIN" target="drain" />
-        <transition event="CMD_HALT" target="idle" />
+    <state id="drainSuccess">
+
+        <onentry>
+            <log expr='"drainSuccess"'/>
+            <send event="tickReturn" >
+                <param name="result" expr='"SUCCESS"'/>
+            </send>
+        </onentry>
+        <transition target="idle" />
     </state>
 
-    <state id="idle">
-        <transition event="CMD_START" target="active" />
+    <state id="drainRunning">
+            
+        <onentry>
+            <log expr='"drainRunning"'/>
+            <send event="tickReturn"  >
+                <param name="result" expr='"RUNNING"'/>
+            </send>
+        </onentry>
+        <transition event="haltCall" target="waitHalt" />
+        <transition event="tickCall" target="drainRunning" />
+        <transition event="BatteryDriverCmp.drainReturn" target="waitTick"/>
     </state>
-    
+
+    <state id="waitHalt">
+        <onentry>
+            <log expr='"waitHalt"'/>
+        </onentry>
+        <!-- The BT will not send other events when in this state -->
+        <transition event="BatteryDriverCmp.drainReturn" target="halt"/>
+    </state>
+
+    <state id="waitTick">
+        <onentry>
+            <log expr='"waitTick"'/>
+        </onentry>
+        <!-- The BatteryDrainerCmp will not send other Return events when in this state -->
+        <transition event="haltCall" target="halt" />
+        <transition event="tickCall" target="drainSuccess"/>
+    </state>
 </scxml>
-
