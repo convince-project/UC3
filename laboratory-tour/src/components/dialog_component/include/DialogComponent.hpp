@@ -18,6 +18,7 @@
 #include <yarp/dev/PolyDriver.h>
 #include <yarp/dev/ISpeechSynthesizer.h>
 #include <yarp/dev/IChatBot.h>
+#include <yarp/dev/IAudioGrabberSound.h>
 #include <dialog_interfaces/srv/get_language.hpp>
 #include <dialog_interfaces/srv/set_language.hpp>
 #include <dialog_interfaces/srv/enable_dialog.hpp>
@@ -45,7 +46,9 @@ private:
     yarp::dev::PolyDriver m_speechSynthPoly;
     yarp::dev::ISpeechSynthesizer *m_iSpeechSynth{nullptr};
     yarp::dev::PolyDriver m_chatBotPoly;
-    yarp::dev::ISpeechSynthesizer *m_iChatBot{nullptr};
+    yarp::dev::IChatBot *m_iChatBot{nullptr};
+    yarp::dev::PolyDriver m_audioRecorderPoly;
+    yarp::dev::IAudioGrabberSound *m_iAudioGrabberSound{nullptr};
     SpeechTranscriberCallback m_speechTranscriberCallback;
     std::string m_speechTranscriberClientName;
     std::string m_speechTranscriberServerName;
