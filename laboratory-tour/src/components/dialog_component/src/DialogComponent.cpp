@@ -24,93 +24,149 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
     }
 
     // -------------------------Speech Synthesizer nwc---------------------------------
-    okCheck = rf.check("SPEECHSYNTHESIZER-CLIENT");
     std::string device = "speechSynthesizer_nwc_yarp";
     std::string local = "/DialogComponent/speechClient";
     std::string remote = "/speechSynthesizer/speechServer";
-
-    if (okCheck)
     {
-        yarp::os::Searchable &speech_config = rf.findGroup("SPEECHSYNTHESIZER-CLIENT");
-        if (speech_config.check("device"))
+        okCheck = rf.check("SPEECHSYNTHESIZER-CLIENT");
+        if (okCheck)
         {
-            device = speech_config.find("device").asString();
+            yarp::os::Searchable &speech_config = rf.findGroup("SPEECHSYNTHESIZER-CLIENT");
+            if (speech_config.check("device"))
+            {
+                device = speech_config.find("device").asString();
+            }
+            if (speech_config.check("local-suffix"))
+            {
+                local = "/DialogComponent" + speech_config.find("local-suffix").asString();
+            }
+            if (speech_config.check("remote"))
+            {
+                remote = speech_config.find("remote").asString();
+            }
         }
-        if (speech_config.check("local-suffix"))
+
+        yarp::os::Property prop;
+        prop.put("device", device);
+        prop.put("local", local);
+        prop.put("remote", remote);
+
+        m_speechSynthPoly.open(prop);
+        if (!m_speechSynthPoly.isValid())
         {
-            local = "/DialogComponent" + speech_config.find("local-suffix").asString();
+            yError() << "Error opening speech synthesizer Client PolyDriver. Check parameters";
+            return false;
         }
-        if (speech_config.check("remote"))
+        m_speechSynthPoly.view(m_iSpeechSynth);
+        if (!m_iSpeechSynth)
         {
-            remote = speech_config.find("remote").asString();
+            yError() << "Error opening iSpeechSynth interface. Device not available";
+            return false;
+        }
+
+        //Try automatic yarp port Connection
+        if(! yarp::os::Network::connect(remote, local))
+        {
+            yWarning() << "[DialogComponent::ConfigureYARP] Unable to connect: " << local << " to: " << remote;
         }
     }
-
-    yarp::os::Property prop;
-    prop.put("device", device);
-    prop.put("local", local);
-    prop.put("remote", remote);
-
-    m_speechSynthPoly.open(prop);
-    if (!m_speechSynthPoly.isValid())
-    {
-        yError() << "Error opening speech synthesizer Client PolyDriver. Check parameters";
-        return false;
-    }
-    m_speechSynthPoly.view(m_iSpeechSynth);
-    if (!m_iSpeechSynth)
-    {
-        yError() << "Error opening iSpeechSynth interface. Device not available";
-        return false;
-    }
-
     // -------------------------Dialog Flow chatBot nwc---------------------------------
-    okCheck = rf.check("CHATBOT-CLIENT");
-    device = "chatBot_nws_yarp";
-    local = "/DialogComponent/chatBotClient";
-    remote = "/dialogFlow/portname";
-
-    if (okCheck)
     {
-        yarp::os::Searchable &chatBot_config = rf.findGroup("CHATBOT-CLIENT");
-        if (chatBot_config.check("device"))
+        okCheck = rf.check("CHATBOT-CLIENT");
+        device = "chatBot_nws_yarp";
+        local = "/DialogComponent/chatBotClient";
+        remote = "/dialogFlow/portname";
+
+        if (okCheck)
         {
-            device = chatBot_config.find("device").asString();
+            yarp::os::Searchable &chatBot_config = rf.findGroup("CHATBOT-CLIENT");
+            if (chatBot_config.check("device"))
+            {
+                device = chatBot_config.find("device").asString();
+            }
+            if (chatBot_config.check("local-suffix"))
+            {
+                local = "/DialogComponent" + chatBot_config.find("local-suffix").asString();
+            }
+            if (chatBot_config.check("remote"))
+            {
+                remote = chatBot_config.find("remote").asString();
+            }
         }
-        if (chatBot_config.check("local-suffix"))
+
+        yarp::os::Property chatbot_prop;
+        chatbot_prop.put("device", device);
+        chatbot_prop.put("local", local);
+        chatbot_prop.put("remote", remote);
+
+        m_chatBotPoly.open(chatbot_prop);
+        if (!m_chatBotPoly.isValid())
         {
-            local = "/DialogComponent" + chatBot_config.find("local-suffix").asString();
+            yError() << "Error opening chatBot Client PolyDriver. Check parameters";
+            return false;
         }
-        if (chatBot_config.check("remote"))
+        m_chatBotPoly.view(m_iChatBot);
+        if (!m_iChatBot)
         {
-            remote = chatBot_config.find("remote").asString();
+            yError() << "Error opening iChatBot interface. Device not available";
+            return false;
+        }
+
+        //Try automatic yarp port Connection
+        if(! yarp::os::Network::connect(remote, local))
+        {
+            yWarning() << "[DialogComponent::ConfigureYARP] Unable to connect: " << local << " to: " << remote;
         }
     }
-
-    yarp::os::Property chatbot_prop;
-    chatbot_prop.put("device", device);
-    chatbot_prop.put("local", local);
-    chatbot_prop.put("remote", remote);
-
-    m_chatBotPoly.open(chatbot_prop);
-    if (!m_chatBotPoly.isValid())
-    {
-        yError() << "Error opening chatBot Client PolyDriver. Check parameters";
-        return false;
-    }
-    m_chatBotPoly.view(m_iChatBot);
-    if (!m_iChatBot)
-    {
-        yError() << "Error opening iChatBot interface. Device not available";
-        return false;
-    }
-
     // ---------------------Microphone Activation----------------------------
+    {
+        okCheck = rf.check("AUDIORECORDER-CLIENT");
+        device = "audioRecorder_nwc_yarp";
+        local = "/DialogComponent/audio:i";
+        remote = "/audioRecorder/audio:o";
 
-    
+        if (okCheck)
+        {
+            yarp::os::Searchable &mic_config = rf.findGroup("AUDIORECORDER-CLIENT");
+            if (mic_config.check("device"))
+            {
+                device = mic_config.find("device").asString();
+            }
+            if (mic_config.check("local-suffix"))
+            {
+                local = "/DialogComponent" + mic_config.find("local-suffix").asString();
+            }
+            if (mic_config.check("remote"))
+            {
+                remote = mic_config.find("remote").asString();
+            }
+        }
 
-    //Audio Device Helper
-    //m_audioDeviceHelper.ConfigureYARP(rf);
+        yarp::os::Property audioRecorder_prop;
+        audioRecorder_prop.put("device", device);
+        audioRecorder_prop.put("local", local);
+        audioRecorder_prop.put("remote", remote);
+
+        m_audioRecorderPoly.open(audioRecorder_prop);
+        if (!m_audioRecorderPoly.isValid())
+        {
+            yError() << "Error opening audioRecorder Client PolyDriver. Check parameters";
+            return false;
+        }
+        m_audioRecorderPoly.view(m_iAudioGrabberSound);
+        if (!m_iAudioGrabberSound)
+        {
+            yError() << "Error opening audioRecorderSound interface. Device not available";
+            return false;
+        }
+
+        //Try automatic yarp port Connection
+        if(! yarp::os::Network::connect(remote, local))
+        {
+            yWarning() << "[DialogComponent::ConfigureYARP] Unable to connect: " << local << " to: " << remote;
+        }
+    }
+
     return true;
 }
 
@@ -140,7 +196,7 @@ bool DialogComponent::start(int argc, char*argv[])
 
     m_speechTranscriberPort.useCallback(m_speechTranscriberCallback);
     m_speechTranscriberPort.open(m_speechTranscriberClientName);
-    // Try Automatic connection
+    // Try Automatic port connection
     if(! yarp::os::Network::connect(m_speechTranscriberServerName, m_speechTranscriberClientName))
     {
         yWarning() << "[DialogComponent::start] Unable to connect to: " << m_speechTranscriberServerName;
@@ -167,7 +223,20 @@ void DialogComponent::EnableDialog(const std::shared_ptr<dialog_interfaces::srv:
 {
     if (request->enable)
     {
-        // TODO enable mic
+        // Enable mic
+        bool recording = false;
+        m_iAudioGrabberSound->isRecording(recording);
+        if (!recording)
+        {
+            if (! m_iAudioGrabberSound->startRecording())
+            {
+                yError() << "[DialogComponent::EnableDialog] Unable to start recording the mic";
+                response->is_ok=false;
+                return;
+            }
+        }
+        
+        // TODO VAD port connection ??
 
         // Todo launch thread that periodically reads the callback
         
@@ -175,7 +244,19 @@ void DialogComponent::EnableDialog(const std::shared_ptr<dialog_interfaces::srv:
     }
     else
     {
-        // TODO disable mic
+        // Disable mic
+        bool recording = false;
+        m_iAudioGrabberSound->isRecording(recording);
+        if (recording)
+        {
+            if (! m_iAudioGrabberSound->stopRecording())
+            {
+                yError() << "[DialogComponent::EnableDialog] Unable to stop recording the mic";
+                response->is_ok=false;
+                return; //should we still go on?
+            }
+        }
+        // TODO VAD port disconnection ??
 
         // TODO kill thread and stop the speaking
         
