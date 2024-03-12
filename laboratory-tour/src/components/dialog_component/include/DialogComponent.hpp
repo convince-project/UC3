@@ -23,7 +23,10 @@
 #include <dialog_interfaces/srv/set_language.hpp>
 #include <dialog_interfaces/srv/enable_dialog.hpp>
 
+#include "nlohmann/json.hpp"
+
 #include "SpeechTranscriberCallback.hpp"
+#include "TourStorage.h"
 
 class DialogComponent 
 {
@@ -50,6 +53,7 @@ private:
     yarp::dev::PolyDriver m_audioRecorderPoly;
     yarp::dev::IAudioGrabberSound *m_iAudioGrabberSound{nullptr};
     SpeechTranscriberCallback m_speechTranscriberCallback;
+
     std::string m_speechTranscriberClientName;
     std::string m_speechTranscriberServerName;
     yarp::os::BufferedPort<yarp::os::Bottle> m_speechTranscriberPort;
@@ -60,6 +64,12 @@ private:
     rclcpp::Service<dialog_interfaces::srv::SetLanguage>::SharedPtr m_setLanguageService;
     rclcpp::Service<dialog_interfaces::srv::EnableDialog>::SharedPtr m_enableDialogService;
     std::mutex m_mutex;
+
+    /*Dialog JSON*/
+    std::shared_ptr<TourStorage> m_tourStorage;
+    std::string m_jsonPath;
+    std::string m_tourName;
+    bool m_tourLoadedAtStart;
 };
 
 #endif
