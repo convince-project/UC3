@@ -1,9 +1,13 @@
 #include "DialogComponent.hpp"
 
+#include <fstream>
+#include <iostream>
+
 DialogComponent::DialogComponent()
 {
     m_speechTranscriberClientName = "/DialogComponent/speechTranscriberClient:i";
     m_speechTranscriberServerName = "/speechTranscriberServer:o";
+    m_tourLoadedAtStart = false;
 }
 
 bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
@@ -54,13 +58,13 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
         m_speechSynthPoly.open(prop);
         if (!m_speechSynthPoly.isValid())
         {
-            yError() << "Error opening speech synthesizer Client PolyDriver. Check parameters";
+            yError() << "[DialogComponent::ConfigureYARP] Error opening speech synthesizer Client PolyDriver. Check parameters";
             return false;
         }
         m_speechSynthPoly.view(m_iSpeechSynth);
         if (!m_iSpeechSynth)
         {
-            yError() << "Error opening iSpeechSynth interface. Device not available";
+            yError() << "[DialogComponent::ConfigureYARP] Error opening iSpeechSynth interface. Device not available";
             return false;
         }
 
@@ -102,13 +106,13 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
         m_chatBotPoly.open(chatbot_prop);
         if (!m_chatBotPoly.isValid())
         {
-            yError() << "Error opening chatBot Client PolyDriver. Check parameters";
+            yError() << "[DialogComponent::ConfigureYARP] Error opening chatBot Client PolyDriver. Check parameters";
             return false;
         }
         m_chatBotPoly.view(m_iChatBot);
         if (!m_iChatBot)
         {
-            yError() << "Error opening iChatBot interface. Device not available";
+            yError() << "[DialogComponent::ConfigureYARP] Error opening iChatBot interface. Device not available";
             return false;
         }
 
@@ -150,13 +154,13 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
         m_audioRecorderPoly.open(audioRecorder_prop);
         if (!m_audioRecorderPoly.isValid())
         {
-            yError() << "Error opening audioRecorder Client PolyDriver. Check parameters";
+            yError() << "[DialogComponent::ConfigureYARP] Error opening audioRecorder Client PolyDriver. Check parameters";
             return false;
         }
         m_audioRecorderPoly.view(m_iAudioGrabberSound);
         if (!m_iAudioGrabberSound)
         {
-            yError() << "Error opening audioRecorderSound interface. Device not available";
+            yError() << "[DialogComponent::ConfigureYARP] Error opening audioRecorderSound interface. Device not available";
             return false;
         }
 
@@ -167,11 +171,50 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
         }
     }
 
+    // TOUR MANAGER
+    {
+        if (! m_tourLoadedAtStart)
+        {
+            okCheck = rf.check("TOUR-MANAGER");
+            if (okCheck)
+            {
+                yarp::os::Searchable &tour_config = rf.findGroup("TOUR-MANAGER");
+                if (tour_config.check("path"))
+                {
+                    m_jsonPath = tour_config.find("path").asString();
+                }
+                if (tour_config.check("tour_name"))
+                {
+                    m_tourName = tour_config.find("tour_name").asString();
+                }
+                
+                m_tourStorage = std::make_shared<TourStorage>(); 
+                if( !m_tourStorage->LoadTour(m_jsonPath, m_tourName))
+                {
+                    yError() << "[DialogComponent::ConfigureYARP] Unable to load tour from the given arguments: " << m_jsonPath << " and: " << m_tourName;
+                    return false;
+                }
+            }
+        }
+    }
+    yInfo() << "[DialogComponent::ConfigureYARP] Successfully configured component";
     return true;
 }
 
 bool DialogComponent::start(int argc, char*argv[])
 {
+    // Loads the tour json from the file and saves a reference to the class, if the arguments are being passed at start.
+    if (argc >= 2)
+    {
+        m_tourStorage = std::make_shared<TourStorage>(); 
+        if( !m_tourStorage->LoadTour(argv[0], argv[1]))
+        {
+            yError() << "[DialogComponent::start] Unable to load tour from the given arguments: " << argv[0] << " and " << argv[1];
+            return false;
+        }
+        m_tourLoadedAtStart = true;
+    }
+
     if(!rclcpp::ok())
     {
         rclcpp::init(/*argc*/ argc, /*argv*/ argv);
@@ -230,7 +273,7 @@ void DialogComponent::EnableDialog(const std::shared_ptr<dialog_interfaces::srv:
         {
             if (! m_iAudioGrabberSound->startRecording())
             {
-                yError() << "[DialogComponent::EnableDialog] Unable to start recording the mic";
+                yError() << "[DialogComponent::EnableDialog] Unable to start recording of the mic";
                 response->is_ok=false;
                 return;
             }
@@ -251,7 +294,7 @@ void DialogComponent::EnableDialog(const std::shared_ptr<dialog_interfaces::srv:
         {
             if (! m_iAudioGrabberSound->stopRecording())
             {
-                yError() << "[DialogComponent::EnableDialog] Unable to stop recording the mic";
+                yError() << "[DialogComponent::EnableDialog] Unable to stop recording of the mic";
                 response->is_ok=false;
                 return; //should we still go on?
             }
@@ -272,15 +315,20 @@ void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::
     {
         response->is_ok=false;
         response->error_msg="Empty string passed to setting language";
+        return;
     }
-    else if (!m_iSpeechSynth->setLanguage(request->new_language))
+
+    if (!m_iSpeechSynth->setLanguage(request->new_language))
+    {
+        response->is_ok=false;
+        response->error_msg="Unable to set new language to speech Synth";
+        return;
+    }
+    if (m_iChatBot->setLanguage(request->new_language))
     {
         response->is_ok=false;
         response->error_msg="Unable to set new language";
-    }
-    else
-    {
-        response->is_ok=true;
+        return;
     }
 }
 
