@@ -38,7 +38,7 @@ public:
     void spin();
     bool ConfigureYARP(yarp::os::ResourceFinder &rf);
 
-    void GetLanguage(const std::shared_ptr<dialog_interfaces::srv::GetLanguage::Request> request,
+    void GetLanguage([[maybe_unused]] const std::shared_ptr<dialog_interfaces::srv::GetLanguage::Request> request,
                         std::shared_ptr<dialog_interfaces::srv::GetLanguage::Response> response);
     void SetLanguage(const std::shared_ptr<dialog_interfaces::srv::SetLanguage::Request> request,
                         std::shared_ptr<dialog_interfaces::srv::SetLanguage::Response> response);
