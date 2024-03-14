@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <random>
 
 using namespace std::chrono_literals;
 
@@ -10,6 +11,7 @@ DialogComponent::DialogComponent()
     m_speechTranscriberClientName = "/DialogComponent/speechTranscriberClient:i";
     m_speechTranscriberServerName = "/speechTranscriberServer:o";
     m_tourLoadedAtStart = false;
+    m_currentPoiName = "";
 }
 
 bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
@@ -312,18 +314,14 @@ void DialogComponent::EnableDialog(const std::shared_ptr<dialog_interfaces::srv:
                 return;
             }
         }
-        
-        // TODO VAD port connection ??
 
         // Launch thread that periodically reads the callback from the port and manages the dialog
         if (m_dialogThread.joinable())
         {
             m_dialogThread.join();
         }
-        
         m_dialogThread = std::thread(&DialogComponent::DialogExecution, this);
 
-        
         response->is_ok=true;
     }
     else
@@ -337,10 +335,9 @@ void DialogComponent::EnableDialog(const std::shared_ptr<dialog_interfaces::srv:
             {
                 yError() << "[DialogComponent::EnableDialog] Unable to stop recording of the mic";
                 response->is_ok=false;
-                return; //should we still go on?
+                return; //should we still go on? TODO
             }
         }
-        // TODO VAD port disconnection ??
 
         // TODO kill thread and stop the speaking
         if (m_dialogThread.joinable())
@@ -374,6 +371,15 @@ void DialogComponent::DialogExecution()
             continue;
         }
 
+        // Get the poi object from the Tour manager
+        PoI currentPoi;
+        if(!m_tourStorage->GetTour().getPoI(m_currentPoiName, currentPoi))
+        {
+            yError() << "[DialogComponent::DialogExecution] Unable to get the current PoI name: " << m_currentPoiName;
+            std::this_thread::sleep_for(wait_ms);
+            continue;
+        }
+
         // Pass it to DialogFlow
         std::string answerText = "";
         if(!m_iChatBot->interact(questionText, answerText))
@@ -383,8 +389,15 @@ void DialogComponent::DialogExecution()
             continue;
         }
 
-        // Give response based on the Tour manager
-
+        // Get the Action to perform from the PoI
+        std::vector<Action> actionList;
+        if(!currentPoi.getActions("speak", actionList))
+        {
+            yError() << "[DialogComponent::DialogExecution] Unable to get the the Action List of the current PoI: " << m_currentPoiName;
+            std::this_thread::sleep_for(wait_ms);
+            continue;
+        }
+        std::string text = actionList.at(0).getParam();
 
         // Synthetise the answer text
         yarp::sig::Sound synthesizedSound;
@@ -395,15 +408,166 @@ void DialogComponent::DialogExecution()
             continue;
         }
 
-        // Pass the sound to the speaker
+        // Pass the sound to the speaker -> Do I have to shut down also the mic ?? TODO
         m_speakersAudioPort.prepare() = synthesizedSound;
         //auto & buffer = m_speakersAudioPort.prepare();
         //buffer.clear();
         //buffer = synthesizedSound;
         m_speakersAudioPort.write();
-        std::this_thread::sleep_for(wait_ms);
+        //std::this_thread::sleep_for(wait_ms);
     }
     return;
+}
+
+bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPoI, PoI genericPoI, std::string & phrase)
+{
+    bool isOk = false;
+    std::vector<Action> actions;
+    std::string cmd;
+
+    bool isCurrent = currentPoI.isCommandValid(command);
+    bool isGeneric = genericPoI.isCommandValid(command);
+
+    if (isCurrent || isGeneric) // If the command is available either in the current PoI or the generic ones
+    {
+        int cmd_multiples;
+        if (isCurrent) // If it is in the current overwrite the generic
+        {
+            cmd_multiples = currentPoI.getCommandMultiplesNum(command);
+        }
+        else
+        {
+            cmd_multiples = genericPoI.getCommandMultiplesNum(command);
+        }
+
+        // could be removed
+        if (cmd_multiples > 1)
+        {
+            std::uniform_int_distribution<std::mt19937::result_type> uniform_distrib;
+            uniform_distrib.param(std::uniform_int_distribution<std::mt19937::result_type>::param_type(1, cmd_multiples));
+            std::mt19937 random_gen;
+            int index = uniform_distrib(random_gen) - 1;
+
+            cmd = command;
+            if (index != 0)
+            {
+                cmd = cmd.append(std::to_string(index));
+            }
+        }
+        else // The is only 1 command. It cannot be 0 because we checked if the command is available at the beginning
+        {
+            cmd = command;
+        }
+
+        if (isCurrent)
+        {
+            isOk = currentPoI.getActions(cmd, actions);
+        }
+        else
+        {
+            isOk = genericPoI.getActions(cmd, actions);
+        }
+    }
+    else // Command is not available anywhere, return error and skip
+    {
+        yWarning() << "Command: " << command << " , not supported in either the PoI or the generics list. Skipping...";
+    }
+
+    if (isOk && !actions.empty())
+    {
+        int actionIndex = 0;
+        bool isCommandBlocking = true;
+        Action lastNonSignalAction;
+
+        while (actionIndex < actions.size())
+        {
+            std::vector<Action> tempActions;
+            for (int i = actionIndex; i < actions.size(); i++)
+            {
+                tempActions.push_back(actions[i]);
+                if (actions[i].getType() != ActionTypes::SIGNAL)
+                {
+                    lastNonSignalAction = actions[i];
+                }
+                if (actions[i].isBlocking())
+                {
+                    actionIndex = i + 1;
+                    break;
+                }
+                else
+                {
+                    if (i == actions.size() - 1)
+                    {
+                        actionIndex = actions.size();
+                        if (!lastNonSignalAction.isBlocking())
+                        {
+                            isCommandBlocking = false;
+                        }
+                    }
+                }
+            }
+
+            bool containsSpeak = false;
+
+            for (Action action : tempActions) // Loops through all the actions until the blocking one. Execute all of them
+            {
+                switch (action.getType())
+                {
+                    case ActionTypes::SPEAK:
+                    {
+                        // Speak, but make it invalid if it is a fallback or it is an error message
+                        //Speak(action.getParam(), (cmd != "fallback" && cmd.find("Error") == std::string::npos));
+                        phrase = action.getParam();
+                        containsSpeak = true;
+                        return true;    // we are interested into phrase
+                        break;
+                    }
+                    case ActionTypes::INVALID:
+                    {
+                        yError() << "I got an INVALID ActionType in command" << command;
+                        break;
+                    }
+                    default:
+                    {
+                        yError() << "I got an unknown ActionType: " << command;
+                        break;
+                    }
+                }
+            }
+            return false;
+
+            //if (containsSpeak && isCommandBlocking) // Waits for the longest move in the temp list of blocked moves and speak. If there is nothing in the temp list because we are not blocking it is skipped.
+            //{
+            //    m_
+            //    while (containsSpeak && !m_headSynchronizer.isSpeaking())
+            //    {
+            //        yarp::os::Time::delay(0.1);
+            //    }
+            //    while (m_headSynchronizer.isSpeaking())
+            //    {
+            //        yarp::os::Time::delay(0.1);
+            //    }
+            //}
+        }
+
+        //if (cmd == "fallback")
+        //{
+        //    m_fallback_repeat_counter++;
+        //    if (m_fallback_repeat_counter == m_fallback_threshold)
+        //    { // If the same command has been received as many times as the threshold, then repeat the question.
+        //        Speak(m_last_valid_speak, true);
+        //        BlockSpeak();
+        //        m_fallback_repeat_counter = 0;
+        //    }
+        //    Signal("startHearing"); // Open the ears after we handled the fallback to get a response.
+        //}
+        //else
+        //{
+        //    m_fallback_repeat_counter = 0;
+        //}
+        //return true;
+    }
+    return false;
 }
 
 void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::SetLanguage::Request> request,
@@ -428,6 +592,7 @@ void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::
         response->error_msg="Unable to set new language";
         return;
     }
+    // TODO TourManagerStorage
 }
 
 void DialogComponent::GetLanguage([[maybe_unused]] const std::shared_ptr<dialog_interfaces::srv::GetLanguage::Request> request,

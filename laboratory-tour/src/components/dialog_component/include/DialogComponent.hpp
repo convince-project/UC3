@@ -53,9 +53,8 @@ private:
     yarp::dev::IChatBot *m_iChatBot{nullptr};
     yarp::dev::PolyDriver m_audioRecorderPoly;
     yarp::dev::IAudioGrabberSound *m_iAudioGrabberSound{nullptr};
-    SpeechTranscriberCallback m_speechTranscriberCallback;
 
-    /*Microphone*/
+    SpeechTranscriberCallback m_speechTranscriberCallback;
     std::string m_speechTranscriberClientName;
     std::string m_speechTranscriberServerName;
     yarp::os::BufferedPort<yarp::os::Bottle> m_speechTranscriberPort;
@@ -72,6 +71,7 @@ private:
 
     /*Dialog JSON*/
     std::shared_ptr<TourStorage> m_tourStorage;
+    std::string m_currentPoiName;
     std::string m_jsonPath;
     std::string m_tourName;
     bool m_tourLoadedAtStart;
@@ -79,6 +79,7 @@ private:
     /*Threading*/
     std::thread m_dialogThread;
     void DialogExecution();
+    bool InterpretCommand(const std::string &command, PoI currentPoI, PoI genericPoI, std::string & phrase);
 };
 
 #endif
