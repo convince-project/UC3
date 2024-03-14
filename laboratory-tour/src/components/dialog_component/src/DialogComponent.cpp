@@ -3,6 +3,8 @@
 #include <fstream>
 #include <iostream>
 
+using namespace std::chrono_literals;
+
 DialogComponent::DialogComponent()
 {
     m_speechTranscriberClientName = "/DialogComponent/speechTranscriberClient:i";
@@ -24,6 +26,14 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
         if (component_config.check("remote-port"))
         {
             m_speechTranscriberServerName = component_config.find("remote-port").asString();
+        }
+
+        m_speechTranscriberPort.useCallback(m_speechTranscriberCallback);
+        m_speechTranscriberPort.open(m_speechTranscriberClientName);
+        // Try Automatic port connection
+        if(! yarp::os::Network::connect(m_speechTranscriberServerName, m_speechTranscriberClientName))
+        {
+            yWarning() << "[DialogComponent::start] Unable to connect to: " << m_speechTranscriberServerName;
         }
     }
 
@@ -197,6 +207,32 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
             }
         }
     }
+
+    // SPEAKERS
+    {
+        okCheck = rf.check("SPEAKERS");
+        if (okCheck)
+        {
+            yarp::os::Searchable &speakersConfig = rf.findGroup("SPEAKERS");
+            std::string localName = "/DialogComponent/audioOut";
+            std::string remoteName = "/audioPlayerWrapper";
+            if (speakersConfig.check("remote"))
+            {
+                remoteName = speakersConfig.find("remote").asString();
+            }
+            if (speakersConfig.check("localName"))
+            {
+                localName = speakersConfig.find("localName").asString();
+            }
+
+            m_speakersAudioPort.open(localName);
+            if (!yarp::os::Network::connect(remoteName, localName))
+            {
+                yWarning() << "[DialogComponent::ConfigureYARP] Unable to connect port: " << remoteName << " with: " << localName;
+            }
+        }
+    }
+
     yInfo() << "[DialogComponent::ConfigureYARP] Successfully configured component";
     return true;
 }
@@ -236,14 +272,6 @@ bool DialogComponent::start(int argc, char*argv[])
                                                                                                 this,
                                                                                                 std::placeholders::_1,
                                                                                                 std::placeholders::_2));
-
-    m_speechTranscriberPort.useCallback(m_speechTranscriberCallback);
-    m_speechTranscriberPort.open(m_speechTranscriberClientName);
-    // Try Automatic port connection
-    if(! yarp::os::Network::connect(m_speechTranscriberServerName, m_speechTranscriberClientName))
-    {
-        yWarning() << "[DialogComponent::start] Unable to connect to: " << m_speechTranscriberServerName;
-    }
     
     RCLCPP_INFO(m_node->get_logger(), "Started node");
     return true;
@@ -252,6 +280,12 @@ bool DialogComponent::start(int argc, char*argv[])
 bool DialogComponent::close()
 {
     m_speechTranscriberPort.close();
+    m_speakersAudioPort.close();
+    if (m_dialogThread.joinable())
+    {
+        m_dialogThread.join();
+    }
+    
     rclcpp::shutdown();  
     return true;
 }
@@ -281,7 +315,14 @@ void DialogComponent::EnableDialog(const std::shared_ptr<dialog_interfaces::srv:
         
         // TODO VAD port connection ??
 
-        // Todo launch thread that periodically reads the callback
+        // Launch thread that periodically reads the callback from the port and manages the dialog
+        if (m_dialogThread.joinable())
+        {
+            m_dialogThread.join();
+        }
+        
+        m_dialogThread = std::thread(&DialogComponent::DialogExecution, this);
+
         
         response->is_ok=true;
     }
@@ -302,10 +343,67 @@ void DialogComponent::EnableDialog(const std::shared_ptr<dialog_interfaces::srv:
         // TODO VAD port disconnection ??
 
         // TODO kill thread and stop the speaking
+        if (m_dialogThread.joinable())
+        {
+            m_dialogThread.join();
+        }
         
         response->is_ok=true;
     }
     
+}
+
+void DialogComponent::DialogExecution()
+{
+    std::chrono::duration wait_ms = 200ms;
+    while (true)
+    {
+        // Check if new message has been transcribed
+        std::string questionText = "";
+        if (m_speechTranscriberCallback.hasNewMessage())
+        {
+            if (!m_speechTranscriberCallback.getText(questionText))
+            {
+                std::this_thread::sleep_for(wait_ms);
+                continue;
+            }
+        }
+        else
+        {
+            std::this_thread::sleep_for(wait_ms);
+            continue;
+        }
+
+        // Pass it to DialogFlow
+        std::string answerText = "";
+        if(!m_iChatBot->interact(questionText, answerText))
+        {
+            yError() << "[DialogComponent::DialogExecution] Unable to interact with chatBot with question: " << questionText;
+            std::this_thread::sleep_for(wait_ms);
+            continue;
+        }
+
+        // Give response based on the Tour manager
+
+
+        // Synthetise the answer text
+        yarp::sig::Sound synthesizedSound;
+        if (!m_iSpeechSynth->synthesize(answerText, synthesizedSound))
+        {
+            yError() << "[DialogComponent::DialogExecution] Unable to synthesize text: " << answerText;
+            std::this_thread::sleep_for(wait_ms);
+            continue;
+        }
+
+        // Pass the sound to the speaker
+        m_speakersAudioPort.prepare() = synthesizedSound;
+        //auto & buffer = m_speakersAudioPort.prepare();
+        //buffer.clear();
+        //buffer = synthesizedSound;
+        m_speakersAudioPort.write();
+        std::this_thread::sleep_for(wait_ms);
+    }
+    return;
 }
 
 void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::SetLanguage::Request> request,

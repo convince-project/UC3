@@ -15,6 +15,7 @@ public:
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         m_listenedText = msg.get(0).asString();
+        m_hasNewMessage = true;
     };
 
     bool getText(std::string &text)
@@ -24,11 +25,19 @@ public:
             return false;
         
         text = m_listenedText;
+        m_hasNewMessage = false;
         return true;
+    };
+
+    bool hasNewMessage()
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        return m_hasNewMessage;
     };
 private:
     std::mutex m_mutex;
     std::string m_listenedText = "";
+    bool m_hasNewMessage = false;
 };
 
 #endif

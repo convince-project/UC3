@@ -46,6 +46,7 @@ public:
                         std::shared_ptr<dialog_interfaces::srv::EnableDialog::Response> response);
 
 private:
+    /*Network Wrappers*/
     yarp::dev::PolyDriver m_speechSynthPoly;
     yarp::dev::ISpeechSynthesizer *m_iSpeechSynth{nullptr};
     yarp::dev::PolyDriver m_chatBotPoly;
@@ -54,9 +55,13 @@ private:
     yarp::dev::IAudioGrabberSound *m_iAudioGrabberSound{nullptr};
     SpeechTranscriberCallback m_speechTranscriberCallback;
 
+    /*Microphone*/
     std::string m_speechTranscriberClientName;
     std::string m_speechTranscriberServerName;
     yarp::os::BufferedPort<yarp::os::Bottle> m_speechTranscriberPort;
+
+    /*Speakers*/
+    yarp::os::BufferedPort<yarp::sig::Sound> m_speakersAudioPort;
 
     /*ROS2*/
     rclcpp::Node::SharedPtr m_node;
@@ -70,6 +75,10 @@ private:
     std::string m_jsonPath;
     std::string m_tourName;
     bool m_tourLoadedAtStart;
+
+    /*Threading*/
+    std::thread m_dialogThread;
+    void DialogExecution();
 };
 
 #endif
