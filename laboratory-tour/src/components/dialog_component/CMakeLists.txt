@@ -35,8 +35,16 @@ target_include_directories(${PROJECT_NAME}
     $<INSTALL_INTERFACE:include>)
 target_sources( ${PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/DialogComponent.cpp  
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/DialogComponent.hpp  
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/DialogComponent.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/include/SpeechTranscriberCallback.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/Action.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/Poi.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/Tour.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/TourStorage.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Action.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Poi.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Tour.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/TourStorage.h
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
 install(TARGETS ${PROJECT_NAME}

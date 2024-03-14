@@ -332,7 +332,7 @@ void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::
     }
 }
 
-void DialogComponent::GetLanguage(const std::shared_ptr<dialog_interfaces::srv::GetLanguage::Request> request,
+void DialogComponent::GetLanguage([[maybe_unused]] const std::shared_ptr<dialog_interfaces::srv::GetLanguage::Request> request,
                         std::shared_ptr<dialog_interfaces::srv::GetLanguage::Response> response)
 {
     std::string current_language="";
