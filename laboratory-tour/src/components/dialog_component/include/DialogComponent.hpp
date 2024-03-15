@@ -22,6 +22,8 @@
 #include <dialog_interfaces/srv/get_language.hpp>
 #include <dialog_interfaces/srv/set_language.hpp>
 #include <dialog_interfaces/srv/enable_dialog.hpp>
+#include <dialog_interfaces/srv/set_poi.hpp>
+#include <yarp/dev/AudioPlayerStatus.h>
 
 #include "nlohmann/json.hpp"
 
@@ -44,16 +46,22 @@ public:
                         std::shared_ptr<dialog_interfaces::srv::SetLanguage::Response> response);
     void EnableDialog(const std::shared_ptr<dialog_interfaces::srv::EnableDialog::Request> request,
                         std::shared_ptr<dialog_interfaces::srv::EnableDialog::Response> response);
+    void SetPoi(const std::shared_ptr<dialog_interfaces::srv::SetPoi::Request> request,
+                        std::shared_ptr<dialog_interfaces::srv::SetPoi::Response> response);
 
 private:
     /*Network Wrappers*/
+    // Speech Synth
     yarp::dev::PolyDriver m_speechSynthPoly;
     yarp::dev::ISpeechSynthesizer *m_iSpeechSynth{nullptr};
+    // Dialog Flow
     yarp::dev::PolyDriver m_chatBotPoly;
     yarp::dev::IChatBot *m_iChatBot{nullptr};
+    // Microphone
     yarp::dev::PolyDriver m_audioRecorderPoly;
     yarp::dev::IAudioGrabberSound *m_iAudioGrabberSound{nullptr};
 
+    // Callback on SpeechTranscriber port
     SpeechTranscriberCallback m_speechTranscriberCallback;
     std::string m_speechTranscriberClientName;
     std::string m_speechTranscriberServerName;
@@ -61,12 +69,14 @@ private:
 
     /*Speakers*/
     yarp::os::BufferedPort<yarp::sig::Sound> m_speakersAudioPort;
+    yarp::os::BufferedPort<yarp::dev::AudioPlayerStatus> m_speakersStatusPort;
 
     /*ROS2*/
     rclcpp::Node::SharedPtr m_node;
     rclcpp::Service<dialog_interfaces::srv::GetLanguage>::SharedPtr m_getLanguageService;
     rclcpp::Service<dialog_interfaces::srv::SetLanguage>::SharedPtr m_setLanguageService;
     rclcpp::Service<dialog_interfaces::srv::EnableDialog>::SharedPtr m_enableDialogService;
+    rclcpp::Service<dialog_interfaces::srv::SetPoi>::SharedPtr m_setPoiService;
     std::mutex m_mutex;
 
     /*Dialog JSON*/

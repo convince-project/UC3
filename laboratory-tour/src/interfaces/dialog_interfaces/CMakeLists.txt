@@ -19,6 +19,7 @@ rosidl_generate_interfaces(navigation_interfaces
                             "srv/SetLanguage.srv"
                             "srv/GetLanguage.srv"
                             "srv/EnableDialog.srv"
+                            "srv/SetPoi.srv"
                             DEPENDENCIES sensor_msgs
                             LIBRARY_NAME dialog_interfaces 
 )
