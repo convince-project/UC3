@@ -183,7 +183,7 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
         }
     }
 
-    // TOUR MANAGER
+    // ---------------------TOUR MANAGER-----------------------
     {
         if (! m_tourLoadedAtStart)
         {
@@ -210,27 +210,43 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
         }
     }
 
-    // SPEAKERS
+    // ---------------------SPEAKERS----------------------------
     {
         okCheck = rf.check("SPEAKERS");
         if (okCheck)
         {
             yarp::os::Searchable &speakersConfig = rf.findGroup("SPEAKERS");
-            std::string localName = "/DialogComponent/audioOut";
-            std::string remoteName = "/audioPlayerWrapper";
-            if (speakersConfig.check("remote"))
+            std::string localAudioName = "/DialogComponent/audio:o";
+            std::string remoteAudioName = "/audioPlayerWrapper:i";
+            std::string statusRemoteName = "/audioPlayerWrapper/status:o";
+            std::string statusLocalName = "/DialogComponent/audioPlayerWrapper/status:i";
+            if (speakersConfig.check("localAudioName"))
             {
-                remoteName = speakersConfig.find("remote").asString();
+                localAudioName = speakersConfig.find("localAudioName").asString();
             }
-            if (speakersConfig.check("localName"))
+            if (speakersConfig.check("remoteAudioName"))
             {
-                localName = speakersConfig.find("localName").asString();
+                remoteAudioName = speakersConfig.find("remoteAudioName").asString();
+            }
+            if (speakersConfig.check("statusRemoteName"))
+            {
+                statusRemoteName = speakersConfig.find("statusRemoteName").asString();
+            }
+            if (speakersConfig.check("statusLocalName"))
+            {
+                statusLocalName = speakersConfig.find("statusLocalName").asString();
             }
 
-            m_speakersAudioPort.open(localName);
-            if (!yarp::os::Network::connect(remoteName, localName))
+            m_speakersAudioPort.open(localAudioName);
+            if (!yarp::os::Network::connect(remoteAudioName, localAudioName))
             {
-                yWarning() << "[DialogComponent::ConfigureYARP] Unable to connect port: " << remoteName << " with: " << localName;
+                yWarning() << "[DialogComponent::ConfigureYARP] Unable to connect port: " << remoteAudioName << " with: " << localAudioName;
+            }
+
+            m_speakersStatusPort.open(statusLocalName);
+            if (!yarp::os::Network::connect(statusRemoteName, statusLocalName))
+            {
+                yWarning() << "[DialogComponent::ConfigureYARP] Unable to connect port: " << statusRemoteName << " with: " << statusLocalName;
             }
         }
     }
@@ -282,7 +298,11 @@ bool DialogComponent::start(int argc, char*argv[])
 bool DialogComponent::close()
 {
     m_speechTranscriberPort.close();
+    //Should I stop speaking somehow?
+
     m_speakersAudioPort.close();
+    m_speakersStatusPort.close();
+    
     if (m_dialogThread.joinable())
     {
         m_dialogThread.join();
@@ -344,7 +364,7 @@ void DialogComponent::EnableDialog(const std::shared_ptr<dialog_interfaces::srv:
         {
             m_dialogThread.join();
         }
-        
+
         response->is_ok=true;
     }
     
@@ -355,6 +375,27 @@ void DialogComponent::DialogExecution()
     std::chrono::duration wait_ms = 200ms;
     while (true)
     {
+        // Mic management
+        bool isRecording = false;
+        bool isPlaying = false;
+        m_iAudioGrabberSound->isRecording(isRecording);
+        //m_iRender->isPlaying(isPlaying);
+        yarp::dev::AudioPlayerStatus *playerStatus = m_speakersStatusPort.read();
+        if (playerStatus==nullptr)
+        {
+            yError() << "[DialogComponent::DialogExecution] Unable to get AudioPlayerStatus";
+            std::this_thread::sleep_for(wait_ms);
+            continue;
+        }
+        if (playerStatus->current_buffer_size > 0)
+        {
+            isPlaying = true;
+        }
+        
+        if (!isRecording && !isPlaying)
+        {
+            m_iAudioGrabberSound->startRecording();
+        }
         // Check if new message has been transcribed
         std::string questionText = "";
         if (m_speechTranscriberCallback.hasNewMessage())
@@ -379,8 +420,16 @@ void DialogComponent::DialogExecution()
             std::this_thread::sleep_for(wait_ms);
             continue;
         }
-
-        // Pass it to DialogFlow
+        // Generic PoI (TODO move to another place where it's done only once)
+        PoI genericPoI;
+        if (!m_tourStorage->GetTour().getPoI("___generic___", genericPoI))
+        {
+            yError() << "[DialogComponent::DialogExecution] Unable to get the generic PoI";
+            std::this_thread::sleep_for(wait_ms);
+            continue;
+        }
+        
+        // Pass the question to DialogFlow
         std::string answerText = "";
         if(!m_iChatBot->interact(questionText, answerText))
         {
@@ -389,25 +438,25 @@ void DialogComponent::DialogExecution()
             continue;
         }
 
-        // Get the Action to perform from the PoI
-        std::vector<Action> actionList;
-        if(!currentPoi.getActions("speak", actionList))
+        // Pass the DialogFlow answer to the JSON TourManager
+        std::string scriptedString = "";
+        if(!InterpretCommand(answerText, currentPoi, genericPoI, scriptedString))
         {
-            yError() << "[DialogComponent::DialogExecution] Unable to get the the Action List of the current PoI: " << m_currentPoiName;
+            yError() << "[DialogComponent::DialogExecution] Unable to interpret command: " << answerText;
             std::this_thread::sleep_for(wait_ms);
             continue;
         }
-        std::string text = actionList.at(0).getParam();
 
-        // Synthetise the answer text
+        // Synthetise the text
         yarp::sig::Sound synthesizedSound;
-        if (!m_iSpeechSynth->synthesize(answerText, synthesizedSound))
+        if (!m_iSpeechSynth->synthesize(scriptedString, synthesizedSound))
         {
-            yError() << "[DialogComponent::DialogExecution] Unable to synthesize text: " << answerText;
+            yError() << "[DialogComponent::DialogExecution] Unable to synthesize text: " << scriptedString;
             std::this_thread::sleep_for(wait_ms);
             continue;
         }
 
+        m_iAudioGrabberSound->stopRecording();  //Do I need to stop recording?
         // Pass the sound to the speaker -> Do I have to shut down also the mic ?? TODO
         m_speakersAudioPort.prepare() = synthesizedSound;
         //auto & buffer = m_speakersAudioPort.prepare();
@@ -586,13 +635,19 @@ void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::
         response->error_msg="Unable to set new language to speech Synth";
         return;
     }
-    if (m_iChatBot->setLanguage(request->new_language))
+    if (!m_iChatBot->setLanguage(request->new_language))
     {
         response->is_ok=false;
         response->error_msg="Unable to set new language";
         return;
     }
-    // TODO TourManagerStorage
+    // tourStorage -> should be loaded at start or by YARP config
+    if(!m_tourStorage->m_loadedTour.setCurrentLanguage(request->new_language))
+    {
+        response->is_ok=false;
+        response->error_msg="Unable to set new language";
+        return;
+    }
 }
 
 void DialogComponent::GetLanguage([[maybe_unused]] const std::shared_ptr<dialog_interfaces::srv::GetLanguage::Request> request,
@@ -610,4 +665,21 @@ void DialogComponent::GetLanguage([[maybe_unused]] const std::shared_ptr<dialog_
         response->current_language = current_language;
         response->is_ok=true;
     }
+}
+
+void DialogComponent::SetPoi(const std::shared_ptr<dialog_interfaces::srv::SetPoi::Request> request,
+                        std::shared_ptr<dialog_interfaces::srv::SetPoi::Response> response)
+{
+    if (request->poi_name=="")
+    {
+        response->is_ok=false;
+        response->error_msg="Empty string passed to setting language";
+        return;
+    }
+    else
+    {
+        m_currentPoiName = request->poi_name;
+        response->is_ok=true;
+    }
+    return;
 }
