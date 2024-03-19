@@ -8,6 +8,8 @@ docker compose up
 
 
 to get the specification
+
+```
 cd specification
 git init
 git remote add -f origin https://github.com/convince-project/data-model
@@ -18,3 +20,4 @@ echo "examples/museum-guide/environment-XML" >> .git/info/sparse-checkout
 echo "examples/museum-guide/interface-definition-IDL" >> .git/info/sparse-checkout
 echo "examples/museum-guide/main-XML" >> .git/info/sparse-checkout
 git pull origin main
+```
