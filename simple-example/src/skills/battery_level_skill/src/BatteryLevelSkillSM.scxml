@@ -1,31 +1,45 @@
-<scxml datamodel="ecmascript" initial="idle" name="BatteryLevelSkillSM" version="1.0" xmlns="http://www.w3.org/2005/07/scxml" xmlns:viz="http://phrogz.net/visual-scxml">
-	<datamodel>
-		<data expr="100" id="m_level"/>
-	</datamodel>
-	<state id="idle" viz:xywh="-10 -20 120 40">
+<scxml 
+    initial="idle" 
+    version="1.0" 
+    name="BatteryLevelSkillSM"
+    datamodel="cplusplus:BatteryLevelSkillDataModel::BatteryLevelSkillDataModel.h"
+    xmlns="http://www.w3.org/2005/07/scxml">
+
+    <!-- <datamodel>
+        <data id="m_level" expr="100" />
+    </datamodel> -->
+
+    <state id="idle">
+
+        <!-- This skill is a condition so there is no halt -->
+        <transition event="tickCall" target="levelCheck" >
+
+        </transition>
+        <transition event="BatteryDriverCmpInterface.readLevel" cond="_event.name = 'foo' " target="idle" >
+            <assign location="m_level" expr="_event.data.result" />
+        </transition>
+        <!-- <onexit>
+            <log expr="QString(std::to_string(m_level))"/>
+        </onexit>  -->
+    </state>
+
+
+
+    <state id="levelCheck">
         <onentry>
-            <log expr='"idle"'/>
+            <if cond="m_level &gt; 30.0">
+                <send event="tickReturn">
+                    <param name="result" expr='"SUCCESS"'/>
+                </send>
+            <else/>
+                <send event="tickReturn">
+                    <param name="result" expr='"FAILURE"'/>
+                </send>
+            </if>
         </onentry>
-		<!-- This skill is a condition so there is no halt -->
-		<transition event="tickCall" target="levelCheck"/>
-		<transition event="BatteryDriverCmpInterface.readLevel" target="idle">
-			<assign expr="_event.data.result" location="m_level"/>
-		</transition>
-	</state>
-	<state id="levelCheck" viz:xywh="200 0 120 40">
-		<onentry>
-            <log expr='"levelCheck"'/>
-			<if cond="m_level > 30.0">
-				<send event="tickReturn">
-					<param expr="&quot;SUCCESS&quot;" name="result"/>
-				</send>
-				<else/>
-				<send event="tickReturn">
-					<param expr="&quot;FAILURE&quot;" name="result"/>
-				</send>
-			</if>
-		</onentry>
-		<transition target="idle"/>
-	</state>
+        <transition target="idle" />
+    </state>
+
 </scxml>
-<!-- datamodel="cplusplus:BatteryLevelDataModel:BatteryLevelDataModel.h" -->
+
+    <!-- datamodel="cplusplus:BatteryLevelSkillDataModel:BatteryLevelSkillDataModel.h" -->

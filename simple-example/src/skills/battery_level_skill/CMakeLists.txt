@@ -32,7 +32,10 @@ target_include_directories(${PROJECT_NAME}
 target_sources( ${PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp 
   ${CMAKE_CURRENT_SOURCE_DIR}/src/BatteryLevelSkill.cpp 
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/BatteryLevelSkill.h)
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/BatteryLevelSkill.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/BatteryLevelSkillDataModel.cpp 
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/BatteryLevelSkillDataModel.h
+  )
 
 
 install(TARGETS ${PROJECT_NAME}

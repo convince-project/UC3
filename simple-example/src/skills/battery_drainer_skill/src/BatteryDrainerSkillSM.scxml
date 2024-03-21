@@ -2,7 +2,8 @@
     initial="idle"
     version="1.0"
     name="BatteryDrainerSkillSM"
-    datamodel="ecmascript"
+
+    datamodel="cplusplus:BatteryDrainerSkillDataModel:BatteryDrainerSkillDataModel.h"
     xmlns="http://www.w3.org/2005/07/scxml">
 
 
