@@ -10,6 +10,7 @@
 #include <thread>
 #include <rclcpp/rclcpp.hpp>
 #include "BatteryDrainerSkillSM.h"
+#include "BatteryDrainerSkillDataModel.h"
 #include <bt_interfaces/msg/action_response.hpp>
 #include <bt_interfaces/srv/tick_action.hpp>
 #include <bt_interfaces/srv/halt_action.hpp>
@@ -44,7 +45,7 @@ private:
     std::string m_name;
     std::atomic<Status> m_tickResult{Status::undefined};
     std::atomic<bool> m_haltResult{false};
-    // BatteryDrainerDataModel m_dataModel;
+    BatteryDrainerSkillDataModel m_dataModel;
     BatteryDrainerSkillSM m_stateMachine;
     std::mutex m_requestMutex;
 };

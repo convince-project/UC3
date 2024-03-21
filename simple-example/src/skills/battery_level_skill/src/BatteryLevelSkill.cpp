@@ -16,7 +16,7 @@
 BatteryLevelSkill::BatteryLevelSkill(std::string name ) :
         m_name(std::move(name))
 {
-    // m_stateMachine.setDataModel(&m_dataModel);
+    m_stateMachine.setDataModel(&m_dataModel);
 }
 
 
@@ -55,7 +55,7 @@ bool BatteryLevelSkill::start(int argc, char*argv[])
 
     m_stateMachine.connectToEvent("tickReturn", [this]([[maybe_unused]]const QScxmlEvent & event){
         std::string result = event.data().toMap()["result"].toString().toStdString();
-        // RCLCPP_INFO(m_node->get_logger(), "BatteryLevelSkill::tickresponse----------------%s--------------------------------", result.c_str());
+        RCLCPP_INFO(m_node->get_logger(), "BatteryLevelSkill::tickresponse----------------%s--------------------------------", result.c_str());
 
         if (result == "SUCCESS" )
         { 
@@ -73,7 +73,7 @@ void BatteryLevelSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfac
                                        std::shared_ptr<bt_interfaces::srv::TickCondition::Response>      response)
 {
     std::lock_guard<std::mutex> lock(m_requestMutex);
-    // RCLCPP_INFO(m_node->get_logger(), "BatteryLevelSkill::tick");
+    RCLCPP_INFO(m_node->get_logger(), "BatteryLevelSkill::tick");
     auto message = bt_interfaces::msg::ConditionResponse();
     m_tickResult.store(Status::undefined); //here we can put a struct
     m_stateMachine.submitEvent("tickCall");
@@ -92,7 +92,7 @@ void BatteryLevelSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfac
             response->status.status = message.SKILL_SUCCESS;
             break;            
     }
-    // RCLCPP_INFO(m_node->get_logger(), "BatteryLevelSkill::tickDone");
+    RCLCPP_INFO(m_node->get_logger(), "BatteryLevelSkill::tickDone");
 
     response->is_ok = true;
 }
@@ -100,13 +100,13 @@ void BatteryLevelSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfac
 
 
 void BatteryLevelSkill::topic_callback(const sensor_msgs::msg::BatteryState::SharedPtr msg) {
-    // RCLCPP_INFO(m_node->get_logger(), "BatteryLevelSkill::topic_callback");
+    RCLCPP_INFO(m_node->get_logger(), "BatteryLevelSkill::topic_callback");
     QVariantMap data;
     data.insert("result", msg->percentage);
-    // foreach (auto key, data.keys())
-    // {
-    //     qInfo()<<"-- key:"<<key<<" value:"<<data.value(key);
-    // }
+    foreach (auto key, data.keys())
+    {
+        qInfo()<<"-- key:"<<key<<" value:"<<data.value(key);
+    }
     m_stateMachine.submitEvent("BatteryDriverCmpInterface.readLevel", data);
 
 }

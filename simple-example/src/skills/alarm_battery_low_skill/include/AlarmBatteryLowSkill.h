@@ -10,7 +10,7 @@
 #include <thread>
 #include <rclcpp/rclcpp.hpp>
 #include "AlarmBatteryLowSM.h"
-// #include "AlarmBatteryLowSkillDataModel.h"
+#include "AlarmBatteryLowSkillDataModel.h"
 #include <bt_interfaces/msg/action_response.hpp>
 #include <bt_interfaces/srv/tick_action.hpp>
 #include <bt_interfaces/srv/halt_action.hpp>
@@ -43,7 +43,7 @@ private:
     std::shared_ptr<std::thread> m_threadSpin;
     std::shared_ptr<rclcpp::Node> m_node;
     // std::shared_ptr<rclcpp::Node> m_nodeAlarm;
-    // AlarmBatteryLowSkillDataModel dataModel;
+    AlarmBatteryLowSkillDataModel dataModel;
     rclcpp::Service<bt_interfaces::srv::TickAction>::SharedPtr m_tickService;
     rclcpp::Service<bt_interfaces::srv::HaltAction>::SharedPtr m_haltService;
     std::string m_name;

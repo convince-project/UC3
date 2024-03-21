@@ -17,7 +17,7 @@
 BatteryDrainerSkill::BatteryDrainerSkill(std::string name ) :
         m_name(std::move(name))
 {
-    // m_stateMachine.setDataModel(&dataModel);
+    m_stateMachine.setDataModel(&m_dataModel);
 }
 
 

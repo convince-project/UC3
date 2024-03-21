@@ -10,7 +10,7 @@
 #include <thread>
 #include <rclcpp/rclcpp.hpp>
 #include "BatteryLevelSkillSM.h"
-// #include "BatteryLevelDataModel.h"
+#include "BatteryLevelSkillDataModel.h"
 #include <bt_interfaces/msg/condition_response.hpp>
 #include <bt_interfaces/srv/tick_condition.hpp>
 #include <sensor_msgs/msg/battery_state.hpp>
@@ -43,7 +43,7 @@ private:
     std::string m_name;
     rclcpp::Subscription<sensor_msgs::msg::BatteryState>::SharedPtr m_subscription;
     std::atomic<Status> m_tickResult{Status::undefined};
-    // BatteryLevelDataModel m_dataModel;
+    BatteryLevelSkillDataModel m_dataModel;
 
     BatteryLevelSkillSM m_stateMachine;
     std::mutex m_requestMutex;
