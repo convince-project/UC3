@@ -10,19 +10,9 @@
 		<transition target="resultStart"/>
 	</state>
 	<state id="resultStart" viz:xywh="1080 670 120 40">
-    <transition cond=' _event.name == "foo.bar" ' target="resultStop">
-    </transition>
-  </state>
-
-	<!-- <state id="evalResult">
-    <onentry>
-
-        <if cond="m_result == &quot;SUCCESS&quot;">
-          <transition target="sendRunning"/>
-        <else/>
-          <transition target="sendFailure"/>
-        </if>
-  </state> -->
+    <transition event="AlarmCmpInterface.StartAlarmReturn" cond='scxmlEvent().data().toMap()["result"].toString().toStdString() == "SUCCESS"' target="sendRunning"/> 
+    <transition event="AlarmCmpInterface.StartAlarmReturn" cond='scxmlEvent().data().toMap()["result"].toString().toStdString() == "FAILURE"' target="sendFailure"/> 
+	</state>
 	<state id="stopAlarm" viz:xywh="840 390 120 40">
 		<onentry>
 			<send event="AlarmCmpInterface.stopAlarmCall"/>
