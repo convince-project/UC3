@@ -35,6 +35,8 @@ target_sources( ${PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/include/BatteryLevelSkill.h
   ${CMAKE_CURRENT_SOURCE_DIR}/src/BatteryLevelSkillDataModel.cpp 
   ${CMAKE_CURRENT_SOURCE_DIR}/include/BatteryLevelSkillDataModel.h
+  # ${CMAKE_CURRENT_SOURCE_DIR}/src/BatteryLevelSkillSM.cpp 
+  # ${CMAKE_CURRENT_SOURCE_DIR}/include/BatteryLevelSkillSM.h
   )
 
 
@@ -58,4 +60,4 @@ ament_package()
 
 
 # ${CMAKE_CURRENT_SOURCE_DIR}/src/BatteryLevelDataModel.cpp 
-# ${CMAKE_CURRENT_SOURCE_DIR}/include/BatteryLevelDataModel.h
+# ${CMAKE_CURRENT_SOURCE_DIR}/include/BatteryLevelDataModel.hsimple-example/src/skills/battery_level_skill/src/BatteryLevelSkillSM.cpp

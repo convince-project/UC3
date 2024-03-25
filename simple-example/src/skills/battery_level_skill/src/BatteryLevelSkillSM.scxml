@@ -2,11 +2,11 @@
     initial="idle" 
     version="1.0" 
     name="BatteryLevelSkillSM"
-    datamodel="cplusplus:BatteryLevelSkillDataModel::BatteryLevelSkillDataModel.h"
+    datamodel="cplusplus:BatteryLevelSkillDataModel:BatteryLevelSkillDataModel.h"
     xmlns="http://www.w3.org/2005/07/scxml">
 
     <!-- <datamodel>
-        <data id="m_level" expr="100" />
+        <data id="pippo" expr="100" />
     </datamodel> -->
 
     <state id="idle">
@@ -15,19 +15,17 @@
         <transition event="tickCall" target="levelCheck" >
 
         </transition>
-        <transition event="BatteryDriverCmpInterface.readLevel" cond="_event.name = 'foo' " target="idle" >
-            <assign location="m_level" expr="_event.data.result" />
+        <transition event="BatteryDriverCmpInterface.readLevel"  target="idle" >
+            <assign location="m_level" expr="scxmlEvent().data().toMap()['percentage'].toDouble()" />
         </transition>
         <!-- <onexit>
             <log expr="QString(std::to_string(m_level))"/>
         </onexit>  -->
     </state>
 
-
-
     <state id="levelCheck">
         <onentry>
-            <if cond="m_level &gt; 30.0">
+            <if cond="pippo > 30.0">
                 <send event="tickReturn">
                     <param name="result" expr='"SUCCESS"'/>
                 </send>
@@ -42,4 +40,6 @@
 
 </scxml>
 
-    <!-- datamodel="cplusplus:BatteryLevelSkillDataModel:BatteryLevelSkillDataModel.h" -->
+    <!-- datamodel="cplusplus:BatteryLevelSkillDataModel:BatteryLevelSkillDataModel.h"
+    
+    cond='scxmlEvent().name() == "BatteryDriverCmpInterface.readLevel"'-->
