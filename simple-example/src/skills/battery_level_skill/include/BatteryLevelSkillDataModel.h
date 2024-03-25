@@ -20,8 +20,10 @@ public:
     BatteryLevelSkillDataModel() = default;
     bool setup(const QVariantMap& initialDataValues) override;
     void log(std::string to_log);
+        void printDouble(double x);
+
 private: 
-    double m_level;
+    sensor_msgs::msg::BatteryState batteryState;
 };
 
 Q_DECLARE_METATYPE(::BatteryLevelSkillDataModel*)
