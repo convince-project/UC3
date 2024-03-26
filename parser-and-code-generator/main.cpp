@@ -12,13 +12,15 @@
 #include <map>
 #include <vector>
 
-#define modelFileName "./specification/examples/museum-guide/main-XML/full-model.xml"
-#define interfaceFileName "./specification/examples/museum-guide/interface-definition-IDL/interfaces.xml"
+#define modelFilePath "./specification/examples/museum-guide/main-XML/full-model.xml"
+#define interfaceFilePath "./specification/examples/museum-guide/interface-definition-IDL/interfaces.xml"
 
 #define RETURN_CODE_ERROR 1
 #define RETURN_CODE_OK    0
 
 static std::map<std::string, bool> eventsMap;
+static std::string modelFileName       = modelFilePath;
+static std::string interfaceFileName   = interfaceFilePath;
 
 /* Get info from strings*/
 void getDataFromEvent(const std::string event, std::string& firstWord, std::string& secondWord, std::string& thirdWord) 
@@ -469,7 +471,7 @@ void getEventsCode(const std::vector<tinyxml2::XMLElement*> elementsTransition, 
 
 /* Generate output files */
 
-void generateHFile(const std::string className, const std::string skillType, const std::string addIncludeCode, const std::string privateCode, const std::string publicCode) 
+void generateHFile(const std::string outputPath, const std::string outputFileName, const std::string className, const std::string skillType, const std::string addIncludeCode, const std::string privateCode, const std::string publicCode) 
 {
     std::string skillTypeLC = skillType;
     for (char &c : skillTypeLC) 
@@ -477,7 +479,6 @@ void generateHFile(const std::string className, const std::string skillType, con
         c = std::tolower(c); 
     } 
 
-    std::string outputFileName = className + ".h";
     std::string includeCode = 
         "# pragma once\n\n"
         "#include <mutex>\n"
@@ -517,9 +518,9 @@ void generateHFile(const std::string className, const std::string skillType, con
         "\t\n"
         "};\n\n";
     
-    static std::ofstream outputFile(outputFileName);
+    static std::ofstream outputFile(outputPath + outputFileName);
     if (!outputFile.is_open()) {
-        std::cerr << "Failed to open file for writing: " << outputFileName << std::endl;
+        std::cerr << "Failed to open file for writing: " << outputPath + outputFileName << std::endl;
         return;
     }
     if(eventsMap.find("CMD_TICK") != eventsMap.end())
@@ -551,10 +552,8 @@ void generateHFile(const std::string className, const std::string skillType, con
 
 }
 
-void generateCppFile(const std::string className, const std::string skillType, const std::string handlersCode, std::string codeCallbacks) 
+void generateCppFile(const std::string outputPath, const std::string outputFileName, const std::string className, const std::string skillType, const std::string handlersCode, std::string codeCallbacks) 
 {
-    std::string outputFileName = className + ".cpp";
-
     std::string includeCode = 
         "\n\n"
         "#include \"" + className + ".h\"\n"
@@ -666,9 +665,9 @@ void generateCppFile(const std::string className, const std::string skillType, c
         "}\n";  
     }    
 
-    static std::ofstream outputFile(outputFileName);
+    static std::ofstream outputFile(outputPath + outputFileName);
     if (!outputFile.is_open()) {
-        std::cerr << "Failed to open file for writing: " << outputFileName << std::endl;
+        std::cerr << "Failed to open file for writing: " << outputPath + outputFileName << std::endl;
         return;
     }
     
@@ -687,15 +686,15 @@ void generateCppFile(const std::string className, const std::string skillType, c
 void print_help()
 {
     std::cout << "Welcome to SCXMLGenerator tool. Syntax:\n";
-    std::cout << "scxmlgen --input_filename \"filename.scxml\" [--output_dir \"output_path\"] [--debug_mode]\n";
-   }
+    std::cout << "scxmlgen --input_filename \"filename.scxml\" --model_filename \"filename.scxml\" --interface_filename \"filename.scxml\" [--output_path \"path/to/outpuy/directory\"] [--debug_mode]\n";
+}
 
 int main(int argc, char* argv[])
 {
     bool debug_mode = false;
-    std::string input_filename = "in.scxml";
-    std::string output1_filename = "out1.cpp";
-    std::string output2_filename = "out2.cpp";
+    std::string input_filename      = "in.scxml";
+    std::string output_path  = "./";
+    
 
     #if 0 //debug only!
         std::cout << "Invocation command " << argc << ":";
@@ -723,20 +722,31 @@ int main(int argc, char* argv[])
             input_filename = argv[i+1];
             i++;
         }
-        else if (arg == "--output1_filename" && i + 1 < argc && argv[i + 1][0] != '-') {
-            output1_filename = argv[i + 1];
+        else if (arg == "--output_path" && i+1 < argc && argv[i+1][0] != '-') {
+            output_path = argv[i + 1];
+            i++;
+        }
+        else if (arg == "--model_filename" && i+1 < argc && argv[i+1][0] != '-') {
+            modelFileName = argv[i + 1];
+            i++;
+        }
+        else if (arg == "--interface_filename" && i+1 < argc && argv[i+1][0] != '-') {
+            interfaceFileName = argv[i + 1];
             i++;
         }
         else if (arg == "--debug_mode") {
             debug_mode = true;
         }
     }
-    
-
+    std::string outputPathHFile = output_path + "/include/";
+    std::string outputPathCppFile = output_path + "/src/";
     std::string rootName, className, skillType, skillName, includeCode, publicCode, privateCode, handlersCode, codeCallbacks;
     std::vector<tinyxml2::XMLElement *> elementsTransition, elementsSend;
     tinyxml2::XMLDocument doc;
-    extractFromSCXML(doc, input_filename, rootName, elementsTransition, elementsSend);
+    if(!extractFromSCXML(doc, input_filename, rootName, elementsTransition, elementsSend))
+    {
+        return 0;
+    }
     getDataFromRootName(rootName, className, skillName, skillType);
     std::cout << "-----------" << std::endl;
     std::cout << "Class name: " << className << std::endl << "Skill name: " << skillName << std::endl << "Skill type: " << skillType << std::endl;
@@ -744,8 +754,9 @@ int main(int argc, char* argv[])
 
     getEventsCode(elementsTransition, elementsSend, className, skillName, skillType, includeCode, publicCode, privateCode, handlersCode, codeCallbacks);
     std::cout << "-----------" << std::endl;
-    generateHFile(className, skillType, includeCode, privateCode, publicCode);  
-    generateCppFile(className, skillType, handlersCode, codeCallbacks);
-    
+    std::string outputFileNameH = className + ".h";
+    std::string outputFileNameCPP = className + ".cpp";
+    generateHFile(outputPathHFile, outputFileNameH, className, skillType, includeCode, privateCode, publicCode);  
+    generateCppFile(outputPathCppFile, outputFileNameCPP, className, skillType, handlersCode, codeCallbacks);
     return 0;
 };
