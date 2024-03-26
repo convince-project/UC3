@@ -1,28 +1,25 @@
 # SPDX-FileCopyrightText: 2024-2024 Istituto Italiano di Tecnologia (IIT)
 # SPDX-License-Identifier: BSD-3-Clause
+cmake_minimum_required(VERSION 3.16)
+project(scxmlgen)
 
-add_executable(scxmlgen)
-target_sources(scxmlgen
-  PRIVATE
-    main.cpp
-)
+find_package(tinyxml2 CONFIG REQUIRED)
 
-#target_include_directories(scxmlgen ${TinyXML_INCLUDE_DIRS})
+add_executable(${PROJECT_NAME} main.cpp)
 
-target_link_libraries(scxmlgen
-  PRIVATE
-    YARP::YARP_os
-    YARP::YARP_sig
-    YARP::YARP_dev
-    YARP::YARP_init
-    ${TinyXML_LIBRARIES}
-)
+target_include_directories(${PROJECT_NAME} PRIVATE ${TinyXML2_INCLUDE_DIRS})
 
+target_link_libraries(${PROJECT_NAME} PRIVATE tinyxml2::tinyxml2)
 
 install(
-  TARGETS scxmlgen
+  TARGETS ${PROJECT_NAME}
   COMPONENT utilities
   DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-set_property(TARGET scxmlgen PROPERTY FOLDER "Command Line Tools")
+set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "Command Line Tools")
+
+
+
+
+
