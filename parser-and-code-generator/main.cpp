@@ -686,7 +686,7 @@ void generateCppFile(const std::string outputPath, const std::string outputFileN
 void print_help()
 {
     std::cout << "Welcome to SCXMLGenerator tool. Syntax:\n";
-    std::cout << "scxmlgen --input_filename \"filename.scxml\" --model_filename \"filename.scxml\" --interface_filename \"filename.scxml\" [--output_path \"path/to/outpuy/directory\"] [--debug_mode]\n";
+    std::cout << "scxmlgen --input_filename \"filename.scxml\" --model_filename \"filename.scxml\" --interface_filename \"filename.scxml\" --output_path \"path/to/output/directory\" [--debug_mode]\n";
 }
 
 int main(int argc, char* argv[])

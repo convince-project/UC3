@@ -4,7 +4,7 @@ Tool to generate custom C++ files from SCXML
 ## Execution
 To execute run:
 ```
-scxmlgen --input_filename \"filename.scxml\" --model_filename \"filename.scxml\" --interface_filename \"filename.scxml\" --output_path \"path/to/output/directory\"
+scxmlgen --input_filename "filename.scxml" --model_filename "filename.scxml" --interface_filename "filename.scxml" --output_path "path/to/output/directory"
 ```
 Default values are:
 ```
