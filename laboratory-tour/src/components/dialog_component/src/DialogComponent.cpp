@@ -258,16 +258,16 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
 bool DialogComponent::start(int argc, char*argv[])
 {
     // Loads the tour json from the file and saves a reference to the class, if the arguments are being passed at start.
-    if (argc >= 2)
-    {
-        m_tourStorage = std::make_shared<TourStorage>(); 
-        if( !m_tourStorage->LoadTour(argv[0], argv[1]))
-        {
-            yError() << "[DialogComponent::start] Unable to load tour from the given arguments: " << argv[0] << " and " << argv[1];
-            return false;
-        }
-        m_tourLoadedAtStart = true;
-    }
+    //if (argc >= 2)
+    //{
+    //    m_tourStorage = std::make_shared<TourStorage>(); 
+    //    if( !m_tourStorage->LoadTour(argv[0], argv[1]))
+    //    {
+    //        yError() << "[DialogComponent::start] Unable to load tour from the given arguments: " << argv[0] << " and " << argv[1];
+    //        return false;
+    //    }
+    //    m_tourLoadedAtStart = true;
+    //}
 
     if(!rclcpp::ok())
     {
