@@ -53,7 +53,7 @@ if(BUILD_TESTING)
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
-qt6_add_statecharts(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/src/BatteryLevelSkillSM.scxml)
+qt6_add_statecharts(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/src/BatteryLevelSkillSMcppDataModel.scxml)
 
 ament_package()
 

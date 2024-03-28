@@ -1,38 +1,38 @@
 <scxml datamodel="cplusplus:AlarmBatteryLowSkillDataModel:AlarmBatteryLowSkillDataModel.h" initial="idle" name="AlarmBatteryLowSM" version="1.0" xmlns="http://www.w3.org/2005/07/scxml" xmlns:viz="http://phrogz.net/visual-scxml">
-	<state id="idle" viz:xywh="150 -410 120 40">
+	<state id="idle" viz:xywh="120 -430 120 40">
 		<transition event="tickCall" target="startAlarm"/>
 		<transition event="haltCall" target="sendHalted"/>
 	</state>
-	<state id="startAlarm" viz:xywh="210 580 120 40">
+	<state id="startAlarm" viz:xywh="190 -210 120 40">
 		<onentry>
 			<send event="AlarmCmpInterface.StartAlarmCall"/>
 		</onentry>
 		<transition target="resultStart"/>
 	</state>
-	<state id="resultStart" viz:xywh="1080 670 120 40">
-    <transition event="AlarmCmpInterface.StartAlarmReturn" cond='scxmlEvent().data().toMap()["result"].toString().toStdString() == "SUCCESS"' target="sendRunning"/> 
-    <transition event="AlarmCmpInterface.StartAlarmReturn" cond='scxmlEvent().data().toMap()["result"].toString().toStdString() == "FAILURE"' target="sendFailure"/> 
+	<state id="resultStart" viz:xywh="110 10 120 40">
+		<transition cond="scxmlEvent().data().toMap()[&quot;result&quot;].toString().toStdString() == &quot;SUCCESS&quot;" event="AlarmCmpInterface.StartAlarmReturn" target="sendRunning"/>
+		<transition cond="scxmlEvent().data().toMap()[&quot;result&quot;].toString().toStdString() == &quot;FAILURE&quot;" event="AlarmCmpInterface.StartAlarmReturn" target="sendFailure"/>
 	</state>
-	<state id="stopAlarm" viz:xywh="840 390 120 40">
+	<state id="stopAlarm" viz:xywh="620 -220 120 40">
 		<onentry>
 			<send event="AlarmCmpInterface.stopAlarmCall"/>
 		</onentry>
 		<transition target="resultStop"/>
 	</state>
-	<state id="resultStop" viz:xywh="800 0 120 40">
+	<state id="resultStop" viz:xywh="370 -210 120 40">
 		<transition event="AlarmCmpInterface.stopAlarmReturn" target="sendHalted"/>
 	</state>
-	<state id="sendHalted" viz:xywh="680 -630 120 40">
+	<state id="sendHalted" viz:xywh="380 -430 120 40">
 		<onentry>
 			<send event="haltReturn"/>
 		</onentry>
 		<transition target="idle"/>
 	</state>
-	<state id="alarm" viz:xywh="970 -40 120 40">
+	<state id="alarm" viz:xywh="610 -100 120 40">
 		<transition event="tickCall" target="sendRunning"/>
 		<transition event="haltCall" target="stopAlarm"/>
 	</state>
-	<state id="sendFailure" viz:xywh="-190 240 120 40">
+	<state id="sendFailure" viz:xywh="30 -250 120 40">
 		<onentry>
 			<send event="tickReturn">
 				<param expr="&quot;FAILURE&quot;" name="result"/>
@@ -40,7 +40,7 @@
 		</onentry>
 		<transition target="idle"/>
 	</state>
-	<state id="sendRunning" viz:xywh="1430 200 120 40">
+	<state id="sendRunning" viz:xywh="430 20 120 40">
 		<onentry>
 			<send event="tickReturn">
 				<param expr="&quot;RUNNING&quot;" name="result"/>

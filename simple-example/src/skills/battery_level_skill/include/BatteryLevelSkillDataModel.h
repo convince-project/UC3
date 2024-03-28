@@ -9,7 +9,11 @@
 
 #include <QScxmlCppDataModel>
 #include <QVariant>
+#include <sensor_msgs/msg/battery_state.hpp>
 #include <string>
+#include <sensor_msgs/msg/battery_state.hpp>
+#include <thread>
+#include <rclcpp/rclcpp.hpp>
 
 
 class BatteryLevelSkillDataModel: public QScxmlCppDataModel
@@ -20,10 +24,15 @@ public:
     BatteryLevelSkillDataModel() = default;
     bool setup(const QVariantMap& initialDataValues) override;
     void log(std::string to_log);
-        void printDouble(double x);
-
+    void topic_battery_callback(const sensor_msgs::msg::BatteryState::SharedPtr msg);
+    static void spin(std::shared_ptr<rclcpp::Node> node);
 private: 
-    sensor_msgs::msg::BatteryState batteryState;
+    // sensor_msgs::msg::BatteryState m_batteryState;
+    double percentage;
+    rclcpp::Subscription<sensor_msgs::msg::BatteryState>::SharedPtr m_subscription;
+    std::shared_ptr<std::thread> m_threadSpin;
+    std::shared_ptr<rclcpp::Node> m_node;
+
 };
 
 Q_DECLARE_METATYPE(::BatteryLevelSkillDataModel*)
