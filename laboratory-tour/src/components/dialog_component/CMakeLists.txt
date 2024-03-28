@@ -16,39 +16,57 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(dialog_interfaces REQUIRED)
-find_package(YCM REQUIRED)
-find_package(YARP 3.7 REQUIRED COMPONENTS dev os sig)
+#find_package(YCM REQUIRED)
+find_package(YARP REQUIRED COMPONENTS dev os sig REQUIRED)
 
-add_executable(${PROJECT_NAME})
+#add_executable(${PROJECT_NAME})
 
 # find dependencies
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-ament_target_dependencies(${PROJECT_NAME} dialog_interfaces rclcpp )
-target_link_libraries(${PROJECT_NAME} ${YARP_LIBRARIES})
+#ament_target_dependencies(${PROJECT_NAME} dialog_interfaces rclcpp )
+#target_link_libraries(${PROJECT_NAME} ${YARP_LIBRARIES})
+#
+#target_include_directories(${PROJECT_NAME}
+#  PUBLIC
+#    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+#    $<INSTALL_INTERFACE:include>)
+#target_sources( ${PROJECT_NAME} PRIVATE
+#  ${CMAKE_CURRENT_SOURCE_DIR}/src/DialogComponent.cpp  
+#  ${CMAKE_CURRENT_SOURCE_DIR}/include/DialogComponent.hpp
+#  ${CMAKE_CURRENT_SOURCE_DIR}/include/SpeechTranscriberCallback.hpp
+#  ${CMAKE_CURRENT_SOURCE_DIR}/src/Action.cpp
+#  ${CMAKE_CURRENT_SOURCE_DIR}/src/Poi.cpp
+#  ${CMAKE_CURRENT_SOURCE_DIR}/src/Tour.cpp
+#  ${CMAKE_CURRENT_SOURCE_DIR}/src/TourStorage.cpp
+#  ${CMAKE_CURRENT_SOURCE_DIR}/include/Action.h
+#  ${CMAKE_CURRENT_SOURCE_DIR}/include/Poi.h
+#  ${CMAKE_CURRENT_SOURCE_DIR}/include/Tour.h
+#  ${CMAKE_CURRENT_SOURCE_DIR}/include/TourStorage.h
+#  ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
-target_include_directories(${PROJECT_NAME}
-  PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>)
-target_sources( ${PROJECT_NAME} PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/DialogComponent.cpp  
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/DialogComponent.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/SpeechTranscriberCallback.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/Action.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/Poi.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/Tour.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/TourStorage.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/Action.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/Poi.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/Tour.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/TourStorage.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
+include_directories(include)
+
+add_executable(${PROJECT_NAME}  src/DialogComponent.cpp  
+                                src/Action.cpp
+                                src/Poi.cpp
+                                src/Tour.cpp
+                                src/TourStorage.cpp
+                                src/main.cpp)
+ament_target_dependencies(${PROJECT_NAME} 
+"YARP"
+"rclcpp"
+"dialog_interfaces"
+)
 
 install(TARGETS ${PROJECT_NAME}
         DESTINATION lib/${PROJECT_NAME})
+
+install(DIRECTORY include/
+  DESTINATION include/
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -61,5 +79,7 @@ if(BUILD_TESTING)
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
+
+ament_export_include_directories(include)
 
 ament_package()
