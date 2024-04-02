@@ -8,31 +8,21 @@
 <!DOCTYPE robot PUBLIC "-//YARP//DTD yarprobotinterface 3.0//EN" "http://www.yarp.it/DTD/yarprobotinterfaceV3.0.dtd">
 <robot name="googleTest" build="2" portprefix="/googleBot" xmlns:xi="http://www.w3.org/2001/XInclude">
     <devices>
-        <!-- CHAT-BOT -->
-        <device name="googleDialogCx" type="googleDialogFlowCxChatBot">
-            <param name="project">
-                hsp-speech-interaction-dev
-            </param>
-            <param name="location">
-                global
-            </param>
-            <param name="agent_name">
-                3ad141bb-ca72-4a46-8186-3bd3768a0a92
-            </param>
+        <!-- TRANSCRIPTION -->
+        <device name="googleTranscr" type="googleSpeechTranscription">
             <param name="language_code">
                 it-IT
             </param>
         </device>
-        <device name="dialogWrap" type="chatBot_nws_yarp">
+        <device name="transcriptionWrap" type="speechTranscription_nws_yarp">
             <action phase="startup" level="5" type="attach">
                 <paramlist name="networks">
                     <elem name="subdeviceGoogle">
-                        googleDialogCx
+                        googleTranscr
                     </elem>
                 </paramlist>
             </action>
             <action phase="shutdown" level="5" type="detach" />
         </device>
-
     </devices>
 </robot>

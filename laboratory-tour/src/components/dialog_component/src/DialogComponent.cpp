@@ -9,7 +9,7 @@ using namespace std::chrono_literals;
 DialogComponent::DialogComponent()
 {
     m_speechTranscriberClientName = "/DialogComponent/speechTranscriberClient:i";
-    m_speechTranscriberServerName = "/speechTranscriberServer:o";
+    m_speechTranscriberServerName = "/speechTranscription_nws/text:o";
     m_tourLoadedAtStart = false;
     m_currentPoiName = "";
 }
@@ -42,7 +42,7 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
     // -------------------------Speech Synthesizer nwc---------------------------------
     std::string device = "speechSynthesizer_nwc_yarp";
     std::string local = "/DialogComponent/speechClient";
-    std::string remote = "/speechSynthesizer/speechServer";
+    std::string remote = "/speechSynthesizer_nws";
     {
         okCheck = rf.check("SPEECHSYNTHESIZER-CLIENT");
         if (okCheck)
@@ -81,17 +81,17 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
         }
 
         //Try automatic yarp port Connection
-        if(! yarp::os::Network::connect(remote, local))
-        {
-            yWarning() << "[DialogComponent::ConfigureYARP] Unable to connect: " << local << " to: " << remote;
-        }
+        //if(! yarp::os::Network::connect(remote, local))
+        //{
+        //    yWarning() << "[DialogComponent::ConfigureYARP] Unable to connect: " << local << " to: " << remote;
+        //}
     }
     // -------------------------Dialog Flow chatBot nwc---------------------------------
     {
         okCheck = rf.check("CHATBOT-CLIENT");
-        device = "chatBot_nws_yarp";
+        device = "chatBot_nwc_yarp";
         local = "/DialogComponent/chatBotClient";
-        remote = "/dialogFlow/portname";
+        remote = "/chatBot_nws";
 
         if (okCheck)
         {
@@ -129,10 +129,10 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
         }
 
         //Try automatic yarp port Connection
-        if(! yarp::os::Network::connect(remote, local))
-        {
-            yWarning() << "[DialogComponent::ConfigureYARP] Unable to connect: " << local << " to: " << remote;
-        }
+        //if(! yarp::os::Network::connect(remote, local))
+        //{
+        //    yWarning() << "[DialogComponent::ConfigureYARP] Unable to connect: " << local << " to: " << remote;
+        //}
     }
     // ---------------------Microphone Activation----------------------------
     {
