@@ -16,7 +16,7 @@
 AlarmBatteryLowSkill::AlarmBatteryLowSkill(std::string name ) :
         m_name(std::move(name))
 {
-    // m_stateMachine.setDataModel(&dataModel);
+    m_stateMachine.setDataModel(&dataModel);
 }
 
 
@@ -127,8 +127,9 @@ bool AlarmBatteryLowSkill::start(int argc, char*argv[])
     });
 
     m_stateMachine.connectToEvent("tickReturn", [this]([[maybe_unused]]const QScxmlEvent & event){
-        // RCLCPP_INFO(m_node->get_logger(), "AlarmBatteryLowSkill::tickresponse");
-        std::string result = event.data().toMap()["state"].toString().toStdString();
+                qInfo() <<  "tickReturn" << m_stateMachine.activeStateNames();
+
+        std::string result = event.data().toMap()["result"].toString().toStdString();
         if (result == "RUNNING" )
         { 
             m_tickResult.store(Status::running);
@@ -179,7 +180,7 @@ void AlarmBatteryLowSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_inter
             response->status.status = message.SKILL_SUCCESS;
             break;            
     }
-    // RCLCPP_INFO(m_node->get_logger(), "AlarmBatteryLowSkill::tickDone");
+    RCLCPP_INFO(m_node->get_logger(), "AlarmBatteryLowSkill::tickDone");
 
     response->is_ok = true;
 }
@@ -188,6 +189,7 @@ void AlarmBatteryLowSkill::halt( [[maybe_unused]] const std::shared_ptr<bt_inter
                [[maybe_unused]] std::shared_ptr<bt_interfaces::srv::HaltAction::Response> response)
 {
     std::lock_guard<std::mutex> lock(m_requestMutex);
+    qInfo() << "halt ===================================================================================================";
     // RCLCPP_INFO(m_node->get_logger(), "AlarmBatteryLowSkill::halt");
     m_haltResult.store(false); //here we can put a struct
     m_stateMachine.submitEvent("haltCall");

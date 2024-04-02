@@ -16,7 +16,7 @@
 BatteryLevelSkill::BatteryLevelSkill(std::string name ) :
         m_name(std::move(name))
 {
-    // m_stateMachine.setDataModel(&m_dataModel);
+    m_stateMachine.setDataModel(&m_dataModel);
 }
 
 
@@ -78,15 +78,9 @@ void BatteryLevelSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfac
     RCLCPP_INFO(m_node->get_logger(), "BatteryLevelSkill::tick");
     auto message = bt_interfaces::msg::ConditionResponse();
     m_tickResult.store(Status::undefined); //here we can put a struct
-    QScxmlEvent event;
-    event.setName("tickCall");
-    event.setEventType(QScxmlEvent::EventType::ExternalEvent);
-        qInfo() <<  "BatteryLevelSkill::tick " << __LINE__ ;
 
-    m_stateMachine.submitEvent(&event);
-        qInfo() <<  "BatteryLevelSkill::tick " << __LINE__ ;
 
-    // m_stateMachine.submitEvent("tickCall");
+    m_stateMachine.submitEvent("tickCall");
 
     while(m_tickResult.load()== Status::undefined) 
     {

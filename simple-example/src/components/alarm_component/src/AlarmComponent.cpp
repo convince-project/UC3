@@ -47,10 +47,11 @@ void AlarmComponent::StartAlarm([[maybe_unused]] const std::shared_ptr<alarm_int
              std::shared_ptr<alarm_interfaces::srv::StartAlarm::Response>      response) 
 {
     std::lock_guard<std::mutex> lock(m_mutex);
-    *m_alarmActive = true;
-    m_threadAlarm = std::make_shared<std::thread>(Alarm,m_alarmActive);
+    // *m_alarmActive = true;
+    // m_threadAlarm = std::make_shared<std::thread>(Alarm,m_alarmActive);
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "#####################################alarm####################################");
     response->is_ok = true;
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "----------------------- alarm started ------------------------------");
+    // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "----------------------- alarm started ------------------------------");
 }
 
 
@@ -58,18 +59,18 @@ void AlarmComponent::StopAlarm([[maybe_unused]] const std::shared_ptr<alarm_inte
              std::shared_ptr<alarm_interfaces::srv::StopAlarm::Response>      response) 
 {
     std::lock_guard<std::mutex> lock(m_mutex);
-    *m_alarmActive = false;
+    // *m_alarmActive = false;
     m_threadAlarm->join();
     response->is_ok = true;
 }
 
 
-void AlarmComponent::Alarm(std::shared_ptr<std::atomic<bool>> alarmActive) 
-{
-    while(*alarmActive) {
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "alarm");
-        std::this_thread::sleep_for (std::chrono::milliseconds(500));
-    }
-    std::this_thread::sleep_for (std::chrono::milliseconds(500));
+// void AlarmComponent::Alarm(std::shared_ptr<std::atomic<bool>> alarmActive) 
+// {
+//     while(*alarmActive) {
+//         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "alarm");
+//         std::this_thread::sleep_for (std::chrono::milliseconds(500));
+//     }
+//     std::this_thread::sleep_for (std::chrono::milliseconds(500));
 
-}
+// }
