@@ -16,14 +16,14 @@
     <state id="levelCheck">
         <onentry>
             <if cond="percentage > 30.0">
-                <!-- <log expr='"success"'/> -->
+                <log expr='"success"'/>
                 <send event="tickReturn">
-                    <!-- <param name="result" expr='"SUCCESS"'/> -->
+                    <param name="result" expr='"SUCCESS"'/>
                 </send>
             <else/>
-                <!-- <log expr='"failure"'/> -->
+                <log expr='"failure"'/>
                 <send event="tickReturn">
-                    <!-- <param name="result" expr='"FAILURE"'/> -->
+                    <param name="result" expr='"FAILURE"'/>
                 </send>
             </if>
         </onentry>

@@ -1,0 +1,54 @@
+<scxml 
+    initial="idle" 
+    version="1.0" 
+    name="BatteryLevelSkillSM"
+    datamodel="ecmascript"
+    xmlns="http://www.w3.org/2005/07/scxml">
+
+    <datamodel>
+        <data id="m_batteryState" expr="100" />
+    </datamodel>
+
+    <state id="idle">
+        <onentry>
+        </onentry>
+        <!-- This skill is a condition so there is no halt -->
+        <transition event="tickCall" target="levelCheck" >
+
+        </transition>
+        <transition event="BatteryDriverCmpInterface.readLevel"  target="idle" >
+<!-- 
+            <log expr="_event.data.percentage" /> -->
+            <log expr='"blabla"'/>
+            <!-- <assign location="m_batteryState.percentage" expr="_event.data.percentage" /> -->
+                <send event="tickReturn">
+                    <param name="result" expr='"SUCCESS"'/>
+                </send>
+        </transition>
+        <onexit>
+            <log expr="m_batteryState.percentage"/>
+        </onexit> 
+    </state>
+
+    <state id="levelCheck">
+        <onentry>
+            <if cond="m_batteryState.percentage > 30.0">
+                <log expr='"success"'/>
+                <send event="tickReturn">
+                    <param name="result" expr='"SUCCESS"'/>
+                </send>
+            <else/>
+                <log expr='"failure"'/>
+                <send event="tickReturn">
+                    <param name="result" expr='"FAILURE"'/>
+                </send>
+            </if>
+        </onentry>
+        <transition target="idle" />
+    </state>
+
+</scxml>
+
+    <!-- datamodel="cplusplus:BatteryLevelSkillDataModel:BatteryLevelSkillDataModel.h"
+    .toDouble()
+    cond='scxmlEvent().name() == "BatteryDriverCmpInterface.readLevel"'-->

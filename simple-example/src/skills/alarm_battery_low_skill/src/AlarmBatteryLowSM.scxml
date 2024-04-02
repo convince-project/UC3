@@ -1,5 +1,8 @@
 <scxml datamodel="cplusplus:AlarmBatteryLowSkillDataModel:AlarmBatteryLowSkillDataModel.h" initial="idle" name="AlarmBatteryLowSM" version="1.0" xmlns="http://www.w3.org/2005/07/scxml" xmlns:viz="http://phrogz.net/visual-scxml">
 	<state id="idle" viz:xywh="120 -430 120 40">
+	<onentry>
+	<log expr='"idle"'/>
+	</onentry>
 		<transition event="tickCall" target="startAlarm"/>
 		<transition event="haltCall" target="sendHalted"/>
 	</state>
@@ -10,7 +13,7 @@
 		<transition target="resultStart"/>
 	</state>
 	<state id="resultStart" viz:xywh="110 10 120 40">
-		<transition cond="scxmlEvent().data().toMap()[&quot;result&quot;].toString().toStdString() == &quot;SUCCESS&quot;" event="AlarmCmpInterface.StartAlarmReturn" target="sendRunning"/>
+		<transition cond="scxmlEvent().data().toMap()[&quot;result&quot;].toString().toStdString() == &quot;SUCCESS&quot;" event="AlarmCmpInterface.StartAlarmReturn" target="sendSuccess"/>
 		<transition cond="scxmlEvent().data().toMap()[&quot;result&quot;].toString().toStdString() == &quot;FAILURE&quot;" event="AlarmCmpInterface.StartAlarmReturn" target="sendFailure"/>
 	</state>
 	<state id="stopAlarm" viz:xywh="620 -220 120 40">
@@ -29,7 +32,7 @@
 		<transition target="idle"/>
 	</state>
 	<state id="alarm" viz:xywh="610 -100 120 40">
-		<transition event="tickCall" target="sendRunning"/>
+		<transition event="tickCall" target="sendSuccess"/>
 		<transition event="haltCall" target="stopAlarm"/>
 	</state>
 	<state id="sendFailure" viz:xywh="30 -250 120 40">
@@ -40,10 +43,13 @@
 		</onentry>
 		<transition target="idle"/>
 	</state>
-	<state id="sendRunning" viz:xywh="430 20 120 40">
+	<state id="sendSuccess" viz:xywh="430 20 120 40">
 		<onentry>
+			<script>
+				log("sendSuccess");
+			</script>
 			<send event="tickReturn">
-				<param expr="&quot;RUNNING&quot;" name="result"/>
+				<param expr="&quot;SUCCESS&quot;" name="result"/>
 			</send>
 		</onentry>
 		<transition target="alarm"/>

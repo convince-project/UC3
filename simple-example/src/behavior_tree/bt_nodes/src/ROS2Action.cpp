@@ -87,7 +87,9 @@ BT::PortsList ROS2Action::providedPorts()
 }
 
 void ROS2Action::halt()
-{
+{        
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Node %s sending halt to skill@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@", ActionNodeBase::name().c_str());
+
     bool success = false;
     do {
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Node %s sending halt to skill", ActionNodeBase::name().c_str());

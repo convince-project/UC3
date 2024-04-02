@@ -171,7 +171,7 @@ int main(int argc, char* argv[])
         // port.write(msg);
 
         tree.tickRoot();
-        std::this_thread::sleep_for (std::chrono::milliseconds(1000));
+        std::this_thread::sleep_for (std::chrono::milliseconds(100));
     }
 
     return 0;
