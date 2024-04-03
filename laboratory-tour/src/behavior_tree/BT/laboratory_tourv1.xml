@@ -35,12 +35,11 @@
                 </Inverter>
             </ReactiveSequence>
             <ReactiveSequence>
-                <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="AlarmBatteryLow" nodeName="AlarmBatteryLow"/>
                 <ReactiveFallback>
                     <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsAtChargingStation" nodeName="IsAtChargingStation"/>
                     <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="GoToChargingStation" nodeName="GoToChargingStation"/>
                 </ReactiveFallback>
-                <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="Wait" nodeName="Wait"/>
+                <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="AlarmBatteryLow" nodeName="AlarmBatteryLow"/>
             </ReactiveSequence>
         </ReactiveFallback>
     </BehaviorTree>
