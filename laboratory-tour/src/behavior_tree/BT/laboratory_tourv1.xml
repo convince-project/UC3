@@ -21,7 +21,9 @@
     <!-- ////////// -->
     <BehaviorTree ID="NetworkManagement">
         <ReactiveSequence>
-            <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="NetworkDown" nodeName="NetworkDown"/>
+            <Inverter>
+                <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="NetworkDown" nodeName="NetworkDown"/>
+            </Inverter>
             <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="ManageModulesIfNetworkDown" nodeName="ManageModulesIfNetworkDown"/>
         </ReactiveSequence>
     </BehaviorTree>
@@ -46,7 +48,7 @@
     <!-- ////////// -->
     <BehaviorTree ID="gotoPoi">
         <ReactiveFallback>
-            <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="AtCurrentPoi" nodeName="AtCurrentPoi"/>
+            <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="AtCurrentPOI" nodeName="AtCurrentPOI"/>
             <ReactiveFallback name="">
                 <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="VisitorsFollowingRobot" nodeName="VisitorsFollowingRobot"/>
                 <ReactiveSequence>
