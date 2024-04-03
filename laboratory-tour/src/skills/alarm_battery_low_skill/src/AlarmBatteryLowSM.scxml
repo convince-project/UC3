@@ -1,72 +1,57 @@
-<scxml 
-  initial="idle" 
-  version="1.0" 
-  name="AlarmBatteryLowSM"
-  datamodel="ecmascript"
-  xmlns="http://www.w3.org/2005/07/scxml">
-
-  <datamodel>
-    <data id="response" />
-  </datamodel>
-
-    <state id="idle">
-      <transition event="CMD_TICK" target="startAlarm" />
-      <transition event="CMD_HALT" target="sendHalted" />
-    </state>
-
-    <state id="startAlarm">
-      <onentry>
-        <send event="AlarmCmpInterface.START_ALARM">
-        </send>
-      </onentry>
-      <transition target="resultStart" />
-    </state>
-
-    <state id="resultStart">
-      <transition event="AlarmCmpInterface.START_ALARM_SUCCEDED" target="sendRunning" />
-      <transition event="AlarmCmpInterface.START_ALARM_FAILED" target="sendFailure" />
-    </state>
-
-    <state id="stopAlarm">
-      <onentry>
-        <send event="AlarmCmpInterface.STOP_ALARM">
-        </send>
-      </onentry>
-      <transition target="resultStop" />
-    </state>
-
-    <state id="resultStop">
-      <transition event="AlarmCmpInterface.STOP_ALARM_SUCCEDED" target="sendHalted" />
-    </state>
-    <state id="sendHalted">
-      <onentry>
-        <send event="HALT_RESPONSE">
-        </send>
-      </onentry>
-      <transition target="idle" />
-    </state>
-
-    <state id="alarm">
-      <transition event="CMD_TICK" target="sendRunning" />
-      <transition event="CMD_HALT" target="stopAlarm" />
-    </state>
-
-    <state id="sendFailure">
-      <onentry>
-        <send event="TICK_RESPONSE">
-          <param name="state" expr='"failure"'/>
-        </send>
-      </onentry>
-      <transition target="idle" />
-    </state>
-
-    <state id="sendRunning">
-      <onentry>
-        <send event="TICK_RESPONSE">
-          <param name="state" expr='"running"'/>
-        </send>
-      </onentry>
-      <transition target="alarm" />
-    </state>
+<scxml datamodel="cplusplus:AlarmBatteryLowSkillDataModel:AlarmBatteryLowSkillDataModel.h" initial="idle" name="AlarmBatteryLowSM" version="1.0" xmlns="http://www.w3.org/2005/07/scxml" xmlns:viz="http://phrogz.net/visual-scxml">
+	<state id="idle" viz:xywh="120 -430 120 40">
+	<onentry>
+	<log expr='"idle"'/>
+	</onentry>
+		<transition event="tickCall" target="startAlarm"/>
+		<transition event="haltCall" target="sendHalted"/>
+	</state>
+	<state id="startAlarm" viz:xywh="190 -210 120 40">
+		<onentry>
+			<send event="AlarmCmpInterface.StartAlarmCall"/>
+		</onentry>
+		<transition target="resultStart"/>
+	</state>
+	<state id="resultStart" viz:xywh="110 10 120 40">
+		<transition cond="scxmlEvent().data().toMap()[&quot;result&quot;].toString().toStdString() == &quot;SUCCESS&quot;" event="AlarmCmpInterface.StartAlarmReturn" target="sendSuccess"/>
+		<transition cond="scxmlEvent().data().toMap()[&quot;result&quot;].toString().toStdString() == &quot;FAILURE&quot;" event="AlarmCmpInterface.StartAlarmReturn" target="sendFailure"/>
+	</state>
+	<state id="stopAlarm" viz:xywh="620 -220 120 40">
+		<onentry>
+			<send event="AlarmCmpInterface.stopAlarmCall"/>
+		</onentry>
+		<transition target="resultStop"/>
+	</state>
+	<state id="resultStop" viz:xywh="370 -210 120 40">
+		<transition event="AlarmCmpInterface.stopAlarmReturn" target="sendHalted"/>
+	</state>
+	<state id="sendHalted" viz:xywh="380 -430 120 40">
+		<onentry>
+			<send event="haltReturn"/>
+		</onentry>
+		<transition target="idle"/>
+	</state>
+	<state id="alarm" viz:xywh="610 -100 120 40">
+		<transition event="tickCall" target="sendSuccess"/>
+		<transition event="haltCall" target="stopAlarm"/>
+	</state>
+	<state id="sendFailure" viz:xywh="30 -250 120 40">
+		<onentry>
+			<send event="tickReturn">
+				<param expr="&quot;FAILURE&quot;" name="result"/>
+			</send>
+		</onentry>
+		<transition target="idle"/>
+	</state>
+	<state id="sendSuccess" viz:xywh="430 20 120 40">
+		<onentry>
+			<script>
+				log("sendSuccess");
+			</script>
+			<send event="tickReturn">
+				<param expr="&quot;SUCCESS&quot;" name="result"/>
+			</send>
+		</onentry>
+		<transition target="alarm"/>
+	</state>
 </scxml>
-
