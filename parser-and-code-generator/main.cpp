@@ -18,6 +18,11 @@
 #define RETURN_CODE_ERROR 1
 #define RETURN_CODE_OK    0
 
+#define cmdTick "CMD_TICK"
+#define cmdHalt "CMD_HALT"
+#define rspTick "TICK_RESPONSE"
+#define rspHalt "HALT_RESPONSE"
+
 static std::map<std::string, bool> eventsMap;
 static std::string modelFileName       = modelFilePath;
 static std::string interfaceFileName   = interfaceFilePath;
@@ -32,12 +37,15 @@ struct eventDataStr{
     std::string event;
     std::string eventType;
     std::string target;
+    std::map<std::string, std::string> paramMap;
+    std::string paramExpr;
     std::string componentName;
     std::string functionName;
     std::string eventName;
     std::string interfaceName;
     std::string interfaceType;
     std::string interfaceDataType;
+    std::string interfaceDataField;
 };
 
 struct cppCodeStr
@@ -48,6 +56,7 @@ struct cppCodeStr
     std::string startCode;
     std::string servicesCode; 
     std::string handlersCode;
+    std::string endstartCode;
     std::string callbacksCode; 
 };
 
@@ -79,33 +88,21 @@ void getDataFromEvent(eventDataStr& eventData)
             thirdWord = event.substr(secondDotPos + 1);
         }
         else{
-            std::cerr << "Error in name fomat for event: "<< event << std::endl;
+            std::cerr << "Error in name format for event: "<< event << std::endl;
         }
     }
     else{
-        std::cerr << "Error in name fomat for event: "<< event << std::endl;
+        std::cerr << "Error in name format for event: "<< event << std::endl;
     }
     eventData.componentName = firstWord;
     eventData.functionName   = secondWord;
     eventData.eventName     = thirdWord;
 }
 
-void getDataTypePath(const std::string input, std::string& output)
-{
-    //e.g. from "sensor_msgs::msg::BatteryState" to "sensor_msgs/msg/battery_state"
+void turnToSnakeCase(const std::string input, std::string& output)
+{   
     std::string temp = input;
-    size_t pos = 0;
     bool flag = false;
-    if (temp == ""){
-        std::cerr << "Input DataType has no value" << std::endl;
-        return;
-    }
-
-    while ((pos = temp.find("::", pos)) != std::string::npos) {
-        temp.replace(pos, 2, "/");
-        pos += 1;
-    }
-
     for (char c : temp){
         if (isupper(c)){
             if(flag){
@@ -117,10 +114,28 @@ void getDataTypePath(const std::string input, std::string& output)
         }
         output.push_back(tolower(c));
     }
+}
+
+void getDataTypePath(const std::string input, std::string& output)
+{
+    //e.g. from "sensor_msgs::msg::BatteryState" to "sensor_msgs/msg/battery_state"
+    std::string temp = input;
+    size_t pos = 0;
+    if (temp == ""){
+        std::cerr << "Input DataType has no value" << std::endl;
+        return;
+    }
+
+    while ((pos = temp.find("::", pos)) != std::string::npos) {
+        temp.replace(pos, 2, "/");
+        pos += 1;
+    }
+
+    turnToSnakeCase(temp, output);
 
 }
 
-void getDataFromRootName(const std::string attributeName, skillDataStr& skillData)
+bool getDataFromRootName(const std::string attributeName, skillDataStr& skillData)
 {
     if (attributeName != ""){
         std::cout << "Root attribute name: " << attributeName << std::endl;
@@ -131,15 +146,19 @@ void getDataFromRootName(const std::string attributeName, skillDataStr& skillDat
             skillData.skillType = attributeName.substr(dotPos + 5);
             if(skillData.skillType == ""){
                 std::cerr << "Skill type not found" << std::endl;
+                return false;
             }
         }
         else{
             std::cerr << "Skill name not found" << std::endl;
+            return false;
         }
     } 
     else{
         std::cerr << "Attribute 'name' not found or has no value" << std::endl;
+        return false;
     }
+    return true;
 
 }
 
@@ -219,6 +238,16 @@ void findElementVectorByTagAndAttribute(tinyxml2::XMLElement* root, const std::s
     }
 }
 
+void findElementVectorByTag(tinyxml2::XMLElement* root, const std::string tag, std::vector<tinyxml2::XMLElement*>& elementVector)
+{
+    for (tinyxml2::XMLElement* child = root->FirstChildElement(); child; child = child->NextSiblingElement()){
+        if (strcmp(child->Value(), tag.c_str()) == 0) {
+            elementVector.push_back(child);
+        }
+        findElementVectorByTag(child, tag, elementVector);
+    }
+}
+
 
 /* Read from XML files */
 bool extractInterfaceName(const std::string fileName, eventDataStr& eventData)
@@ -239,11 +268,11 @@ bool extractInterfaceName(const std::string fileName, eventDataStr& eventData)
     
     tinyxml2::XMLElement* element;
     if(!findElementByTagAndAttValue(root, std::string("componentDeclaration"), std::string("id"), componentName, element)){
-        std::cerr << "No component '" << componentName << "'found in file '" << fileName << "'."<< std::endl;
+        std::cerr << "\nNo component '" << componentName << "'found in file '" << fileName << "'."<< std::endl;
         return false;
     }
     if (!getElementAttValue(element, std::string("interface"), interfaceName)){
-        std::cerr << "No interface found for component '" << componentName << "'."<< std::endl;
+        std::cerr << "\nNo interface found for component '" << componentName << "'."<< std::endl;
         return false;
     }
     eventData.interfaceName = interfaceName;
@@ -255,7 +284,7 @@ bool extractInterfaceType(const std::string fileName, eventDataStr& eventData)
 {
     const std::string interfaceName = eventData.interfaceName;
     const std::string functionName = eventData.functionName;
-    std::string interfaceType, interfaceDataType;
+    std::string interfaceType, interfaceDataType, interfaceDataField;
     tinyxml2::XMLDocument doc;
     if (doc.LoadFile(fileName.c_str()) != tinyxml2::XML_SUCCESS) {
         std::cerr << "Failed to load '" << fileName << "' file" << std::endl;
@@ -269,10 +298,10 @@ bool extractInterfaceType(const std::string fileName, eventDataStr& eventData)
     }
 
     std::string idValue;
-    tinyxml2::XMLElement* elementInterface, *elementInterfaceType, *elementFunction, *elementDataType;
+    tinyxml2::XMLElement* elementInterface, *elementInterfaceType, *elementFunction, *elementDataType, *elementDataField;
     if (!findElementByTagAndAttValue(root, std::string("interface"), std::string("id"), interfaceName, elementInterface))
     {
-        std::cerr << "No interface '" << interfaceName << "'found in file '" << fileName << "'."<< std::endl;
+        std::cerr << "\nNo interface '" << interfaceName << "'found in file '" << fileName << "'."<< std::endl;
         return false;
     }
     if(!findElementByTagAndAttValue(elementInterface, std::string("function"), std::string("id"), functionName, elementFunction))
@@ -291,17 +320,30 @@ bool extractInterfaceType(const std::string fileName, eventDataStr& eventData)
     eventData.interfaceType = interfaceType;
     if(!findElementByTag(elementFunction, std::string("dataType"), elementDataType))
     {   
-        std::cerr << "\tNo tag <dataType> for function '" << functionName << "'."<< std::endl;
+        std::cerr << "No tag <dataType> for function '" << functionName << "'."<< std::endl;
         //Not every interface has a defined DataType TODO
         return true;
     } 
     if(!getElementText(elementDataType, interfaceDataType))
     {
-         std::cerr << "\tNo value in tag <dataType> for function '" << functionName << "'."<< std::endl;
+         std::cerr << "No value in tag <dataType> for function '" << functionName << "'."<< std::endl;
+        //Not every interface has a defined DataType TODO
+        return true;
+    }
+    if(!findElementByTag(elementFunction, std::string("dataField"), elementDataField))
+    {   
+        std::cerr << "No tag <dataField> for function '" << functionName << "'."<< std::endl;
+        //Not every interface has a defined DataType TODO
+        return true;
+    } 
+    if(!getElementText(elementDataField, interfaceDataField))
+    {
+         std::cerr << "No value in tag <dataField> for function '" << functionName << "'."<< std::endl;
         //Not every interface has a defined DataType TODO
         return true;
     }
     eventData.interfaceDataType = interfaceDataType;
+    eventData.interfaceDataField = interfaceDataField;
     return true;
 }
 
@@ -352,7 +394,17 @@ bool extractFromSCXML(tinyxml2::XMLDocument& doc, const std::string fileName, st
 void printEventData(eventDataStr eventData)
 {
     std::cout << "\tcomponent=" << eventData.componentName << ", service=" << eventData.functionName << ", eventName=" << eventData.eventName << std::endl;
-    std::cout<< "\tinterface=" << eventData.interfaceName << ", type=" << eventData.interfaceType << ", dataType=" << eventData.interfaceDataType << std::endl;
+    std::cout<< "\tinterface=" << eventData.interfaceName << ", type=" << eventData.interfaceType;
+    if(eventData.interfaceDataType != "")
+    {
+        std::cout << ", dataType=" << eventData.interfaceDataType;
+    }
+    if(eventData.interfaceDataField != "")
+    {
+        std::cout << ", dataField=" << eventData.interfaceDataField;
+    }
+    std::cout << std::endl;
+    
 }
 
 void printSkillData(skillDataStr skillData)
@@ -362,39 +414,39 @@ void printSkillData(skillDataStr skillData)
     std::cout << "-----------" << std::endl;
 }
 
-void processEvent(const std::string event, const skillDataStr skillData, const std::string eventType, std::string target, hCodeStr& hCode, cppCodeStr& cppCode)
+void processEvent(eventDataStr eventData, const skillDataStr skillData, std::string target, hCodeStr& hCode, cppCodeStr& cppCode)
 {
     const std::string className = skillData.className;
     const std::string skillName = skillData.skillName;
     const std::string skillType = skillData.skillType;
 
-    if(eventsMap.find(event) != eventsMap.end()){
+    if(eventsMap.find(eventData.event) != eventsMap.end()){
         return;
     } 
-    eventsMap[event];
+    eventsMap[eventData.event];
 
-    if(event == "CMD_TICK")
+    if(eventData.event == cmdTick)
     {
         hCode.publicCode += "\tvoid tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::Tick" + skillType + "::Request> request,\n"
             "\t\t\t   std::shared_ptr<bt_interfaces::srv::Tick" + skillType + "::Response>      response);\n";
     }
-    else if(event == "CMD_HALT")
+    else if(eventData.event == cmdHalt)
     {
         hCode.publicCode += "\tvoid halt( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::Halt" + skillType + "::Request> request,\n"
             "\t\t\t   [[maybe_unused]] std::shared_ptr<bt_interfaces::srv::Halt" + skillType + "::Response> response);\n";
     }
-    else if(event == "HALT_RESPONSE")
+    else if(eventData.event == rspHalt)
     {
         cppCode.handlersCode += 
-            "\tm_stateMachine.connectToEvent(\"" + event + "\", [this]([[maybe_unused]]const QScxmlEvent & event){\n"
+            "\tm_stateMachine.connectToEvent(\"" + eventData.event + "\", [this]([[maybe_unused]]const QScxmlEvent & event){\n"
             "\t\tRCLCPP_INFO(m_node->get_logger(), \""+ className +"::haltresponse\");\n"
             "\t\tm_haltResult.store(true);\n"
             "\t});\n\n";
     }
-    else if(event == "TICK_RESPONSE")
+    else if(eventData.event == rspTick)
     {
         cppCode.handlersCode += 
-            "\tm_stateMachine.connectToEvent(\"" + event + "\", [this]([[maybe_unused]]const QScxmlEvent & event){\n"
+            "\tm_stateMachine.connectToEvent(\"" + eventData.event + "\", [this]([[maybe_unused]]const QScxmlEvent & event){\n"
             "\t\tRCLCPP_INFO(m_node->get_logger(), \"" + className + "::tickReturn %s\", event.data().toMap()[\"result\"].toString().toStdString().c_str());\n"
             "\t\tstd::string result = event.data().toMap()[\"result\"].toString().toStdString();\n"
             "\t\tif (result == \"SUCCESS\" )\n"
@@ -421,30 +473,38 @@ void processEvent(const std::string event, const skillDataStr skillData, const s
     }
     else
     {
-        eventDataStr eventData;
-        eventData.event = event;
         getDataFromEvent(eventData);
         
-        std::string nodeName = "node" + skillName;
-        std::string clientName = "client"+ skillName;
+        std::string nodeName = "node" + eventData.functionName;
+        std::string clientName = "client"+ eventData.functionName;
 
-        extractInterfaceName(modelFileName, eventData);
-        extractInterfaceType(interfaceFileName,eventData);
-        printEventData(eventData);
-
-        if(eventType == "send")
+        if(extractInterfaceName(modelFileName, eventData))
+        {
+            extractInterfaceType(interfaceFileName,eventData);
+            printEventData(eventData);
+        }
+        
+        if(eventData.eventType == "send")
         {
             cppCode.handlersCode +=
-            "    m_stateMachine.connectToEvent(\"" + event + "\", [this]([[maybe_unused]]const QScxmlEvent & event){\n"
+            "    m_stateMachine.connectToEvent(\"" + eventData.event + "\", [this]([[maybe_unused]]const QScxmlEvent & event){\n"
             "        std::shared_ptr<rclcpp::Node> " + nodeName + " = rclcpp::Node::make_shared(m_name + \"SkillNode" + eventData.functionName + "\");\n";
 
             if(eventData.interfaceType == "async-service" || eventData.interfaceType == "sync-service" )
             {
-                hCode.includeCode += "#include <" + eventData.interfaceName + "/srv/" + eventData.functionName + ".hpp>\n";
+                std::string functionNameSnakeCase, serverName;
+                turnToSnakeCase(eventData.functionName,functionNameSnakeCase);
+                serverName = "\"/"+ skillName +"Component/" + eventData.functionName + "\"";
+                hCode.includeCode += "#include <" + eventData.interfaceName + "/srv/" + functionNameSnakeCase + ".hpp>\n";
                 cppCode.handlersCode +=
-                "        std::shared_ptr<rclcpp::Client<"+ eventData.interfaceName +"::srv::" + eventData.functionName + ">> "+ clientName +" = "+ nodeName +"->create_client<"+ eventData.interfaceName +"::srv::" + eventData.functionName + ">(\"/"+ skillName +"Component/" + eventData.functionName + "\");\n"
+                "        std::shared_ptr<rclcpp::Client<"+ eventData.interfaceName +"::srv::" + eventData.functionName + ">> "+ clientName +" = "+ nodeName +"->create_client<"+ eventData.interfaceName +"::srv::" + eventData.functionName + ">(" + serverName +");\n"
+                "        auto request = std::make_shared<"+ eventData.interfaceName +"::srv::" + eventData.functionName + "::Request>();\n";
                 
-                "        auto request = std::make_shared<"+ eventData.interfaceName +"::srv::" + eventData.functionName + "::Request>();\n"
+                for (auto it =  eventData.paramMap.begin(); it != eventData.paramMap.end(); ++it) {
+                    cppCode.handlersCode += "        request->" + it->first + " = " + it->second + ";\n";
+                }
+                
+                cppCode.handlersCode +=
                 "        bool wait_succeded{true};\n"
                 "        while (!"+ clientName +"->wait_for_service(std::chrono::seconds(1))) {\n"
                 "            if (!rclcpp::ok()) {\n"
@@ -461,10 +521,15 @@ void processEvent(const std::string event, const skillDataStr skillData, const s
                 "            if (futureResult == rclcpp::FutureReturnCode::SUCCESS) \n"
                 "            {\n"
                 "                if( result.get()->is_ok ==true) {\n"
-                "                    m_stateMachine.submitEvent(\"" + eventData.componentName + "."+ eventData.functionName +".Return\");\n"
+                "                    QVariantMap data;\n"
+                "                    data.insert(\"result\", \"SUCCESS\");\n"
+                "                    data.insert(\""+ eventData.interfaceDataField +"\", result.get()->" + eventData.interfaceDataField + ");\n"
+                "                    m_stateMachine.submitEvent(\"" + eventData.componentName + "."+ eventData.functionName +".Return\", data);\n"
                 "                    RCLCPP_INFO(rclcpp::get_logger(\"rclcpp\"), \"" + eventData.componentName + "."+ eventData.functionName +".Return\");\n"
                 "                } else {\n"
-                "                    m_stateMachine.submitEvent(\"" + eventData.componentName + "." + eventData.functionName +".Return\");\n"
+                "                    QVariantMap data;\n"
+                "                    data.insert(\"result\", \"FAILURE\");\n"
+                "                    m_stateMachine.submitEvent(\"" + eventData.componentName + "." + eventData.functionName +".Return\", data);\n"
                 "                    RCLCPP_INFO(rclcpp::get_logger(\"rclcpp\"), \"" + eventData.componentName + "."+ eventData.functionName +".Return\");\n"
                 "                }\n"
                 "            }\n"
@@ -473,12 +538,14 @@ void processEvent(const std::string event, const skillDataStr skillData, const s
 
             cppCode.handlersCode +="    });\n\n";
         }
-        else if(eventType == "transition")
+        else if(eventData.eventType == "transition")
         {
             if(eventData.interfaceType =="topic")
             {
                 hCode.publicCode += "\tvoid topic_callback(const " + eventData.interfaceDataType +"::SharedPtr msg);\n";
                 hCode.privateCode += "\trclcpp::Subscription<" + eventData.interfaceDataType +">::SharedPtr m_subscription;\n";
+                cppCode.servicesCode += "\tm_subscription = m_node->create_subscription<" + eventData.interfaceDataType +">(\n"
+                        "\t\t\"/battery_status\", 10, std::bind(&"+ skillData.className +"::topic_callback, this, std::placeholders::_1));\n\n";
                 
                 if(eventData.interfaceDataType != "")
                 {
@@ -488,12 +555,16 @@ void processEvent(const std::string event, const skillDataStr skillData, const s
                 } 
 
                 cppCode.callbacksCode +=
-                    "void BatteryLevelSkill::topic_callback(const sensor_msgs::msg::BatteryState::SharedPtr msg) {\n"
+                    "void "+ skillData.className +"::topic_callback(const " + eventData.interfaceDataType +"::SharedPtr msg) {\n"
                 "    QVariantMap data;\n"
-                "    data.insert(\"result\", msg->percentage);\n"
-                "    m_stateMachine.submitEvent(\""+ event +"\", data);\n"
+                "    data.insert(\""+ eventData.interfaceDataField +"\", msg->" + eventData.interfaceDataField + ");\n"
+                "    m_stateMachine.submitEvent(\""+ eventData.event +"\", data);\n"
                 "}\n\n";
             }
+
+            // else if(eventData.interfaceType == "async-service" || eventData.interfaceType == "sync-service")
+            // {
+            // }
         }
         
     }
@@ -508,8 +579,14 @@ void getEventsCode(const std::vector<tinyxml2::XMLElement*> elementsTransition, 
     
         if (event && target) 
         {
-            std::cout << "Transition: event=" << event << ", target=" << target << std::endl;
-            processEvent(event, skillData, "transition", target, hCode, cppCode);
+
+            std::cout << "\nTransition: event=" << event << ", target=" << target << std::endl;
+            eventDataStr eventData;
+            eventData.target = target;
+            eventData.event = event;
+            eventData.eventType = "transition";
+
+            processEvent(eventData, skillData, target, hCode, cppCode);
         } 
         else
         {
@@ -522,8 +599,22 @@ void getEventsCode(const std::vector<tinyxml2::XMLElement*> elementsTransition, 
 
         if (event) 
         {
-            std::cout << "Send: event=" << event << std::endl;
-            processEvent(event, skillData, "send", "", hCode, cppCode);
+            std::cout << "\nSend: event=" << event << std::endl;
+            eventDataStr eventData;
+            eventData.event = event;
+            eventData.eventType = "send";
+            std::vector<tinyxml2::XMLElement*> elementsParam;
+            findElementVectorByTag(element, "param", elementsParam);
+            for (const auto& element : elementsParam) {
+                std::string paramName, paramEvent;
+                getElementAttValue(element, "name", paramName);
+                getElementAttValue(element, "expr", paramEvent);
+                eventData.paramMap[paramName] = paramEvent;
+                std::cout << "\tparamName=" << paramName << ", paramExpr=" << eventData.paramMap[paramName] << std::endl;
+        
+            }
+
+            processEvent(eventData, skillData, "", hCode, cppCode);
         } 
         else
         {
@@ -545,6 +636,12 @@ void writeHCode(const skillDataStr skillData, hCodeStr& code){
     } 
     
     code.includeCode = 
+        "/******************************************************************************\n"
+        " *                                                                            *\n"
+        " * Copyright (C) 2020 Fondazione Istituto Italiano di Tecnologia (IIT)        *\n"
+        " * All Rights Reserved.                                                       *\n"
+        " *                                                                            *\n"
+        " ******************************************************************************/\n\n"
         "# pragma once\n\n"
         "#include <mutex>\n"
         "#include <thread>\n"
@@ -597,6 +694,7 @@ void writeCppCode(const skillDataStr skillData, cppCodeStr& code){
         " ******************************************************************************/\n"
         "\n"
         "#include \"" + className + ".h\"\n"
+        "#include <future>\n"
         "#include <QTimer>\n"
         "#include <QDebug>\n"
         "#include <QTime>\n"
@@ -623,11 +721,16 @@ void writeCppCode(const skillDataStr skillData, cppCodeStr& code){
         "\t}\n\n"
         "\tm_node = rclcpp::Node::make_shared(m_name + \"Skill\");\n"
         "\tRCLCPP_DEBUG_STREAM(m_node->get_logger(), \""+ className +"::start\");\n"
-        "\tstd::cout << \""+ className +"::start\";\n\n"
-        "\tm_stateMachine.start();\n"
-        "\tm_threadSpin = std::make_shared<std::thread>(spin, m_node);\n\n";
+        "\tstd::cout << \""+ className +"::start\";\n\n";
 
     code.servicesCode= "";
+
+    code.endstartCode =         
+        "\tm_stateMachine.start();\n"
+        "\tm_threadSpin = std::make_shared<std::thread>(spin, m_node);\n\n"
+        "\treturn true;\n"
+        "}\n\n";
+
 }
 
 void generateHFile(const std::string outputPath, const std::string outputFileName, const skillDataStr skillData, hCodeStr code) 
@@ -720,7 +823,7 @@ void generateCppFile(const std::string outputPath, const std::string outputFileN
             "    }\n"
             "    RCLCPP_INFO(m_node->get_logger(), \"" + className + "::tickDone\");\n"
             "   \n"
-            "response->is_ok = true;\n"
+            "    response->is_ok = true;\n"
             "}\n\n";
     }
     if (eventsMap.find("CMD_HALT") != eventsMap.end())
@@ -764,7 +867,7 @@ void generateCppFile(const std::string outputPath, const std::string outputFileN
     outputFile << code.startCode;
     outputFile << code.servicesCode;
     outputFile << code.handlersCode;
-    outputFile << "}\n\n";
+    outputFile << code.endstartCode;
     outputFile << code.callbacksCode; 
     
     outputFile.close();
@@ -832,12 +935,14 @@ int main(int argc, char* argv[])
     skillDataStr skillData;
     std::vector<tinyxml2::XMLElement *> elementsTransition, elementsSend;
     tinyxml2::XMLDocument doc;
-
+    std::cout << "-----------" << std::endl;
     if(!extractFromSCXML(doc, input_filename, rootName, elementsTransition, elementsSend)){
         return 0;
     }
     
-    getDataFromRootName(rootName, skillData);
+    if(!getDataFromRootName(rootName, skillData)){
+        return 0;
+    }
     printSkillData(skillData);
  
     hCodeStr hCode;
