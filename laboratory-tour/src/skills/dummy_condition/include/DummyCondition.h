@@ -24,7 +24,7 @@ class DummyCondition :
     public rclcpp::Node
 {
 public:
-    DummyCondition(std::string name );
+    DummyCondition(std::string name, std::string default_status);
     ~DummyCondition();
 
     void tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::TickCondition::Request> request,
