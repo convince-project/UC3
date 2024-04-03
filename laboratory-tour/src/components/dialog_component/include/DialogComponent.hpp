@@ -90,6 +90,7 @@ private:
     std::thread m_dialogThread;
     void DialogExecution();
     bool InterpretCommand(const std::string &command, PoI currentPoI, PoI genericPoI, std::string & phrase);
+    bool m_exit;
 };
 
 #endif
