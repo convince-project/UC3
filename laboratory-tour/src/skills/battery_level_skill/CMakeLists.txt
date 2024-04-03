@@ -32,7 +32,12 @@ target_include_directories(${PROJECT_NAME}
 target_sources( ${PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp 
   ${CMAKE_CURRENT_SOURCE_DIR}/src/BatteryLevelSkill.cpp 
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/BatteryLevelSkill.h)
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/BatteryLevelSkill.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/BatteryLevelSkillDataModel.cpp 
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/BatteryLevelSkillDataModel.h
+  # ${CMAKE_CURRENT_SOURCE_DIR}/src/BatteryLevelSkillSM.cpp 
+  # ${CMAKE_CURRENT_SOURCE_DIR}/include/BatteryLevelSkillSM.h
+  )
 
 
 install(TARGETS ${PROJECT_NAME}
@@ -48,11 +53,11 @@ if(BUILD_TESTING)
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
-qt6_add_statecharts(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/src/BatteryLevelSkillSM.scxml)
+qt6_add_statecharts(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/src/BatteryLevelSkillSMcppDataModel.scxml)
 
 ament_package()
 
 
 
 # ${CMAKE_CURRENT_SOURCE_DIR}/src/BatteryLevelDataModel.cpp 
-# ${CMAKE_CURRENT_SOURCE_DIR}/include/BatteryLevelDataModel.h
+# ${CMAKE_CURRENT_SOURCE_DIR}/include/BatteryLevelDataModel.hsimple-example/src/skills/battery_level_skill/src/BatteryLevelSkillSM.cpp
