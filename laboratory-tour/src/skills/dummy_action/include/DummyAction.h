@@ -25,7 +25,7 @@ class DummyAction :
     public rclcpp::Node
 {
 public:
-    DummyAction(std::string name );
+    DummyAction(std::string name, std::string default_status );
     ~DummyAction();
 
     void tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::TickAction::Request> request,
