@@ -11,7 +11,8 @@ DialogComponent::DialogComponent()
     m_speechTranscriberClientName = "/DialogComponent/speechTranscriberClient:i";
     m_speechTranscriberServerName = "/speechTranscription_nws/text:o";
     m_tourLoadedAtStart = false;
-    m_currentPoiName = "";
+    m_currentPoiName = "cris_new_start";
+    m_exit = false;
 }
 
 bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
@@ -297,6 +298,7 @@ bool DialogComponent::start(int argc, char*argv[])
 
 bool DialogComponent::close()
 {
+	m_exit = true;
     m_speechTranscriberPort.close();
     //Should I stop speaking somehow?
 
@@ -373,8 +375,9 @@ void DialogComponent::EnableDialog(const std::shared_ptr<dialog_interfaces::srv:
 void DialogComponent::DialogExecution()
 {
     std::chrono::duration wait_ms = 200ms;
-    while (true)
+    while (!m_exit)
     {
+		yInfo() << "DialogComponent::DialogExecution call received" << __LINE__;
         // Mic management
         bool isRecording = false;
         bool isPlaying = false;
@@ -398,6 +401,7 @@ void DialogComponent::DialogExecution()
         }
         // Check if new message has been transcribed
         std::string questionText = "";
+        yInfo() << "DialogComponent::DialogExecution hasNewMessage" << __LINE__;
         if (m_speechTranscriberCallback.hasNewMessage())
         {
             if (!m_speechTranscriberCallback.getText(questionText))
@@ -411,6 +415,7 @@ void DialogComponent::DialogExecution()
             std::this_thread::sleep_for(wait_ms);
             continue;
         }
+        yInfo() << "DialogComponent::DialogExecution Getting PoIs" << __LINE__;
 
         // Get the poi object from the Tour manager
         PoI currentPoi;
@@ -428,7 +433,7 @@ void DialogComponent::DialogExecution()
             std::this_thread::sleep_for(wait_ms);
             continue;
         }
-        
+        yInfo() << "DialogComponent::DialogExecution ChatBot interrogation" << __LINE__;
         // Pass the question to DialogFlow
         std::string answerText = "";
         if(!m_iChatBot->interact(questionText, answerText))
@@ -437,7 +442,7 @@ void DialogComponent::DialogExecution()
             std::this_thread::sleep_for(wait_ms);
             continue;
         }
-
+		yInfo() << "DialogComponent::DialogExecution ChatBot Output: " << answerText << __LINE__;
         // Pass the DialogFlow answer to the JSON TourManager
         std::string scriptedString = "";
         if(!InterpretCommand(answerText, currentPoi, genericPoI, scriptedString))
@@ -446,7 +451,7 @@ void DialogComponent::DialogExecution()
             std::this_thread::sleep_for(wait_ms);
             continue;
         }
-
+		yInfo() << "DialogComponent::DialogExecution Interpreted command: " << scriptedString << __LINE__;
         // Synthetise the text
         yarp::sig::Sound synthesizedSound;
         if (!m_iSpeechSynth->synthesize(scriptedString, synthesizedSound))
@@ -614,7 +619,7 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
         //{
         //    m_fallback_repeat_counter = 0;
         //}
-        //return true;
+        return true;
     }
     return false;
 }
@@ -622,6 +627,7 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
 void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::SetLanguage::Request> request,
                         std::shared_ptr<dialog_interfaces::srv::SetLanguage::Response> response)
 {
+	yInfo() << "DialogComponent::SetLanguage call received" << __LINE__;
     if (request->new_language=="")
     {
         response->is_ok=false;
@@ -645,9 +651,10 @@ void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::
     if(!m_tourStorage->m_loadedTour.setCurrentLanguage(request->new_language))
     {
         response->is_ok=false;
-        response->error_msg="Unable to set new language";
+        response->error_msg="Unable to set new language to tourStorage";
         return;
     }
+    response->is_ok=true;
 }
 
 void DialogComponent::GetLanguage([[maybe_unused]] const std::shared_ptr<dialog_interfaces::srv::GetLanguage::Request> request,
