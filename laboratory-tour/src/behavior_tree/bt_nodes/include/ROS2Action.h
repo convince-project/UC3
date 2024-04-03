@@ -25,7 +25,7 @@ class ROS2Action :  public BT::ActionNodeBase
 public:
     ROS2Action (const std::string name, const BT::NodeConfiguration &config);
     int sendTickToSkill();
-    void halt();
+    void halt() override;
     BT::NodeStatus tick() override;
     bool init();
     bool stop();

@@ -16,12 +16,7 @@
 ROS2Condition::ROS2Condition(const std::string name, const BT::NodeConfiguration& config) :
         ConditionNode(name, config)
 {
-    BT::Optional<std::string> node_name = BT::TreeNode::getInput<std::string>("nodeName");
-    if (node_name)
-    {
-        m_name = node_name.value();
-    }
-
+    m_name = ConditionNode::name();
     BT::Optional<std::string> is_monitored = BT::TreeNode::getInput<std::string>("isMonitored");
     if (is_monitored.value() == "true")
     {
@@ -80,7 +75,7 @@ int ROS2Condition::sendTickToSkill()
         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service TickCondition. Exiting.");
         return msg.SKILL_FAILURE;
         }
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "service TickCondition not available, waiting again...");
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "%s service TickCondition not available, waiting again...", m_name.c_str());
     }
     auto result = m_clientTick->async_send_request(request);
     std::this_thread::sleep_for (std::chrono::milliseconds(100));
