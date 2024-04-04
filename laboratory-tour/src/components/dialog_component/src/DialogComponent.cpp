@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <random>
+#include <string>
 
 using namespace std::chrono_literals;
 
@@ -377,7 +378,7 @@ void DialogComponent::DialogExecution()
     std::chrono::duration wait_ms = 200ms;
     while (!m_exit)
     {
-		yInfo() << "DialogComponent::DialogExecution call received" << __LINE__;
+		//yInfo() << "DialogComponent::DialogExecution call received" << __LINE__;
         // Mic management
         bool isRecording = false;
         bool isPlaying = false;
@@ -401,7 +402,7 @@ void DialogComponent::DialogExecution()
         }
         // Check if new message has been transcribed
         std::string questionText = "";
-        yInfo() << "DialogComponent::DialogExecution hasNewMessage" << __LINE__;
+        //yInfo() << "DialogComponent::DialogExecution hasNewMessage" << __LINE__;
         if (m_speechTranscriberCallback.hasNewMessage())
         {
             if (!m_speechTranscriberCallback.getText(questionText))
@@ -460,13 +461,15 @@ void DialogComponent::DialogExecution()
             std::this_thread::sleep_for(wait_ms);
             continue;
         }
-
+		yInfo() << "DialogComponent::DialogExecution Stopping recording" << __LINE__;
         m_iAudioGrabberSound->stopRecording();  //Do I need to stop recording?
         // Pass the sound to the speaker -> Do I have to shut down also the mic ?? TODO
+        yInfo() << "DialogComponent::DialogExecution preparing port with duration: " << synthesizedSound.getDuration() <<  __LINE__;
         m_speakersAudioPort.prepare() = synthesizedSound;
         //auto & buffer = m_speakersAudioPort.prepare();
         //buffer.clear();
         //buffer = synthesizedSound;
+        yInfo() << "DialogComponent::DialogExecution Sending Sound to port" << __LINE__;
         m_speakersAudioPort.write();
         //std::this_thread::sleep_for(wait_ms);
     }
@@ -475,23 +478,49 @@ void DialogComponent::DialogExecution()
 
 bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPoI, PoI genericPoI, std::string & phrase)
 {
+	std::string replaced_str = command;
+	// Find what to say:
+	auto say_pos = replaced_str.find("say");
+	if (say_pos != std::string::npos)
+    {
+		auto quote_begin = replaced_str.find('"', say_pos);
+		if (quote_begin != std::string::npos)
+		{
+			auto quote_end = replaced_str.find('"', quote_begin + 1);
+			if(quote_end != std::string::npos)
+			{
+				phrase = replaced_str.substr(quote_begin + 1, (quote_end - quote_begin) - 1);
+				yInfo() << "[DialogComponent::InterpretCommand] begin: " << quote_begin << " end: " << quote_end;
+				yInfo() << "[DialogComponent::InterpretCommand] returning from the raw say: " << phrase << __LINE__;
+				return true;
+			}
+		}
+	}
+	// TODO for setLanguage, getLanguage, and Action
+	return false;
+	/*
     bool isOk = false;
     std::vector<Action> actions;
     std::string cmd;
+    
+    std::string replaced_str = command;
+    // Replace string: say -> speak
+    while (replaced_str.find("say") != std::string::npos)
+        replaced_str.replace(replaced_str.find("say"), 3, "speak");
 
-    bool isCurrent = currentPoI.isCommandValid(command);
-    bool isGeneric = genericPoI.isCommandValid(command);
+    bool isCurrent = currentPoI.isCommandValid(replaced_str);
+    bool isGeneric = genericPoI.isCommandValid(replaced_str);
 
     if (isCurrent || isGeneric) // If the command is available either in the current PoI or the generic ones
     {
         int cmd_multiples;
         if (isCurrent) // If it is in the current overwrite the generic
         {
-            cmd_multiples = currentPoI.getCommandMultiplesNum(command);
+            cmd_multiples = currentPoI.getCommandMultiplesNum(replaced_str);
         }
         else
         {
-            cmd_multiples = genericPoI.getCommandMultiplesNum(command);
+            cmd_multiples = genericPoI.getCommandMultiplesNum(replaced_str);
         }
 
         // could be removed
@@ -502,7 +531,7 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
             std::mt19937 random_gen;
             int index = uniform_distrib(random_gen) - 1;
 
-            cmd = command;
+            cmd = replaced_str;
             if (index != 0)
             {
                 cmd = cmd.append(std::to_string(index));
@@ -510,7 +539,7 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
         }
         else // The is only 1 command. It cannot be 0 because we checked if the command is available at the beginning
         {
-            cmd = command;
+            cmd = replaced_str;
         }
 
         if (isCurrent)
@@ -524,7 +553,7 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
     }
     else // Command is not available anywhere, return error and skip
     {
-        yWarning() << "Command: " << command << " , not supported in either the PoI or the generics list. Skipping...";
+        yWarning() << "Command: " << replaced_str << " , not supported in either the PoI or the generics list. Skipping...";
     }
 
     if (isOk && !actions.empty())
@@ -578,12 +607,12 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
                     }
                     case ActionTypes::INVALID:
                     {
-                        yError() << "I got an INVALID ActionType in command" << command;
+                        yError() << "I got an INVALID ActionType in command" << replaced_str;
                         break;
                     }
                     default:
                     {
-                        yError() << "I got an unknown ActionType: " << command;
+                        yError() << "I got an unknown ActionType: " << replaced_str;
                         break;
                     }
                 }
@@ -622,6 +651,7 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
         return true;
     }
     return false;
+    */
 }
 
 void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::SetLanguage::Request> request,
