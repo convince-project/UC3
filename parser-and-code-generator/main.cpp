@@ -525,8 +525,19 @@ void processEvent(eventDataStr eventData, const skillDataStr skillData, std::str
                 "            {\n"
                 "                if( response->is_ok ==true) {\n"
                 "                    QVariantMap data;\n"
-                "                    data.insert(\"result\", \"SUCCESS\");\n"
-                "                    data.insert(\""+ eventData.interfaceDataField +"\", response->" + eventData.interfaceDataField + ");\n" //TODO
+                "                    data.insert(\"result\", \"SUCCESS\");\n";
+                if(eventData.interfaceDataField != "")
+                {
+                    cppCode.handlersCode +=
+                    "                    data.insert(\""+ eventData.interfaceDataField +"\", response->" + eventData.interfaceDataField;
+                    if(eventData.interfaceDataField == "status")
+                    {
+                        cppCode.handlersCode += ".status";
+                    }
+                    cppCode.handlersCode +=
+                    ");\n";
+                }
+                cppCode.handlersCode +=
                 "                    m_stateMachine.submitEvent(\"" + eventData.componentName + "."+ eventData.functionName +".Return\", data);\n"
                 "                    RCLCPP_INFO(rclcpp::get_logger(\"rclcpp\"), \"" + eventData.componentName + "."+ eventData.functionName +".Return\");\n"
                 "                } else {\n"
