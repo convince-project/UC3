@@ -28,6 +28,7 @@ static std::string modelFileName       = modelFilePath;
 static std::string interfaceFileName   = interfaceFilePath;
 
 struct skillDataStr{
+    std::string SMName;
     std::string className;
     std::string skillName;
     std::string skillType;
@@ -141,6 +142,7 @@ bool getDataFromRootName(const std::string attributeName, skillDataStr& skillDat
         std::cout << "Root attribute name: " << attributeName << std::endl;
         size_t dotPos = attributeName.find("Skill");
         if (dotPos != std::string::npos){
+            skillData.SMName = attributeName;
             skillData.skillName = attributeName.substr(0, dotPos);
             skillData.className = attributeName.substr(0, dotPos + 5);
             skillData.skillType = attributeName.substr(dotPos + 5);
@@ -494,7 +496,7 @@ void processEvent(eventDataStr eventData, const skillDataStr skillData, std::str
             {
                 std::string functionNameSnakeCase, serverName;
                 turnToSnakeCase(eventData.functionName,functionNameSnakeCase);
-                serverName = "\"/"+ skillName +"Component/" + eventData.functionName + "\"";
+                serverName = "\"/"+ eventData.componentName +"/" + eventData.functionName + "\"";
                 hCode.includeCode += "#include <" + eventData.interfaceName + "/srv/" + functionNameSnakeCase + ".hpp>\n";
                 cppCode.handlersCode +=
                 "        std::shared_ptr<rclcpp::Client<"+ eventData.interfaceName +"::srv::" + eventData.functionName + ">> "+ clientName +" = "+ nodeName +"->create_client<"+ eventData.interfaceName +"::srv::" + eventData.functionName + ">(" + serverName +");\n"
@@ -518,12 +520,13 @@ void processEvent(eventDataStr eventData, const skillDataStr skillData, std::str
                 "            // send the request                                                                    \n"
                 "            auto result = "+ clientName +"->async_send_request(request);\n"
                 "            auto futureResult = rclcpp::spin_until_future_complete("+ nodeName +", result);\n"
+                "            auto response = result.get();\n"
                 "            if (futureResult == rclcpp::FutureReturnCode::SUCCESS) \n"
                 "            {\n"
-                "                if( result.get()->is_ok ==true) {\n"
+                "                if( response->is_ok ==true) {\n"
                 "                    QVariantMap data;\n"
                 "                    data.insert(\"result\", \"SUCCESS\");\n"
-                "                    data.insert(\""+ eventData.interfaceDataField +"\", result.get()->" + eventData.interfaceDataField + ");\n"
+                "                    data.insert(\""+ eventData.interfaceDataField +"\", response->" + eventData.interfaceDataField + ");\n" //TODO
                 "                    m_stateMachine.submitEvent(\"" + eventData.componentName + "."+ eventData.functionName +".Return\", data);\n"
                 "                    RCLCPP_INFO(rclcpp::get_logger(\"rclcpp\"), \"" + eventData.componentName + "."+ eventData.functionName +".Return\");\n"
                 "                } else {\n"
@@ -628,6 +631,7 @@ void getEventsCode(const std::vector<tinyxml2::XMLElement*> elementsTransition, 
 
 void writeHCode(const skillDataStr skillData, hCodeStr& code){
     const std::string className = skillData.className;
+    const std::string SMName = skillData.SMName;
     const std::string skillType = skillData.skillType;
     std::string skillTypeLC = skillType;
     for (char &c : skillTypeLC) 
@@ -674,7 +678,7 @@ void writeHCode(const skillDataStr skillData, hCodeStr& code){
         "\tstd::shared_ptr<rclcpp::Node> m_node;\n"
         "\tstd::mutex m_requestMutex;\n"
         "\tstd::string m_name;\n"
-        "\t" + className +"SM m_stateMachine;\n"
+        "\t" + SMName +" m_stateMachine;\n"
         "\t\n";
     code.closeClassCode = 
         "\t\n"
@@ -796,7 +800,7 @@ void generateCppFile(const std::string outputPath, const std::string outputFileN
             "    RCLCPP_INFO(m_node->get_logger(), \"" + className + "::tick\");\n"
             "    auto message = bt_interfaces::msg::" + skillType +"Response();\n"
             "    m_tickResult.store(Status::undefined); //here we can put a struct\n"
-            "    m_stateMachine.submitEvent(\"tickCall\");\n"
+            "    m_stateMachine.submitEvent(\""+ cmdTick +"\");\n"
             "   \n"
             "    while(m_tickResult.load()== Status::undefined) \n"
             "    {\n"
