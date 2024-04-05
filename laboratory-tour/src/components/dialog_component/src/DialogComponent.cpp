@@ -630,12 +630,18 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
                 {
                     // Speak, but make it invalid if it is a fallback or it is an error message
                     //Speak(action.getParam(), (cmd != "fallback" && cmd.find("Error") == std::string::npos));
+                    phrase = action.getParam();
+                    // save as backup if is a valid expression, not from an error
+                    if ((cmd != "fallback" && cmd.find("Error") == std::string::npos))
+                    {
+                        m_last_valid_speak = phrase;
+                    }
                     containsSpeak = true;
                     break;
                 }
                 case ActionTypes::SIGNAL:
                 {
-                    //Signal(action.getParam());
+                    //Signal(action.getParam());    // TODO
                     bool isDelay = action.getParam().find("delay_") != std::string::npos;
 
                     // Patch of code to handle a delay signal blocking the parallel execution
@@ -719,6 +725,7 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
             if (m_fallback_repeat_counter == m_fallback_threshold)
             { // If the same command has been received as many times as the threshold, then repeat the question.
                 //Speak(m_last_valid_speak, true);
+                phrase = m_last_valid_speak;
                 //BlockSpeak();
                 m_fallback_repeat_counter = 0;
             }
