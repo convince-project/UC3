@@ -1,32 +1,108 @@
 <scxml 
   initial="idle" 
   version="1.0" 
-  name="GoToChargingStationSkillSM"
-  datamodel="cplusplus:GoToChargingStationDataModel:GoToChargingStationDataModel.h"
+  name="GoToChargingStationSkillAction"
+  datamodel="ecmascript"
   xmlns="http://www.w3.org/2005/07/scxml">
 
+    <datamodel>
+        <data id="m_is_near"/>
+        <data id="m_status"/>
+        <data id="m_result"/>
+        <data id="NAVIGATION_STATUS_MOVING" expr="2"/><!--to check -->
+        <data id="NAVIGATION_STATUS_GOAL_REACHED" expr="4"/>
+    </datamodel>
+
     <state id="idle">
-        <transition event="CMD_START" target="goto" />
+      <transition event="CMD_TICK" target="goToPoI"/>
     </state>
 
-    <state id="goto">
+    <state id="goToPoI">
         <onentry>
-            <script>
-                QTimer::singleShot(0, stateMachine(), [=](){
-                    stateMachine()->submitEvent(go_to_poi_by_name("charging_station") ? "STATUS_SUCCESS" : "STATUS_FAILED");
-                });
-            </script>
+            <send event="NavigationComponent.GoToPoiByName.Call">
+                <param name="poi_name" expr='"sim_gam_1"'/> <!--ChargingStation-->
+            </send>
         </onentry>
-        <transition event="STATUS_SUCCESS" target="success" />
-        <transition event="STATUS_FAILED" target="failure" />
+        <transition event="NavigationComponent.GoToPoiByName.Return" target="goToPoIResult"> 
+          <assign location="m_result" expr="_event.data.result" />
+        </transition>
     </state>
 
-    <state id="success">
-        <transition event="CMD_OK" target="idle" />
+    <state id="goToPoIResult">
+      <transition cond="m_result == 'SUCCESS'" target="getStatus" />
+      <transition cond="m_result == 'FAILURE'" target="sendFailure" />
     </state>
 
-    <state id="failure">
-        <transition event="CMD_OK" target="idle" />
+    <state id="getStatus">
+        <onentry>
+            <send event="NavigationComponent.GetNavigationStatus.Call">
+            </send>
+        </onentry>
+        <transition event="NavigationComponent.GetNavigationStatus.Return" target="getStatusResult"> 
+            <assign expr="_event.data.result" location="m_result"/>
+            <assign expr="_event.data.status" location="m_status"/>
+        </transition>
     </state>
+
+    <state id="getStatusResult">
+      <transition cond="m_result == 'SUCCESS'" target="checkStatus" />
+      <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+    </state>
+
+    <state id="checkStatus">
+      <transition cond="m_status == NAVIGATION_STATUS_MOVING" target="sendRunning" />
+      <!--cond="m_status == NAVIGATION_STATUS_GOAL_REACHED"/-->
+      <transition target="getPosition" />
+    </state> 
+
+    <state id="getPosition">
+      <onentry>
+        <send event="NavigationComponent.CheckNearToPoi.Call">
+            <param name="poi_name" expr='"sim_gam_1"'/> <!--ChargingStation-->
+            <param name="distance" expr='0.5'/>
+        </send>
+      </onentry>
+      <transition event="NavigationComponent.CheckNearToPoi.Return" target="CheckNearToPoiResult" > 
+          <assign expr="_event.data.result" location="m_result"/>
+          <assign expr="_event.data.is_near" location="m_is_near"/>
+      </transition>
+    </state>
+
+    <state id="CheckNearToPoiResult">
+      <transition cond="m_result == 'SUCCESS'" target="checkPosition" />
+      <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+    </state>
+
+    <state id="checkPosition">
+      <transition cond="m_is_near" target="sendSuccess" />
+      <transition target="sendRunning" /> 
+    </state> 
+
+    <state id="sendFailure">
+        <onentry>
+          <send event="TICK_RESPONSE">
+            <param name="result" expr='"FAILURE"'/>
+          </send>
+        </onentry>
+        <transition target="idle" />
+    </state>
+
+    <state id="sendRunning">
+        <onentry>
+          <send event="TICK_RESPONSE">
+            <param name="result" expr='"RUNNING"'/>
+          </send>
+        </onentry>
+        <transition target="idle" />
+    </state>
+
+    <state id="sendSuccess">
+        <onentry>
+          <send event="TICK_RESPONSE">
+            <param name="result" expr='"SUCCESS"'/>
+          </send>
+        </onentry>
+        <transition target="idle" />
+    </state>
+
 </scxml>
-
