@@ -1,32 +1,30 @@
+<!--This skill checks from the battery component if it is charging or not, 
+    it return success if it is charging, failure otherwise-->
 <scxml 
   initial="idle" 
   version="1.0" 
-  name="BatteryChargingSkillSM"
-  datamodel="cplusplus:BatteryChargingDataModel:BatteryChargingDataModel.h"
+  name="BatteryChargingSkillCondition"
+  datamodel="cplusplus:BatteryChargingSkillDataModel:BatteryChargingSkillDataModel.h"
   xmlns="http://www.w3.org/2005/07/scxml">
 
+
     <state id="idle">
-        <transition event="CMD_START" target="get" />
+        <transition event="CMD_TICK" target="isCharging" />
     </state>
 
-    <state id="get">
+    <state id="isCharging">
         <onentry>
-            <script>
-                QTimer::singleShot(0, stateMachine(), [=](){
-                    stateMachine()->submitEvent((m_status == 1) ? "STATUS_SUCCESS" : "STATUS_FAILED");
-                });
-            </script>
+            <if cond="m_status == POWER_SUPPLY_STATUS_CHARGING"> 
+                <send event="TICK_RESPONSE">
+                    <param name="result" expr='"SUCCESS"'/>
+                </send>
+            <else/>
+                <send event="TICK_RESPONSE">
+                    <param name="result" expr='"FAILURE"'/>
+                </send>
+            </if>
         </onentry>
-        <transition event="STATUS_SUCCESS" target="success" />
-        <transition event="STATUS_FAILED" target="failure" />
+        <transition target="idle" />
     </state>
 
-    <state id="success">
-        <transition event="CMD_OK" target="idle" />
-    </state>
-
-    <state id="failure">
-        <transition event="CMD_OK" target="idle" />
-    </state>
 </scxml>
-
