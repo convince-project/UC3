@@ -7,13 +7,16 @@
 
 using namespace std::chrono_literals;
 
-DialogComponent::DialogComponent()
+DialogComponent::DialogComponent() : m_random_gen(m_rand_engine()),
+                                     m_uniform_distrib(1, 2)
 {
     m_speechTranscriberClientName = "/DialogComponent/speechTranscriberClient:i";
     m_speechTranscriberServerName = "/speechTranscription_nws/text:o";
     m_tourLoadedAtStart = false;
     m_currentPoiName = "cris_new_start";
     m_exit = false;
+    m_fallback_repeat_counter = 0;
+    m_fallback_threshold = 3;
 }
 
 bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
@@ -476,62 +479,87 @@ void DialogComponent::DialogExecution()
     return;
 }
 
+bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI, PoI genericPoI, std::string & phrase)
+{
+    // This works for ChatGPT bot
+    // We get a string formatted like in https://github.com/hsp-iit/tour-guide-robot/blob/iron/app/llmTest/conf/Format_commands_poi_prompt.txt
+    // Load the command into a bottle to split it
+    yarp::os::Bottle extracted_command;
+    extracted_command.fromString(command);
+    yDebug() << "[DialogComponent::InterpretCommand] Number of elements in bottle: " << extracted_command.size();
+    // In the first position we have the general thing to do, like: explain, next_poi, end_tour
+    std::string action = extracted_command.get(0).asString();
+    yDebug() << "[DialogComponent::InterpretCommand] Got action: " << action;
+    // Let's check what to do with the action
+	// Find what to say:
+	auto explain_pos = action.find("explain");
+    if (explain_pos < action.size())    //found
+    {
+        // Check the second element for determining the exact action: artist, art_piece, historical_period, technique
+        std::string topic = extracted_command.get(1).asString();
+        // TODO create a struct map
+        if (topic == "artist")
+        {
+            action = "explainQuestionAuthor";
+        }
+        else if (topic == "art_piece")
+        {
+            action = "explainQuestionMainPiece";
+        }
+        else if (topic == "historical_period")
+        {
+            action = "explainQuestionEpoch";
+        }
+        else if (topic == "technique")
+        {
+            action = "explainQuestionTechnique";
+        }
+        else
+        {
+            yError() << "[DialogComponent::InterpretCommand] Unable to assign a known topic: " << topic;
+	        return false;
+        }
+
+        // Now let's Find that command in the JSON
+    }
+
+    auto poi_pos = action.find("explain");
+    if (poi_pos < action.size())
+    {
+        /* code */
+    }
+
+	// TODO for setLanguage, getLanguage, and Action
+    yError() << "[DialogComponent::InterpretCommand] Unable to InterpretCommand: " << command;
+	return false;
+}
+
 bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPoI, PoI genericPoI, std::string & phrase)
 {
-	std::string replaced_str = command;
-	// Find what to say:
-	auto say_pos = replaced_str.find("say");
-	if (say_pos != std::string::npos)
-    {
-		auto quote_begin = replaced_str.find('"', say_pos);
-		if (quote_begin != std::string::npos)
-		{
-			auto quote_end = replaced_str.find('"', quote_begin + 1);
-			if(quote_end != std::string::npos)
-			{
-				phrase = replaced_str.substr(quote_begin + 1, (quote_end - quote_begin) - 1);
-				yInfo() << "[DialogComponent::InterpretCommand] begin: " << quote_begin << " end: " << quote_end;
-				yInfo() << "[DialogComponent::InterpretCommand] returning from the raw say: " << phrase << __LINE__;
-				return true;
-			}
-		}
-	}
-	// TODO for setLanguage, getLanguage, and Action
-	return false;
-	/*
     bool isOk = false;
     std::vector<Action> actions;
     std::string cmd;
-    
-    std::string replaced_str = command;
-    // Replace string: say -> speak
-    while (replaced_str.find("say") != std::string::npos)
-        replaced_str.replace(replaced_str.find("say"), 3, "speak");
 
-    bool isCurrent = currentPoI.isCommandValid(replaced_str);
-    bool isGeneric = genericPoI.isCommandValid(replaced_str);
+    bool isCurrent = currentPoI.isCommandValid(command);
+    bool isGeneric = genericPoI.isCommandValid(command);
 
     if (isCurrent || isGeneric) // If the command is available either in the current PoI or the generic ones
     {
         int cmd_multiples;
         if (isCurrent) // If it is in the current overwrite the generic
         {
-            cmd_multiples = currentPoI.getCommandMultiplesNum(replaced_str);
+            cmd_multiples = currentPoI.getCommandMultiplesNum(command);
         }
         else
         {
-            cmd_multiples = genericPoI.getCommandMultiplesNum(replaced_str);
+            cmd_multiples = genericPoI.getCommandMultiplesNum(command);
         }
 
-        // could be removed
         if (cmd_multiples > 1)
         {
-            std::uniform_int_distribution<std::mt19937::result_type> uniform_distrib;
-            uniform_distrib.param(std::uniform_int_distribution<std::mt19937::result_type>::param_type(1, cmd_multiples));
-            std::mt19937 random_gen;
-            int index = uniform_distrib(random_gen) - 1;
-
-            cmd = replaced_str;
+            m_uniform_distrib.param(std::uniform_int_distribution<std::mt19937::result_type>::param_type(1, cmd_multiples));
+            int index = m_uniform_distrib(m_random_gen) - 1;
+            cmd = command;
             if (index != 0)
             {
                 cmd = cmd.append(std::to_string(index));
@@ -539,7 +567,7 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
         }
         else // The is only 1 command. It cannot be 0 because we checked if the command is available at the beginning
         {
-            cmd = replaced_str;
+            cmd = command;
         }
 
         if (isCurrent)
@@ -553,9 +581,10 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
     }
     else // Command is not available anywhere, return error and skip
     {
-        yWarning() << "Command: " << replaced_str << " , not supported in either the PoI or the generics list. Skipping...";
+        yWarning() << "Command: " << command << " not supported in either the PoI or the generics list. Skipping...";
     }
 
+    // After the command has been validated, let's do something
     if (isOk && !actions.empty())
     {
         int actionIndex = 0;
@@ -591,67 +620,117 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
             }
 
             bool containsSpeak = false;
+            float danceTime = 0.0f;
 
             for (Action action : tempActions) // Loops through all the actions until the blocking one. Execute all of them
             {
                 switch (action.getType())
                 {
-                    case ActionTypes::SPEAK:
+                case ActionTypes::SPEAK:
+                {
+                    // Speak, but make it invalid if it is a fallback or it is an error message
+                    //Speak(action.getParam(), (cmd != "fallback" && cmd.find("Error") == std::string::npos));
+                    containsSpeak = true;
+                    break;
+                }
+                case ActionTypes::SIGNAL:
+                {
+                    //Signal(action.getParam());
+                    bool isDelay = action.getParam().find("delay_") != std::string::npos;
+
+                    // Patch of code to handle a delay signal blocking the parallel execution
+                    if (danceTime != 0.0f && isDelay)
                     {
-                        // Speak, but make it invalid if it is a fallback or it is an error message
-                        //Speak(action.getParam(), (cmd != "fallback" && cmd.find("Error") == std::string::npos));
-                        phrase = action.getParam();
-                        containsSpeak = true;
-                        return true;    // we are interested into phrase
-                        break;
+                        danceTime -= std::stof(action.getParam().substr(action.getParam().find("_") + 1, std::string::npos)); // Delay for the specified time in seconds.
+                        if (danceTime < 0.0f)
+                        {
+                            danceTime = 0.0f;
+                        }
                     }
-                    case ActionTypes::INVALID:
+                    //Check if it's already speaking
+                    bool is_speaking = false;
+                    if (!isSpeaking(is_speaking))
                     {
-                        yError() << "I got an INVALID ActionType in command" << replaced_str;
-                        break;
+                        yError() << "Unable to execute isSpeaking().";
                     }
-                    default:
+                    
+                    if (containsSpeak && !is_speaking && isDelay)
                     {
-                        yError() << "I got an unknown ActionType: " << replaced_str;
-                        break;
+                        containsSpeak = false;
                     }
+                    break;
+                }
+                case ActionTypes::INVALID:
+                {
+                    yError() << "I got an INVALID ActionType in command" << command;
+                    break;
+                }
+                default:
+                {
+                    yError() << "I got an unknown ActionType.";
+                    break;
+                }
                 }
             }
-            return false;
 
-            //if (containsSpeak && isCommandBlocking) // Waits for the longest move in the temp list of blocked moves and speak. If there is nothing in the temp list because we are not blocking it is skipped.
-            //{
-            //    m_
-            //    while (containsSpeak && !m_headSynchronizer.isSpeaking())
-            //    {
-            //        yarp::os::Time::delay(0.1);
-            //    }
-            //    while (m_headSynchronizer.isSpeaking())
-            //    {
-            //        yarp::os::Time::delay(0.1);
-            //    }
-            //}
+            if ((containsSpeak || danceTime != 0.0f) && isCommandBlocking) // Waits for the longest move in the temp list of blocked moves and speak. If there is nothing in the temp list because we are not blocking it is skipped.
+            {
+                //Check if it's already speaking
+                bool is_speaking = false;
+                if (!isSpeaking(is_speaking))
+                {
+                    yError() << "Unable to execute isSpeaking().";
+                }
+                while (containsSpeak && !is_speaking)
+                {
+                    if (!isSpeaking(is_speaking))
+                    {
+                        yError() << "Unable to execute isSpeaking()." << __LINE__;
+                        break;
+                    }
+                    yarp::os::Time::delay(0.1);
+                }
+                double startTime = yarp::os::Time::now();
+                while ((yarp::os::Time::now() - startTime) < danceTime)
+                {
+                    yarp::os::Time::delay(0.1);
+                }
+                while (is_speaking)
+                {
+                    if (!isSpeaking(is_speaking))
+                    {
+                        yError() << "Unable to execute isSpeaking()." << __LINE__;
+                        break;
+                    }
+                    bool is_audio_enabled=false;
+                    if (!isAudioEnabled(is_audio_enabled))
+                    {
+                        yError() << "Unable to execute isAudioEnabled()." << __LINE__;
+                        break;
+                    }
+                    yarp::os::Time::delay(0.1);
+                }
+            }
         }
 
-        //if (cmd == "fallback")
-        //{
-        //    m_fallback_repeat_counter++;
-        //    if (m_fallback_repeat_counter == m_fallback_threshold)
-        //    { // If the same command has been received as many times as the threshold, then repeat the question.
-        //        Speak(m_last_valid_speak, true);
-        //        BlockSpeak();
-        //        m_fallback_repeat_counter = 0;
-        //    }
-        //    Signal("startHearing"); // Open the ears after we handled the fallback to get a response.
-        //}
-        //else
-        //{
-        //    m_fallback_repeat_counter = 0;
-        //}
+        if (cmd == "fallback")
+        {
+            m_fallback_repeat_counter++;
+            if (m_fallback_repeat_counter == m_fallback_threshold)
+            { // If the same command has been received as many times as the threshold, then repeat the question.
+                //Speak(m_last_valid_speak, true);
+                //BlockSpeak();
+                m_fallback_repeat_counter = 0;
+            }
+            //Signal("startHearing"); // Open the ears after we handled the fallback to get a response.
+        }
+        else
+        {
+            m_fallback_repeat_counter = 0;
+        }
         return true;
     }
     return false;
-    */
 }
 
 void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::SetLanguage::Request> request,
@@ -719,4 +798,43 @@ void DialogComponent::SetPoi(const std::shared_ptr<dialog_interfaces::srv::SetPo
         response->is_ok=true;
     }
     return;
+}
+
+bool DialogComponent::isSpeaking(bool &result)
+{
+    auto data = m_speakersStatusPort.read();
+    if (data != nullptr)
+    {
+        yDebug() << "[DialogComponent::isSpeaking] got speakers status buffer size: " << data->current_buffer_size;
+        if(data->current_buffer_size > 0)
+        {
+            result = true;
+        }
+        else
+        {
+            result = false;
+        }
+        return true;
+    }
+    else
+    {
+        yError() << "[DialogComponent::isSpeaking] unable to read from port, got a null pointer" << __LINE__;
+        return false;
+    }
+}
+
+bool DialogComponent::isAudioEnabled(bool &result)
+{
+    auto data = m_speakersStatusPort.read();
+    if (data != nullptr)
+    {
+        yDebug() << "[DialogComponent::isSpeaking] got speakers audio enabled: " << data->enabled;
+        result = data->enabled;
+        return true;
+    }
+    else
+    {
+        yError() << "[DialogComponent::isSpeaking] unable to read from port, got a null pointer" << __LINE__;
+        return false;
+    }
 }

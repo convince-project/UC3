@@ -86,9 +86,21 @@ private:
     std::string m_tourName;
     bool m_tourLoadedAtStart;
 
+    /*Answers Randomizer*/
+    std::mt19937 m_random_gen;
+    std::default_random_engine m_rand_engine;
+    std::uniform_int_distribution<std::mt19937::result_type> m_uniform_distrib;
+    int m_fallback_threshold;
+    int m_fallback_repeat_counter;
+
+    /*Status functions*/
+    bool isSpeaking(bool &result);
+    bool isAudioEnabled(bool &result);
+
     /*Threading*/
     std::thread m_dialogThread;
     void DialogExecution();
+    bool CommandManager(const std::string &command, PoI currentPoI, PoI genericPoI, std::string & phrase);
     bool InterpretCommand(const std::string &command, PoI currentPoI, PoI genericPoI, std::string & phrase);
     bool m_exit;
 };
