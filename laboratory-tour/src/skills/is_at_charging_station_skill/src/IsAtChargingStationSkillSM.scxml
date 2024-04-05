@@ -62,7 +62,7 @@
     <state id="sendFailure">
         <onentry>
           <send event="TICK_RESPONSE">
-            <param name="result" expr='"failure"'/>
+            <param name="result" expr='"FAILURE"'/>
           </send>
         </onentry>
         <transition target="idle" />
@@ -71,7 +71,7 @@
     <state id="sendSuccess">
         <onentry>
           <send event="TICK_RESPONSE">
-            <param name="result" expr='"success"'/>
+            <param name="result" expr='"SUCCESS"'/>
           </send>
         </onentry>
         <transition target="idle" />
