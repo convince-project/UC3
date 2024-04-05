@@ -26,6 +26,7 @@
 #include <yarp/dev/AudioPlayerStatus.h>
 
 #include "nlohmann/json.hpp"
+#include <random>
 
 #include "SpeechTranscriberCallback.hpp"
 #include "TourStorage.h"
@@ -92,6 +93,7 @@ private:
     std::uniform_int_distribution<std::mt19937::result_type> m_uniform_distrib;
     int m_fallback_threshold;
     int m_fallback_repeat_counter;
+    std::string m_last_valid_speak;
 
     /*Status functions*/
     bool isSpeaking(bool &result);
