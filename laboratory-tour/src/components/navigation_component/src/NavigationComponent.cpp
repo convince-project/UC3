@@ -215,10 +215,12 @@ void NavigationComponent::CheckNearToPoi(const std::shared_ptr<navigation_interf
         response->error_msg = "empty poi";
     } else if (!m_iNav2D->checkNearToLocation(request->poi_name, request->distance))
     {
-        response->is_ok = false;
+        response->is_ok = true;
+        response->is_near = false;
         response->error_msg = "failed to check if nearby";
     } else 
     {
         response->is_ok = true;
+        response->is_near = true;
     }
 }

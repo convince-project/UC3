@@ -6,34 +6,35 @@
  ******************************************************************************/
 
 #pragma once
-#include <rclcpp/rclcpp.hpp>
 
 #include <QScxmlCppDataModel>
-#include <QVariantMap>
-#include <QTime>
-#include <QTimer>
-#include <QDebug>
+#include <QVariant>
 #include <sensor_msgs/msg/battery_state.hpp>
+#include <string>
+#include <sensor_msgs/msg/battery_state.hpp>
+#include <thread>
+#include <rclcpp/rclcpp.hpp>
+
+#define POWER_SUPPLY_STATUS_CHARGING 1
 
 
-class BatteryChargingDataModel: public QScxmlCppDataModel
+class BatteryChargingSkillDataModel: public QScxmlCppDataModel
 {
     Q_SCXML_DATAMODEL
 
 public:
-    BatteryChargingDataModel() = default;
-    void set_name(std::string name);
-    void topic_callback(const sensor_msgs::msg::BatteryState::SharedPtr msg);
-    bool close();
-    void spin();
-    bool start() ;
+    BatteryChargingSkillDataModel() = default;
     bool setup(const QVariantMap& initialDataValues) override;
+    void log(std::string to_log);
+    void topic_battery_callback(const sensor_msgs::msg::BatteryState::SharedPtr msg);
+    static void spin(std::shared_ptr<rclcpp::Node> node);
 private: 
-    std::shared_ptr<rclcpp::Node> m_node;
+    // sensor_msgs::msg::BatteryState m_batteryState;
+    uint m_status;
     rclcpp::Subscription<sensor_msgs::msg::BatteryState>::SharedPtr m_subscription;
-    std::string m_name = "";
-    int m_status {0};
-    std::shared_ptr<std::thread> m_thread;
+    std::shared_ptr<std::thread> m_threadSpin;
+    std::shared_ptr<rclcpp::Node> m_node;
+
 };
 
-Q_DECLARE_METATYPE(::BatteryChargingDataModel*)
+Q_DECLARE_METATYPE(::BatteryChargingSkillDataModel*)

@@ -33,8 +33,9 @@ target_sources( ${PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp 
   ${CMAKE_CURRENT_SOURCE_DIR}/src/IsAtChargingStationSkill.cpp 
   ${CMAKE_CURRENT_SOURCE_DIR}/include/IsAtChargingStationSkill.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/IsAtChargingStationDataModel.cpp 
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/IsAtChargingStationDataModel.h)
+  #   ${CMAKE_CURRENT_SOURCE_DIR}/src/IsAtChargingStationDataModel.cpp 
+  # ${CMAKE_CURRENT_SOURCE_DIR}/include/IsAtChargingStationDataModel.h
+  )
 
 
 install(TARGETS ${PROJECT_NAME}

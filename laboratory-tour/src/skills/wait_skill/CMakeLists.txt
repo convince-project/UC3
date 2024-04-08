@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(go_to_charging_station_skill)
+project(wait_skill)
 # set(CMAKE_CXX_STANDARD 20)
 # set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -9,8 +9,6 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(bt_interfaces REQUIRED)
-find_package(navigation_interfaces REQUIRED)
-find_package(sensor_msgs REQUIRED)
 find_package(Qt6 COMPONENTS Core Scxml StateMachine  REQUIRED)
 add_executable(${PROJECT_NAME} )
 
@@ -23,7 +21,7 @@ endif()
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-ament_target_dependencies(${PROJECT_NAME} bt_interfaces sensor_msgs rclcpp navigation_interfaces)
+ament_target_dependencies(${PROJECT_NAME} bt_interfaces rclcpp)
 target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Scxml Qt6::StateMachine)
 target_include_directories(${PROJECT_NAME}
   PUBLIC
@@ -31,10 +29,10 @@ target_include_directories(${PROJECT_NAME}
     $<INSTALL_INTERFACE:include>)
 target_sources( ${PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp 
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/GoToChargingStationSkill.cpp 
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/GoToChargingStationSkill.h
-  #${CMAKE_CURRENT_SOURCE_DIR}/src/GoToChargingStationDataModel.cpp 
-  #${CMAKE_CURRENT_SOURCE_DIR}/include/GoToChargingStationDataModel.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/WaitSkill.cpp 
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/WaitSkill.h
+  #${CMAKE_CURRENT_SOURCE_DIR}/src/WaitDataModel.cpp 
+  #${CMAKE_CURRENT_SOURCE_DIR}/include/WaitDataModel.h
   )
 
 
@@ -51,6 +49,6 @@ if(BUILD_TESTING)
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
-qt6_add_statecharts(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/src/GoToChargingStationSkillSM.scxml)
+qt6_add_statecharts(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/src/WaitSkillSM.scxml)
 
 ament_package()
