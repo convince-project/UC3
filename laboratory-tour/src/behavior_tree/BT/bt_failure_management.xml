@@ -23,12 +23,8 @@
     <!-- ////////// -->
     <BehaviorTree ID="failureManagement">
         <ReactiveFallback>
-            <ReactiveSequence>
                 <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="BatteryLevel" nodeName="BatteryLevel"/>
-                <Inverter>
                     <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="BatteryCharging" nodeName="BatteryCharging"/>
-                </Inverter>
-            </ReactiveSequence>
             <ReactiveSequence>
                 <ReactiveFallback>
                     <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsAtChargingStation" nodeName="IsAtChargingStation"/>
