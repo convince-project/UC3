@@ -76,20 +76,14 @@ bool CheckNetworkComponent::isNetworkConnected(const std::string& host) {
     double threshold = 3000.;
     bool is_connected = false;
     const std::string ping_command = "ping -c 4 -w 4 -q " + host + " 2>&1";  // Ping 4 times
-    std::cout << __LINE__;
     std::string ping_output = exec(ping_command.c_str());
-    std::cout << __LINE__;
-
     std::cout << "ping_output\n" << ping_output << std::endl;
-    std::cout << __LINE__;
 
     if(ping_output.find("Temporary failure in name resolution") != std::string::npos  || 
         ping_output.find("Name or service not known") != std::string::npos ){
         std::cout << "I am not connected to internet!" << std::endl;
-        is_connected = false;
-        return is_connected;
+        return false;
     }
-    std::cout << __LINE__;
 
     auto ping_output_stream = std::stringstream{ping_output};
     std::string line;
