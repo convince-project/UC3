@@ -1,7 +1,7 @@
 <scxml datamodel="cplusplus:AlarmBatteryLowSkillDataModel:AlarmBatteryLowSkillDataModel.h" initial="idle" name="AlarmBatteryLowSM" version="1.0" xmlns="http://www.w3.org/2005/07/scxml" xmlns:viz="http://phrogz.net/visual-scxml">
 	<state id="idle" viz:xywh="120 -430 120 40">
 	<onentry>
-	<log expr='"idle"'/>
+		<log expr='"idle"'/>
 	</onentry>
 		<transition event="tickCall" target="startAlarm"/>
 		<transition event="haltCall" target="sendHalted"/>
@@ -13,7 +13,7 @@
 		<transition target="resultStart"/>
 	</state>
 	<state id="resultStart" viz:xywh="110 10 120 40">
-		<transition cond="scxmlEvent().data().toMap()[&quot;result&quot;].toString().toStdString() == &quot;RUNNING&quot;" event="AlarmCmpInterface.StartAlarmReturn" target="sendRunning"/>
+		<transition cond="scxmlEvent().data().toMap()[&quot;result&quot;].toString().toStdString() == &quot;SUCCESS&quot;" event="AlarmCmpInterface.StartAlarmReturn" target="sendRunning"/>
 		<transition cond="scxmlEvent().data().toMap()[&quot;result&quot;].toString().toStdString() == &quot;FAILURE&quot;" event="AlarmCmpInterface.StartAlarmReturn" target="sendFailure"/>
 	</state>
 	<state id="stopAlarm" viz:xywh="620 -220 120 40">
