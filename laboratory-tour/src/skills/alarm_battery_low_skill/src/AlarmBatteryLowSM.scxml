@@ -8,6 +8,7 @@
 	</state>
 	<state id="startAlarm" viz:xywh="190 -210 120 40">
 		<onentry>
+			<log expr='"startAlarm"'/>
 			<send event="AlarmCmpInterface.StartAlarmCall"/>
 		</onentry>
 		<transition target="resultStart"/>
@@ -20,10 +21,12 @@
 		<onentry>
 			<send event="AlarmCmpInterface.stopAlarmCall"/>
 		</onentry>
-		<transition target="resultStop"/>
-	</state>
-	<state id="resultStop" viz:xywh="370 -210 120 40">
-		<transition event="AlarmCmpInterface.stopAlarmReturn" target="sendHalted"/>
+		<transition cond="scxmlEvent().data().toMap()[&quot;result&quot;].toString().toStdString() == &quot;SUCCESS&quot;" event="AlarmCmpInterface.StopAlarmReturn" target="sendHalted">
+			<log expr='"stopAlarm SUCCESS"'/>
+		</transition>
+		<transition cond="scxmlEvent().data().toMap()[&quot;result&quot;].toString().toStdString() == &quot;FAILURE&quot;" event="AlarmCmpInterface.StopAlarmReturn" target="sendHalted">
+			<log expr='"stopAlarm FAILURE"'/>	
+		</transition>
 	</state>
 	<state id="sendHalted" viz:xywh="380 -430 120 40">
 		<onentry>
