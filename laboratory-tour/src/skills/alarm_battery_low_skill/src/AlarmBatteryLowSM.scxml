@@ -13,7 +13,7 @@
 		<transition target="resultStart"/>
 	</state>
 	<state id="resultStart" viz:xywh="110 10 120 40">
-		<transition cond="scxmlEvent().data().toMap()[&quot;result&quot;].toString().toStdString() == &quot;SUCCESS&quot;" event="AlarmCmpInterface.StartAlarmReturn" target="sendSuccess"/>
+		<transition cond="scxmlEvent().data().toMap()[&quot;result&quot;].toString().toStdString() == &quot;RUNNING&quot;" event="AlarmCmpInterface.StartAlarmReturn" target="sendRunning"/>
 		<transition cond="scxmlEvent().data().toMap()[&quot;result&quot;].toString().toStdString() == &quot;FAILURE&quot;" event="AlarmCmpInterface.StartAlarmReturn" target="sendFailure"/>
 	</state>
 	<state id="stopAlarm" viz:xywh="620 -220 120 40">
@@ -32,7 +32,7 @@
 		<transition target="idle"/>
 	</state>
 	<state id="alarm" viz:xywh="610 -100 120 40">
-		<transition event="tickCall" target="sendSuccess"/>
+		<transition event="tickCall" target="sendRunning"/>
 		<transition event="haltCall" target="stopAlarm"/>
 	</state>
 	<state id="sendFailure" viz:xywh="30 -250 120 40">
@@ -43,13 +43,13 @@
 		</onentry>
 		<transition target="idle"/>
 	</state>
-	<state id="sendSuccess" viz:xywh="430 20 120 40">
+	<state id="sendRunning" viz:xywh="430 20 120 40">
 		<onentry>
 			<script>
-				log("sendSuccess");
+				log("sendRunning");
 			</script>
 			<send event="tickReturn">
-				<param expr="&quot;SUCCESS&quot;" name="result"/>
+				<param expr="&quot;RUNNING&quot;" name="result"/>
 			</send>
 		</onentry>
 		<transition target="alarm"/>
