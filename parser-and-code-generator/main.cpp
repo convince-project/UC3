@@ -52,6 +52,7 @@ struct eventDataStr{
 struct cppCodeStr
 {
     std::string includeCode; 
+    std::string converterCode; 
     std::string constructorCode;
     std::string spinCode;
     std::string startCode;
@@ -501,9 +502,14 @@ void processEvent(eventDataStr eventData, const skillDataStr skillData, std::str
                 cppCode.handlersCode +=
                 "        std::shared_ptr<rclcpp::Client<"+ eventData.interfaceName +"::srv::" + eventData.functionName + ">> "+ clientName +" = "+ nodeName +"->create_client<"+ eventData.interfaceName +"::srv::" + eventData.functionName + ">(" + serverName +");\n"
                 "        auto request = std::make_shared<"+ eventData.interfaceName +"::srv::" + eventData.functionName + "::Request>();\n";
-                
+                bool hasParam = false;
                 for (auto it =  eventData.paramMap.begin(); it != eventData.paramMap.end(); ++it) {
-                    cppCode.handlersCode += "        request->" + it->first + " = " + it->second + ";\n";
+                    if(!hasParam){
+                        cppCode.handlersCode += "        auto eventParams = event.data().toMap();\n";
+                        hasParam = true;
+                    }    
+                    cppCode.handlersCode +=
+                        "        request->" + it->first + " = convert<decltype(request->" + it->first + ")>(eventParams[\"" + it->first + "\"].toString().toStdString());\n";
                 }
                 
                 cppCode.handlersCode +=
@@ -716,6 +722,26 @@ void writeCppCode(const skillDataStr skillData, cppCodeStr& code){
         "#include <iostream>\n"
         "#include <QStateMachine>\n\n";
 
+        code.converterCode = "#include <type_traits>\n\n"
+
+            "template<typename T>\n"
+            "T convert(const std::string& str) {\n"
+            "    if constexpr (std::is_same_v<T, int>) {\n"
+            "        return std::stoi(str);\n"
+            "    } else if constexpr (std::is_same_v<T, double>) {\n"
+            "        return std::stod(str);\n"
+            "    } else if constexpr (std::is_same_v<T, float>) {\n"
+            "        return std::stof(str);\n"
+            "    } \n"
+            "    else if constexpr (std::is_same_v<T, std::string>) {\n"
+            "        return str;\n"
+            "    }\n"
+            "    else {\n"
+            "        // Handle unsupported types\n"
+            "        throw std::invalid_argument(\"Unsupported type conversion\");\n"
+            "    }\n"
+            "}\n\n";
+
     code.constructorCode = 
         className + "::"+ className +"(std::string name ) :\n"
         "\t\tm_name(std::move(name))\n"
@@ -877,6 +903,7 @@ void generateCppFile(const std::string outputPath, const std::string outputFileN
     }
     
     outputFile << code.includeCode; 
+    outputFile << code.converterCode; 
     outputFile << code.constructorCode; 
     outputFile << code.spinCode; 
     outputFile << code.startCode;
