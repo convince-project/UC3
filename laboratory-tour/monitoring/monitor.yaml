@@ -1,5 +1,5 @@
 
-path: /home/user1/convince_bts/simple_example/monitor_ws/src  # this is the path to the ros workspace you'd like the monitor package in
+path: /home/user1/UC3/laboratory-tour/monitor_ws/src  # this is the path to the ros workspace you'd like the monitor package in
 # nodes: # here we list the nodes we are going to monitor
 #   - node:
 #       name: talker
