@@ -4,6 +4,7 @@
 #include <iostream>
 #include <random>
 #include <string>
+#include <yarp/dev/llm/ILLMMsgs.h>
 
 using namespace std::chrono_literals;
 
@@ -94,9 +95,12 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
     // -------------------------Dialog Flow chatBot nwc---------------------------------
     {
         okCheck = rf.check("CHATBOT-CLIENT");
-        device = "chatBot_nwc_yarp";
+        //device = "chatBot_nwc_yarp";
+        //local = "/DialogComponent/chatBotClient";
+        //remote = "/chatBot_nws";
+        device = "LLM_nwc_yarp";
         local = "/DialogComponent/chatBotClient";
-        remote = "/chatBot_nws";
+        remote = "/poi_chat/LLM_nws/rpc";
 
         if (okCheck)
         {
@@ -120,23 +124,29 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
         chatbot_prop.put("local", local);
         chatbot_prop.put("remote", remote);
 
-        m_chatBotPoly.open(chatbot_prop);
-        if (!m_chatBotPoly.isValid())
+        m_chatGPTPoly.open(chatbot_prop);
+        if (!m_chatGPTPoly.isValid())
         {
             yError() << "[DialogComponent::ConfigureYARP] Error opening chatBot Client PolyDriver. Check parameters";
             return false;
         }
-        m_chatBotPoly.view(m_iChatBot);
-        if (!m_iChatBot)
+        m_chatGPTPoly.view(m_iChatGPT);
+        if (!m_iChatGPT)
         {
             yError() << "[DialogComponent::ConfigureYARP] Error opening iChatBot interface. Device not available";
             return false;
         }
-
-        //Try automatic yarp port Connection
-        //if(! yarp::os::Network::connect(remote, local))
+        //m_chatBotPoly.open(chatbot_prop);
+        //if (!m_chatBotPoly.isValid())
         //{
-        //    yWarning() << "[DialogComponent::ConfigureYARP] Unable to connect: " << local << " to: " << remote;
+        //    yError() << "[DialogComponent::ConfigureYARP] Error opening chatBot Client PolyDriver. Check parameters";
+        //    return false;
+        //}
+        //m_chatBotPoly.view(m_iChatBot);
+        //if (!m_iChatBot)
+        //{
+        //    yError() << "[DialogComponent::ConfigureYARP] Error opening iChatBot interface. Device not available";
+        //    return false;
         //}
     }
     // ---------------------Microphone Activation----------------------------
@@ -439,13 +449,20 @@ void DialogComponent::DialogExecution()
         }
         yInfo() << "DialogComponent::DialogExecution ChatBot interrogation" << __LINE__;
         // Pass the question to DialogFlow
-        std::string answerText = "";
-        if(!m_iChatBot->interact(questionText, answerText))
+        yarp::dev::LLM_Message answer;
+        if(!m_iChatGPT->ask(questionText, answer))
         {
-            yError() << "[DialogComponent::DialogExecution] Unable to interact with chatBot with question: " << questionText;
+            yError() << "[DialogComponent::DialogExecution] Unable to interact with chatGPT with question: " << questionText;
             std::this_thread::sleep_for(wait_ms);
             continue;
         }
+        std::string answerText = answer.content;
+        //if(!m_iChatBot->interact(questionText, answerText))
+        //{
+        //    yError() << "[DialogComponent::DialogExecution] Unable to interact with chatBot with question: " << questionText;
+        //    std::this_thread::sleep_for(wait_ms);
+        //    continue;
+        //}
 		yInfo() << "DialogComponent::DialogExecution ChatBot Output: " << answerText << __LINE__;
         // Pass the DialogFlow answer to the JSON TourManager
         std::string scriptedString = "";
@@ -757,12 +774,12 @@ void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::
         response->error_msg="Unable to set new language to speech Synth";
         return;
     }
-    if (!m_iChatBot->setLanguage(request->new_language))
-    {
-        response->is_ok=false;
-        response->error_msg="Unable to set new language";
-        return;
-    }
+    //if (!m_iChatBot->setLanguage(request->new_language))
+    //{
+    //    response->is_ok=false;
+    //    response->error_msg="Unable to set new language";
+    //    return;
+    //}
     // tourStorage -> should be loaded at start or by YARP config
     if(!m_tourStorage->m_loadedTour.setCurrentLanguage(request->new_language))
     {
