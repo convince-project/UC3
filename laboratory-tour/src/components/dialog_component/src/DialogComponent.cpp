@@ -4,7 +4,6 @@
 #include <iostream>
 #include <random>
 #include <string>
-#include <yarp/dev/llm/ILLMMsgs.h>
 
 using namespace std::chrono_literals;
 
@@ -14,7 +13,7 @@ DialogComponent::DialogComponent() : m_random_gen(m_rand_engine()),
     m_speechTranscriberClientName = "/DialogComponent/speechTranscriberClient:i";
     m_speechTranscriberServerName = "/speechTranscription_nws/text:o";
     m_tourLoadedAtStart = false;
-    m_currentPoiName = "cris_new_start";
+    m_currentPoiName = "gam_uccello";
     m_exit = false;
     m_fallback_repeat_counter = 0;
     m_fallback_threshold = 3;
@@ -192,10 +191,10 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
         }
 
         //Try automatic yarp port Connection
-        if(! yarp::os::Network::connect(remote, local))
-        {
-            yWarning() << "[DialogComponent::ConfigureYARP] Unable to connect: " << local << " to: " << remote;
-        }
+        //if(! yarp::os::Network::connect(remote, local))
+        //{
+        //    yWarning() << "[DialogComponent::ConfigureYARP] Unable to connect: " << local << " to: " << remote;
+        //}
     }
 
     // ---------------------TOUR MANAGER-----------------------
@@ -457,16 +456,10 @@ void DialogComponent::DialogExecution()
             continue;
         }
         std::string answerText = answer.content;
-        //if(!m_iChatBot->interact(questionText, answerText))
-        //{
-        //    yError() << "[DialogComponent::DialogExecution] Unable to interact with chatBot with question: " << questionText;
-        //    std::this_thread::sleep_for(wait_ms);
-        //    continue;
-        //}
 		yInfo() << "DialogComponent::DialogExecution ChatBot Output: " << answerText << __LINE__;
         // Pass the DialogFlow answer to the JSON TourManager
         std::string scriptedString = "";
-        if(!InterpretCommand(answerText, currentPoi, genericPoI, scriptedString))
+        if(!CommandManager(answerText, currentPoi, genericPoI, scriptedString))
         {
             yError() << "[DialogComponent::DialogExecution] Unable to interpret command: " << answerText;
             std::this_thread::sleep_for(wait_ms);
@@ -491,7 +484,7 @@ void DialogComponent::DialogExecution()
         //buffer = synthesizedSound;
         yInfo() << "DialogComponent::DialogExecution Sending Sound to port" << __LINE__;
         m_speakersAudioPort.write();
-        //std::this_thread::sleep_for(wait_ms);
+        std::this_thread::sleep_for(wait_ms);
     }
     return;
 }
@@ -501,21 +494,61 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
     // This works for ChatGPT bot
     // We get a string formatted like in https://github.com/hsp-iit/tour-guide-robot/blob/iron/app/llmTest/conf/Format_commands_poi_prompt.txt
     // Load the command into a bottle to split it
-    yarp::os::Bottle extracted_command;
-    extracted_command.fromString(command);
-    yDebug() << "[DialogComponent::InterpretCommand] Number of elements in bottle: " << extracted_command.size();
+    //yarp::os::Bottle extracted_command;
+    //extracted_command.fromString(command);
+    std::string replaced_str = command;
+    std::string action;
+	// Find what to say:
+	auto first_pos = replaced_str.find('"');
+	if (first_pos != replaced_str.size())
+    {
+		auto second_pos = replaced_str.find('"', first_pos + 1);
+        yInfo() << "[DialogComponent::CommandManager] begin: " << first_pos << " end: " << second_pos;
+		if (second_pos != replaced_str.size())
+		{
+            action = replaced_str.substr(first_pos + 1, (second_pos - first_pos) - 1);
+            //yInfo() << "[DialogComponent::InterpretCommand] returning from the raw say: " << phrase << __LINE__;
+			//auto third_pos = replaced_str.find('"', second_pos + 1);
+		}
+	}
+	
+    //yDebug() << "[DialogComponent::InterpretCommand] Number of elements in bottle: " << extracted_command.size();
     // In the first position we have the general thing to do, like: explain, next_poi, end_tour
-    std::string action = extracted_command.get(0).asString();
+    //std::string action = extracted_command.get(0).asString();
     yDebug() << "[DialogComponent::InterpretCommand] Got action: " << action;
     // Let's check what to do with the action
 	// Find what to say:
-	auto explain_pos = action.find("explain");
-    if (explain_pos < action.size())    //found
+	auto explain_pos = command.find("explain");
+    if (explain_pos < command.size())    //found
     {
-        // Check the second element for determining the exact action: artist, art_piece, historical_period, technique
-        std::string topic = extracted_command.get(1).asString();
         // TODO create a struct map
-        if (topic == "artist")
+        if (command.find("artist") < command.size())
+        {
+            action = "explainQuestionAuthor";
+        }
+        else if (command.find("art_piece") < command.size())
+        {
+            action = "explainQuestionMainPiece";
+        }
+        else if (command.find("historical_period") < command.size())
+        {
+            action = "explainQuestionEpoch";
+        }
+        else if (command.find("technique") < command.size())
+        {
+            action = "explainQuestionTechnique";
+        }
+        else
+        {
+            yError() << "[DialogComponent::CommandManager] Unable to assign a known topic";
+	        return false;
+        }
+        yDebug() << "[DialogComponent::InterpretCommand] Got topic: " << action;
+
+        // TODO for other action types
+        // Check the second element for determining the exact action: artist, art_piece, historical_period, technique
+        //std::string topic = extracted_command.get(1).asString();
+        /*if (topic == "artist")
         {
             action = "explainQuestionAuthor";
         }
@@ -533,22 +566,18 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
         }
         else
         {
-            yError() << "[DialogComponent::InterpretCommand] Unable to assign a known topic: " << topic;
+            yError() << "[DialogComponent::CommandManager] Unable to assign a known topic: " << topic;
 	        return false;
-        }
+        }*/
 
         // Now let's Find that command in the JSON
+        if(! InterpretCommand(action, currentPoI, genericPoI, phrase))
+        {
+            yError() << "[DialogComponent::CommandManager] Interpret action: " << action;
+            return false;
+        }
     }
-
-    auto poi_pos = action.find("explain");
-    if (poi_pos < action.size())
-    {
-        /* code */
-    }
-
-	// TODO for setLanguage, getLanguage, and Action
-    yError() << "[DialogComponent::InterpretCommand] Unable to InterpretCommand: " << command;
-	return false;
+	return true;
 }
 
 bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPoI, PoI genericPoI, std::string & phrase)
@@ -647,7 +676,13 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
                 {
                     // Speak, but make it invalid if it is a fallback or it is an error message
                     //Speak(action.getParam(), (cmd != "fallback" && cmd.find("Error") == std::string::npos));
-                    phrase = action.getParam();
+                    //phrase = action.getParam();
+                    // TODO LIST:
+                    //  CLOSE MIC
+                    //  SYNTH TEXT
+                    //  WRITE TO PORT
+                    //  WAIT FOR SPEAKERS BUFFER TO BE EMPTY
+
                     // save as backup if is a valid expression, not from an error
                     if ((cmd != "fallback" && cmd.find("Error") == std::string::npos))
                     {
@@ -656,8 +691,11 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
                     containsSpeak = true;
                     break;
                 }
+                case ActionTypes::DANCE:
+                    break;
                 case ActionTypes::SIGNAL:
                 {
+                    /*
                     //Signal(action.getParam());    // TODO
                     bool isDelay = action.getParam().find("delay_") != std::string::npos;
 
@@ -680,7 +718,7 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
                     if (containsSpeak && !is_speaking && isDelay)
                     {
                         containsSpeak = false;
-                    }
+                    }*/
                     break;
                 }
                 case ActionTypes::INVALID:
@@ -696,7 +734,7 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
                 }
             }
 
-            if ((containsSpeak || danceTime != 0.0f) && isCommandBlocking) // Waits for the longest move in the temp list of blocked moves and speak. If there is nothing in the temp list because we are not blocking it is skipped.
+            /*if ((containsSpeak || danceTime != 0.0f) && isCommandBlocking) // Waits for the longest move in the temp list of blocked moves and speak. If there is nothing in the temp list because we are not blocking it is skipped.
             {
                 //Check if it's already speaking
                 bool is_speaking = false;
@@ -733,10 +771,10 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
                     }
                     yarp::os::Time::delay(0.1);
                 }
-            }
+            }*/
         }
 
-        if (cmd == "fallback")
+        /*if (cmd == "fallback")
         {
             m_fallback_repeat_counter++;
             if (m_fallback_repeat_counter == m_fallback_threshold)
@@ -752,6 +790,7 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
         {
             m_fallback_repeat_counter = 0;
         }
+        */
         return true;
     }
     return false;
@@ -774,12 +813,6 @@ void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::
         response->error_msg="Unable to set new language to speech Synth";
         return;
     }
-    //if (!m_iChatBot->setLanguage(request->new_language))
-    //{
-    //    response->is_ok=false;
-    //    response->error_msg="Unable to set new language";
-    //    return;
-    //}
     // tourStorage -> should be loaded at start or by YARP config
     if(!m_tourStorage->m_loadedTour.setCurrentLanguage(request->new_language))
     {
