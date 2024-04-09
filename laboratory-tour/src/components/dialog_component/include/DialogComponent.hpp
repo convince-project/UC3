@@ -17,7 +17,8 @@
 #include <yarp/os/BufferedPort.h>
 #include <yarp/dev/PolyDriver.h>
 #include <yarp/dev/ISpeechSynthesizer.h>
-#include <yarp/dev/IChatBot.h>
+//#include <yarp/dev/IChatBot.h>
+#include <yarp/dev/ILLM.h>
 #include <yarp/dev/IAudioGrabberSound.h>
 #include <dialog_interfaces/srv/get_language.hpp>
 #include <dialog_interfaces/srv/set_language.hpp>
@@ -56,8 +57,11 @@ private:
     yarp::dev::PolyDriver m_speechSynthPoly;
     yarp::dev::ISpeechSynthesizer *m_iSpeechSynth{nullptr};
     // Dialog Flow
-    yarp::dev::PolyDriver m_chatBotPoly;
-    yarp::dev::IChatBot *m_iChatBot{nullptr};
+    //yarp::dev::PolyDriver m_chatBotPoly;
+    //yarp::dev::IChatBot *m_iChatBot{nullptr};
+    // ChatGPT
+    yarp::dev::PolyDriver m_chatGPTPoly;
+    yarp::dev::ILLM *m_iChatGPT{nullptr};
     // Microphone
     yarp::dev::PolyDriver m_audioRecorderPoly;
     yarp::dev::IAudioGrabberSound *m_iAudioGrabberSound{nullptr};
