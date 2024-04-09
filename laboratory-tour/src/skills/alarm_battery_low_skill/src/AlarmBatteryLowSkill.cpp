@@ -115,7 +115,7 @@ bool AlarmBatteryLowSkill::start(int argc, char*argv[])
                     QVariantMap data;
                     data.insert("result", "SUCCESS");
                     m_stateMachine.submitEvent("AlarmCmpInterface.StopAlarmReturn", data);
-                    // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "STOP_SUCCEDED");
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "STOP_SUCCEDED");
                 } else {
                     QVariantMap data;
                     data.insert("result", "FAILURE");
@@ -144,7 +144,7 @@ bool AlarmBatteryLowSkill::start(int argc, char*argv[])
 
 
     m_stateMachine.connectToEvent("haltReturn", [this]([[maybe_unused]]const QScxmlEvent & event){
-        // RCLCPP_INFO(m_node->get_logger(), "AlarmBatteryLowSkill::haltresponse");
+        RCLCPP_INFO(m_node->get_logger(), "AlarmBatteryLowSkill::haltresponse");
         m_haltResult.store(true);
     });
 

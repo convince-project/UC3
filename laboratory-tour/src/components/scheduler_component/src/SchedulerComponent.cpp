@@ -13,7 +13,7 @@ bool SchedulerComponent::start(int argc, char*argv[])
     if (argc >= 2)
     {
         m_tourStorage = std::make_shared<TourStorage>(); // Loads the tour json from the file and saves a reference to the class.
-        if( !m_tourStorage->LoadTour(argv[0], argv[1]))
+        if( !m_tourStorage->LoadTour(argv[1], argv[2]))
         {
             return false;
         }
