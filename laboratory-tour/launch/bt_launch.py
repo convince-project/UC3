@@ -22,24 +22,25 @@ def generate_launch_description():
             arguments=[ './src/behavior_tree/BT/laboratory_tourv1.xml']
         ), 
         Node(
-            package='dummy_condition',
-            executable='dummy_condition', 
-            arguments=['--skill_name', 'BatteryCharging', '--default_status', 'FAILURE']
+            package='battery_charging_skill',
+            executable='battery_charging_skill'
         ),         
         Node(
-            package='dummy_condition',
-            executable='dummy_condition', 
-            arguments=['--skill_name', 'IsAtChargingStation', '--default_status', 'SUCCESS']
+            package='is_at_charging_station_skill',
+            executable='is_at_charging_station_skill'
         ),         
         Node(
-            package='dummy_condition',
-            executable='dummy_condition', 
-            arguments=['--skill_name', 'GoToChargingStation', '--default_status', 'SUCCESS']
-        ),         
+            package='go_to_charging_station_skill',
+            executable='go_to_charging_station_skill'
+        ),
         Node(
-            package='dummy_condition',
-            executable='dummy_condition', 
-            arguments=['--skill_name', 'NetworkDown', '--default_status', 'FAILURE']
+            package='navigation_component',
+            executable='navigation_component'
+        ),
+        Node(
+            package='schduler_component',
+            executable='schduler_component', 
+            arguments=['./conf/tours.json']
         ),         
         Node(
             package='dummy_condition',
