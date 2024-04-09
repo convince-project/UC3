@@ -17,6 +17,7 @@
 
     <state id="idle">
       <transition event="CMD_TICK" target="getCurrentPoi"/>
+      <transition event="CMD_HALT" target="sendHalted"/>
     </state>
 
     <state id="getCurrentPoi">
@@ -122,5 +123,11 @@
         </onentry>
         <transition target="idle" />
     </state>
-
+    
+    <state id="sendHalted">
+      <onentry>
+        <send event="HALT_RESPONSE"/>
+      </onentry>
+      <transition target="idle"/>
+    </state>
 </scxml>

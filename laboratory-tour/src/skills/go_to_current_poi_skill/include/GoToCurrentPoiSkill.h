@@ -17,6 +17,7 @@
 #include <navigation_interfaces/srv/get_navigation_status.hpp>
 #include <navigation_interfaces/srv/check_near_to_poi.hpp>
 #include <bt_interfaces/srv/tick_action.hpp>
+#include <bt_interfaces/srv/halt_action.hpp>
 
 enum class Status{
 	undefined,
@@ -33,6 +34,8 @@ public:
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	void tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::TickAction::Request> request,
 			   std::shared_ptr<bt_interfaces::srv::TickAction::Response>      response);
+	void halt( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::HaltAction::Request> request,
+			   [[maybe_unused]] std::shared_ptr<bt_interfaces::srv::HaltAction::Response> response);
 
 private:
 	std::shared_ptr<std::thread> m_threadSpin;
@@ -43,6 +46,8 @@ private:
 	
 	std::atomic<Status> m_tickResult{Status::undefined};
 	rclcpp::Service<bt_interfaces::srv::TickAction>::SharedPtr m_tickService;
+	std::atomic<bool> m_haltResult{false};
+	rclcpp::Service<bt_interfaces::srv::HaltAction>::SharedPtr m_haltService;
 	
 };
 
