@@ -35,6 +35,6 @@ private:
     rclcpp::Service<scheduler_interfaces::srv::GetCurrentPoi>::SharedPtr m_getCurrentPoiService;
     rclcpp::Service<scheduler_interfaces::srv::Reset>::SharedPtr m_resetService;
     std::mutex m_mutex;
-    int32_t m_currentPoi;
+    int32_t m_currentPoi{0};
     std::shared_ptr<TourStorage> m_tourStorage;
 };
