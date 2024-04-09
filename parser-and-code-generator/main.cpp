@@ -1047,7 +1047,7 @@ void generateCppFile(const std::string outputPath, const std::string outputFileN
         "    std::lock_guard<std::mutex> lock(m_requestMutex);\n"
         "    RCLCPP_INFO(m_node->get_logger(), \"" + className + "::halt\");\n"
         "    m_haltResult.store(false); //here we can put a struct\n"
-        "    m_stateMachine.submitEvent(\"haltCall\");\n"
+        "    m_stateMachine.submitEvent(\""+ cmdHalt +"\");\n"
         "   \n"
         "    while(!m_haltResult.load()) \n"
         "    {\n"
