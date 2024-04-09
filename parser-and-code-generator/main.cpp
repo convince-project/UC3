@@ -71,6 +71,26 @@ struct hCodeStr
     std::string closeClassCode;
 };
 
+struct cppDataModelCodeStr
+{
+    std::string includeCode; 
+    std::string spinCode;
+    std::string logCode;
+    std::string setupCode;
+    std::string subscriptionCode; 
+    std::string callbacksCode; 
+    std::string endsetupCode;
+};
+
+struct topicCodeStr
+{
+    std::string includeCode;
+    std::string publicCode;
+    std::string privateCode;
+    std::string servicesCode;
+    std::string callbacksCode;
+};
+
 /* Get info from strings*/
 void getDataFromEvent(eventDataStr& eventData) 
 {
@@ -416,7 +436,7 @@ void printSkillData(skillDataStr skillData)
     std::cout << "-----------" << std::endl;
 }
 
-void processEvent(eventDataStr eventData, const skillDataStr skillData, std::string target, hCodeStr& hCode, cppCodeStr& cppCode)
+void processEvent(eventDataStr eventData, const skillDataStr skillData, std::string target, hCodeStr& hCode, cppCodeStr& cppCode, topicCodeStr& topicCode)
 {
     const std::string className = skillData.className;
     const std::string skillName = skillData.skillName;
@@ -556,9 +576,9 @@ void processEvent(eventDataStr eventData, const skillDataStr skillData, std::str
         {
             if(eventData.interfaceType =="topic")
             {
-                hCode.publicCode += "\tvoid topic_callback(const " + eventData.interfaceDataType +"::SharedPtr msg);\n";
-                hCode.privateCode += "\trclcpp::Subscription<" + eventData.interfaceDataType +">::SharedPtr m_subscription;\n";
-                cppCode.servicesCode += "\tm_subscription = m_node->create_subscription<" + eventData.interfaceDataType +">(\n"
+                topicCode.publicCode += "\tvoid topic_callback(const " + eventData.interfaceDataType +"::SharedPtr msg);\n";
+                topicCode.privateCode += "\trclcpp::Subscription<" + eventData.interfaceDataType +">::SharedPtr m_subscription;\n";
+                topicCode.servicesCode += "\tm_subscription = m_node->create_subscription<" + eventData.interfaceDataType +">(\n"
                         "\t\t\"/battery_status\", 10, std::bind(&"+ skillData.className +"::topic_callback, this, std::placeholders::_1));\n\n";
                 
                 if(eventData.interfaceDataType != "")
@@ -568,14 +588,13 @@ void processEvent(eventDataStr eventData, const skillDataStr skillData, std::str
                     hCode.includeCode += "#include <" + dataPath +".hpp>\n";
                 } 
 
-                cppCode.callbacksCode +=
+                topicCode.callbacksCode +=
                     "void "+ skillData.className +"::topic_callback(const " + eventData.interfaceDataType +"::SharedPtr msg) {\n"
                 "    QVariantMap data;\n"
                 "    data.insert(\""+ eventData.interfaceDataField +"\", msg->" + eventData.interfaceDataField + ");\n"
                 "    m_stateMachine.submitEvent(\""+ eventData.event +"\", data);\n"
                 "}\n\n";
             }
-
             // else if(eventData.interfaceType == "async-service" || eventData.interfaceType == "sync-service")
             // {
             // }
@@ -585,7 +604,7 @@ void processEvent(eventDataStr eventData, const skillDataStr skillData, std::str
 
 }
 
-void getEventsCode(const std::vector<tinyxml2::XMLElement*> elementsTransition, const std::vector<tinyxml2::XMLElement*> elementsSend, skillDataStr skillData, hCodeStr& hCode, cppCodeStr& cppCode)
+void getEventsCode(const std::vector<tinyxml2::XMLElement*> elementsTransition, const std::vector<tinyxml2::XMLElement*> elementsSend, skillDataStr skillData, hCodeStr& hCode, cppCodeStr& cppCode, topicCodeStr& topicCode)
 {
     for (const auto& element : elementsTransition) {
         const char* event = element->Attribute("event");
@@ -600,7 +619,7 @@ void getEventsCode(const std::vector<tinyxml2::XMLElement*> elementsTransition, 
             eventData.event = event;
             eventData.eventType = "transition";
 
-            processEvent(eventData, skillData, target, hCode, cppCode);
+            processEvent(eventData, skillData, target, hCode, cppCode, topicCode);
         } 
         else
         {
@@ -628,7 +647,7 @@ void getEventsCode(const std::vector<tinyxml2::XMLElement*> elementsTransition, 
         
             }
 
-            processEvent(eventData, skillData, "", hCode, cppCode);
+            processEvent(eventData, skillData, "", hCode, cppCode, topicCode);
         } 
         else
         {
@@ -640,10 +659,11 @@ void getEventsCode(const std::vector<tinyxml2::XMLElement*> elementsTransition, 
 
 /* Generate output files */
 
-void writeHCode(const skillDataStr skillData, hCodeStr& code){
+void writeHCode(const skillDataStr skillData, hCodeStr& code, bool datamodel_mode){
     const std::string className = skillData.className;
     const std::string SMName = skillData.SMName;
     const std::string skillType = skillData.skillType;
+    const std::string skillName = skillData.skillName;
     std::string skillTypeLC = skillType;
     for (char &c : skillTypeLC) 
     { 
@@ -663,7 +683,7 @@ void writeHCode(const skillDataStr skillData, hCodeStr& code){
         "#include <rclcpp/rclcpp.hpp>\n"
         "#include \"" + className + "SM.h\"\n"
         "#include <bt_interfaces/msg/" + skillTypeLC +"_response.hpp>\n";   
-
+    
     code.statusCode = 
         "enum class Status{\n"
         "\tundefined,\n";
@@ -694,10 +714,16 @@ void writeHCode(const skillDataStr skillData, hCodeStr& code){
     code.closeClassCode = 
         "\t\n"
         "};\n\n";
+
+    if(datamodel_mode)
+    {
+        code.includeCode += "#include \""  + skillName + "SkillDataModel.h\"\n";
+        code.privateCode += skillName + "SkillDataModel m_dataModel;\n";
+    }
     
 }
 
-void writeCppCode(const skillDataStr skillData, cppCodeStr& code){
+void writeCppCode(const skillDataStr skillData, cppCodeStr& code, bool datamodel_mode){
     const std::string className = skillData.className;
     const std::string skillType = skillData.skillType;
     code.includeCode = 
@@ -719,7 +745,13 @@ void writeCppCode(const skillDataStr skillData, cppCodeStr& code){
     code.constructorCode = 
         className + "::"+ className +"(std::string name ) :\n"
         "\t\tm_name(std::move(name))\n"
-        "{\n"
+        "{\n";
+     if(datamodel_mode)
+     {
+        code.constructorCode +=
+        "\tm_stateMachine.setDataModel(&m_dataModel);\n";
+     }
+    code.constructorCode +=
         "}\n\n";
     code.spinCode =
         "void "+ className +"::spin(std::shared_ptr<rclcpp::Node> node)\n"
@@ -746,6 +778,138 @@ void writeCppCode(const skillDataStr skillData, cppCodeStr& code){
         "\treturn true;\n"
         "}\n\n";
 
+}
+
+void writeDataModelHCode(const skillDataStr skillData, hCodeStr& code){
+    const std::string className = skillData.className;
+    
+    code.includeCode = 
+        "/******************************************************************************\n"
+        " *                                                                            *\n"
+        " * Copyright (C) 2020 Fondazione Istituto Italiano di Tecnologia (IIT)        *\n"
+        " * All Rights Reserved.                                                       *\n"
+        " *                                                                            *\n"
+        " ******************************************************************************/\n\n"
+        "# pragma once\n\n"
+        "#include <QScxmlCppDataModel>\n"
+        "#include <QVariant>\n"
+        "#include <string>\n"
+        "#include <thread>\n"
+        "#include <rclcpp/rclcpp.hpp>\n";   
+
+    code.publicCode += 
+        "class " + className + "DataModel: public QScxmlCppDataModel\n"
+        "{\n"
+        "    Q_SCXML_DATAMODEL\n\n"
+        "public:\n"
+        "   " + className +"DataModel() = default;\n"
+        "   bool setup(const QVariantMap& initialDataValues) override;\n"
+        "   void log(std::string to_log);\n"
+        "   //void topic_callback(const " "::SharedPtr msg);\n"
+        "   static void spin(std::shared_ptr<rclcpp::Node> node);\n";
+    code.privateCode = 
+        "\nprivate:\n"
+        "   uint m_status;\n"
+        "   //rclcpp::Subscription<" ">::SharedPtr m_subscription;\n"
+        "   std::shared_ptr<std::thread> m_threadSpin;\n"
+        "   std::shared_ptr<rclcpp::Node> m_node;\n";
+    code.closeClassCode = 
+        "\t\n"
+        "};\n\n"
+        "Q_DECLARE_METATYPE(::" + className +"SkillDataModel*)";
+    
+}
+
+void writeDataModelCppCode(const skillDataStr skillData, cppDataModelCodeStr& code){
+    const std::string className = skillData.className;
+    code.includeCode = 
+        "/******************************************************************************\n"
+        " *                                                                            *\n"
+        " * Copyright (C) 2020 Fondazione Istituto Italiano di Tecnologia (IIT)        *\n"
+        " * All Rights Reserved.                                                       *\n"
+        " *                                                                            *\n"
+        " ******************************************************************************/\n"
+        "\n"
+        "#include \"" + className + "DataModel.h\"\n"
+        "#include <QDebug>\n\n";
+    code.spinCode =
+        "void "+ className +"DataModel::spin(std::shared_ptr<rclcpp::Node> node)\n"
+        "{\n"
+        "\trclcpp::spin(node);\n"
+        "\trclcpp::shutdown();\n" 
+        "}\n\n";
+    code.logCode =
+        "void "+ className +"DataModel::log(std::string to_log)\n"
+        "{\n"
+        "\tqInfo(to_log.c_str());\n"
+        "}\n\n";
+    code.setupCode =    
+        "bool "+ className +"DataModel::setup(const QVariantMap& initialDataValues)\n"
+        "{\n"
+        "\tif(!rclcpp::ok())\n"
+        "\t{\n"
+        "\t\trclcpp::init(/*argc*/ 0, /*argv*/ nullptr);\n"
+        "\t}\n\n"
+        "\tm_node = rclcpp::Node::make_shared(\""+ className +"DataModelNode\");\n"
+        "\tm_threadSpin = std::make_shared<std::thread>(spin, m_node);\n";
+
+        "\tstd::cout << \""+ className +"::start\";\n\n";
+
+    code.subscriptionCode= "";
+
+    code.endsetupCode =         
+        "\treturn true;\n"
+        "}\n\n";
+
+    code.setupCode += "\t//m_subscription = m_node->create_subscription<" ">(\n"
+    "\t//\t\"/\", 10, std::bind(&""::topic_callback, this, std::placeholders::_1));\n\n";
+
+    code.includeCode += "//#include <"".hpp>\n\n";
+
+    code.callbacksCode +=
+        "//void "+ skillData.className +"::topic_callback(const " "::SharedPtr msg) {\n"
+    "//}\n\n";
+
+}
+
+
+void generateDataModelHFile(const std::string outputPath, const std::string outputFileName, hCodeStr code)
+{
+
+    
+    static std::ofstream outputFile(outputPath + outputFileName);
+    if (!outputFile.is_open()) {
+        std::cerr << "Failed to open file for writing: " << outputPath + outputFileName << std::endl;
+        return;
+    }
+    outputFile << code.includeCode;
+    outputFile << "\n";
+    outputFile << code.openClassCode;
+    outputFile << code.publicCode;
+    outputFile << code.privateCode;
+    outputFile << code.closeClassCode;
+    outputFile.close();
+    std::cout << outputFileName + " file generated" << std::endl;
+}
+
+void generateDataModelCppFile(const std::string outputPath, const std::string outputFileName, cppDataModelCodeStr code) 
+{
+    static std::ofstream outputFile(outputPath + outputFileName);
+    if (!outputFile.is_open()) {
+        std::cerr << "Failed to open file for writing: " << outputPath + outputFileName << std::endl;
+        return;
+    }
+    
+    outputFile << code.includeCode; 
+    outputFile << code.spinCode;
+    outputFile << code.logCode;
+    outputFile << code.setupCode; 
+    outputFile << code.subscriptionCode;
+    outputFile << code.endsetupCode;
+    outputFile << code.callbacksCode; 
+    
+    outputFile.close();
+    std::cout << outputFileName + " file generated" << std::endl;
 }
 
 void generateHFile(const std::string outputPath, const std::string outputFileName, const skillDataStr skillData, hCodeStr code) 
@@ -898,6 +1062,7 @@ void print_help()
 int main(int argc, char* argv[])
 {
     bool debug_mode = false;
+    bool datamodel_mode = false;
     std::string input_filename = "in.scxml";
     std::string output_path  = "./";
     
@@ -940,6 +1105,9 @@ int main(int argc, char* argv[])
             interfaceFileName = argv[i + 1];
             i++;
         }
+        else if (arg == "--datamodel_mode") {
+            datamodel_mode = true;
+        }
         else if (arg == "--debug_mode") {
             debug_mode = true;
         }
@@ -962,14 +1130,42 @@ int main(int argc, char* argv[])
  
     hCodeStr hCode;
     cppCodeStr cppCode;
-    writeHCode(skillData, hCode);
-    writeCppCode(skillData, cppCode);
-    getEventsCode(elementsTransition, elementsSend, skillData, hCode, cppCode);
+    topicCodeStr topicCode;
+    writeHCode(skillData, hCode, datamodel_mode);
+    writeCppCode(skillData, cppCode, datamodel_mode);
+    getEventsCode(elementsTransition, elementsSend, skillData, hCode, cppCode, topicCode);
     std::cout << "-----------" << std::endl;
     std::string outputFileNameH = skillData.className + ".h";
     std::string outputFileNameCPP = skillData.className + ".cpp";
     
+    if(datamodel_mode)
+    {
+        hCodeStr hDataModelCode;
+        cppDataModelCodeStr cppDataModelCode;
+        std::string outputFileNameDataModelH = skillData.className + "DataModel.h";
+        std::string outputFileNameDataModelCPP = skillData.className + "DataModel.cpp";   
+        writeDataModelHCode(skillData, hDataModelCode);
+        writeDataModelCppCode(skillData, cppDataModelCode);
+        hDataModelCode.includeCode += topicCode.includeCode;
+        hDataModelCode.publicCode += topicCode.publicCode;
+        hDataModelCode.privateCode += topicCode.privateCode;
+        cppDataModelCode.subscriptionCode += topicCode.servicesCode;
+        cppDataModelCode.callbacksCode += topicCode.callbacksCode;
+        generateDataModelHFile(outputPathHFile, outputFileNameDataModelH, hDataModelCode);
+        generateDataModelCppFile(outputPathCppFile, outputFileNameDataModelCPP, cppDataModelCode);
+    }
+    else
+    {
+        hCode.includeCode += topicCode.includeCode;
+        hCode.publicCode += topicCode.publicCode;
+        hCode.privateCode += topicCode.privateCode;
+        cppCode.servicesCode += topicCode.servicesCode;
+        cppCode.callbacksCode += topicCode.callbacksCode;
+    }
+
     generateHFile(outputPathHFile, outputFileNameH, skillData, hCode);  
     generateCppFile(outputPathCppFile, outputFileNameCPP, skillData, cppCode);
+
+    
     return 0;
 };
