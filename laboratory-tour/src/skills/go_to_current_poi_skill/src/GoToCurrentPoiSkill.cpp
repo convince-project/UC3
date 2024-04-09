@@ -61,6 +61,12 @@ bool GoToCurrentPoiSkill::start(int argc, char*argv[])
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
 
+	m_haltService = m_node->create_service<bt_interfaces::srv::HaltAction>(m_name + "Skill/halt",
+                                                                            	std::bind(&GoToCurrentPoiSkill::halt,
+                                                                            	this,
+                                                                            	std::placeholders::_1,
+                                                                            	std::placeholders::_2));
+
     m_stateMachine.connectToEvent("SchedulerComponent.GetCurrentPoi.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
         std::shared_ptr<rclcpp::Node> nodeGetCurrentPoi = rclcpp::Node::make_shared(m_name + "SkillNodeGetCurrentPoi");
         std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::GetCurrentPoi>> clientGetCurrentPoi = nodeGetCurrentPoi->create_client<scheduler_interfaces::srv::GetCurrentPoi>("/SchedulerComponent/GetCurrentPoi");
@@ -98,7 +104,6 @@ bool GoToCurrentPoiSkill::start(int argc, char*argv[])
     });
 
     m_stateMachine.connectToEvent("NavigationComponent.GoToPoiByName.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NavigationComponent.GoToPoiByName.Call");
         std::shared_ptr<rclcpp::Node> nodeGoToPoiByName = rclcpp::Node::make_shared(m_name + "SkillNodeGoToPoiByName");
         std::shared_ptr<rclcpp::Client<navigation_interfaces::srv::GoToPoiByName>> clientGoToPoiByName = nodeGoToPoiByName->create_client<navigation_interfaces::srv::GoToPoiByName>("/NavigationComponent/GoToPoiByName");
         auto request = std::make_shared<navigation_interfaces::srv::GoToPoiByName::Request>();
@@ -225,6 +230,11 @@ bool GoToCurrentPoiSkill::start(int argc, char*argv[])
 		}
 	});
 
+	m_stateMachine.connectToEvent("HALT_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){
+		RCLCPP_INFO(m_node->get_logger(), "GoToCurrentPoiSkill::haltresponse");
+		m_haltResult.store(true);
+	});
+
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
 
@@ -262,3 +272,20 @@ void GoToCurrentPoiSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interf
     response->is_ok = true;
 }
 
+void GoToCurrentPoiSkill::halt( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::HaltAction::Request> request,
+    [[maybe_unused]] std::shared_ptr<bt_interfaces::srv::HaltAction::Response> response)
+{
+    std::lock_guard<std::mutex> lock(m_requestMutex);
+    RCLCPP_INFO(m_node->get_logger(), "GoToCurrentPoiSkill::halt");
+    m_haltResult.store(false); //here we can put a struct
+    m_stateMachine.submitEvent("CMD_HALT");
+   
+    while(!m_haltResult.load()) 
+    {
+        std::this_thread::sleep_for (std::chrono::milliseconds(100));
+        // qInfo() <<  "active names" << m_stateMachine.activeStateNames();
+    }
+    RCLCPP_INFO(m_node->get_logger(), "GoToCurrentPoiSkill::haltDone");
+   
+    response->is_ok = true;
+}

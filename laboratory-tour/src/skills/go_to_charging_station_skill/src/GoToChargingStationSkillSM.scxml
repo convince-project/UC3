@@ -9,18 +9,21 @@
         <data id="m_is_near"/>
         <data id="m_status"/>
         <data id="m_result"/>
-        <data id="NAVIGATION_STATUS_MOVING" expr="2"/><!--to check -->
+        <data id="NAVIGATION_STATUS_MOVING" expr="2"/>
         <data id="NAVIGATION_STATUS_GOAL_REACHED" expr="4"/>
+        <data id="chargingStation" expr='"sim_gam_1"'/>
+        <data id="distance" expr='0.5'/>
     </datamodel>
 
     <state id="idle">
       <transition event="CMD_TICK" target="goToPoI"/>
+      <transition event="CMD_HALT" target="sendHalted"/>
     </state>
 
     <state id="goToPoI">
         <onentry>
             <send event="NavigationComponent.GoToPoiByName.Call">
-                <param name="poi_name" expr='"sim_gam_1"'/> <!--ChargingStation-->
+                <param name="poi_name" expr="chargingStation"/>
             </send>
         </onentry>
         <transition event="NavigationComponent.GoToPoiByName.Return" target="goToPoIResult"> 
@@ -58,8 +61,8 @@
     <state id="getPosition">
       <onentry>
         <send event="NavigationComponent.CheckNearToPoi.Call">
-            <param name="poi_name" expr='"sim_gam_1"'/> <!--ChargingStation-->
-            <param name="distance" expr='0.5'/>
+            <param name="poi_name" expr="chargingStation"/> 
+            <param name="distance" expr="distance"/>
         </send>
       </onentry>
       <transition event="NavigationComponent.CheckNearToPoi.Return" target="CheckNearToPoiResult" > 
@@ -103,6 +106,13 @@
           </send>
         </onentry>
         <transition target="idle" />
+    </state>
+
+    <state id="sendHalted">
+      <onentry>
+        <send event="HALT_RESPONSE"/>
+      </onentry>
+      <transition target="idle"/>
     </state>
 
 </scxml>
