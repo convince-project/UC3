@@ -39,6 +39,13 @@ bool NavigationComponent::start(int argc, char*argv[])
                                                                                 this,
                                                                                 std::placeholders::_1,
                                                                                 std::placeholders::_2));
+
+    m_turnBackService = m_node->create_service<navigation_interfaces::srv::TurnBack>("/NavigationComponent/TurnBack",  
+                                                                                std::bind(&NavigationComponent::TurnBack,
+                                                                                this,
+                                                                                std::placeholders::_1,
+                                                                                std::placeholders::_2));
+
     RCLCPP_DEBUG(m_node->get_logger(), "NavigationComponent::start");
     std::cout << "NavigationComponent::start";        
     return true;
@@ -222,5 +229,19 @@ void NavigationComponent::CheckNearToPoi(const std::shared_ptr<navigation_interf
     {
         response->is_ok = true;
         response->is_near = true;
+    }
+}
+
+
+void NavigationComponent::TurnBack([[maybe_unused]] const std::shared_ptr<navigation_interfaces::srv::TurnBack::Request> request,
+             std::shared_ptr<navigation_interfaces::srv::TurnBack::Response>      response) 
+{
+    if(!m_iNav2D->gotoTargetByRelativeLocation(0, 0, 180))
+    {
+        response->is_ok = false;
+        response->error_msg = "failed to turn back";
+    } else 
+    {
+        response->is_ok = true;
     }
 }

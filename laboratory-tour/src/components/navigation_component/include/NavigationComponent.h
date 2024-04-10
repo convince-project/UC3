@@ -18,7 +18,7 @@
 #include <navigation_interfaces/srv/get_navigation_status.hpp>
 #include <navigation_interfaces/srv/stop_navigation.hpp>
 #include <navigation_interfaces/srv/check_near_to_poi.hpp>
-
+#include <navigation_interfaces/srv/turn_back.hpp>
 
 
 class NavigationComponent 
@@ -39,6 +39,8 @@ public:
             std::shared_ptr<navigation_interfaces::srv::StopNavigation::Response>      response);
     void CheckNearToPoi( [[maybe_unused]] const std::shared_ptr<navigation_interfaces::srv::CheckNearToPoi::Request> request,
             std::shared_ptr<navigation_interfaces::srv::CheckNearToPoi::Response>      response);
+    void TurnBack( [[maybe_unused]] const std::shared_ptr<navigation_interfaces::srv::TurnBack::Request> request,
+            std::shared_ptr<navigation_interfaces::srv::TurnBack::Response>      response);
 
 private:
     yarp::dev::PolyDriver m_nav2DPoly;
@@ -48,6 +50,7 @@ private:
     rclcpp::Service<navigation_interfaces::srv::GetNavigationStatus>::SharedPtr m_getNavigationStatusService;
     rclcpp::Service<navigation_interfaces::srv::StopNavigation>::SharedPtr m_stopNavigationService;
     rclcpp::Service<navigation_interfaces::srv::CheckNearToPoi>::SharedPtr m_checkNearToPoiService;
+    rclcpp::Service<navigation_interfaces::srv::TurnBack>::SharedPtr m_turnBackService;
     std::mutex m_mutex;
     int32_t m_currentPoi;
 };
