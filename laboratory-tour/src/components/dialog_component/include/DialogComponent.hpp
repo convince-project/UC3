@@ -24,6 +24,7 @@
 #include <dialog_interfaces/srv/set_language.hpp>
 #include <dialog_interfaces/srv/enable_dialog.hpp>
 #include <dialog_interfaces/srv/set_poi.hpp>
+#include <dialog_interfaces/srv/get_state.hpp>
 #include <yarp/dev/AudioPlayerStatus.h>
 
 #include "nlohmann/json.hpp"
@@ -51,6 +52,8 @@ public:
                         std::shared_ptr<dialog_interfaces::srv::EnableDialog::Response> response);
     void SetPoi(const std::shared_ptr<dialog_interfaces::srv::SetPoi::Request> request,
                         std::shared_ptr<dialog_interfaces::srv::SetPoi::Response> response);
+    void GetState(const std::shared_ptr<dialog_interfaces::srv::GetState::Request> request,
+                        std::shared_ptr<dialog_interfaces::srv::GetState::Response> response);
 
 private:
     /*Network Wrappers*/
@@ -84,6 +87,7 @@ private:
     rclcpp::Service<dialog_interfaces::srv::SetLanguage>::SharedPtr m_setLanguageService;
     rclcpp::Service<dialog_interfaces::srv::EnableDialog>::SharedPtr m_enableDialogService;
     rclcpp::Service<dialog_interfaces::srv::SetPoi>::SharedPtr m_setPoiService;
+    rclcpp::Service<dialog_interfaces::srv::GetState>::SharedPtr m_GetStateService;
     std::mutex m_mutex;
 
     /*Dialog JSON*/
@@ -111,6 +115,16 @@ private:
     bool CommandManager(const std::string &command, PoI currentPoI, PoI genericPoI, std::string & phrase);
     bool InterpretCommand(const std::string &command, PoI currentPoI, PoI genericPoI, std::string & phrase);
     bool m_exit;
+
+    /* Internal State Machine*/
+    enum State {
+        IDLE = 0,
+        RUNNING = 1,
+        SUCCESS = 2,
+        FAILURE = 3
+    };
+
+    State m_state;
 };
 
 #endif

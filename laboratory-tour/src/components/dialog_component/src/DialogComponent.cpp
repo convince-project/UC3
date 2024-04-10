@@ -17,6 +17,7 @@ DialogComponent::DialogComponent() : m_random_gen(m_rand_engine()),
     m_exit = false;
     m_fallback_repeat_counter = 0;
     m_fallback_threshold = 3;
+    m_state = IDLE;
 }
 
 bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
@@ -292,20 +293,29 @@ bool DialogComponent::start(int argc, char*argv[])
 
     m_setLanguageService = m_node->create_service<dialog_interfaces::srv::SetLanguage>("/DialogComponent/SetLanguage",
                                                                                         std::bind(&DialogComponent::SetLanguage,
-                                                                                                this,
-                                                                                                std::placeholders::_1,
-                                                                                                std::placeholders::_2));
+                                                                                            this,
+                                                                                            std::placeholders::_1,
+                                                                                            std::placeholders::_2));
     m_getLanguageService = m_node->create_service<dialog_interfaces::srv::GetLanguage>("/DialogComponent/GetLanguage",
                                                                                         std::bind(&DialogComponent::GetLanguage,
-                                                                                                this,
-                                                                                                std::placeholders::_1,
-                                                                                                std::placeholders::_2));
+                                                                                            this,
+                                                                                            std::placeholders::_1,
+                                                                                            std::placeholders::_2));
     m_enableDialogService = m_node->create_service<dialog_interfaces::srv::EnableDialog>("/DialogComponent/EnableDialog",
                                                                                         std::bind(&DialogComponent::EnableDialog,
-                                                                                                this,
-                                                                                                std::placeholders::_1,
-                                                                                                std::placeholders::_2));
-    
+                                                                                            this,
+                                                                                            std::placeholders::_1,
+                                                                                            std::placeholders::_2));
+    m_setPoiService = m_node->create_service<dialog_interfaces::srv::SetPoi>("/DialogComponent/SetPoi",
+                                                                                        std::bind(&DialogComponent::SetPoi,
+                                                                                            this,
+                                                                                            std::placeholders::_1,
+                                                                                            std::placeholders::_2));
+    m_GetStateService = m_node->create_service<dialog_interfaces::srv::GetState>("/DialogComponent/GetState",
+                                                                                        std::bind(&DialogComponent::GetState, 
+                                                                                            this,
+                                                                                            std::placeholders::_1,
+                                                                                            std::placeholders::_2));
     RCLCPP_INFO(m_node->get_logger(), "Started node");
     return true;
 }
@@ -358,6 +368,7 @@ void DialogComponent::EnableDialog(const std::shared_ptr<dialog_interfaces::srv:
         }
         m_dialogThread = std::thread(&DialogComponent::DialogExecution, this);
 
+        m_state = RUNNING;
         response->is_ok=true;
     }
     else
@@ -381,6 +392,7 @@ void DialogComponent::EnableDialog(const std::shared_ptr<dialog_interfaces::srv:
             m_dialogThread.join();
         }
 
+        m_state = IDLE;
         response->is_ok=true;
     }
     
@@ -549,6 +561,10 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
         {
             action = "explainQuestionTechnique";
         }
+        else if (command.find("questions"))
+        {
+            action = "explainListOfQuestions";
+        }
         else
         {
             yError() << "[DialogComponent::CommandManager] Unable to assign a known topic";
@@ -588,7 +604,15 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
             return false;
         }
     }
-	return true;
+
+    // NEXT POI
+    auto nextPoi_pos = command.find("next_poi");
+    if (nextPoi_pos < command.size())   // means that it has been found
+    {
+        // Call a service also ?
+    }
+    
+    return true;
 }
 
 bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPoI, PoI genericPoI, std::string & phrase)
@@ -891,7 +915,7 @@ void DialogComponent::SetPoi(const std::shared_ptr<dialog_interfaces::srv::SetPo
     if (request->poi_name=="")
     {
         response->is_ok=false;
-        response->error_msg="Empty string passed to setting language";
+        response->error_msg="Empty string passed to setPoi";
         return;
     }
     else
@@ -900,6 +924,13 @@ void DialogComponent::SetPoi(const std::shared_ptr<dialog_interfaces::srv::SetPo
         response->is_ok=true;
     }
     return;
+}
+
+void DialogComponent::GetState(const std::shared_ptr<dialog_interfaces::srv::GetState::Request> request,
+                        std::shared_ptr<dialog_interfaces::srv::GetState::Response> response)
+{
+    response->state = m_state;
+    response->is_ok=true;
 }
 
 /*bool DialogComponent::isSpeaking(bool &result)
