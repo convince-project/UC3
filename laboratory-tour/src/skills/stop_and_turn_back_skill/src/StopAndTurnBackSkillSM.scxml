@@ -1,0 +1,102 @@
+<scxml 
+  initial="idle" 
+  version="1.0" 
+  name="StopAndTurnBackSkillAction"
+  datamodel="ecmascript"
+  xmlns="http://www.w3.org/2005/07/scxml">
+
+
+  <datamodel>
+    <data id="m_result" expr="'START'"/>
+    <data id="m_status"/>
+    <data id="NAVIGATION_STATUS_MOVING" expr="2"/>
+    <data id="NAVIGATION_STATUS_GOAL_REACHED" expr="4"/>
+  </datamodel>
+
+  <state id="idle">
+      <transition event="CMD_TICK" target="start" />
+      <transition event="CMD_HALT" target="sendHalted" /> 
+  </state>
+
+  <state id="start">
+    <transition cond="m_result == 'START'" target="turnBack" />
+    <transition target="getStatus" />
+  </state>
+
+  <state id="turnBack">
+    <onentry>
+      <send event="NavigationComponent.TurnBack.Call"/>
+    </onentry>
+    <transition event="NavigationComponent.TurnBack.Return" target="turnBackResult"> 
+      <assign expr="_event.data.result" location="m_result"/>
+    </transition>
+  </state>
+
+  <state id="turnBackResult">
+    <transition cond="m_result == 'SUCCESS'" target="getStatus" />
+    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+  </state>
+
+  <state id="getStatus">
+    <onentry>
+        <send event="NavigationComponent.GetNavigationStatus.Call">
+        </send>
+    </onentry>
+    <transition event="NavigationComponent.GetNavigationStatus.Return" target="getStatusResult"> 
+        <assign expr="_event.data.result" location="m_result"/>
+        <assign expr="_event.data.status" location="m_status"/>
+    </transition>
+  </state>
+
+  <state id="getStatusResult">
+    <transition cond="m_result == 'SUCCESS'" target="checkStatus" />
+    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+  </state>
+
+  <state id="checkStatus">
+    <onentry>
+      <log expr="m_status" label="Navigation Status"/>
+    </onentry>
+    <transition cond="m_status == NAVIGATION_STATUS_MOVING" target="sendRunning" />
+    <transition cond="m_status == NAVIGATION_STATUS_GOAL_REACHED" target="sendSuccess" />
+    <transition target="sendFailure" />
+  </state>
+
+  <state id="sendFailure">
+    <onentry>
+      <send event="TICK_RESPONSE">
+        <param name="result" expr='"FAILURE"'/>
+      </send>
+    </onentry>
+    <transition target="idle" />
+  </state>
+
+  <state id="sendSuccess">
+      <onentry>
+        <send event="TICK_RESPONSE">
+          <param name="result" expr='"SUCCESS"'/>
+        </send>
+        <assign expr="'START'" location="m_result"/>
+      </onentry>
+      <transition target="idle" />
+  </state>
+
+  <state id="sendRunning">
+      <onentry>
+        <send event="TICK_RESPONSE">
+          <param name="result" expr='"RUNNING"'/>
+        </send>
+      </onentry>
+      <transition target="idle" />
+  </state>
+
+  <state id="sendHalted">
+      <onentry>
+          <send event="HALT_RESPONSE">
+          </send>
+      </onentry>
+      <transition target="idle" />
+  </state>
+
+
+</scxml>
