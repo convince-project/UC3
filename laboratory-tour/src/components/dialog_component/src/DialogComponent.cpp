@@ -257,6 +257,7 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
                 yWarning() << "[DialogComponent::ConfigureYARP] Unable to connect port: " << remoteAudioName << " with: " << localAudioName;
             }
 
+            m_speakersStatusPort.useCallback(m_speakerCallback);
             m_speakersStatusPort.open(statusLocalName);
             if (!yarp::os::Network::connect(statusRemoteName, statusLocalName))
             {
@@ -387,15 +388,15 @@ void DialogComponent::EnableDialog(const std::shared_ptr<dialog_interfaces::srv:
 
 void DialogComponent::DialogExecution()
 {
-    std::chrono::duration wait_ms = 200ms;
+    std::chrono::duration wait_ms = 200ms;      // TODO - parameterize
     while (!m_exit)
     {
 		//yInfo() << "DialogComponent::DialogExecution call received" << __LINE__;
         // Mic management
         bool isRecording = false;
-        bool isPlaying = false;
         m_iAudioGrabberSound->isRecording(isRecording);
         //m_iRender->isPlaying(isPlaying);
+        /*
         yarp::dev::AudioPlayerStatus *playerStatus = m_speakersStatusPort.read();
         if (playerStatus==nullptr)
         {
@@ -407,11 +408,20 @@ void DialogComponent::DialogExecution()
         {
             isPlaying = true;
         }
+        */
         
-        if (!isRecording && !isPlaying)
+
+        if (!isRecording && !m_speakerCallback.isPlaying())
         {
+            yDebug() << "[DialogComponent::DialogExecution] Starting the recording " << __LINE__;
             m_iAudioGrabberSound->startRecording();
         }
+        else if (m_speakerCallback.isPlaying() && isRecording)  // just for safety
+        {
+            yDebug() << "[DialogComponent::DialogExecution] Stopping the recording " << __LINE__;
+            m_iAudioGrabberSound->stopRecording();
+        }
+        
         // Check if new message has been transcribed
         std::string questionText = "";
         //yInfo() << "DialogComponent::DialogExecution hasNewMessage" << __LINE__;
@@ -465,7 +475,7 @@ void DialogComponent::DialogExecution()
             std::this_thread::sleep_for(wait_ms);
             continue;
         }
-		yInfo() << "DialogComponent::DialogExecution Interpreted command: " << scriptedString << __LINE__;
+		/*yInfo() << "DialogComponent::DialogExecution Interpreted command: " << scriptedString << __LINE__;
         // Synthetise the text
         yarp::sig::Sound synthesizedSound;
         if (!m_iSpeechSynth->synthesize(scriptedString, synthesizedSound))
@@ -479,12 +489,13 @@ void DialogComponent::DialogExecution()
         // Pass the sound to the speaker -> Do I have to shut down also the mic ?? TODO
         yInfo() << "DialogComponent::DialogExecution preparing port with duration: " << synthesizedSound.getDuration() <<  __LINE__;
         m_speakersAudioPort.prepare() = synthesizedSound;
-        //auto & buffer = m_speakersAudioPort.prepare();
-        //buffer.clear();
-        //buffer = synthesizedSound;
+
         yInfo() << "DialogComponent::DialogExecution Sending Sound to port" << __LINE__;
-        m_speakersAudioPort.write();
-        std::this_thread::sleep_for(wait_ms);
+        m_speakersAudioPort.write(); */
+
+
+
+        //std::this_thread::sleep_for(wait_ms);
     }
     return;
 }
@@ -665,8 +676,8 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
                 }
             }
 
-            bool containsSpeak = false;
-            float danceTime = 0.0f;
+            //bool containsSpeak = false;
+            //float danceTime = 0.0f;
 
             for (Action action : tempActions) // Loops through all the actions until the blocking one. Execute all of them
             {
@@ -683,20 +694,54 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
                     //  WRITE TO PORT
                     //  WAIT FOR SPEAKERS BUFFER TO BE EMPTY
 
-                    // save as backup if is a valid expression, not from an error
-                    if ((cmd != "fallback" && cmd.find("Error") == std::string::npos))
+                    // Check if the robot is already speaking and wait for it to finish
+                    if (m_speakerCallback.isPlaying())
                     {
-                        m_last_valid_speak = phrase;
+                        yDebug() << "[DialogComponent::InterpretCommand] Waiting for previous speech to finish" ;
                     }
-                    containsSpeak = true;
+                    while (m_speakerCallback.isPlaying())
+                    {
+                        // Wait
+                        std::this_thread::sleep_for(100ms); // TODO - parameterize
+                    }
+
+                    // Synthesize the text
+                    yarp::sig::Sound synthesizedSound;
+                    if (!m_iSpeechSynth->synthesize(action.getParam(), synthesizedSound))
+                    {
+                        yError() << "[DialogComponent::InterpretCommand] Unable to synthesize text: " << action.getParam();
+                        return false;
+                    }
+
+                    // Close the mic
+                    m_iAudioGrabberSound->stopRecording();
+
+                    yInfo() << "[DialogComponent::InterpretCommand] preparing port with duration: " << synthesizedSound.getDuration() <<  __LINE__;
+                    m_speakersAudioPort.prepare() = synthesizedSound;
+
+                    yInfo() << "[DialogComponent::InterpretCommand] Sending Sound to port" << __LINE__;
+                    m_speakersAudioPort.write();
+
+                    // save as backup if is a valid expression, not from an error
+                    //if ((cmd != "fallback" && cmd.find("Error") == std::string::npos))
+                    //{
+                    //    m_last_valid_speak = phrase;
+                    //}
+                    //containsSpeak = true;
                     break;
                 }
                 case ActionTypes::DANCE:
+                    // executing the command as long as I have something on the audio buffer
+                    //while (m_speakerCallback.get_bufferSize() > 0)
+                    //{
+                        // Move around
+                        // TODO
+                    //}
                     break;
                 case ActionTypes::SIGNAL:
                 {
                     /*
-                    //Signal(action.getParam());    // TODO
+                    //Signal(action.getParam());
                     bool isDelay = action.getParam().find("delay_") != std::string::npos;
 
                     // Patch of code to handle a delay signal blocking the parallel execution
@@ -723,12 +768,12 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
                 }
                 case ActionTypes::INVALID:
                 {
-                    yError() << "I got an INVALID ActionType in command" << command;
+                    yError() << "[DialogComponent::InterpretCommand] I got an INVALID ActionType in command" << command;
                     break;
                 }
                 default:
                 {
-                    yError() << "I got an unknown ActionType.";
+                    yError() << "[DialogComponent::InterpretCommand] I got an unknown ActionType.";
                     break;
                 }
                 }
@@ -857,7 +902,7 @@ void DialogComponent::SetPoi(const std::shared_ptr<dialog_interfaces::srv::SetPo
     return;
 }
 
-bool DialogComponent::isSpeaking(bool &result)
+/*bool DialogComponent::isSpeaking(bool &result)
 {
     auto data = m_speakersStatusPort.read();
     if (data != nullptr)
@@ -878,20 +923,20 @@ bool DialogComponent::isSpeaking(bool &result)
         yError() << "[DialogComponent::isSpeaking] unable to read from port, got a null pointer" << __LINE__;
         return false;
     }
-}
+}*/
 
-bool DialogComponent::isAudioEnabled(bool &result)
+/*bool DialogComponent::isAudioEnabled(bool &result)
 {
     auto data = m_speakersStatusPort.read();
     if (data != nullptr)
     {
-        yDebug() << "[DialogComponent::isSpeaking] got speakers audio enabled: " << data->enabled;
+        yDebug() << "[DialogComponent::isAudioEnabled] got speakers audio enabled: " << data->enabled;
         result = data->enabled;
         return true;
     }
     else
     {
-        yError() << "[DialogComponent::isSpeaking] unable to read from port, got a null pointer" << __LINE__;
+        yError() << "[DialogComponent::isAudioEnabled] unable to read from port, got a null pointer" << __LINE__;
         return false;
     }
-}
+}*/

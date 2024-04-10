@@ -30,6 +30,7 @@
 #include <random>
 
 #include "SpeechTranscriberCallback.hpp"
+#include "SpeakerStatusCallback.hpp"
 #include "TourStorage.h"
 
 class DialogComponent 
@@ -75,6 +76,7 @@ private:
     /*Speakers*/
     yarp::os::BufferedPort<yarp::sig::Sound> m_speakersAudioPort;
     yarp::os::BufferedPort<yarp::dev::AudioPlayerStatus> m_speakersStatusPort;
+    SpeakerStatusCallback m_speakerCallback;
 
     /*ROS2*/
     rclcpp::Node::SharedPtr m_node;
@@ -100,8 +102,8 @@ private:
     std::string m_last_valid_speak;
 
     /*Status functions*/
-    bool isSpeaking(bool &result);
-    bool isAudioEnabled(bool &result);
+    /*bool isSpeaking(bool &result);
+    bool isAudioEnabled(bool &result);*/
 
     /*Threading*/
     std::thread m_dialogThread;
