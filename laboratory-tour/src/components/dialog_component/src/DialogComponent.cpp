@@ -232,7 +232,7 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
         {
             yarp::os::Searchable &speakersConfig = rf.findGroup("SPEAKERS");
             std::string localAudioName = "/DialogComponent/audio:o";
-            std::string remoteAudioName = "/audioPlayerWrapper:i";
+            std::string remoteAudioName = "/audioPlayerWrapper/audio:i";
             std::string statusRemoteName = "/audioPlayerWrapper/status:o";
             std::string statusLocalName = "/DialogComponent/audioPlayerWrapper/status:i";
             if (speakersConfig.check("localAudioName"))
@@ -360,7 +360,7 @@ void DialogComponent::EnableDialog(const std::shared_ptr<dialog_interfaces::srv:
                 return;
             }
         }
-
+        m_state = RUNNING;
         // Launch thread that periodically reads the callback from the port and manages the dialog
         if (m_dialogThread.joinable())
         {
@@ -368,7 +368,6 @@ void DialogComponent::EnableDialog(const std::shared_ptr<dialog_interfaces::srv:
         }
         m_dialogThread = std::thread(&DialogComponent::DialogExecution, this);
 
-        m_state = RUNNING;
         response->is_ok=true;
     }
     else
@@ -401,7 +400,7 @@ void DialogComponent::EnableDialog(const std::shared_ptr<dialog_interfaces::srv:
 void DialogComponent::DialogExecution()
 {
     std::chrono::duration wait_ms = 200ms;      // TODO - parameterize
-    while (!m_exit)
+    while (!m_exit && !(m_state==SUCCESS))
     {
 		//yInfo() << "DialogComponent::DialogExecution call received" << __LINE__;
         // Mic management
@@ -428,7 +427,7 @@ void DialogComponent::DialogExecution()
             yDebug() << "[DialogComponent::DialogExecution] Starting the recording " << __LINE__;
             m_iAudioGrabberSound->startRecording();
         }
-        else if (m_speakerCallback.isPlaying() && isRecording)  // just for safety
+        else if (m_speakerCallback.isPlaying())  // just for safety
         {
             yDebug() << "[DialogComponent::DialogExecution] Stopping the recording " << __LINE__;
             m_iAudioGrabberSound->stopRecording();
@@ -724,28 +723,32 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
                     {
                         yDebug() << "[DialogComponent::InterpretCommand] Waiting for previous speech to finish" ;
                     }
-                    while (m_speakerCallback.isPlaying())
+                    while (m_speakerCallback.isPlaying() && !m_exit)
                     {
                         // Wait
                         std::this_thread::sleep_for(100ms); // TODO - parameterize
                     }
 
                     // Synthesize the text
-                    yarp::sig::Sound synthesizedSound;
+                    yarp::sig::Sound &synthesizedSound = m_speakersAudioPort.prepare();
+                    synthesizedSound.clear();
                     if (!m_iSpeechSynth->synthesize(action.getParam(), synthesizedSound))
                     {
                         yError() << "[DialogComponent::InterpretCommand] Unable to synthesize text: " << action.getParam();
                         return false;
                     }
-
+                    yDebug() << "[DialogComponent::InterpretCommand] Have synthesized: " << action.getParam();
                     // Close the mic
                     m_iAudioGrabberSound->stopRecording();
 
                     yInfo() << "[DialogComponent::InterpretCommand] preparing port with duration: " << synthesizedSound.getDuration() <<  __LINE__;
-                    m_speakersAudioPort.prepare() = synthesizedSound;
 
                     yInfo() << "[DialogComponent::InterpretCommand] Sending Sound to port" << __LINE__;
                     m_speakersAudioPort.write();
+                    while((!m_speakerCallback.isPlaying() && m_speakerCallback.isEnabled()) && !m_exit)
+                    {
+                        std::this_thread::sleep_for(100ms);
+                    }
 
                     // save as backup if is a valid expression, not from an error
                     //if ((cmd != "fallback" && cmd.find("Error") == std::string::npos))
