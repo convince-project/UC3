@@ -609,7 +609,8 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
     auto nextPoi_pos = command.find("next_poi");
     if (nextPoi_pos < command.size())   // means that it has been found
     {
-        // Call a service also ?
+        m_state = SUCCESS;
+        // Call a service maybe?
     }
     
     return true;
