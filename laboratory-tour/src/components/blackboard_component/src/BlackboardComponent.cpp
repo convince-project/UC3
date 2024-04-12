@@ -71,7 +71,7 @@ void BlackboardComponent::GetDouble( const std::shared_ptr<blackboard_interfaces
         response->is_ok = false;
         response->error_msg = "missing required field name";
     } else {
-        if (m_doubleBlacboard.contains(request->field_name)) {
+        if (!m_doubleBlacboard.contains(request->field_name)) {
             response->is_ok = false;
             response->error_msg = "field not found";
         } else {
@@ -109,7 +109,7 @@ void BlackboardComponent::GetString( const std::shared_ptr<blackboard_interfaces
     if (request->field_name == "") {
         response->is_ok = false;
         response->error_msg = "missing required field name";
-    } else if (m_stringBlacboard.contains(request->field_name)) {
+    } else if (!m_stringBlacboard.contains(request->field_name)) {
         response->is_ok = false;
         response->error_msg = "field not found";
     } else {
@@ -147,7 +147,7 @@ void BlackboardComponent::GetInt( const std::shared_ptr<blackboard_interfaces::s
         response->is_ok = false;
         response->error_msg = "missing required field name";
     } else {
-        if (m_intBlacboard.contains(request->field_name)) {
+        if (!m_intBlacboard.contains(request->field_name)) {
             response->is_ok = false;
             response->error_msg = "field not found";
         } else {
@@ -165,9 +165,6 @@ void BlackboardComponent::SetInt( const std::shared_ptr<blackboard_interfaces::s
     if (request->field_name == "") {
         response->is_ok = false;
         response->error_msg = "missing required field name";
-    } else if (request->value == std::numeric_limits<int32_t>::quiet_NaN()) {
-        response->is_ok = false;
-        response->error_msg = "missing required value";
     } else {
         if (m_intBlacboard.contains(request->field_name)) {
             response->error_msg = "field already present, overwriting";
