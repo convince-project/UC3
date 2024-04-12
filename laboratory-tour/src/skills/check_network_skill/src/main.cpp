@@ -14,7 +14,7 @@
 int main(int argc, char *argv[])
 {
   QCoreApplication app(argc, argv);
-  CheckNetworkSkill stateMachine("BatteryLevel");
+  CheckNetworkSkill stateMachine("CheckNetwork");
   stateMachine.start(argc, argv);
 
   int ret=app.exec();

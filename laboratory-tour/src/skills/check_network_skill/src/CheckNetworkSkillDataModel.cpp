@@ -14,7 +14,7 @@ bool CheckNetworkSkillDataModel::setup(const QVariantMap& initialDataValues)
     m_node = rclcpp::Node::make_shared("CheckNetworkSkillDataModelNode");
     m_threadSpin = std::make_shared<std::thread>(spin, m_node);
     m_subscription = m_node->create_subscription<std_msgs::msg::Bool>(
-     "/CheckNetworkComponent/NetworkStatus", 10, std::bind(&CheckNetworkSkillDataModel::topic_battery_callback, this, std::placeholders::_1));
+     "/CheckNetworkComponent/NetworkStatus", 10, std::bind(&CheckNetworkSkillDataModel::topic_status_callback, this, std::placeholders::_1));
     return true;
 }
 
@@ -32,7 +32,7 @@ void CheckNetworkSkillDataModel::log(std::string to_log) {
 }
 
 
-void CheckNetworkSkillDataModel::topic_battery_callback(const std_msgs::msg::Bool::SharedPtr msg) {
+void CheckNetworkSkillDataModel::topic_status_callback(const std_msgs::msg::Bool::SharedPtr msg) {
     network_status = msg->data;
     // RCLCPP_INFO(m_node->get_logger(), "CheckNetworkSkill::topic_callback");
     // QVariantMap data;

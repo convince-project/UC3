@@ -23,7 +23,7 @@ public:
     CheckNetworkSkillDataModel() = default;
     bool setup(const QVariantMap& initialDataValues) override;
     void log(std::string to_log);
-    void topic_battery_callback(const std_msgs::msg::Bool::SharedPtr msg);
+    void topic_status_callback(const std_msgs::msg::Bool::SharedPtr msg);
     static void spin(std::shared_ptr<rclcpp::Node> node);
 private: 
     // sensor_msgs::msg::BatteryState m_batteryState;
