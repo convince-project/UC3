@@ -40,20 +40,19 @@
     <BehaviorTree ID="gotoPoi">
         <ReactiveFallback>
             <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsAtCurrentPoi" nodeName="IsAtCurrentPoi"/>
-            <ReactiveFallback name="">
-                <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="VisitorsFollowingRobot" nodeName="VisitorsFollowingRobot"/>
-                <ReactiveSequence>
-                    <ReactiveFallback name="">
-                        <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsCheckingForPeople" nodeName="IsCheckingForPeople"/>
-                        <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="StopAndTurnBack" nodeName="StopAndTurnBack"/>
-                    </ReactiveFallback>
-                    <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SayFollowMe" nodeName="SayFollowMe"/>
-                </ReactiveSequence>
-            </ReactiveFallback>
-            <Parallel failure_threshold="1" success_threshold="">
+	    <ReactiveSequence>
+                <ReactiveFallback name="">
+                    <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="VisitorsFollowingRobot" nodeName="VisitorsFollowingRobot"/>
+                    <ReactiveSequence>
+                        <ReactiveFallback name="">
+                            <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsCheckingForPeople" nodeName="IsCheckingForPeople"/>
+                            <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="StopAndTurnBack" nodeName="StopAndTurnBack"/>
+                        </ReactiveFallback>
+                        <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SayFollowMe" nodeName="SayFollowMe"/>
+                    </ReactiveSequence>
+                </ReactiveFallback>
                 <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="GoToCurrentPoi" nodeName="GoToCurrentPoi"/>
-                <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SayWhileNavigating" nodeName="SayWhileNavigating"/>
-            </Parallel>
+            </ReactiveSequence>
         </ReactiveFallback>
     </BehaviorTree>
     <!-- ////////// -->
