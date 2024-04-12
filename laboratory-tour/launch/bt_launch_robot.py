@@ -38,6 +38,10 @@ def generate_launch_description():
             executable='navigation_component'
         ),
         Node(
+            package='check_network_component',
+            executable='check_network_component'
+        ),
+        Node(
             package='scheduler_component',
             executable='scheduler_component', 
             arguments=['./conf/tours.json', 'TOUR_CRIS_SHORT']
@@ -55,9 +59,23 @@ def generate_launch_description():
             executable='update_poi_skill' 
         ),         
         Node(
+            package='go_to_current_poi_skill',
+            executable='go_to_current_poi_skill' 
+        ),         
+        #Node(
+        #    package='check_network_skill',
+        #    executable='check_network_skill',
+        #    output="screen"
+        #),         
+        Node(
             package='dummy_condition',
             executable='dummy_condition', 
-            arguments=['--skill_name', 'VisitorsFollowingRobot', '--default_status', 'FAILURE']
+            arguments=['--skill_name', 'VisitorsFollowingRobot', '--default_status', 'SUCCESS']
+        ),          
+        Node(
+            package='dummy_condition',
+            executable='dummy_condition', 
+            arguments=['--skill_name', 'CheckNetwork', '--default_status', 'SUCCESS']
         ),          
         Node(
             package='dummy_condition',
