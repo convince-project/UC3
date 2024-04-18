@@ -14907,5 +14907,482 @@
           }
         }
       }
+    },
+    "TOUR_MADAMA_3": {
+      "m_activeTourPoIs": [
+        "sala_delle_guardie",
+        "sala_guidobono",
+        "sala_delle_feste",
+        "sala_4_stagioni",
+        "camera_di_madama_reale"
+      ],
+      "m_availablePoIs": {
+        "en-US": {
+          "___generic___": {
+            "m_availableActions": {
+              "resetTourManager": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "reset",
+                  "m_type": "signal"
+                }
+              ],
+              "nextPoi": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "nextPoi",
+                  "m_type": "signal"
+                }
+              ],
+              "goalNotAvailableError": [
+                {
+                  "m_isBlocking": true,
+                  "m_param": "You are on my spot, please make space in front of me.",
+                  "m_type": "speak"
+                }
+              ],
+              "localizationError": [
+                {
+                  "m_isBlocking": true,
+                  "m_param": "Localization error. Please call for assistance.",
+                  "m_type": "speak"
+                }
+              ],
+              "networkError": [
+                {
+                  "m_isBlocking": true,
+                  "m_param": "Network error. Please call for assistance.",
+                  "m_type": "speak"
+                }
+              ],
+              "motorsError": [
+                {
+                  "m_isBlocking": true,
+                  "m_param": "Motors failed. Please call for assistance.",
+                  "m_type": "speak"
+                }
+              ],
+              "navigationError": [
+                {
+                  "m_isBlocking": true,
+                  "m_param": "I failed to navigate. Please make some space.",
+                  "m_type": "speak"
+                }
+              ],
+              "touchedError": [
+                {
+                  "m_isBlocking": true,
+                  "m_param": "Please, don't touch me.",
+                  "m_type": "speak"
+                }
+              ],
+              "fallback": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "I'm sorry, I didn't understand",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": true,
+                  "m_param": "fallbackMove",
+                  "m_type": "dance"
+                }
+              ],
+              "questionMoreDetailsOpera": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "What would you like to ask? You can ask me more details about the robot, the future plans or how does it work.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "argueBoth",
+                  "m_type": "dance"
+                },
+                {
+                  "m_isBlocking": true,
+                  "m_param": "idleMove",
+                  "m_type": "dance"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "startHearing",
+                  "m_type": "signal"
+                }
+              ],
+              "warningNextNavigation": [
+                {
+                  "m_isBlocking": true,
+                  "m_param": "We will move to the next area. Please make some space.",
+                  "m_type": "speak"
+                }
+              ],
+              "sayWhileNavigating": [],
+              "explainQuestionMainPiece": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "I'm sorry, I didn't understand",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": true,
+                  "m_param": "fallbackMove",
+                  "m_type": "dance"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "startHearing",
+                  "m_type": "signal"
+                }
+              ],
+              "explainQuestionTechnique": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "I'm sorry, I didn't understand",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": true,
+                  "m_param": "fallbackMove",
+                  "m_type": "dance"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "startHearing",
+                  "m_type": "signal"
+                }
+              ],
+              "explainQuestionAuthor": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "I'm sorry, I didn't understand",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": true,
+                  "m_param": "fallbackMove",
+                  "m_type": "dance"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "startHearing",
+                  "m_type": "signal"
+                }
+              ],
+              "explainGeneralMuseum": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "I'm sorry, I didn't understand",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": true,
+                  "m_param": "fallbackMove",
+                  "m_type": "dance"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "startHearing",
+                  "m_type": "signal"
+                }
+              ]
+            },
+            "m_name": "___generic___"
+          },
+          "sala_delle_guardie": {
+            "m_availableActions": {
+              "explainGeneralRobotName": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "My name is R1. I am a humanoid robot developed by the Italian Institute of Technology to study robotics in the service domain.",
+                  "m_type": "speak"
+                }
+              ]
+            },
+            "m_name": "sala_delle_guardie"
+          },
+          "sala_guidobono": {
+            "m_availableActions": {
+              "explainGeneralRobotName": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "My name is R1. I am a humanoid robot developed by the Italian Institute of Technology to study robotics in the service domain.",
+                  "m_type": "speak"
+                }
+              ]
+            },
+            "m_name": "sala_guidobono"
+          },
+          "sala_delle_feste": {
+            "m_availableActions": {
+              "explainGeneralRobotName": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "My name is R1. I am a humanoid robot developed by the Italian Institute of Technology to study robotics in the service domain.",
+                  "m_type": "speak"
+                }
+              ]
+            },
+            "m_name": "sala_delle_feste"
+          },
+          "sala_4_stagioni": {
+            "m_availableActions": {
+              "explainGeneralRobotName": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "My name is R1. I am a humanoid robot developed by the Italian Institute of Technology to study robotics in the service domain.",
+                  "m_type": "speak"
+                }
+              ]
+            },
+            "m_name": "sala_4_stagioni"
+          },
+          "camera_di_madama_reale": {
+            "m_availableActions": {
+              "explainGeneralRobotName": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "My name is R1. I am a humanoid robot developed by the Italian Institute of Technology to study robotics in the service domain.",
+                  "m_type": "speak"
+                }
+              ]
+            },
+            "m_name": "camera_di_madama_reale"
+          }
+        },
+        "it-IT": {
+          "___generic___": {
+            "m_availableActions": {
+              "resetTourManager": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "reset",
+                  "m_type": "signal"
+                }
+              ],
+              "nextPoi": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "nextPoi",
+                  "m_type": "signal"
+                }
+              ],
+              "fallback": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Mi dispiace, non ho capito",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": true,
+                  "m_param": "fallbackMove",
+                  "m_type": "dance"
+                }
+              ],
+              "goalNotAvailableError": [
+                {
+                  "m_isBlocking": true,
+                  "m_param": "Goal occupato, per favore spostarsi.",
+                  "m_type": "speak"
+                }
+              ],
+              "localizationError": [
+                {
+                  "m_isBlocking": true,
+                  "m_param": "Errore di localizzazione. Per favore chiamare l'assistenza.",
+                  "m_type": "speak"
+                }
+              ],
+              "networkError": [
+                {
+                  "m_isBlocking": true,
+                  "m_param": "Errore di rete. Per favore chiamare l'assistenza.",
+                  "m_type": "speak"
+                }
+              ],
+              "motorsError": [
+                {
+                  "m_isBlocking": true,
+                  "m_param": "Errore ai motori. Per favore chiamare l'assistenza",
+                  "m_type": "speak"
+                }
+              ],
+              "navigationError": [
+                {
+                  "m_isBlocking": true,
+                  "m_param": "Per favore, fatemi spazio!",
+                  "m_type": "speak"
+                }
+              ],
+              "touchedError": [
+                {
+                  "m_isBlocking": true,
+                  "m_param": "Per favore,le mie braccia sono molto sensibili, non toccare",
+                  "m_type": "speak"
+                }
+              ],
+              "warningNextNavigation": [
+                {
+                  "m_isBlocking": true,
+                  "m_param": "Per favore liberare il percorso. stiamo per andare alla prossima posizione.",
+                  "m_type": "speak"
+                }
+              ],
+              "sayWhileNavigating": [],
+              "questionMoreDetailsOpera": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Che domande volete farmi? Provate a dire maggiori informazioni, prossimi obiettivi, come funziona.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "argueRight",
+                  "m_type": "dance"
+                },
+                {
+                  "m_isBlocking": true,
+                  "m_param": "idleMove",
+                  "m_type": "dance"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "startHearing",
+                  "m_type": "signal"
+                }
+              ],
+              "explainQuestionMainPiece": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Mi dispiace, non ho capito",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": true,
+                  "m_param": "fallbackMove",
+                  "m_type": "dance"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "startHearing",
+                  "m_type": "signal"
+                }
+              ],
+              "explainQuestionTechnique": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Mi dispiace, non ho capito",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": true,
+                  "m_param": "fallbackMove",
+                  "m_type": "dance"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "startHearing",
+                  "m_type": "signal"
+                }
+              ],
+              "explainQuestionAuthor": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Mi dispiace, non ho capito",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": true,
+                  "m_param": "fallbackMove",
+                  "m_type": "dance"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "startHearing",
+                  "m_type": "signal"
+                }
+              ],
+              "explainGeneralMuseum": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Mi dispiace, non ho capito",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": true,
+                  "m_param": "fallbackMove",
+                  "m_type": "dance"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "startHearing",
+                  "m_type": "signal"
+                }
+              ]
+            },
+            "m_name": "___generic___"
+          },
+          "sala_delle_guardie": {
+            "m_availableActions": {
+              "explainGeneralRobotName": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "My name is R1. I am a humanoid robot developed by the Italian Institute of Technology to study robotics in the service domain.",
+                  "m_type": "speak"
+                }
+              ]
+            },
+            "m_name": "sala_delle_guardie"
+          },
+          "sala_guidobono": {
+            "m_availableActions": {
+              "explainGeneralRobotName": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "My name is R1. I am a humanoid robot developed by the Italian Institute of Technology to study robotics in the service domain.",
+                  "m_type": "speak"
+                }
+              ]
+            },
+            "m_name": "sala_guidobono"
+          },
+          "sala_delle_feste": {
+            "m_availableActions": {
+              "explainGeneralRobotName": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "My name is R1. I am a humanoid robot developed by the Italian Institute of Technology to study robotics in the service domain.",
+                  "m_type": "speak"
+                }
+              ]
+            },
+            "m_name": "sala_delle_feste"
+          },
+          "sala_4_stagioni": {
+            "m_availableActions": {
+              "explainGeneralRobotName": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "My name is R1. I am a humanoid robot developed by the Italian Institute of Technology to study robotics in the service domain.",
+                  "m_type": "speak"
+                }
+              ]
+            },
+            "m_name": "sala_4_stagioni"
+          },
+          "camera_di_madama_reale": {
+            "m_availableActions": {
+              "explainGeneralRobotName": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "My name is R1. I am a humanoid robot developed by the Italian Institute of Technology to study robotics in the service domain.",
+                  "m_type": "speak"
+                }
+              ]
+            },
+            "m_name": "camera_di_madama_reale"
+          }
+        }
+      }
     }
   }
