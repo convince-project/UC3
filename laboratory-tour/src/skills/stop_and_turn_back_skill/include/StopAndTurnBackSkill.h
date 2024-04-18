@@ -14,6 +14,7 @@
 #include <bt_interfaces/msg/action_response.hpp>
 #include <navigation_interfaces/srv/turn_back.hpp>
 #include <navigation_interfaces/srv/get_navigation_status.hpp>
+#include <blackboard_interfaces/srv/set_int_blackboard.hpp>
 #include <bt_interfaces/srv/tick_action.hpp>
 #include <bt_interfaces/srv/halt_action.hpp>
 
