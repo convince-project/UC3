@@ -90,7 +90,6 @@ bool GoToCurrentPoiSkill::start(int argc, char*argv[])
                     QVariantMap data;
                     data.insert("result", "SUCCESS");
                     data.insert("poi_name", response->poi_name.c_str());
-                    std::cout << "poi_name: " << response->poi_name.c_str() << std::endl;
                     m_stateMachine.submitEvent("SchedulerComponent.GetCurrentPoi.Return", data);
                     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.GetCurrentPoi.Return");
                 } else {
@@ -109,7 +108,6 @@ bool GoToCurrentPoiSkill::start(int argc, char*argv[])
         auto request = std::make_shared<navigation_interfaces::srv::GoToPoiByName::Request>();
         auto eventParams = event.data().toMap();
         request->poi_name = convert<decltype(request->poi_name)>(eventParams["poi_name"].toString().toStdString());
-        std::cout << "poi_name: " << request->poi_name.c_str() << std::endl;
         bool wait_succeded{true};
         while (!clientGoToPoiByName->wait_for_service(std::chrono::seconds(1))) {
             if (!rclcpp::ok()) {
@@ -208,6 +206,43 @@ bool GoToCurrentPoiSkill::start(int argc, char*argv[])
                     data.insert("result", "FAILURE");
                     m_stateMachine.submitEvent("NavigationComponent.CheckNearToPoi.Return", data);
                     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NavigationComponent.CheckNearToPoi.Return");
+                }
+            }
+        }
+    });
+
+    m_stateMachine.connectToEvent("BlackboardComponent.SetInt.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
+        std::shared_ptr<rclcpp::Node> nodeSetInt = rclcpp::Node::make_shared(m_name + "SkillNodeSetInt");
+        std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::SetIntBlackboard>> clientSetInt = nodeSetInt->create_client<blackboard_interfaces::srv::SetIntBlackboard>("/BlackboardComponent/SetInt");
+        auto request = std::make_shared<blackboard_interfaces::srv::SetIntBlackboard::Request>();
+        auto eventParams = event.data().toMap();
+        request->field_name = convert<decltype(request->field_name)>(eventParams["field_name"].toString().toStdString());
+        request->value = convert<decltype(request->value)>(eventParams["value"].toString().toStdString());
+        bool wait_succeded{true};
+        while (!clientSetInt->wait_for_service(std::chrono::seconds(1))) {
+            if (!rclcpp::ok()) {
+                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'SetInt'. Exiting.");
+                wait_succeded = false;
+                m_stateMachine.submitEvent("BlackboardComponent.SetInt.Return");
+            } 
+        }
+        if (wait_succeded) {
+            // send the request                                                                    
+            auto result = clientSetInt->async_send_request(request);
+            auto futureResult = rclcpp::spin_until_future_complete(nodeSetInt, result);
+            auto response = result.get();
+            if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
+            {
+                if( response->is_ok ==true) {
+                    QVariantMap data;
+                    data.insert("result", "SUCCESS");
+                    m_stateMachine.submitEvent("BlackboardComponent.SetInt.Return", data);
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.SetInt.Return");
+                } else {
+                    QVariantMap data;
+                    data.insert("result", "FAILURE");
+                    m_stateMachine.submitEvent("BlackboardComponent.SetInt.Return", data);
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.SetInt.Return");
                 }
             }
         }
