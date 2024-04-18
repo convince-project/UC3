@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  SPDX-FileCopyrightText: 2023-2023 Istituto Italiano di Tecnologia (IIT)
+  SPDX-License-Identifier: BSD-3-Clause
+-->
+
+<!DOCTYPE robot PUBLIC "-//YARP//DTD yarprobotinterface 3.0//EN" "http://www.yarp.it/DTD/yarprobotinterfaceV3.0.dtd">
+<robot name="googleTest" build="2" portprefix="/googleBot" xmlns:xi="http://www.w3.org/2001/XInclude">
+    <devices>
+        <!-- TRANSCRIPTION -->
+        <device name="googleTranscr" type="googleSpeechTranscription">
+            <param name="language_code">
+                it-IT
+            </param>
+        </device>
+        <device name="transcriptionWrap" type="speechTranscription_nws_yarp">
+            <action phase="startup" level="5" type="attach">
+                <paramlist name="networks">
+                    <elem name="subdeviceGoogle">
+                        googleTranscr
+                    </elem>
+                </paramlist>
+            </action>
+            <action phase="shutdown" level="5" type="detach" />
+        </device>
+    </devices>
+</robot>
