@@ -11,6 +11,7 @@
     <data id="m_status"/>
     <data id="NAVIGATION_STATUS_MOVING" expr="2"/>
     <data id="NAVIGATION_STATUS_GOAL_REACHED" expr="4"/>
+    <data id="m_name" expr='"isCheckingForPeople"'/>
   </datamodel>
 
   <state id="idle">
@@ -58,15 +59,34 @@
       <log expr="m_status" label="Navigation Status"/>
     </onentry>
     <transition cond="m_status == NAVIGATION_STATUS_MOVING" target="sendRunning" />
-    <transition cond="m_status == NAVIGATION_STATUS_GOAL_REACHED" target="sendSuccess" />
+    <transition cond="m_status == NAVIGATION_STATUS_GOAL_REACHED" target="setBBStatus" />
     <transition target="sendFailure" />
   </state>
+
+  <state id="setBBStatus">
+    <onentry>
+      <send event="BlackboardComponent.SetInt.Call">
+        <param name="field_name" expr="m_name"/>
+        <param name="value" expr="1"/>
+      </send>
+    </onentry>
+    <transition event="BlackboardComponent.SetInt.Return" target="setBBStatusResult"> 
+      <assign expr="_event.data.value" location="m_value"/>
+      <assign expr="_event.data.result" location="m_result"/>
+  </transition>
+  </state>
+
+  <state id="setBBStatusResult">
+    <transition cond="m_result == 'SUCCESS'" target="sendSuccess" />
+    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+</state>
 
   <state id="sendFailure">
     <onentry>
       <send event="TICK_RESPONSE">
         <param name="result" expr='"FAILURE"'/>
       </send>
+      <assign expr="'START'" location="m_result"/>
     </onentry>
     <transition target="idle" />
   </state>
