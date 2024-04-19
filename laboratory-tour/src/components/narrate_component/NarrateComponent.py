@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from std_srvs.srv import Trigger
+from narrate_interfaces.srv import Narrate, IsDone
 from scheduler_interfaces.srv import GetCurrentAction, UpdateAction
 from text_to_speech_interfaces.srv import Speak, IsDone
 import threading
@@ -72,8 +72,8 @@ class MyService(Node):
     def __init__(self):
         super().__init__('NarrateComponentNode')
         self.nodeExecutor = NodeExecutor()
-        self.service = self.create_service(Trigger, '/NarrateComponent/Narrate', self.callback)
-        self.service = self.create_service(Trigger, '/NarrateComponent/IsDone', self.callbackIsDone)
+        self.service = self.create_service(Narrate, '/NarrateComponent/Narrate', self.callback)
+        self.service = self.create_service(IsDone, '/NarrateComponent/IsDone', self.callbackIsDone)
 
     def callback(self, request, response):
         # launch the thread
