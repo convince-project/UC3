@@ -40,6 +40,9 @@
       <componentDeclaration id="BlackboardComponent" interface="blackboard_interfaces">
         <componentDefinition />
       </componentDeclaration>
+      <componentDeclaration id="NarrateComponent" interface="narrate_interfaces">
+        <componentDefinition />
+      </componentDeclaration>
     </componentList>
 
     <interfaces path="../interface-definition-IDL/interfaces.xml"/>
