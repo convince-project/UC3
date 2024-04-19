@@ -13,7 +13,7 @@
 #include "NarrateSkillSM.h"
 #include <bt_interfaces/msg/action_response.hpp>
 #include <narrate_interfaces/srv/narrate.hpp>
-#include <narrate_interfaces/srv/narrate.hpp>
+#include <narrate_interfaces/srv/is_done.hpp>
 #include <bt_interfaces/srv/tick_action.hpp>
 #include <bt_interfaces/srv/halt_action.hpp>
 

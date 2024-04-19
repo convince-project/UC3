@@ -118,35 +118,35 @@ bool NarrateSkill::start(int argc, char*argv[])
 		}
 	});
 
-    m_stateMachine.connectToEvent("NarrateComponent.Narrate.IsDone.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
-        std::shared_ptr<rclcpp::Node> nodeNarrate = rclcpp::Node::make_shared(m_name + "SkillNodeNarrate");
-        std::shared_ptr<rclcpp::Client<narrate_interfaces::srv::Narrate>> clientNarrate = nodeNarrate->create_client<narrate_interfaces::srv::Narrate>("/NarrateComponent/Narrate");
-        auto request = std::make_shared<narrate_interfaces::srv::Narrate::Request>();
+    m_stateMachine.connectToEvent("NarrateComponent.IsDone.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
+        std::shared_ptr<rclcpp::Node> nodeIsDone = rclcpp::Node::make_shared(m_name + "SkillNodeIsDone");
+        std::shared_ptr<rclcpp::Client<narrate_interfaces::srv::IsDone>> clientIsDone = nodeIsDone->create_client<narrate_interfaces::srv::IsDone>("/NarrateComponent/IsDone");
+        auto request = std::make_shared<narrate_interfaces::srv::IsDone::Request>();
         bool wait_succeded{true};
-        while (!clientNarrate->wait_for_service(std::chrono::seconds(1))) {
+        while (!clientIsDone->wait_for_service(std::chrono::seconds(1))) {
             if (!rclcpp::ok()) {
-                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'Narrate'. Exiting.");
+                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'IsDone'. Exiting.");
                 wait_succeded = false;
-                m_stateMachine.submitEvent("NarrateComponent.Narrate.Return");
+                m_stateMachine.submitEvent("NarrateComponent.IsDone.Return");
             } 
         }
         if (wait_succeded) {
             // send the request                                                                    
-            auto result = clientNarrate->async_send_request(request);
-            auto futureResult = rclcpp::spin_until_future_complete(nodeNarrate, result);
+            auto result = clientIsDone->async_send_request(request);
+            auto futureResult = rclcpp::spin_until_future_complete(nodeIsDone, result);
             auto response = result.get();
             if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
             {
                 if( response->is_ok ==true) {
                     QVariantMap data;
                     data.insert("result", "SUCCESS");
-                    m_stateMachine.submitEvent("NarrateComponent.Narrate.Return", data);
-                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NarrateComponent.Narrate.Return");
+                    m_stateMachine.submitEvent("NarrateComponent.IsDone.Return", data);
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NarrateComponent.IsDone.Return");
                 } else {
                     QVariantMap data;
                     data.insert("result", "FAILURE");
-                    m_stateMachine.submitEvent("NarrateComponent.Narrate.Return", data);
-                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NarrateComponent.Narrate.Return");
+                    m_stateMachine.submitEvent("NarrateComponent.IsDone.Return", data);
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NarrateComponent.IsDone.Return");
                 }
             }
         }

@@ -24,9 +24,6 @@
       </transition>
   </state>
 
-  <state id="talkResult">
-  </state>
-
 <state id="sendRunning">
     <onentry>
       <send event="TICK_RESPONSE">
@@ -43,28 +40,29 @@
 
   <state id="getIfIsDone">
     <onentry>
-      <send event="NarrateComponent.Narrate.IsDone.Call">
+      <send event="NarrateComponent.IsDone.Call">
       </send>
     </onentry>
-    <transition event="NarrateComponent.Narrate.IsDone.Return" target="sendDone" >
+    <transition event="NarrateComponent.IsDone.Return" target="checkIfDone" >
        <assign expr="_event.data.is_done" location="m_is_done"/>
     </transition>
   </state>
 
-<state id="sendDone">
-    <if cond="m_is_done">
-      <send event="TICK_RESPONSE">
-        <param name="result" expr='"SUCCESS"'/> 
-      </send>
-      <transition target="idle" />
-     <else/>
-      <send event="TICK_RESPONSE">
-        <param name="result" expr='"RUNNING"'/> 
-      </send>
-      <transition target="WaitForFinish" />
-    </if>
+
+  <state id="checkIfDone"> 
+    <transition cond="m_is_done" target="sendDone" />
+    <transition target="sendRunning"/>
   </state>
 
+  <state id="sendDone">
+    <onentry>
+        <send event="TICK_RESPONSE">
+          <param name="result" expr='"SUCCESS"'/> 
+        </send>
+    </onentry>
+    <transition cond="m_is_done" target="idle" />
+
+  </state>
 
   <state id="sendHalted">
       <onentry>
