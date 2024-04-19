@@ -14,7 +14,7 @@ bool TextToSpeechComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
     bool okCheck = rf.check("SPEECHSYNTHESIZER-CLIENT");
     std::string device = "speechSynthesizer_nwc_yarp";
     std::string local = "/TextToSpeechComponentNode/speechClient";
-    std::string remote = "/speechSynthesizer/speechServer";
+    std::string remote = "/speechSynthesizer_nws";
 
     if (okCheck)
     {
@@ -81,7 +81,9 @@ bool TextToSpeechComponent::start(int argc, char*argv[])
                                                                                                 this,
                                                                                                 std::placeholders::_1,
                                                                                                 std::placeholders::_2));
-
+    m_publisher = m_node->create_publisher<text_to_speech_interfaces::msg::DoneSpeaking>(
+            "/TextToSpeechComponent/DoneSpeaking", 10);
+    
     RCLCPP_INFO(m_node->get_logger(), "Started node");
     return true;
 }
@@ -176,4 +178,21 @@ void TextToSpeechComponent::GetLanguage(const std::shared_ptr<text_to_speech_int
         response->current_language = current_language;
         response->is_ok=true;
     }
+}
+
+void TextToSpeechComponent::done_speaking_publisher(text_to_speech_interfaces::msg::DoneSpeaking::SharedPtr msg)
+{
+    auto* status = m_audioStatusPort.read(false);
+    if (status == nullptr)
+    {
+        response->error_msg="Unable to read audio status";
+        response->is_ok=false;
+    }
+    else if (status->get(1).asInt() == 0)
+    {
+        msg->is_done = true;
+    } else {
+        msg->is_done = false;
+    }
+    m_publisher->publish(*msg);
 }

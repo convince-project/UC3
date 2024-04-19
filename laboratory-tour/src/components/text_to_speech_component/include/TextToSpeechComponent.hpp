@@ -19,6 +19,7 @@
 #include <text_to_speech_interfaces/srv/get_language.hpp>
 #include <text_to_speech_interfaces/srv/set_language.hpp>
 #include <text_to_speech_interfaces/srv/speak.hpp>
+#include <text_to_speech_interfaces/msg/done_speaking.hpp>
 #include <AudioDeviceHelper.hpp>
 
 class TextToSpeechComponent 
@@ -37,6 +38,7 @@ public:
                         std::shared_ptr<text_to_speech_interfaces::srv::SetLanguage::Response> response);
     void Speak(const std::shared_ptr<text_to_speech_interfaces::srv::Speak::Request> request,
                         std::shared_ptr<text_to_speech_interfaces::srv::Speak::Response> response);
+    void done_speaking_publisher(text_to_speech_interfaces::msg::DoneSpeaking::SharedPtr msg);
 
 private:
     yarp::dev::PolyDriver m_speechSynthPoly;
@@ -49,6 +51,7 @@ private:
     // AudioDeviceHelper m_audioDeviceHelper;
     yarp::os::BufferedPort<yarp::sig::Sound> m_audioPort;
     yarp::os::BufferedPort<yarp::os::Bottle> m_audioStatusPort;
+    rclcpp::Publisher<text_to_speech_interfaces::msg::DoneSpeaking>::SharedPtr m_publisher;
 };
 
 #endif
