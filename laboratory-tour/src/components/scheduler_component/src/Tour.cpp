@@ -68,6 +68,7 @@ bool Tour::setCurrentLanguage(const std::string &langToSet)
 
 bool Tour::getPoI(const std::string &poiName, PoI &outputPoI)
 {
+    m_currentLanguage = "it-IT";
     if (m_availablePoIs[m_currentLanguage].count(poiName) > 0)
     {
         outputPoI = m_availablePoIs[m_currentLanguage][poiName];

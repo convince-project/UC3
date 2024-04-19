@@ -15,6 +15,7 @@
 #include <navigation_interfaces/srv/go_to_poi_by_name.hpp>
 #include <navigation_interfaces/srv/get_navigation_status.hpp>
 #include <navigation_interfaces/srv/check_near_to_poi.hpp>
+#include <navigation_interfaces/srv/stop_navigation.hpp>
 #include <bt_interfaces/srv/tick_action.hpp>
 #include <bt_interfaces/srv/halt_action.hpp>
 

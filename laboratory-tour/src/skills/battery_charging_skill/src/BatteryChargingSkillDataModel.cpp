@@ -33,5 +33,17 @@ void BatteryChargingSkillDataModel::log(std::string to_log) {
 
 
 void BatteryChargingSkillDataModel::topic_battery_callback(const sensor_msgs::msg::BatteryState::SharedPtr msg) {
-    m_status = msg->power_supply_status;
+    // m_status = msg->power_supply_status;
+    m_old_voltage = m_voltage;
+    m_voltage = msg->voltage;
+    if(m_voltage > m_old_voltage) //da considerare caso in cui alimentatore connesso e tensione passa da es. 28.5 a 28.3
+    {
+        log("Battery is charging");
+        m_charging = true;
+    }
+    else
+    {
+        log("Battery is not charging");
+        m_charging = false;
+    }
 }
