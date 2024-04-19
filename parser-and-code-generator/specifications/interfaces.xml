@@ -228,6 +228,16 @@
             </protocol>
         </function>
     </interface>
+    <interface id="narrate_interfaces">
+        <function id="Narrate">
+            <protocol>
+                <ROS2data>
+                    <interface type="sync-service" />
+                </ROS2data>
+            </protocol>
+        </function>
+    </interface>
+
 
     <!-- fine aggiunta-->
 
