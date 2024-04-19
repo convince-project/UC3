@@ -100,7 +100,8 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
         //remote = "/chatBot_nws";
         device = "LLM_nwc_yarp";
         local = "/DialogComponent/chatBotClient";
-        remote = "/poi_chat/LLM_nws/rpc";
+        //remote = "/poi_chat/LLM_nws/rpc:i";
+        remote = "/dummy_chat/LLM_nws/rpc:i";
 
         if (okCheck)
         {
@@ -148,6 +149,48 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
         //    yError() << "[DialogComponent::ConfigureYARP] Error opening iChatBot interface. Device not available";
         //    return false;
         //}
+    }
+    // -------------------------Dialog Flow generic llm nwc---------------------------------
+    {
+        okCheck = rf.check("LLM-CLIENT");
+        device = "LLM_nwc_yarp";
+        local = "/DialogComponent/genericConvClient";
+        remote = "/madama_chat/LLM_nws/rpc:i";
+
+        if (okCheck)
+        {
+            yarp::os::Searchable &llm_config = rf.findGroup("LLM-CLIENT");
+            if (llm_config.check("device"))
+            {
+                device = llm_config.find("device").asString();
+            }
+            if (llm_config.check("local-suffix"))
+            {
+                local = "/DialogComponent" + llm_config.find("local-suffix").asString();
+            }
+            if (llm_config.check("remote"))
+            {
+                remote = llm_config.find("remote").asString();
+            }
+        }
+
+        yarp::os::Property llm_prop;
+        llm_prop.put("device", device);
+        llm_prop.put("local", local);
+        llm_prop.put("remote", remote);
+
+        m_genericChatPoly.open(llm_prop);
+        if (!m_genericChatPoly.isValid())
+        {
+            yError() << "[DialogComponent::ConfigureYARP] Error opening chatBot Client PolyDriver. Check parameters";
+            return false;
+        }
+        m_genericChatPoly.view(m_iGenericChat);
+        if (!m_iGenericChat)
+        {
+            yError() << "[DialogComponent::ConfigureYARP] Error opening iChatBot interface. Device not available";
+            return false;
+        }
     }
     // ---------------------Microphone Activation----------------------------
     {
@@ -214,8 +257,8 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
                 {
                     m_tourName = tour_config.find("tour_name").asString();
                 }
-                
-                m_tourStorage = std::make_shared<TourStorage>(); 
+
+                m_tourStorage = std::make_shared<TourStorage>();
                 if( !m_tourStorage->LoadTour(m_jsonPath, m_tourName))
                 {
                     yError() << "[DialogComponent::ConfigureYARP] Unable to load tour from the given arguments: " << m_jsonPath << " and: " << m_tourName;
@@ -276,7 +319,7 @@ bool DialogComponent::start(int argc, char*argv[])
     // Loads the tour json from the file and saves a reference to the class, if the arguments are being passed at start.
     //if (argc >= 2)
     //{
-    //    m_tourStorage = std::make_shared<TourStorage>(); 
+    //    m_tourStorage = std::make_shared<TourStorage>();
     //    if( !m_tourStorage->LoadTour(argv[0], argv[1]))
     //    {
     //        yError() << "[DialogComponent::start] Unable to load tour from the given arguments: " << argv[0] << " and " << argv[1];
@@ -312,7 +355,7 @@ bool DialogComponent::start(int argc, char*argv[])
                                                                                             std::placeholders::_1,
                                                                                             std::placeholders::_2));
     m_GetStateService = m_node->create_service<dialog_interfaces::srv::GetState>("/DialogComponent/GetState",
-                                                                                        std::bind(&DialogComponent::GetState, 
+                                                                                        std::bind(&DialogComponent::GetState,
                                                                                             this,
                                                                                             std::placeholders::_1,
                                                                                             std::placeholders::_2));
@@ -328,19 +371,19 @@ bool DialogComponent::close()
 
     m_speakersAudioPort.close();
     m_speakersStatusPort.close();
-    
+
     if (m_dialogThread.joinable())
     {
         m_dialogThread.join();
     }
-    
-    rclcpp::shutdown();  
+
+    rclcpp::shutdown();
     return true;
 }
 
 void DialogComponent::spin()
 {
-    rclcpp::spin(m_node);  
+    rclcpp::spin(m_node);
 }
 
 void DialogComponent::EnableDialog(const std::shared_ptr<dialog_interfaces::srv::EnableDialog::Request> request,
@@ -394,7 +437,7 @@ void DialogComponent::EnableDialog(const std::shared_ptr<dialog_interfaces::srv:
         m_state = IDLE;
         response->is_ok=true;
     }
-    
+
 }
 
 void DialogComponent::DialogExecution()
@@ -420,7 +463,7 @@ void DialogComponent::DialogExecution()
             isPlaying = true;
         }
         */
-        
+
 
         if (!isRecording && !m_speakerCallback.isPlaying())
         {
@@ -432,7 +475,7 @@ void DialogComponent::DialogExecution()
             yDebug() << "[DialogComponent::DialogExecution] Stopping the recording " << __LINE__;
             m_iAudioGrabberSound->stopRecording();
         }
-        
+
         // Check if new message has been transcribed
         std::string questionText = "";
         //yInfo() << "DialogComponent::DialogExecution hasNewMessage" << __LINE__;
@@ -470,6 +513,9 @@ void DialogComponent::DialogExecution()
         yInfo() << "DialogComponent::DialogExecution ChatBot interrogation" << __LINE__;
         // Pass the question to DialogFlow
         yarp::dev::LLM_Message answer;
+        ///TODO: This is an awful solution. Remove it as soon as possible
+        m_lastQuestion = questionText;
+        // END
         if(!m_iChatGPT->ask(questionText, answer))
         {
             yError() << "[DialogComponent::DialogExecution] Unable to interact with chatGPT with question: " << questionText;
@@ -516,65 +562,66 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
     // This works for ChatGPT bot
     // We get a string formatted like in https://github.com/hsp-iit/tour-guide-robot/blob/iron/app/llmTest/conf/Format_commands_poi_prompt.txt
     // Load the command into a bottle to split it
-    //yarp::os::Bottle extracted_command;
-    //extracted_command.fromString(command);
-    std::string replaced_str = command;
-    std::string action;
+    yarp::os::Bottle extracted_command;
+    extracted_command.fromString(command);
+    //std::string replaced_str = command;
+    //std::string action;
 	// Find what to say:
-	auto first_pos = replaced_str.find('"');
-	if (first_pos != replaced_str.size())
-    {
-		auto second_pos = replaced_str.find('"', first_pos + 1);
-        yInfo() << "[DialogComponent::CommandManager] begin: " << first_pos << " end: " << second_pos;
-		if (second_pos != replaced_str.size())
-		{
-            action = replaced_str.substr(first_pos + 1, (second_pos - first_pos) - 1);
-            //yInfo() << "[DialogComponent::InterpretCommand] returning from the raw say: " << phrase << __LINE__;
-			//auto third_pos = replaced_str.find('"', second_pos + 1);
-		}
-	}
-	
+	//auto first_pos = replaced_str.find('"');
+	// if (first_pos != replaced_str.size())
+    // {
+	// 	auto second_pos = replaced_str.find('"', first_pos + 1);
+    //     yInfo() << "[DialogComponent::CommandManager] begin: " << first_pos << " end: " << second_pos;
+	// 	if (second_pos != replaced_str.size())
+	// 	{
+    //         action = replaced_str.substr(first_pos + 1, (second_pos - first_pos) - 1);
+    //         //yInfo() << "[DialogComponent::InterpretCommand] returning from the raw say: " << phrase << __LINE__;
+	// 		//auto third_pos = replaced_str.find('"', second_pos + 1);
+	// 	}
+	// }
+
     //yDebug() << "[DialogComponent::InterpretCommand] Number of elements in bottle: " << extracted_command.size();
     // In the first position we have the general thing to do, like: explain, next_poi, end_tour
-    //std::string action = extracted_command.get(0).asString();
+    std::string action = extracted_command.get(0).asString();
     yDebug() << "[DialogComponent::InterpretCommand] Got action: " << action;
     // Let's check what to do with the action
 	// Find what to say:
-	auto explain_pos = command.find("explain");
-    if (explain_pos < command.size())    //found
+	//auto explain_pos = command.find("explain");
+    //if (explain_pos < command.size())    //found
+    if(extracted_command.get(0).asString() == "explain")
     {
         // TODO create a struct map
-        if (command.find("artist") < command.size())
-        {
-            action = "explainQuestionAuthor";
-        }
-        else if (command.find("art_piece") < command.size())
-        {
-            action = "explainQuestionMainPiece";
-        }
-        else if (command.find("historical_period") < command.size())
-        {
-            action = "explainQuestionEpoch";
-        }
-        else if (command.find("technique") < command.size())
-        {
-            action = "explainQuestionTechnique";
-        }
-        else if (command.find("questions"))
-        {
-            action = "explainListOfQuestions";
-        }
-        else
-        {
-            yError() << "[DialogComponent::CommandManager] Unable to assign a known topic";
-	        return false;
-        }
-        yDebug() << "[DialogComponent::InterpretCommand] Got topic: " << action;
+        // if (command.find("artist") < command.size())
+        // {
+        //     action = "explainQuestionAuthor";
+        // }
+        // else if (command.find("art_piece") < command.size())
+        // {
+        //     action = "explainQuestionMainPiece";
+        // }
+        // else if (command.find("historical_period") < command.size())
+        // {
+        //     action = "explainQuestionEpoch";
+        // }
+        // else if (command.find("technique") < command.size())
+        // {
+        //     action = "explainQuestionTechnique";
+        // }
+        // else if (command.find("questions"))
+        // {
+        //     action = "explainListOfQuestions";
+        // }
+        // else
+        // {
+        //     yError() << "[DialogComponent::CommandManager] Unable to assign a known topic";
+	    //     return false;
+        // }
+        // yDebug() << "[DialogComponent::InterpretCommand] Got topic: " << action;
 
         // TODO for other action types
         // Check the second element for determining the exact action: artist, art_piece, historical_period, technique
-        //std::string topic = extracted_command.get(1).asString();
-        /*if (topic == "artist")
+        std::string topic = extracted_command.get(1).asString();
+        if (topic == "artist")
         {
             action = "explainQuestionAuthor";
         }
@@ -590,11 +637,59 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
         {
             action = "explainQuestionTechnique";
         }
+        else if (topic == "museum")
+        {
+            ///TODO: This is an awful solution. Remove it as soon as possible
+            // Horrible solution ------------------------------------------------------------ START//
+            std::chrono::duration wait_ms = 200ms;
+            yarp::dev::LLM_Message answer;
+            if(!m_iGenericChat->ask(m_lastQuestion, answer))
+            {
+                yError() << "[DialogComponent::DialogExecution] Unable to interact with chatGPT with question: " << m_lastQuestion;
+                std::this_thread::sleep_for(wait_ms);
+                return false;
+            }
+            std::string answerText = answer.content;
+            if (m_speakerCallback.isPlaying())
+            {
+                yDebug() << "[DialogComponent::InterpretCommand] Waiting for previous speech to finish" ;
+            }
+            while (m_speakerCallback.isPlaying() && !m_exit)
+            {
+                // Wait
+                std::this_thread::sleep_for(100ms); // TODO - parameterize
+            }
+
+            // Synthesize the text
+            yarp::sig::Sound &synthesizedSound = m_speakersAudioPort.prepare();
+            synthesizedSound.clear();
+
+            if (!m_iSpeechSynth->synthesize(answerText, synthesizedSound))
+            {
+                yError() << "[DialogComponent::InterpretCommand] Unable to synthesize text: " << answerText;
+                return false;
+            }
+            yDebug() << "[DialogComponent::InterpretCommand] Have synthesized: " << answerText;
+            // Close the mic
+            m_iAudioGrabberSound->stopRecording();
+
+            yInfo() << "[DialogComponent::InterpretCommand] preparing port with duration: " << synthesizedSound.getDuration() <<  __LINE__;
+
+            yInfo() << "[DialogComponent::InterpretCommand] Sending Sound to port" << __LINE__;
+            m_speakersAudioPort.write();
+            while((!m_speakerCallback.isPlaying() && m_speakerCallback.isEnabled()) && !m_exit)
+            {
+                std::this_thread::sleep_for(100ms);
+            }
+
+            return true;
+            // Horrible solution -------------------------------------------------------------- END//
+        }
         else
         {
             yError() << "[DialogComponent::CommandManager] Unable to assign a known topic: " << topic;
 	        return false;
-        }*/
+        }
 
         // Now let's Find that command in the JSON
         if(! InterpretCommand(action, currentPoI, genericPoI, phrase))
@@ -611,7 +706,7 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
         m_state = SUCCESS;
         // Call a service maybe?
     }
-    
+
     return true;
 }
 
@@ -787,7 +882,7 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
                     {
                         yError() << "Unable to execute isSpeaking().";
                     }
-                    
+
                     if (containsSpeak && !is_speaking && isDelay)
                     {
                         containsSpeak = false;
