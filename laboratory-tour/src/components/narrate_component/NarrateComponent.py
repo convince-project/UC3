@@ -1,6 +1,7 @@
 import rclpy
 from rclpy.node import Node
-from narrate_interfaces.srv import Narrate, IsDone
+from narrate_interfaces.srv import Narrate
+from narrate_interfaces.msg import DoneSpeaking
 from scheduler_interfaces.srv import GetCurrentAction, UpdateAction
 from text_to_speech_interfaces.srv import Speak, IsDone
 import threading
@@ -8,6 +9,7 @@ import threading
 global done
 
 class NodeExecutor(Node):
+    is_done_speaking = False
     def __init__(self):
         super().__init__(node_name = 'NarrateComponentThreadNode')
 
@@ -23,9 +25,18 @@ class NodeExecutor(Node):
         while not self.client.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('Service not available, waiting...')
 
-        self.client = self.create_client(IsDone, '/TextToSpeechComponent/IsDone')
-        while not self.client.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info('Service not available, waiting...')
+        # create a callback on /TextToSpeechComponent/IsDone topic
+        self.subscription = self.create_subscription(
+            String,
+            'my_topic',
+            self.listener_callback,
+            10) 
+        
+
+
+    def listener_callback(self, msg):
+        self.is_done_speaking = msg.is_done
+
 
     def run():
         done_with_poi = False
@@ -45,15 +56,8 @@ class NodeExecutor(Node):
                 rclpy.spin_until_future_complete(self, future_speak)
                 if future_speak.result() is not None:
                     if future_speak.result().is_ok:
-                        is_done = False
-                        while not is_done:
-                            # call the IsDone service
-                            request_isDone = IsDone.Request()
-                            future_isDone = self.client.call_async(request_isDone)
-                            rclpy.spin_until_future_complete(self, future_isDone)
-                            if future_isDone.result() is not None:
-                                is_done = future_isDone.result().is_done
-                            #sleep for 150 ms
+                        self.is_done_speaking = False
+                        while not self.is_done_speaking:
                             self.sleep(0.15)
 
             #call the UpdateAction service
