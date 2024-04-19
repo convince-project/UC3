@@ -13,6 +13,7 @@
 #include <yarp/os/Network.h>
 #include <yarp/os/LogStream.h>
 #include <yarp/os/RFModule.h>
+#include <yarp/os/BufferedPort.h>
 #include <yarp/dev/PolyDriver.h>
 #include <yarp/dev/ISpeechSynthesizer.h>
 #include <text_to_speech_interfaces/srv/get_language.hpp>
@@ -45,7 +46,9 @@ private:
     rclcpp::Service<text_to_speech_interfaces::srv::SetLanguage>::SharedPtr m_setLanguageService;
     rclcpp::Service<text_to_speech_interfaces::srv::Speak>::SharedPtr m_speakService;
     std::mutex m_mutex;
-    AudioDeviceHelper m_audioDeviceHelper;
+    // AudioDeviceHelper m_audioDeviceHelper;
+    yarp::os::BufferedPort<yarp::sig::Sound> m_audioPort;
+    yarp::os::BufferedPort<yarp::os::Bottle> m_audioStatusPort;
 };
 
 #endif

@@ -53,7 +53,8 @@ bool TextToSpeechComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
     }
 
     //Audio Device Helper
-    m_audioDeviceHelper.ConfigureYARP(rf);
+    m_audioPort.open("/TextToSpeechComponentNode/audio:o");
+    m_aum_audioStatusPort.open("/TextToSpeechComponentNode/audioStatus:i");
     return true;
 }
 
@@ -100,25 +101,39 @@ void TextToSpeechComponent::Speak(const std::shared_ptr<text_to_speech_interface
                         std::shared_ptr<text_to_speech_interfaces::srv::Speak::Response> response)
 {
     yarp::sig::Sound sound;
-    if (request->text=="")
-    {
-        //If I receive a blank text I should stop playing
-        if (! m_audioDeviceHelper.stopPlaying())
-        {
-            response->error_msg="Unable to stop speaking";
-            response->is_ok=false;
-        }
+    // if (request->text=="")
+    // {
+    //     //If I receive a blank text I should stop playing
+    //     auto* status = m_audioStatusPort.read(false);
+    //     if (status == nullptr)
+    //     {
+    //         response->error_msg="Unable to read audio status";
+    //         response->is_ok=false;
+    //     }
+    //     else if (status->get(1).asInt() == 0)
+    //     {
+    //         response->error_msg="No sound is playing";
+    //         response->is_ok=false;
+    //     }
+    //     else
+    //     if (! m_audioDeviceHelper.stopPlaying())
+    //     {
+    //         response->error_msg="Unable to stop speaking";
+    //         response->is_ok=false;
+    //     }
         
-        response->is_ok=true;
-    }
-    else if (!m_iSpeechSynth->synthesize(request->text, sound))
+    //     response->is_ok=true;
+    // }
+    if (!m_iSpeechSynth->synthesize(request->text, sound))
     {
         response->is_ok=false;
         response->error_msg="Unable to synthesize text";
     }
     else
     {
-        if(!m_audioDeviceHelper.playSound(sound))
+        auto& soundport  = m_audioPort.prepare();
+        soundport = sound;
+        if(!m_audioPort.write())
         {
             response->is_ok=false;
             response->error_msg="Unable to play sound";
