@@ -160,8 +160,9 @@ bool StopAndTurnBackSkill::start(int argc, char*argv[])
             {
                 if( response->is_ok ==true) {
                     QVariantMap data;
+                    data.insert("result", "SUCCESS");
                     m_stateMachine.submitEvent("BlackboardComponent.SetInt.Return", data);
-                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.SetInt.Return.Succs");
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.SetInt.Return");
                 } else {
                     QVariantMap data;
                     data.insert("result", "FAILURE");
@@ -188,6 +189,40 @@ bool StopAndTurnBackSkill::start(int argc, char*argv[])
 			m_tickResult.store(Status::failure);
 		}
 	});
+
+    m_stateMachine.connectToEvent("NavigationComponent.StopNavigation.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
+        std::shared_ptr<rclcpp::Node> nodeStopNavigation = rclcpp::Node::make_shared(m_name + "SkillNodeStopNavigation");
+        std::shared_ptr<rclcpp::Client<navigation_interfaces::srv::StopNavigation>> clientStopNavigation = nodeStopNavigation->create_client<navigation_interfaces::srv::StopNavigation>("/NavigationComponent/StopNavigation");
+        auto request = std::make_shared<navigation_interfaces::srv::StopNavigation::Request>();
+        bool wait_succeded{true};
+        while (!clientStopNavigation->wait_for_service(std::chrono::seconds(1))) {
+            if (!rclcpp::ok()) {
+                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'StopNavigation'. Exiting.");
+                wait_succeded = false;
+                m_stateMachine.submitEvent("NavigationComponent.StopNavigation.Return");
+            } 
+        }
+        if (wait_succeded) {
+            // send the request                                                                    
+            auto result = clientStopNavigation->async_send_request(request);
+            auto futureResult = rclcpp::spin_until_future_complete(nodeStopNavigation, result);
+            auto response = result.get();
+            if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
+            {
+                if( response->is_ok ==true) {
+                    QVariantMap data;
+                    data.insert("result", "SUCCESS");
+                    m_stateMachine.submitEvent("NavigationComponent.StopNavigation.Return", data);
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NavigationComponent.StopNavigation.Return");
+                } else {
+                    QVariantMap data;
+                    data.insert("result", "FAILURE");
+                    m_stateMachine.submitEvent("NavigationComponent.StopNavigation.Return", data);
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NavigationComponent.StopNavigation.Return");
+                }
+            }
+        }
+    });
 
 	m_stateMachine.connectToEvent("HALT_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){
 		RCLCPP_INFO(m_node->get_logger(), "StopAndTurnBackSkill::haltresponse");

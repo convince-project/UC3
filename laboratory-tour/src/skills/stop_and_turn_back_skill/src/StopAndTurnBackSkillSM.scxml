@@ -16,7 +16,7 @@
 
   <state id="idle">
       <transition event="CMD_TICK" target="start" />
-      <transition event="CMD_HALT" target="sendHalted" /> 
+      <transition event="CMD_HALT" target="stopNavigation" /> 
   </state>
 
   <state id="start">
@@ -91,6 +91,25 @@
     <transition target="idle" />
   </state>
 
+  <state id="stopNavigation">
+    <onentry>
+        <send event="NavigationComponent.StopNavigation.Call">
+        </send>
+    </onentry>
+    <transition event="NavigationComponent.StopNavigation.Return" target="stopNavigationResult"> 
+      <assign location="m_result" expr="_event.data.result" />
+    </transition>
+  </state>
+
+  <state id="stopNavigationResult">
+    <transition cond="m_result == 'SUCCESS'" target="sendHalted" >
+      <log expr='"stopNavigation SUCCESS"'/>
+    </transition>
+    <transition cond="m_result == 'FAILURE'" target="sendHalted" >
+      <log expr='"stopNavigation FAILURE"'/>
+    </transition>
+  </state>
+
   <state id="sendSuccess">
       <onentry>
         <send event="TICK_RESPONSE">
@@ -114,6 +133,7 @@
       <onentry>
           <send event="HALT_RESPONSE">
           </send>
+          <assign expr="'START'" location="m_result"/>
       </onentry>
       <transition target="idle" />
   </state>

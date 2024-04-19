@@ -10,6 +10,8 @@
         <data id="m_status"/>
         <data id="m_result"/>
         <data id="NAVIGATION_STATUS_MOVING" expr="2"/>
+        <data id="chargingStation" expr='"sim_gam_1"'/>
+        <data id="distance" expr='0.5'/>
     </datamodel>
 
     <state id="idle">
@@ -39,8 +41,8 @@
     <state id="getPosition">
         <onentry>
             <send event="NavigationComponent.CheckNearToPoi.Call">
-                <param name="poi_name" expr='"sim_gam_1"'/>  <!--ChargingStation-->
-                <param name="distance" expr='0.5'/>
+                <param name="poi_name" expr="chargingStation"/>  <!--ChargingStation-->
+                <param name="distance" expr="distance"/>
             </send>
         </onentry>
         <transition event="NavigationComponent.CheckNearToPoi.Return" target="getPositionResult" > 
