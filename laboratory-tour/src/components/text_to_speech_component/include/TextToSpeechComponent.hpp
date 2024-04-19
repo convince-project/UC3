@@ -20,7 +20,6 @@
 #include <text_to_speech_interfaces/srv/set_language.hpp>
 #include <text_to_speech_interfaces/srv/speak.hpp>
 #include <text_to_speech_interfaces/msg/done_speaking.hpp>
-#include <AudioDeviceHelper.hpp>
 
 class TextToSpeechComponent 
 {

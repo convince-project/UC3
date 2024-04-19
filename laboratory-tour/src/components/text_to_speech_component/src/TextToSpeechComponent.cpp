@@ -54,7 +54,7 @@ bool TextToSpeechComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
 
     //Audio Device Helper
     m_audioPort.open("/TextToSpeechComponentNode/audio:o");
-    m_aum_audioStatusPort.open("/TextToSpeechComponentNode/audioStatus:i");
+    m_audioStatusPort.open("/TextToSpeechComponentNode/audioStatus:i");
     return true;
 }
 
@@ -135,11 +135,7 @@ void TextToSpeechComponent::Speak(const std::shared_ptr<text_to_speech_interface
     {
         auto& soundport  = m_audioPort.prepare();
         soundport = sound;
-        if(!m_audioPort.write())
-        {
-            response->is_ok=false;
-            response->error_msg="Unable to play sound";
-        }
+        m_audioPort.write();
         response->is_ok=true;
     }
 }
