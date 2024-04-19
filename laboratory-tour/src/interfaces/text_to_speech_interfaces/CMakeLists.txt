@@ -19,6 +19,7 @@ rosidl_generate_interfaces(navigation_interfaces
 "srv/SetLanguage.srv"
 "srv/GetLanguage.srv"
 "srv/Speak.srv"
+"msg/DoneSpeaking.msg"
 DEPENDENCIES sensor_msgs
 LIBRARY_NAME text_to_speech_interfaces 
 )
