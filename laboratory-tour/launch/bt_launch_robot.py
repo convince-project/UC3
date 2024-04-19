@@ -16,11 +16,11 @@ def generate_launch_description():
             package='alarm_component',
             executable='alarm_component'
         ),
-        Node(
-            package='bt_executable',
-            executable='bt_executable',
-            arguments=[ './src/behavior_tree/BT/bt_failure_management.xml']
-        ), 
+        #Node(
+        #    package='bt_executable',
+        #    executable='bt_executable',
+        #    arguments=[ './src/behavior_tree/BT/bt_failure_management.xml']
+        #), 
         Node(
             package='battery_charging_skill',
             executable='battery_charging_skill'
