@@ -2379,7 +2379,7 @@
                   "m_type": "signal"
                 }
               ],
-  
+
               "sayWhileNavigating": [
                 {
                   "m_isBlocking": true,
@@ -4842,7 +4842,7 @@
                 }
               ],
               "sayWhileNavigating": [],
-  
+
               "questionMoreDetailsOpera": [
                 {
                   "m_isBlocking": false,
@@ -7062,7 +7062,7 @@
                   "m_param": "On the left side of the display cabinet, right on the top shelf, you can see a beautiful green colored basin. This fine piece of art has a dragon in relief at its center and veinings that imitate jade striping. ",
                   "m_type": "speak"
                 },
-  
+
                 {
                   "m_isBlocking": false,
                   "m_param": "pointToLeftBothArms",
@@ -8400,7 +8400,7 @@
                   "m_param": "From Caserta, after the return of the Borbone family in 1815, the set, that was composed of 640 pieces, was moved to the Reggia di Portici, the original destination.",
                   "m_type": "speak"
                 },
-  
+
                 {
                   "m_isBlocking": false,
                   "m_param": "pointToRightBothArms",
@@ -9338,7 +9338,7 @@
                   "m_type": "signal"
                 }
               ],
-  
+
               "sayWhileNavigating": [
                 {
                   "m_isBlocking": true,
@@ -15324,10 +15324,30 @@
           },
           "sala_delle_guardie": {
             "m_availableActions": {
-              "explainGeneralRobotName": [
+              "explainOpera": [
                 {
                   "m_isBlocking": false,
-                  "m_param": "My name is R1. I am a humanoid robot developed by the Italian Institute of Technology to study robotics in the service domain.",
+                  "m_param": "Passate attraverso le storiche sale di Palazzo Madama a Torino e lasciatevi incantare dalla magnificenza della Camera delle Guardie.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Questa sala, immersa nella luce soffusa che filtra dalle ampie finestre, è un esemplare sublime dell'arte decorativa rococò.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Gli stucchi eleganti adornano il soffitto a volta, intrecciandosi in motivi floreali e geometrici che evocano la maestria artigianale del passato.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Ogni parete è una galleria in sé, con quadri dell'epoca che raccontano storie di santi e eroi mitologici, ciascuno incorniciato splendidamente e sospeso in perfetto equilibrio tra passato e presente.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "La pavimentazione in parquet a spina di pesce aggiunge un tocco di calore naturale a questa stanza che un tempo fu testimone dei fasti della corte sabauda. Visitare la Camera delle Guardie è come fare un viaggio nel tempo, una fermata obbligatoria per chiunque desideri immergersi nella storia e nell'arte del cuore di Torino.",
                   "m_type": "speak"
                 }
               ]
@@ -15336,10 +15356,30 @@
           },
           "sala_guidobono": {
             "m_availableActions": {
-              "explainGeneralRobotName": [
+              "explainOpera": [
                 {
                   "m_isBlocking": false,
-                  "m_param": "My name is R1. I am a humanoid robot developed by the Italian Institute of Technology to study robotics in the service domain.",
+                  "m_param": "Immergetevi nell'atmosfera aristocratica della Sala Guidobono di Palazzo Madama, dove le pareti rivestite di un vellutato verde smeraldo fanno da sfondo a un'eccezionale collezione di opere d'arte.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "In questa sala, l'arte scultorea è protagonista, con pezzi dinamici che emergono con forza dal pavimento, in un dialogo silenzioso ma eloquente con i dipinti che narrano storie di epoche passate.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Sopra di voi, il soffitto a cassettoni stuccato celebra il cielo e la terra con affreschi che sembrano danzare nella luce che filtra dalle finestre.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Ogni opera d'arte è stata selezionata con cura per rappresentare la diversità e la ricchezza della tradizione artistica che si estende attraverso i secoli, facendo di questa stanza un crocevia culturale dove il passato incontra il presente.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Un'esperienza in questa galleria non è soltanto un viaggio visivo, ma anche un percorso emotivo attraverso la bellezza e l'ingegno umano.",
                   "m_type": "speak"
                 }
               ]
@@ -15348,10 +15388,30 @@
           },
           "sala_delle_feste": {
             "m_availableActions": {
-              "explainGeneralRobotName": [
+              "explainOpera": [
                 {
                   "m_isBlocking": false,
-                  "m_param": "My name is R1. I am a humanoid robot developed by the Italian Institute of Technology to study robotics in the service domain.",
+                  "m_param": "Scoprite lo splendore della Sala Delle Feste di Palazzo Madama, dove l'arte e la storia si uniscono in una sinfonia di oro e luce.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Il ricco decoro dorato che incornicia le opere d'arte trasforma le pareti in una narrazione visiva che parla delle glorie passate del Piemonte.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Alzate lo sguardo per ammirare i capolavori di stucco che si intrecciano nel soffitto, evocando le muse celesti in un cielo dipinto.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Mentre passeggiate tra le file di sedie in attesa di un evento, potete quasi sentire l'eco delle discussioni e delle musiche che hanno riempito questa sala nei secoli.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "La Sala Delle Feste non è solo un luogo di incontro per la mente e lo spirito, ma anche un teatro in cui ogni angolo racconta una storia, un inno vivente alla bellezza e alla cultura che persiste attraverso il tempo.",
                   "m_type": "speak"
                 }
               ]
@@ -15360,10 +15420,15 @@
           },
           "sala_4_stagioni": {
             "m_availableActions": {
-              "explainGeneralRobotName": [
+              "explainOpera": [
                 {
                   "m_isBlocking": false,
-                  "m_param": "My name is R1. I am a humanoid robot developed by the Italian Institute of Technology to study robotics in the service domain.",
+                  "m_param": "Questa stanza di Palazzo Madama a Torino è un gioiello del barocco, con un soffitto dorato riccamente decorato e pareti adornate da stucchi e tappezzerie eleganti.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Specchi e opere d'arte aggiungono un tocco di raffinatezza, mentre le ampie finestre illuminano il pavimento in legno che echeggia la storia. È un esempio splendido dell'opulenza storica italiana.",
                   "m_type": "speak"
                 }
               ]
@@ -15372,10 +15437,15 @@
           },
           "camera_di_madama_reale": {
             "m_availableActions": {
-              "explainGeneralRobotName": [
+              "explainOpera": [
                 {
                   "m_isBlocking": false,
-                  "m_param": "My name is R1. I am a humanoid robot developed by the Italian Institute of Technology to study robotics in the service domain.",
+                  "m_param": "Entrate in questa altra stanza di Palazzo Madama, dove il rosso vibrante delle pareti fa da sfondo a sontuosi affreschi che adornano il soffitto, raccontando storie mitologiche tra nuvole e figure celesti.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Cornici dorate e specchi lavorati riflettono sia la luce che la grandiosità dell'arte barocca, mentre i dipinti storici invitano a momenti di riflessione e ammirazione. La stanza è un inno al lusso e alla creatività del passato.",
                   "m_type": "speak"
                 }
               ]
