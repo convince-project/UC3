@@ -16,11 +16,11 @@ def generate_launch_description():
             package='alarm_component',
             executable='alarm_component'
         ),
-        #Node(
-        #    package='bt_executable',
-        #    executable='bt_executable',
-        #    arguments=[ './src/behavior_tree/BT/laboratory_tourv1.xml']
-        #), 
+        Node(
+            package='bt_executable',
+            executable='bt_executable',
+            arguments=[ './src/behavior_tree/BT/bt_failure_management.xml']
+        ), 
         Node(
             package='battery_charging_skill',
             executable='battery_charging_skill'
@@ -44,7 +44,8 @@ def generate_launch_description():
         Node(
             package='scheduler_component',
             executable='scheduler_component', 
-            arguments=['./conf/tours.json', 'TOUR_CRIS_SHORT']
+            output='screen',
+            arguments=['./conf/tours.json', 'TOUR_MADAMA_3','--ros-args', '--log-level', 'debug']
         ),         
         Node(
             package='stop_and_turn_back_skill',
@@ -60,7 +61,8 @@ def generate_launch_description():
         ),         
         Node(
             package='go_to_current_poi_skill',
-            executable='go_to_current_poi_skill' 
+            executable='go_to_current_poi_skill', 
+            output="screen"
         ),         
         #Node(
         #    package='check_network_skill',
@@ -80,7 +82,7 @@ def generate_launch_description():
         Node(
             package='dummy_condition',
             executable='dummy_condition', 
-            arguments=['--skill_name', 'IsCheckingForPeople', '--default_status', 'FAILURE']
+            arguments=['--skill_name', 'IsCheckingForPeople', '--default_status', 'SUCCESS']
         ),
         Node(
             package='dummy_action',
