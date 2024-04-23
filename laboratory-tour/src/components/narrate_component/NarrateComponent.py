@@ -1,9 +1,9 @@
 import rclpy
 from rclpy.node import Node
-from narrate_interfaces.srv import Narrate
-from narrate_interfaces.msg import DoneSpeaking
+from narrate_interfaces.srv import Narrate, IsDone
 from scheduler_interfaces.srv import GetCurrentAction, UpdateAction
-from text_to_speech_interfaces.srv import Speak, IsDone
+from text_to_speech_interfaces.srv import Speak
+from text_to_speech_interfaces.msg import DoneSpeaking
 import threading
 
 global done
@@ -21,9 +21,9 @@ class NodeExecutor(Node):
         while not self.client.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('Service not available, waiting...')
 
-        self.client = self.create_client(Speak, '/TextToSpeechComponent/Speak')
-        while not self.client.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info('Service not available, waiting...')
+        # self.client = self.create_client(Speak, '/TextToSpeechComponent/Speak')
+        # while not self.client.wait_for_service(timeout_sec=1.0):
+        #     self.get_logger().info('Service not available, waiting...')
 
         # create a callback on /TextToSpeechComponent/IsDone topic
         self.subscription = self.create_subscription(
@@ -49,16 +49,16 @@ class NodeExecutor(Node):
                 text_to_send = future_getCurrentAction.result().action
                 self.get_logger().info('Response: {0}'.format(text_to_send))
 
-                # call the text-to-speech service
-                request_speak = Speak.Request()
-                request_speak.text = text_to_send
-                future_speak = self.client.call_async(request_speak)
-                rclpy.spin_until_future_complete(self, future_speak)
-                if future_speak.result() is not None:
-                    if future_speak.result().is_ok:
-                        self.is_done_speaking = False
-                        while not self.is_done_speaking:
-                            self.sleep(0.15)
+                # # call the text-to-speech service
+                # request_speak = Speak.Request()
+                # request_speak.text = text_to_send
+                # future_speak = self.client.call_async(request_speak)
+                # rclpy.spin_until_future_complete(self, future_speak)
+                # if future_speak.result() is not None:
+                #     if future_speak.result().is_ok:
+                #         self.is_done_speaking = False
+                #         while not self.is_done_speaking:
+                #             self.sleep(0.15)
 
             #call the UpdateAction service
             request_updateAction = UpdateAction.Request()
@@ -82,7 +82,8 @@ class MyService(Node):
     def callback(self, request, response):
         # launch the thread
         done = False
-        # launch NodeExecutor class with lambda
+        # launch NodeExecutor class with lambda function
+        
         nodeExecutorInstance = threading.Thread(target=lambda: self.nodeExecutor.run())
         response.success = True
         return response
