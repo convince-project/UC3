@@ -42,6 +42,9 @@
       </componentDeclaration>
       <componentDeclaration id="NarrateComponent" interface="narrate_interfaces">
         <componentDefinition />
+      </componentDeclaration>      
+      <componentDeclaration id="DialogComponent" interface="dialog_interfaces">
+        <componentDefinition />
       </componentDeclaration>
     </componentList>
 
