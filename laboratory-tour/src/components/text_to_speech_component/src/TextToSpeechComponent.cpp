@@ -179,16 +179,14 @@ void TextToSpeechComponent::GetLanguage(const std::shared_ptr<text_to_speech_int
 void TextToSpeechComponent::done_speaking_publisher(text_to_speech_interfaces::msg::DoneSpeaking::SharedPtr msg)
 {
     auto* status = m_audioStatusPort.read(false);
-    if (status == nullptr)
+    if (status != nullptr)
     {
-        response->error_msg="Unable to read audio status";
-        response->is_ok=false;
+        if (status->get(1).asInt16() == 0)
+        {
+            msg->is_done = true;
+        } else {
+            msg->is_done = false;
+        }
+        m_publisher->publish(*msg);
     }
-    else if (status->get(1).asInt() == 0)
-    {
-        msg->is_done = true;
-    } else {
-        msg->is_done = false;
-    }
-    m_publisher->publish(*msg);
 }
