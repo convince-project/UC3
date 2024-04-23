@@ -10,7 +10,7 @@
 class Tour
 {
 private:
-    std::string m_currentLanguage;                                                         // The currently selected language
+    std::string m_currentLanguage{"it-IT"};                                                // The currently selected language
     std::unordered_map<std::string, std::unordered_map<std::string, PoI>> m_availablePoIs; // A map containing all the possible PoIs for
                                                                                            // this specific tour/location per language
     std::vector<std::string> m_activeTourPoIs;                                             // The list of the currently active PoIs (each element of this vector
