@@ -146,11 +146,8 @@ void SchedulerComponent::GetCurrentAction([[maybe_unused]] const std::shared_ptr
     }
     
     ActionTypes actionType = actions_vec[m_currentAction].getType();
-    std::string actionTypeStr;
-
-    if (actionType >= 0 && actionType < 3) {
-        actionTypeStr = std::to_string(actionType); 
-    }
+    json j = actionType;
+    std::string actionTypeStr = j.get<std::string>();
     
     response->is_blocking = actions_vec[m_currentAction].isBlocking();
     response->param = actions_vec[m_currentAction].getParam();
