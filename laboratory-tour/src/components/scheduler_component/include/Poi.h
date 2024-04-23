@@ -72,6 +72,7 @@ public:
 
     std::vector<std::string> getAvailableCommands();
     int getCommandMultiplesNum(const std::string &command);
+
 };
 
 #endif // BEHAVIOR_TOUR_ROBOT_POI_H

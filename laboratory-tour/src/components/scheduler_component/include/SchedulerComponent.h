@@ -12,8 +12,14 @@
 #include <scheduler_interfaces/srv/get_current_poi.hpp>
 #include <scheduler_interfaces/srv/update_action.hpp>
 #include <scheduler_interfaces/srv/get_current_action.hpp>
+#include <scheduler_interfaces/srv/set_language.hpp>
+#include <scheduler_interfaces/srv/get_current_language.hpp>
+#include <scheduler_interfaces/srv/set_command.hpp>
+#include <scheduler_interfaces/srv/get_current_command.hpp>
 #include <map>
 #include "TourStorage.h"
+
+#define GENERIC_POI_NAME "___generic___"
 
 class SchedulerComponent
 {
@@ -34,6 +40,14 @@ public:
                 std::shared_ptr<scheduler_interfaces::srv::UpdateAction::Response>      response);
     void GetCurrentAction([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::GetCurrentAction::Request> request,
                 std::shared_ptr<scheduler_interfaces::srv::GetCurrentAction::Response>      response);
+    void GetCurrentLanguage([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::GetCurrentLanguage::Request> request,
+                std::shared_ptr<scheduler_interfaces::srv::GetCurrentLanguage::Response>      response);
+    void SetLanguage([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::SetLanguage::Request> request,
+                std::shared_ptr<scheduler_interfaces::srv::SetLanguage::Response>      response);
+    void GetCurrentCommand([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::GetCurrentCommand::Request> request,
+                std::shared_ptr<scheduler_interfaces::srv::GetCurrentCommand::Response>      response);
+    void SetCommand([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::SetCommand::Request> request,
+                std::shared_ptr<scheduler_interfaces::srv::SetCommand::Response>      response);
 
 private:
     rclcpp::Node::SharedPtr m_node;
@@ -42,9 +56,18 @@ private:
     rclcpp::Service<scheduler_interfaces::srv::Reset>::SharedPtr m_resetService;
     rclcpp::Service<scheduler_interfaces::srv::UpdateAction>::SharedPtr m_updateActionService;
     rclcpp::Service<scheduler_interfaces::srv::GetCurrentAction>::SharedPtr m_getCurrentActionService;
+    rclcpp::Service<scheduler_interfaces::srv::GetCurrentLanguage>::SharedPtr m_getCurrentLanguageService;
+    rclcpp::Service<scheduler_interfaces::srv::SetLanguage>::SharedPtr m_setLanguageService;
+    rclcpp::Service<scheduler_interfaces::srv::GetCurrentCommand>::SharedPtr m_getCurrentCommandService;
+    rclcpp::Service<scheduler_interfaces::srv::SetCommand>::SharedPtr m_setCommandService;
+
+
+    bool checkIfCommandValid(const std::string &poiName, const std::string command);
+    bool getActionsVector(const std::string &poiName, std::vector<Action> &actions);
 
     std::mutex m_mutex;
     int32_t m_currentPoi{0};
     int32_t m_currentAction{0};
+    std::string m_currentCommand;
     std::shared_ptr<TourStorage> m_tourStorage;
 };

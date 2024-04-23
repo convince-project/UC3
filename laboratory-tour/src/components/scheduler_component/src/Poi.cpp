@@ -17,6 +17,7 @@
  */
 
 #include "Poi.h"
+#include <iostream>
 
 
 PoI::PoI(std::string name,

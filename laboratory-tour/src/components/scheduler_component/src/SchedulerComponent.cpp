@@ -48,7 +48,27 @@ bool SchedulerComponent::start(int argc, char*argv[])
                                                                                 this,
                                                                                 std::placeholders::_1,
                                                                                 std::placeholders::_2));
-                                                                                
+    m_getCurrentLanguageService = m_node->create_service<scheduler_interfaces::srv::GetCurrentLanguage>("/SchedulerComponent/GetCurrentLanguage",  
+                                                                                std::bind(&SchedulerComponent::GetCurrentLanguage,
+                                                                                this,
+                                                                                std::placeholders::_1,
+                                                                                std::placeholders::_2));
+    m_setLanguageService = m_node->create_service<scheduler_interfaces::srv::SetLanguage>("/SchedulerComponent/SetLanguage",  
+                                                                                std::bind(&SchedulerComponent::SetLanguage,
+                                                                                this,
+                                                                                std::placeholders::_1,
+                                                                                std::placeholders::_2));
+    m_getCurrentCommandService = m_node->create_service<scheduler_interfaces::srv::GetCurrentCommand>("/SchedulerComponent/GetCurrentCommand",  
+                                                                                std::bind(&SchedulerComponent::GetCurrentCommand,
+                                                                                this,
+                                                                                std::placeholders::_1,
+                                                                                std::placeholders::_2));
+    m_setCommandService = m_node->create_service<scheduler_interfaces::srv::SetCommand>("/SchedulerComponent/SetCommand",  
+                                                                                std::bind(&SchedulerComponent::SetCommand,
+                                                                                this,
+                                                                                std::placeholders::_1,
+                                                                                std::placeholders::_2));
+
     RCLCPP_DEBUG(m_node->get_logger(), "SchedulerComponent::start");
     std::cout << "SchedulerComponent::start";        
     return true;
@@ -96,17 +116,10 @@ void SchedulerComponent::UpdateAction([[maybe_unused]] const std::shared_ptr<sch
              std::shared_ptr<scheduler_interfaces::srv::UpdateAction::Response>      response) 
 {
     std::string poi_name = m_tourStorage->GetTour().getPoIsList()[m_currentPoi];
-    PoI currentPoi;
     std::vector<Action> actions_vec;
-    if(!m_tourStorage->GetTour().getPoI(poi_name,currentPoi))
+    if(!getActionsVector(poi_name, actions_vec))
     {
-        std::cout << "Error getting POI" << std::endl;
-        response->is_ok = false;
-        return;
-    }
-    if(!currentPoi.getActions("explainOpera", actions_vec))
-    {
-        std::cout << "Error getting Actions" << std::endl;
+        response->error_msg = "Error getting actions";
         response->is_ok = false;
         return;
     }
@@ -117,7 +130,6 @@ void SchedulerComponent::UpdateAction([[maybe_unused]] const std::shared_ptr<sch
         response->done_with_poi = true;
         m_currentAction = m_currentAction % actions_vec.size();
     }
-    std::cout << "Action: " << m_currentAction << std::endl;
     response->is_ok = true;
 }
 
@@ -125,32 +137,133 @@ void SchedulerComponent::GetCurrentAction([[maybe_unused]] const std::shared_ptr
              std::shared_ptr<scheduler_interfaces::srv::GetCurrentAction::Response>      response) 
 {
     std::string poi_name = m_tourStorage->GetTour().getPoIsList()[m_currentPoi];
-    PoI currentPoi;
     std::vector<Action> actions_vec;
-    if(!m_tourStorage->GetTour().getPoI(poi_name,currentPoi))
+    if(!getActionsVector(poi_name, actions_vec))
     {
-        std::cout << "Error getting POI" << std::endl;
+        response->error_msg = "Error getting actions";
         response->is_ok = false;
         return;
     }
-    if(!currentPoi.getActions("explainOpera", actions_vec))
-    {
-        std::cout << "Error getting Actions" << std::endl;
-        response->is_ok = false;
-        return;
-    }
-    std::string actionParam = actions_vec[m_currentAction].getParam();
+    
     ActionTypes actionType = actions_vec[m_currentAction].getType();
-    bool isBlocking = actions_vec[m_currentAction].isBlocking();
-
     std::string actionTypeStr;
 
     if (actionType >= 0 && actionType < 3) {
         actionTypeStr = std::to_string(actionType); 
     }
     
-    response->is_blocking = isBlocking;
-    response->param = actionParam;
+    response->is_blocking = actions_vec[m_currentAction].isBlocking();
+    response->param = actions_vec[m_currentAction].getParam();
     response->type = actionTypeStr;
     response->is_ok = true;
+}
+
+void SchedulerComponent::GetCurrentLanguage([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::GetCurrentLanguage::Request> request,
+             std::shared_ptr<scheduler_interfaces::srv::GetCurrentLanguage::Response>      response) 
+{
+
+    std::string language = m_tourStorage->GetTour().getCurrentLanguage();
+    response->language = language;
+    response->is_ok = true;
+}
+
+void SchedulerComponent::SetLanguage([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::SetLanguage::Request> request,
+             std::shared_ptr<scheduler_interfaces::srv::SetLanguage::Response>      response) 
+{
+    if(request->language.empty())
+    {
+        response->is_ok = false;
+        response->error_msg = "Empty language field";
+        return;
+    }
+    if(!m_tourStorage->GetTour().setCurrentLanguage(request->language))
+    {
+        response->is_ok = false;
+        response->error_msg = "Language not available";
+        return;
+    }
+    response->is_ok = true;
+}
+
+void SchedulerComponent::GetCurrentCommand([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::GetCurrentCommand::Request> request,
+             std::shared_ptr<scheduler_interfaces::srv::GetCurrentCommand::Response>      response) 
+{
+    response->command = m_currentCommand;
+    response->is_ok = true;
+}
+
+void SchedulerComponent::SetCommand([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::SetCommand::Request> request,
+             std::shared_ptr<scheduler_interfaces::srv::SetCommand::Response>      response) 
+{
+    std::string poi_name = m_tourStorage->GetTour().getPoIsList()[m_currentPoi];
+    if(request->command.empty())
+    {
+        response->is_ok = false;
+        response->error_msg = "Empty command field";
+        return;
+    }
+    if(!checkIfCommandValid(poi_name, request->command))
+    {
+        response->is_ok = false;
+        response->error_msg = "Command not available";
+        return;
+    }
+    m_currentAction = 0;
+    m_currentCommand = request->command;
+    response->is_ok = true;
+}
+
+bool SchedulerComponent::checkIfCommandValid(const std::string &poiName, const std::string command)
+{
+    PoI currentPoi;
+    if(!m_tourStorage->GetTour().getPoI(poiName,currentPoi))
+    {
+        std::cout << "Error getting POI" << std::endl;
+        return false;
+    }
+    if(currentPoi.isCommandValid(command))
+    {
+        return true;
+    }
+    PoI genericPoi;
+    if(!m_tourStorage->GetTour().getPoI(GENERIC_POI_NAME,genericPoi))
+    {
+        std::cout << "Error getting generic POI" << std::endl;
+        return false;   
+    }
+    if(genericPoi.isCommandValid(command))
+    {
+        return true;
+    }
+    std::cout << "Error getting Command" << std::endl;
+    return false;
+    
+}
+
+bool SchedulerComponent::getActionsVector(const std::string &poiName, std::vector<Action> &actions)
+{
+    PoI currentPoi;
+    if(!m_tourStorage->GetTour().getPoI(poiName,currentPoi))
+    {
+        std::cout << "Error getting POI" << std::endl;
+        return false;
+    }
+    if(currentPoi.getActions(m_currentCommand, actions))
+    {
+        return true;
+    }
+    // Add if not in PoI search in General PoI
+    PoI genericPoi;
+    if(!m_tourStorage->GetTour().getPoI(GENERIC_POI_NAME,genericPoi))
+    {
+        std::cout << "Error getting Generic POI" << std::endl;
+        return false;
+    }
+    if(genericPoi.getActions(m_currentCommand, actions))
+    {
+        return true;
+
+    }
+    std::cout << "Error getting Actions" << std::endl;
+    return false;
 }
