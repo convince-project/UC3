@@ -12,11 +12,11 @@ find_package(sensor_msgs REQUIRED)
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
-rosidl_generate_interfaces(other_interfaces
+rosidl_generate_interfaces(narrate_interfaces
 "srv/Narrate.srv"
 "srv/IsDone.srv"
 DEPENDENCIES sensor_msgs
-LIBRARY_NAME other_interfaces 
+LIBRARY_NAME narrate_interfaces 
 )
 ament_export_dependencies( sensor_msgs)
 
