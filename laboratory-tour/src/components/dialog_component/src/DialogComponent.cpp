@@ -10,10 +10,12 @@ using namespace std::chrono_literals;
 DialogComponent::DialogComponent() : m_random_gen(m_rand_engine()),
                                      m_uniform_distrib(1, 2)
 {
+    m_jsonPath = "/home/user1/UC3/laboratory-tour/conf/tours.json";
+    m_tourName = "TOUR_MADAMA_3";
     m_speechTranscriberClientName = "/DialogComponent/speechTranscriberClient:i";
     m_speechTranscriberServerName = "/speechTranscription_nws/text:o";
     m_tourLoadedAtStart = false;
-    m_currentPoiName = "gam_uccello";
+    m_currentPoiName = "sala_delle_guardie";
     m_exit = false;
     m_fallback_repeat_counter = 0;
     m_fallback_threshold = 3;
@@ -35,14 +37,14 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
         {
             m_speechTranscriberServerName = component_config.find("remote-port").asString();
         }
+    }
 
-        m_speechTranscriberPort.useCallback(m_speechTranscriberCallback);
-        m_speechTranscriberPort.open(m_speechTranscriberClientName);
-        // Try Automatic port connection
-        if(! yarp::os::Network::connect(m_speechTranscriberServerName, m_speechTranscriberClientName))
-        {
-            yWarning() << "[DialogComponent::start] Unable to connect to: " << m_speechTranscriberServerName;
-        }
+    m_speechTranscriberPort.useCallback(m_speechTranscriberCallback);
+    m_speechTranscriberPort.open(m_speechTranscriberClientName);
+    // Try Automatic port connection
+    if(! yarp::os::Network::connect(m_speechTranscriberServerName, m_speechTranscriberClientName))
+    {
+        yWarning() << "[DialogComponent::start] Unable to connect to: " << m_speechTranscriberServerName;
     }
 
     // -------------------------Speech Synthesizer nwc---------------------------------
@@ -99,7 +101,7 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
         //local = "/DialogComponent/chatBotClient";
         //remote = "/chatBot_nws";
         device = "LLM_nwc_yarp";
-        local = "/DialogComponent/chatBotClient";
+        local = "/DialogComponent/chatBotClient/rpc:o";
         //remote = "/poi_chat/LLM_nws/rpc:i";
         remote = "/dummy_chat/LLM_nws/rpc:i";
 
@@ -154,7 +156,7 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
     {
         okCheck = rf.check("LLM-CLIENT");
         device = "LLM_nwc_yarp";
-        local = "/DialogComponent/genericConvClient";
+        local = "/DialogComponent/genericConvClient/rpc:o";
         remote = "/madama_chat/LLM_nws/rpc:i";
 
         if (okCheck)
@@ -196,8 +198,8 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
     {
         okCheck = rf.check("AUDIORECORDER-CLIENT");
         device = "audioRecorder_nwc_yarp";
-        local = "/DialogComponent/audio:i";
-        remote = "/audioRecorder/audio:o";
+        local = "/DialogComponent/";
+        remote = "/audioRecorder_nws";
 
         if (okCheck)
         {
@@ -257,13 +259,13 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
                 {
                     m_tourName = tour_config.find("tour_name").asString();
                 }
+	    }
 
-                m_tourStorage = std::make_shared<TourStorage>();
-                if( !m_tourStorage->LoadTour(m_jsonPath, m_tourName))
-                {
-                    yError() << "[DialogComponent::ConfigureYARP] Unable to load tour from the given arguments: " << m_jsonPath << " and: " << m_tourName;
-                    return false;
-                }
+            m_tourStorage = std::make_shared<TourStorage>();
+            if( !m_tourStorage->LoadTour(m_jsonPath, m_tourName))
+            {
+                yError() << "[DialogComponent::ConfigureYARP] Unable to load tour from the given arguments: " << m_jsonPath << " and: " << m_tourName;
+                return false;
             }
         }
     }
@@ -582,13 +584,18 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
 
     //yDebug() << "[DialogComponent::InterpretCommand] Number of elements in bottle: " << extracted_command.size();
     // In the first position we have the general thing to do, like: explain, next_poi, end_tour
-    std::string action = extracted_command.get(0).asString();
-    yDebug() << "[DialogComponent::InterpretCommand] Got action: " << action;
+    auto theList = extracted_command.get(0).asList();
+    std::string action = theList->get(0).asString();
+    yDebug() << "[DialogComponent::InterpretCommand] Got action: " << action << extracted_command.toString() << "Command: " << command;
+    if (action == "cmd_unknown")
+    {
+        m_lastQuestion = theList->get(1).asString();
+    }
     // Let's check what to do with the action
 	// Find what to say:
 	//auto explain_pos = command.find("explain");
     //if (explain_pos < command.size())    //found
-    if(extracted_command.get(0).asString() == "explain")
+    if(action == "explain" || action == "cmd_unknown")
     {
         // TODO create a struct map
         // if (command.find("artist") < command.size())
@@ -620,7 +627,11 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
 
         // TODO for other action types
         // Check the second element for determining the exact action: artist, art_piece, historical_period, technique
-        std::string topic = extracted_command.get(1).asString();
+        std::string topic = theList->get(1).asString();
+        if (action == "cmd_unknown")
+        {
+            topic = "museum";
+        }
         if (topic == "artist")
         {
             action = "explainQuestionAuthor";
@@ -641,6 +652,7 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
         {
             ///TODO: This is an awful solution. Remove it as soon as possible
             // Horrible solution ------------------------------------------------------------ START//
+            m_iAudioGrabberSound->stopRecording();
             std::chrono::duration wait_ms = 200ms;
             yarp::dev::LLM_Message answer;
             if(!m_iGenericChat->ask(m_lastQuestion, answer))
@@ -671,7 +683,7 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
             }
             yDebug() << "[DialogComponent::InterpretCommand] Have synthesized: " << answerText;
             // Close the mic
-            m_iAudioGrabberSound->stopRecording();
+            //m_iAudioGrabberSound->stopRecording();
 
             yInfo() << "[DialogComponent::InterpretCommand] preparing port with duration: " << synthesizedSound.getDuration() <<  __LINE__;
 
@@ -679,7 +691,7 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
             m_speakersAudioPort.write();
             while((!m_speakerCallback.isPlaying() && m_speakerCallback.isEnabled()) && !m_exit)
             {
-                std::this_thread::sleep_for(100ms);
+                std::this_thread::sleep_for(250ms);
             }
 
             return true;
@@ -700,8 +712,7 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
     }
 
     // NEXT POI
-    auto nextPoi_pos = command.find("next_poi");
-    if (nextPoi_pos < command.size())   // means that it has been found
+    if (action == "next_poi")   // means that it has been found
     {
         m_state = SUCCESS;
         // Call a service maybe?
