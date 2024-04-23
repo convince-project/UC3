@@ -22,6 +22,10 @@ rosidl_generate_interfaces(scheduler_interfaces
 "srv/Reset.srv"
 "srv/UpdateAction.srv"
 "srv/GetCurrentAction.srv"
+"srv/SetLanguage.srv"
+"srv/GetCurrentLanguage.srv"
+"srv/SetCommand.srv"
+"srv/GetCurrentCommand.srv"
 DEPENDENCIES sensor_msgs
 LIBRARY_NAME scheduler_interfaces 
 )
