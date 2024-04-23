@@ -22,6 +22,7 @@
             </protocol>
         </function>
     </interface>
+
     <interface id="drain_interfaces">
         <function id="drain">
             <protocol>
@@ -38,12 +39,9 @@
             </protocol>
             <returnValue>
                 <dataType>sensor_msgs::msg::BatteryState</dataType>
-                <!-- aggiunta-->
                 <dataField>percentage</dataField>
-                <!-- fine aggiunta-->
             </returnValue>
         </function>
-        <!-- aggiunta-->
         <function id="readStatus">
             <protocol>
                 <ROS2data>
@@ -55,8 +53,8 @@
                 <dataField>power_supply_status</dataField>
             </returnValue>
         </function>
-        <!-- fine aggiunta-->
     </interface>
+
     <interface id="alarm_interfaces">
         <function id="StartAlarm">
             <protocol>
@@ -73,7 +71,7 @@
             </protocol>
         </function>
     </interface>
-    <!-- aggiunta-->
+
     <interface id="navigation_interfaces">
         <function id="GoToPoiByName">
             <protocol>
@@ -133,6 +131,7 @@
             </returnValue>
         </function>
     </interface>
+
     <interface id="scheduler_interfaces">
         <function id="GetCurrentPoi">
             <protocol>
@@ -158,6 +157,10 @@
                     <interface type="async-service" />
                 </ROS2data>
             </protocol>
+            <returnValue>
+                <dataType>bool</dataType>
+                <dataField>done_with_poi</dataField>
+            </returnValue>
         </function>
         <function id="GetCurrentAction">
             <protocol>
@@ -179,6 +182,7 @@
             </returnValue>
         </function>
     </interface>
+
     <interface id="text_to_speech_interfaces">
         <function id="Speak">
             <protocol>
@@ -187,7 +191,19 @@
                 </ROS2data>
             </protocol>
         </function>
+        <function id="IsDone">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>bool</dataType>
+                <dataField>is_done</dataField>
+            </returnValue>
+        </function>
     </interface>
+
     <interface id="scheduler_interfaces">
         <function id="GetCurrentPoi">
             <protocol>
@@ -199,6 +215,10 @@
                 <dataType>string</dataType>
                 <dataField>poi_name</dataField>
             </returnValue>
+            <returnValue>
+                <dataType>int32</dataType>
+                <dataField>poi_number</dataField>
+            </returnValue>
         </function>
         <function id="UpdatePoi">
             <protocol>
@@ -207,7 +227,74 @@
                 </ROS2data>
             </protocol>
         </function>
+        <function id="GetCurrentAction">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>string</dataType>
+                <dataField>param</dataField>
+            </returnValue>
+            <returnValue>
+                <dataType>string</dataType>
+                <dataField>type</dataField>
+            </returnValue>
+            <returnValue>
+                <dataType>bool</dataType>
+                <dataField>is_blocking</dataField>
+            </returnValue>
+        </function>
+        <function id="UpdateAction">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>bool</dataType>
+                <dataField>done_with_poi</dataField>
+            </returnValue>
+        </function>
+        <function id="GetCurrentLanguage">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>string</dataType>
+                <dataField>language</dataField>
+            </returnValue>
+        </function>
+        <function id="SetLanguage">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+        </function>
+        <function id="GetCurrentCommand">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>string</dataType>
+                <dataField>command</dataField>
+            </returnValue>
+        </function>
+        <function id="SetCommand">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+        </function>
     </interface>
+
     <interface id="blackboard_interfaces">
         <function id="GetInt">
             <protocol>
@@ -228,6 +315,7 @@
             </protocol>
         </function>
     </interface>
+
     <interface id="narrate_interfaces">
         <function id="Narrate">
             <protocol>
@@ -236,9 +324,34 @@
                 </ROS2data>
             </protocol>
         </function>
+        <function id="IsDone">
+            <protocol>
+                <ROS2data>
+                    <interface type="sync-service" />
+                </ROS2data>
+            </protocol>
+        </function>
     </interface>
 
-
-    <!-- fine aggiunta-->
+    <interface id="dialog_interfaces">
+        <function id="EnableDialog">
+            <protocol>
+                <ROS2data>
+                    <interface type="sync-service" />
+                </ROS2data>
+            </protocol>
+        </function>
+        <function id="GetState">
+            <protocol>
+                <ROS2data>
+                    <interface type="sync-service" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>int16</dataType>
+                <dataField>state</dataField>
+            </returnValue>
+        </function>
+    </interface>
 
 </interfaces>
