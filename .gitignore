@@ -8,3 +8,5 @@ laboratory-tour/install/
 test_sm/build/
 test_sm/log/
 test_sm/install/
+laboratory-tour/launch/__pycache__/
+bak/

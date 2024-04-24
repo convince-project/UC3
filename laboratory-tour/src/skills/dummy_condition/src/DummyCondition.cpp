@@ -9,7 +9,7 @@
 
 #include <iostream>
 
-DummyCondition::DummyCondition(std::string name ) : Node(name + "Skill")
+DummyCondition::DummyCondition(std::string name, std::string default_status) : Node(name + "Skill")
 {
     m_name = name;
     std::string portName = "/"+m_name+"/rpc:i";
@@ -20,6 +20,15 @@ DummyCondition::DummyCondition(std::string name ) : Node(name + "Skill")
     m_changeStatusPort.setReader(*this);
 
     RCLCPP_DEBUG(this->get_logger(), "%s::start",m_name.c_str());
+    auto message = bt_interfaces::msg::ConditionResponse();
+    if(default_status=="SUCCESS")
+    {
+        m_status = message.SKILL_SUCCESS;
+    }
+    else if(default_status=="FAILURE")
+    {
+        m_status = message.SKILL_FAILURE;
+    }
     m_tickService = this->create_service<bt_interfaces::srv::TickCondition>(m_name + "Skill/tick",  std::bind(&DummyCondition::tick,
                                                                                                                  this,
                                                                                                                  std::placeholders::_1,

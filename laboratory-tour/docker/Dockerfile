@@ -4,11 +4,19 @@ USER root
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get install -y libqt6scxml6 qt6-base-dev qt6-scxml-dev libqt6scxml6-bin libzmq3-dev
+RUN apt-get update && apt-get install -y  libzmq3-dev build-essential libgl1-mesa-dev
+# libqt6scxml6 qt6-base-dev qt6-scxml-dev libqt6scxml6-bin
 
 USER user1
 
 RUN pip install reelay websocket-client jedi prompt_toolkit
+
+RUN /bin/bash -c "cd /home/user1 && wget https://download.qt.io/official_releases/qt/6.6/6.6.3/single/qt-everywhere-src-6.6.3.tar.xz && \
+                    tar -xvf qt-everywhere-src-6.6.3.tar.xz && \
+                    cd qt-everywhere-src-6.6.3 && \
+                    ./configure -prefix /home/user1/Qt6.6.3 -opensource -confirm-license -nomake examples -nomake tests && \
+                    make -j11 && \
+                    make install"
 
 RUN /bin/bash -c "source /opt/ros/iron/setup.bash && \
     cd /home/user1 && git clone https://github.com/autonomy-and-verification-uol/ROSMonitoring.git -b ros2"

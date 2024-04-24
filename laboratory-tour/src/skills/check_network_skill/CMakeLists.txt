@@ -9,8 +9,8 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(bt_interfaces REQUIRED)
-find_package(sensor_msgs REQUIRED)
-find_package(Qt6 COMPONENTS Core Scxml StateMachine  REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(Qt6 COMPONENTS Core Scxml StateMachine Qml Widgets REQUIRED)
 add_executable(${PROJECT_NAME} )
 
 if (NOT Qt6_FOUND)
@@ -22,8 +22,9 @@ endif()
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-ament_target_dependencies(${PROJECT_NAME} bt_interfaces sensor_msgs rclcpp)
-target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Scxml Qt6::StateMachine)
+ament_target_dependencies(${PROJECT_NAME} bt_interfaces std_msgs rclcpp)
+target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Scxml Qt6::StateMachine Qt6::Qml Qt6::Widgets)
+
 target_include_directories(${PROJECT_NAME}
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -32,8 +33,11 @@ target_sources( ${PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp 
   ${CMAKE_CURRENT_SOURCE_DIR}/src/CheckNetworkSkill.cpp 
   ${CMAKE_CURRENT_SOURCE_DIR}/include/CheckNetworkSkill.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/CheckNetworkDataModel.cpp 
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/CheckNetworkDataModel.h)
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/CheckNetworkSkillDataModel.cpp 
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/CheckNetworkSkillDataModel.h
+  # ${CMAKE_CURRENT_SOURCE_DIR}/src/CheckNetworkSkillSM.cpp 
+  # ${CMAKE_CURRENT_SOURCE_DIR}/include/CheckNetworkSkillSM.h
+  )
 
 
 install(TARGETS ${PROJECT_NAME}
@@ -49,6 +53,11 @@ if(BUILD_TESTING)
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
-qt6_add_statecharts(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/src/CheckNetworkSkillSM.scxml)
+qt6_add_statecharts(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/src/CheckNetworkSkillSMcppDataModel.scxml)
 
 ament_package()
+
+
+
+# ${CMAKE_CURRENT_SOURCE_DIR}/src/BatteryLevelDataModel.cpp 
+# ${CMAKE_CURRENT_SOURCE_DIR}/include/BatteryLevelDataModel.hsimple-example/src/skills/check_network_skill/src/CheckNetworkSkillSM.cpp

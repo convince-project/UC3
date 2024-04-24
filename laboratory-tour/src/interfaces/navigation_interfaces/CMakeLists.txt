@@ -22,6 +22,7 @@ rosidl_generate_interfaces(navigation_interfaces
 "msg/NavigationStatus.msg"
 "srv/StopNavigation.srv"
 "srv/CheckNearToPoi.srv"
+"srv/TurnBack.srv"
 DEPENDENCIES sensor_msgs
 LIBRARY_NAME navigation_interfaces 
 )

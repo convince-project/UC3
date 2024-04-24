@@ -16,12 +16,7 @@
 ROS2Action::ROS2Action(const std::string name, const BT::NodeConfiguration& config) :
         ActionNodeBase(name, config)
 {
-    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "name %s", this->name().c_str());
-    BT::Optional<std::string> node_name = BT::TreeNode::getInput<std::string>("nodeName");
-    if (node_name)
-    {
-        m_name = node_name.value();
-    }
+    m_name = ActionNodeBase::name();
 
     BT::Optional<std::string> is_monitored = BT::TreeNode::getInput<std::string>("isMonitored");
     if (is_monitored.value() == "true")
@@ -88,7 +83,9 @@ BT::PortsList ROS2Action::providedPorts()
 }
 
 void ROS2Action::halt()
-{
+{        
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Node %s sending halt to skill@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@", ActionNodeBase::name().c_str());
+
     bool success = false;
     do {
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Node %s sending halt to skill", ActionNodeBase::name().c_str());
@@ -97,7 +94,7 @@ void ROS2Action::halt()
             if (!rclcpp::ok()) {
             RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service TickAction. Exiting.");
             }
-            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "service TickAction not available, waiting again...");
+            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "%s service TickAction not available, waiting again...", ActionNodeBase::name().c_str());
         }
         auto result = m_clientHalt->async_send_request(request);
         std::this_thread::sleep_for (std::chrono::milliseconds(100));

@@ -18,8 +18,14 @@ int main(int argc, char *argv[])
         RCLCPP_ERROR(rclcpp::get_logger("DummyActionLogger"), "Missing skill_name parameter");
         return 1;
     }
+    if(!rf.check("default_status"))
+    {
+        std::cout << "ERROR: Missing default_status parameter\n";
+        RCLCPP_ERROR(rclcpp::get_logger("DummyActionLogger"), "Missing default_status parameter");
+        return 1;
+    }
     rclcpp::init(/*argc*/ argc, /*argv*/ argv);
-    std::shared_ptr<DummyAction> dummyAction = std::make_shared<DummyAction>(rf.find("skill_name").asString());
+    std::shared_ptr<DummyAction> dummyAction = std::make_shared<DummyAction>(rf.find("skill_name").asString(), rf.find("default_status").asString());
     rclcpp::spin(dummyAction);
     rclcpp::shutdown();
 

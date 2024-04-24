@@ -32,8 +32,8 @@ target_sources( ${PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp 
   ${CMAKE_CURRENT_SOURCE_DIR}/src/BatteryChargingSkill.cpp 
   ${CMAKE_CURRENT_SOURCE_DIR}/include/BatteryChargingSkill.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/BatteryChargingDataModel.cpp 
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/BatteryChargingDataModel.h)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/BatteryChargingSkillDataModel.cpp 
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/BatteryChargingSkillDataModel.h)
 
 
 install(TARGETS ${PROJECT_NAME}

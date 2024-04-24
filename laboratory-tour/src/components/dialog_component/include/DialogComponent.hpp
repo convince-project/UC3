@@ -34,7 +34,7 @@
 #include "SpeakerStatusCallback.hpp"
 #include "TourStorage.h"
 
-class DialogComponent 
+class DialogComponent
 {
 public:
     DialogComponent();
@@ -65,7 +65,9 @@ private:
     //yarp::dev::IChatBot *m_iChatBot{nullptr};
     // ChatGPT
     yarp::dev::PolyDriver m_chatGPTPoly;
+    yarp::dev::PolyDriver m_genericChatPoly;
     yarp::dev::ILLM *m_iChatGPT{nullptr};
+    yarp::dev::ILLM *m_iGenericChat{nullptr};
     // Microphone
     yarp::dev::PolyDriver m_audioRecorderPoly;
     yarp::dev::IAudioGrabberSound *m_iAudioGrabberSound{nullptr};
@@ -95,6 +97,9 @@ private:
     std::string m_currentPoiName;
     std::string m_jsonPath;
     std::string m_tourName;
+    ///TODO: Horrible solution. Remove this as soon as possible
+    std::string m_lastQuestion;
+    // END
     bool m_tourLoadedAtStart;
 
     /*Answers Randomizer*/

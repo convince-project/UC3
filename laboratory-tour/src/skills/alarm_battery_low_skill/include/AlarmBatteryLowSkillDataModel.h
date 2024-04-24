@@ -21,7 +21,7 @@ public:
     bool setup(const QVariantMap& initialDataValues) override;
     void log(std::string to_log);
 private: 
-    QVariant response;
+    std::string m_result;
 };
 
 Q_DECLARE_METATYPE(::AlarmBatteryLowSkillDataModel*)

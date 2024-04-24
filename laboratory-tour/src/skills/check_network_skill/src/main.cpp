@@ -2,11 +2,14 @@
 #include <QScxmlStateMachine>
 #include <QDebug>
 
+
 #include <iostream>
 #include "CheckNetworkSkill.h"
 
 #include <thread>
 #include <chrono>
+
+
 
 int main(int argc, char *argv[])
 {
@@ -15,8 +18,8 @@ int main(int argc, char *argv[])
   stateMachine.start(argc, argv);
 
   int ret=app.exec();
-
+  
   return ret;
-
+  
 }
 

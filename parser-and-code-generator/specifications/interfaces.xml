@@ -1,0 +1,244 @@
+<interfaces xmlns="..." xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="...">
+
+    <types path="./types.xml" />
+
+    <interface id="SkillInterface">
+        <function id="tick">
+            <protocol>
+                <ROS2data>
+                    <interface type="sync-service" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>enum</dataType>
+                <enum refid="TickResponse" />
+            </returnValue>
+        </function>
+        <function id="halt">
+            <protocol>
+                <ROS2data>
+                    <interface type="sync-service" />
+                </ROS2data>
+            </protocol>
+        </function>
+    </interface>
+    <interface id="drain_interfaces">
+        <function id="drain">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+        </function>     
+        <function id="readLevel">
+            <protocol>
+                <ROS2data>
+                    <interface type="topic" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>sensor_msgs::msg::BatteryState</dataType>
+                <!-- aggiunta-->
+                <dataField>percentage</dataField>
+                <!-- fine aggiunta-->
+            </returnValue>
+        </function>
+        <!-- aggiunta-->
+        <function id="readStatus">
+            <protocol>
+                <ROS2data>
+                    <interface type="topic" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>sensor_msgs::msg::BatteryState</dataType>
+                <dataField>power_supply_status</dataField>
+            </returnValue>
+        </function>
+        <!-- fine aggiunta-->
+    </interface>
+    <interface id="alarm_interfaces">
+        <function id="StartAlarm">
+            <protocol>
+                <ROS2data>
+                    <interface type="sync-service" />
+                </ROS2data>
+            </protocol>
+        </function>
+        <function id="StopAlarm">
+            <protocol>
+                <ROS2data>
+                    <interface type="sync-service" />
+                </ROS2data>
+            </protocol>
+        </function>
+    </interface>
+    <!-- aggiunta-->
+    <interface id="navigation_interfaces">
+        <function id="GoToPoiByName">
+            <protocol>
+                <ROS2data>
+                    <interface type="sync-service" />
+                </ROS2data>
+            </protocol>
+        </function>
+        <function id="StopNavigation">
+            <protocol>
+                <ROS2data>
+                    <interface type="sync-service" />
+                </ROS2data>
+            </protocol>
+        </function>
+        <function id="GetNavigationStatus">
+            <protocol>
+                <ROS2data>
+                    <interface type="sync-service" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>NavigationStatus</dataType>
+                <dataField>status</dataField>
+            </returnValue>
+        </function>
+        <function id="CheckNearToPoi">
+            <protocol>
+                <ROS2data>
+                    <interface type="sync-service" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>bool</dataType>
+                <dataField>is_near</dataField>
+            </returnValue>
+        </function>
+        <function id="TurnBack">
+            <protocol>
+                <ROS2data>
+                    <interface type="sync-service" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+            </returnValue>
+        </function>
+    </interface>
+    <interface id="network_interfaces">
+        <function id="NetworkStatus">
+            <protocol>
+                <ROS2data>
+                    <interface type="topic" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>bool</dataType>
+            </returnValue>
+        </function>
+    </interface>
+    <interface id="scheduler_interfaces">
+        <function id="GetCurrentPoi">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>string</dataType>
+                <dataField>poi_name</dataField>
+            </returnValue>
+        </function>
+        <function id="UpdatePoi">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+        </function>
+        <function id="UpdateAction">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+        </function>
+        <function id="GetCurrentAction">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>string</dataType>
+                <dataField>param</dataField>
+            </returnValue>
+            <returnValue>
+                <dataType>bool</dataType>
+                <dataField>is_blocking</dataField>
+            </returnValue>
+            <returnValue>
+                <dataType>string</dataType>
+                <dataField>type</dataField>
+            </returnValue>
+        </function>
+    </interface>
+    <interface id="text_to_speech_interfaces">
+        <function id="Speak">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+        </function>
+    </interface>
+    <interface id="scheduler_interfaces">
+        <function id="GetCurrentPoi">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>string</dataType>
+                <dataField>poi_name</dataField>
+            </returnValue>
+        </function>
+        <function id="UpdatePoi">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+        </function>
+    </interface>
+    <interface id="blackboard_interfaces">
+        <function id="GetInt">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>int32</dataType>
+                <dataField>value</dataField>
+            </returnValue>
+        </function>
+        <function id="SetInt">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+        </function>
+    </interface>
+    <interface id="narrate_interfaces">
+        <function id="Narrate">
+            <protocol>
+                <ROS2data>
+                    <interface type="sync-service" />
+                </ROS2data>
+            </protocol>
+        </function>
+    </interface>
+
+
+    <!-- fine aggiunta-->
+
+</interfaces>
