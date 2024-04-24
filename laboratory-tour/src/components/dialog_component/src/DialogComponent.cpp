@@ -87,19 +87,10 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
             yError() << "[DialogComponent::ConfigureYARP] Error opening iSpeechSynth interface. Device not available";
             return false;
         }
-
-        //Try automatic yarp port Connection
-        //if(! yarp::os::Network::connect(remote, local))
-        //{
-        //    yWarning() << "[DialogComponent::ConfigureYARP] Unable to connect: " << local << " to: " << remote;
-        //}
     }
     // -------------------------Dialog Flow chatBot nwc---------------------------------
     {
         okCheck = rf.check("CHATBOT-CLIENT");
-        //device = "chatBot_nwc_yarp";
-        //local = "/DialogComponent/chatBotClient";
-        //remote = "/chatBot_nws";
         device = "LLM_nwc_yarp";
         local = "/DialogComponent/chatBotClient/rpc:o";
         //remote = "/poi_chat/LLM_nws/rpc:i";
@@ -139,20 +130,8 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
             yError() << "[DialogComponent::ConfigureYARP] Error opening iChatBot interface. Device not available";
             return false;
         }
-        //m_chatBotPoly.open(chatbot_prop);
-        //if (!m_chatBotPoly.isValid())
-        //{
-        //    yError() << "[DialogComponent::ConfigureYARP] Error opening chatBot Client PolyDriver. Check parameters";
-        //    return false;
-        //}
-        //m_chatBotPoly.view(m_iChatBot);
-        //if (!m_iChatBot)
-        //{
-        //    yError() << "[DialogComponent::ConfigureYARP] Error opening iChatBot interface. Device not available";
-        //    return false;
-        //}
     }
-    // -------------------------Dialog Flow generic llm nwc---------------------------------
+    // -------------------------Generic llm nwc---------------------------------
     {
         okCheck = rf.check("LLM-CLIENT");
         device = "LLM_nwc_yarp";
@@ -235,12 +214,6 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
             yError() << "[DialogComponent::ConfigureYARP] Error opening audioRecorderSound interface. Device not available";
             return false;
         }
-
-        //Try automatic yarp port Connection
-        //if(! yarp::os::Network::connect(remote, local))
-        //{
-        //    yWarning() << "[DialogComponent::ConfigureYARP] Unable to connect: " << local << " to: " << remote;
-        //}
     }
 
     // ---------------------TOUR MANAGER-----------------------
@@ -318,18 +291,6 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
 
 bool DialogComponent::start(int argc, char*argv[])
 {
-    // Loads the tour json from the file and saves a reference to the class, if the arguments are being passed at start.
-    //if (argc >= 2)
-    //{
-    //    m_tourStorage = std::make_shared<TourStorage>();
-    //    if( !m_tourStorage->LoadTour(argv[0], argv[1]))
-    //    {
-    //        yError() << "[DialogComponent::start] Unable to load tour from the given arguments: " << argv[0] << " and " << argv[1];
-    //        return false;
-    //    }
-    //    m_tourLoadedAtStart = true;
-    //}
-
     if(!rclcpp::ok())
     {
         rclcpp::init(/*argc*/ argc, /*argv*/ argv);
@@ -361,7 +322,28 @@ bool DialogComponent::start(int argc, char*argv[])
                                                                                             this,
                                                                                             std::placeholders::_1,
                                                                                             std::placeholders::_2));
+    m_IsSpeakingService = m_node->create_service<dialog_interfaces::srv::IsSpeaking>("/DialogComponent/IsSpeaking",
+                                                                                            std::bind(&DialogComponent::IsSpeaking,
+                                                                                            this,
+                                                                                            std::placeholders::_1,
+                                                                                            std::placeholders::_2));
+    m_speakerStatusPub = m_node->create_publisher<std_msgs::msg::Bool>("/dialog_component/is_speaking", 10);
+    auto timer = m_node->create_wall_timer(20ms, 
+                    [this]()->void {
+                        auto data = m_speakersStatusPort.read();
+                        if (data != nullptr)
+                        {
+                            std_msgs::msg::Bool msg;
+                            if(data->current_buffer_size > 0)
+                                msg.data = true;
+                            else
+                                msg.data = false;
+                            
+                            m_speakerStatusPub->publish(msg);
+                        }
+                    });
     RCLCPP_INFO(m_node->get_logger(), "Started node");
+
     return true;
 }
 
@@ -534,27 +516,6 @@ void DialogComponent::DialogExecution()
             std::this_thread::sleep_for(wait_ms);
             continue;
         }
-		/*yInfo() << "DialogComponent::DialogExecution Interpreted command: " << scriptedString << __LINE__;
-        // Synthetise the text
-        yarp::sig::Sound synthesizedSound;
-        if (!m_iSpeechSynth->synthesize(scriptedString, synthesizedSound))
-        {
-            yError() << "[DialogComponent::DialogExecution] Unable to synthesize text: " << scriptedString;
-            std::this_thread::sleep_for(wait_ms);
-            continue;
-        }
-		yInfo() << "DialogComponent::DialogExecution Stopping recording" << __LINE__;
-        m_iAudioGrabberSound->stopRecording();  //Do I need to stop recording?
-        // Pass the sound to the speaker -> Do I have to shut down also the mic ?? TODO
-        yInfo() << "DialogComponent::DialogExecution preparing port with duration: " << synthesizedSound.getDuration() <<  __LINE__;
-        m_speakersAudioPort.prepare() = synthesizedSound;
-
-        yInfo() << "DialogComponent::DialogExecution Sending Sound to port" << __LINE__;
-        m_speakersAudioPort.write(); */
-
-
-
-        //std::this_thread::sleep_for(wait_ms);
     }
     return;
 }
@@ -1042,6 +1003,43 @@ void DialogComponent::GetState(const std::shared_ptr<dialog_interfaces::srv::Get
     response->state = m_state;
     response->is_ok=true;
 }
+
+void DialogComponent::IsSpeaking(const std::shared_ptr<dialog_interfaces::srv::IsSpeaking::Request> request,
+                        std::shared_ptr<dialog_interfaces::srv::IsSpeaking::Response> response)
+{
+    auto timeout = 500ms;
+    auto wait = 20ms;
+    auto elapsed = 0ms;
+    yarp::dev::AudioPlayerStatus* player_status = nullptr;
+
+    // Read and wait untill I have a valid message, or the timeout is passed
+    while ([this, &player_status]()->bool{
+                player_status = m_speakersStatusPort.read();
+                if (player_status != nullptr)
+                    return true;
+                else
+                    return false;}()
+        && elapsed < timeout)
+    {
+        std::this_thread::sleep_for(wait);
+        elapsed += wait;
+    }
+
+    if(player_status == nullptr)
+    {
+        response->is_ok = false;
+        response->error_msg = "Timout while reading the speakers status port. No messages";
+    }
+    else
+    {
+        response->is_ok = true;
+        if (player_status->current_buffer_size > 0)
+            response->is_speaking = true;
+        else
+            response->is_speaking = false;
+    }
+}
+
 
 /*bool DialogComponent::isSpeaking(bool &result)
 {
