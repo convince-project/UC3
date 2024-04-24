@@ -1,0 +1,4 @@
+---
+bool is_speaking
+bool is_ok
+string error_msg
