@@ -9,11 +9,13 @@
 
 #include "TextToSpeechComponent.hpp"
 
+using namespace std::chrono_literals;
+
 bool TextToSpeechComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
 {
     bool okCheck = rf.check("SPEECHSYNTHESIZER-CLIENT");
     std::string device = "speechSynthesizer_nwc_yarp";
-    std::string local = "/TextToSpeechComponentNode/speechClient";
+    std::string local = "/TextToSpeechComponent/speechClient";
     std::string remote = "/speechSynthesizer_nws";
 
     if (okCheck)
@@ -25,7 +27,7 @@ bool TextToSpeechComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
         }
         if (speech_config.check("local-suffix"))
         {
-            local = "/TextToSpeechComponentNode" + speech_config.find("local-suffix").asString();
+            local = "/TextToSpeechComponent" + speech_config.find("local-suffix").asString();
         }
         if (speech_config.check("remote"))
         {
@@ -53,8 +55,8 @@ bool TextToSpeechComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
     }
 
     //Audio Device Helper
-    m_audioPort.open("/TextToSpeechComponentNode/audio:o");
-    m_audioStatusPort.open("/TextToSpeechComponentNode/audioStatus:i");
+    m_audioPort.open("/TextToSpeechComponent/audio:o");
+    m_audioStatusPort.open("/TextToSpeechComponent/audioStatus:i");
     return true;
 }
 
@@ -81,9 +83,23 @@ bool TextToSpeechComponent::start(int argc, char*argv[])
                                                                                                 this,
                                                                                                 std::placeholders::_1,
                                                                                                 std::placeholders::_2));
-    m_publisher = m_node->create_publisher<text_to_speech_interfaces::msg::DoneSpeaking>(
-            "/TextToSpeechComponent/DoneSpeaking", 10);
+    m_speakerStatusPub = m_node->create_publisher<std_msgs::msg::Bool>("/TextToSpeechComponent/DoneSpeaking", 10);
     
+    m_timer = m_node->create_wall_timer(20ms, 
+                    [this]()->void {
+                        auto data = m_audioStatusPort.read();
+                        if (data != nullptr)
+                        {
+                            std_msgs::msg::Bool msg;
+                            if(data->current_buffer_size > 0)
+                                msg.data = true;
+                            else
+                                msg.data = false;
+                            
+                            m_speakerStatusPub->publish(msg);
+                        }
+                    });
+
     RCLCPP_INFO(m_node->get_logger(), "Started node");
     return true;
 }
@@ -103,29 +119,6 @@ void TextToSpeechComponent::Speak(const std::shared_ptr<text_to_speech_interface
                         std::shared_ptr<text_to_speech_interfaces::srv::Speak::Response> response)
 {
     yarp::sig::Sound sound;
-    // if (request->text=="")
-    // {
-    //     //If I receive a blank text I should stop playing
-    //     auto* status = m_audioStatusPort.read(false);
-    //     if (status == nullptr)
-    //     {
-    //         response->error_msg="Unable to read audio status";
-    //         response->is_ok=false;
-    //     }
-    //     else if (status->get(1).asInt() == 0)
-    //     {
-    //         response->error_msg="No sound is playing";
-    //         response->is_ok=false;
-    //     }
-    //     else
-    //     if (! m_audioDeviceHelper.stopPlaying())
-    //     {
-    //         response->error_msg="Unable to stop speaking";
-    //         response->is_ok=false;
-    //     }
-        
-    //     response->is_ok=true;
-    // }
     if (!m_iSpeechSynth->synthesize(request->text, sound))
     {
         response->is_ok=false;
@@ -176,19 +169,38 @@ void TextToSpeechComponent::GetLanguage(const std::shared_ptr<text_to_speech_int
     }
 }
 
-void TextToSpeechComponent::done_speaking_publisher(text_to_speech_interfaces::msg::DoneSpeaking::SharedPtr msg)
+void TextToSpeechComponent::IsSpeaking(const std::shared_ptr<text_to_speech_interfaces::srv::IsSpeaking::Request> request,
+                        std::shared_ptr<text_to_speech_interfaces::srv::IsSpeaking::Response> response)
 {
-    auto* status = m_audioStatusPort.read(false);
-    if (status == nullptr)
+    auto timeout = 500ms;
+    auto wait = 20ms;
+    auto elapsed = 0ms;
+    yarp::dev::AudioPlayerStatus* player_status = nullptr;
+
+    // Read and wait untill I have a valid message, or the timeout is passed
+    while ([this, &player_status]()->bool{
+                player_status = m_audioStatusPort.read();
+                if (player_status != nullptr)
+                    return true;
+                else
+                    return false;}()
+        && elapsed < timeout)
     {
-        response->error_msg="Unable to read audio status";
-        response->is_ok=false;
+        std::this_thread::sleep_for(wait);
+        elapsed += wait;
     }
-    else if (status->get(1).asInt() == 0)
+
+    if(player_status == nullptr)
     {
-        msg->is_done = true;
-    } else {
-        msg->is_done = false;
+        response->is_ok = false;
+        response->error_msg = "Timout while reading the speakers status port. No messages";
     }
-    m_publisher->publish(*msg);
+    else
+    {
+        response->is_ok = true;
+        if (player_status->current_buffer_size > 0)
+            response->is_speaking = true;
+        else
+            response->is_speaking = false;
+    }
 }

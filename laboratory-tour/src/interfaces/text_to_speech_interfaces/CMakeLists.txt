@@ -11,6 +11,7 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
@@ -19,8 +20,8 @@ rosidl_generate_interfaces(navigation_interfaces
 "srv/SetLanguage.srv"
 "srv/GetLanguage.srv"
 "srv/Speak.srv"
-"msg/DoneSpeaking.msg"
-DEPENDENCIES sensor_msgs
+"srv/IsSpeaking.srv"
+DEPENDENCIES sensor_msgs std_msgs
 LIBRARY_NAME text_to_speech_interfaces 
 )
 ament_export_dependencies( sensor_msgs)
