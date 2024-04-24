@@ -1,0 +1,4 @@
+---
+float32 duration
+bool is_ok
+string error_msg
