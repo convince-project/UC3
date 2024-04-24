@@ -16,6 +16,7 @@
 #include <scheduler_interfaces/srv/get_current_language.hpp>
 #include <scheduler_interfaces/srv/set_command.hpp>
 #include <scheduler_interfaces/srv/get_current_command.hpp>
+#include <scheduler_interfaces/srv/get_available_commands.hpp>
 #include <map>
 #include "TourStorage.h"
 
@@ -48,6 +49,8 @@ public:
                 std::shared_ptr<scheduler_interfaces::srv::GetCurrentCommand::Response>      response);
     void SetCommand([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::SetCommand::Request> request,
                 std::shared_ptr<scheduler_interfaces::srv::SetCommand::Response>      response);
+    void GetAvailableCommands([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::GetAvailableCommands::Request> request,
+                std::shared_ptr<scheduler_interfaces::srv::GetAvailableCommands::Response>      response);
 
 private:
     rclcpp::Node::SharedPtr m_node;
@@ -60,6 +63,7 @@ private:
     rclcpp::Service<scheduler_interfaces::srv::SetLanguage>::SharedPtr m_setLanguageService;
     rclcpp::Service<scheduler_interfaces::srv::GetCurrentCommand>::SharedPtr m_getCurrentCommandService;
     rclcpp::Service<scheduler_interfaces::srv::SetCommand>::SharedPtr m_setCommandService;
+    rclcpp::Service<scheduler_interfaces::srv::GetAvailableCommands>::SharedPtr m_getAvailableCommandsService;
 
 
     bool checkIfCommandValid(const std::string &poiName, const std::string command);
