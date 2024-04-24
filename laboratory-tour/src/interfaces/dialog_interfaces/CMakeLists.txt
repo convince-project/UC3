@@ -21,6 +21,7 @@ rosidl_generate_interfaces(navigation_interfaces
                             "srv/EnableDialog.srv"
                             "srv/SetPoi.srv"
                             "srv/GetState.srv"
+                            "srv/IsSpeaking.srv"
                             DEPENDENCIES sensor_msgs
                             LIBRARY_NAME dialog_interfaces 
 )
