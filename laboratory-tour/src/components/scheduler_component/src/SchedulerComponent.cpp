@@ -68,6 +68,11 @@ bool SchedulerComponent::start(int argc, char*argv[])
                                                                                 this,
                                                                                 std::placeholders::_1,
                                                                                 std::placeholders::_2));
+    m_getAvailableCommandsService = m_node->create_service<scheduler_interfaces::srv::GetAvailableCommands>("/SchedulerComponent/GetAvailableCommands",  
+                                                                                std::bind(&SchedulerComponent::GetAvailableCommands,
+                                                                                this,
+                                                                                std::placeholders::_1,
+                                                                                std::placeholders::_2));
 
     RCLCPP_DEBUG(m_node->get_logger(), "SchedulerComponent::start");
     std::cout << "SchedulerComponent::start";        
@@ -263,4 +268,29 @@ bool SchedulerComponent::getActionsVector(const std::string &poiName, std::vecto
     }
     std::cout << "Error getting Actions" << std::endl;
     return false;
+}
+
+void SchedulerComponent::GetAvailableCommands([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::GetAvailableCommands::Request> request,
+             std::shared_ptr<scheduler_interfaces::srv::GetAvailableCommands::Response>      response) 
+{
+    std::vector<std::string> commands, commands_generic;
+    PoI currentPoi;
+    if(!m_tourStorage->GetTour().getPoI(m_tourStorage->GetTour().getPoIsList()[m_currentPoi], currentPoi))
+    {
+        std::cout << "Error getting POI" << std::endl;
+        response->is_ok = false;
+        return;
+    }
+    commands = currentPoi.getAvailableCommands();
+    PoI genericPoi;
+    if(!m_tourStorage->GetTour().getPoI(GENERIC_POI_NAME, genericPoi))
+    {
+        std::cout << "Error getting generic POI" << std::endl;
+        response->is_ok = false;
+        return;
+    }
+    commands_generic = genericPoi.getAvailableCommands();
+    commands.insert(commands.end(), commands_generic.begin(), commands_generic.end());
+    response->commands = commands;
+    response->is_ok = true;
 }
