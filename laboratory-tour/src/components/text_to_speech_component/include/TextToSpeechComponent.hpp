@@ -10,16 +10,18 @@
 #include <mutex>
 #include <thread>
 #include <rclcpp/rclcpp.hpp>
+#include <std_msgs/msg/bool.hpp>
 #include <yarp/os/Network.h>
 #include <yarp/os/LogStream.h>
 #include <yarp/os/RFModule.h>
 #include <yarp/os/BufferedPort.h>
 #include <yarp/dev/PolyDriver.h>
 #include <yarp/dev/ISpeechSynthesizer.h>
+#include <yarp/dev/AudioPlayerStatus.h>
 #include <text_to_speech_interfaces/srv/get_language.hpp>
 #include <text_to_speech_interfaces/srv/set_language.hpp>
 #include <text_to_speech_interfaces/srv/speak.hpp>
-#include <text_to_speech_interfaces/msg/done_speaking.hpp>
+#include <text_to_speech_interfaces/srv/is_speaking.hpp>
 
 class TextToSpeechComponent 
 {
@@ -37,7 +39,8 @@ public:
                         std::shared_ptr<text_to_speech_interfaces::srv::SetLanguage::Response> response);
     void Speak(const std::shared_ptr<text_to_speech_interfaces::srv::Speak::Request> request,
                         std::shared_ptr<text_to_speech_interfaces::srv::Speak::Response> response);
-    void done_speaking_publisher(text_to_speech_interfaces::msg::DoneSpeaking::SharedPtr msg);
+    void IsSpeaking(const std::shared_ptr<text_to_speech_interfaces::srv::IsSpeaking::Request> request,
+                        std::shared_ptr<text_to_speech_interfaces::srv::IsSpeaking::Response> response);
 
 private:
     yarp::dev::PolyDriver m_speechSynthPoly;
@@ -46,11 +49,12 @@ private:
     rclcpp::Service<text_to_speech_interfaces::srv::GetLanguage>::SharedPtr m_getLanguageService;
     rclcpp::Service<text_to_speech_interfaces::srv::SetLanguage>::SharedPtr m_setLanguageService;
     rclcpp::Service<text_to_speech_interfaces::srv::Speak>::SharedPtr m_speakService;
+    rclcpp::Service<text_to_speech_interfaces::srv::IsSpeaking>::SharedPtr m_IsSpeakingService;
     std::mutex m_mutex;
-    // AudioDeviceHelper m_audioDeviceHelper;
     yarp::os::BufferedPort<yarp::sig::Sound> m_audioPort;
-    yarp::os::BufferedPort<yarp::os::Bottle> m_audioStatusPort;
-    rclcpp::Publisher<text_to_speech_interfaces::msg::DoneSpeaking>::SharedPtr m_publisher;
+    yarp::os::BufferedPort<yarp::dev::AudioPlayerStatus> m_audioStatusPort;
+    rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr m_speakerStatusPub;
+    rclcpp::TimerBase::SharedPtr m_timer;
 };
 
 #endif
