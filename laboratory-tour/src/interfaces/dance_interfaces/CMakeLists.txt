@@ -19,6 +19,7 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(dance_interfaces
 "srv/GetMovement.srv"
 "srv/UpdateMovement.srv"
+"srv/GetPartNames.srv"
 "srv/SetDance.srv"
 "srv/GetDance.srv"
 "srv/GetDanceDuration.srv"
