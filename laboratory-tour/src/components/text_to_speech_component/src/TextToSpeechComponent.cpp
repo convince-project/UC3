@@ -83,6 +83,11 @@ bool TextToSpeechComponent::start(int argc, char*argv[])
                                                                                                 this,
                                                                                                 std::placeholders::_1,
                                                                                                 std::placeholders::_2));
+    m_IsSpeakingService = m_node->create_service<text_to_speech_interfaces::srv::IsSpeaking>("/TextToSpeechComponent/IsSpeaking",
+                                                                                        std::bind(&TextToSpeechComponent::IsSpeaking,
+                                                                                                this,
+                                                                                                std::placeholders::_1,
+                                                                                                std::placeholders::_2));
     m_speakerStatusPub = m_node->create_publisher<std_msgs::msg::Bool>("/TextToSpeechComponent/DoneSpeaking", 10);
     
     m_timer = m_node->create_wall_timer(20ms, 
