@@ -15,7 +15,7 @@
 #include <scheduler_interfaces/srv/update_action.hpp>
 #include <scheduler_interfaces/srv/get_current_action.hpp>
 #include <text_to_speech_interfaces/srv/speak.hpp>
-#include <text_to_speech_interfaces/msg/done_speaking.hpp>
+#include <text_to_speech_interfaces/srv/is_speaking.hpp>
 
 
 
@@ -38,8 +38,7 @@ private:
     rclcpp::Service<narrate_interfaces::srv::Narrate>::SharedPtr m_narrateService;
     rclcpp::Service<narrate_interfaces::srv::IsDone>::SharedPtr m_isDoneService;
 
-    rclcpp::Client<text_to_speech_interfaces::srv::Speak>::SharedPtr m_speakClient;
-    rclcpp::Subscription<text_to_speech_interfaces::msg::DoneSpeaking>::SharedPtr m_doneSpeakingSub;
+    // rclcpp::Client<text_to_speech_interfaces::srv::Speak>::SharedPtr m_speakClient;
     std::mutex m_mutex;
     int32_t m_currentPoi;
     bool m_doneWithPoi{false};
