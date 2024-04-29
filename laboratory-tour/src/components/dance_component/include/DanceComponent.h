@@ -13,6 +13,7 @@
 #include <dance_interfaces/srv/set_dance.hpp>
 #include <dance_interfaces/srv/get_dance.hpp>
 #include <dance_interfaces/srv/get_dance_duration.hpp>
+#include <dance_interfaces/srv/get_part_names.hpp>
 #include "movementStorage.h"
 #include "dance.h"
 
@@ -36,6 +37,8 @@ public:
                 std::shared_ptr<dance_interfaces::srv::GetDance::Response>      response);
     void GetDanceDuration([[maybe_unused]] const std::shared_ptr<dance_interfaces::srv::GetDanceDuration::Request> request,
                 std::shared_ptr<dance_interfaces::srv::GetDanceDuration::Response>      response);
+    void GetPartNames([[maybe_unused]] const std::shared_ptr<dance_interfaces::srv::GetPartNames::Request> request,
+                std::shared_ptr<dance_interfaces::srv::GetPartNames::Response>      response);
 
 
 private:
@@ -45,6 +48,7 @@ private:
     rclcpp::Service<dance_interfaces::srv::SetDance>::SharedPtr m_setDanceService;
     rclcpp::Service<dance_interfaces::srv::GetDance>::SharedPtr m_getDanceService;
     rclcpp::Service<dance_interfaces::srv::GetDanceDuration>::SharedPtr m_getDanceDurationService;
+    rclcpp::Service<dance_interfaces::srv::GetPartNames>::SharedPtr m_getPartNamesService;
 
     std::mutex m_mutex;
     int32_t m_currentMovement{0};
