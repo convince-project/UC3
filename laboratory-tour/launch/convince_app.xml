@@ -1,0 +1,93 @@
+<application>
+    <name>convince_test_torino</name>
+
+    <dependencies>
+    </dependencies>
+
+    <application>
+        <name>Navigation_ROS2_R1SN003</name>
+        <prefix></prefix>
+    </application>
+
+
+    <application>
+        <name>LLM_Test_commands</name>
+        <prefix></prefix>
+    </application>
+
+    <module>
+        <name>voiceActivationDetection</name>
+        <parameters></parameters>
+        <environment>YARP_LOG_PROCESS_LABEL=VAD</environment>
+        <node>console</node>
+    </module>
+
+    <module>
+        <name>source</name>
+        <parameters>/home/ste/ws/hsp-iit/UC3/laboratory-tour</parameters>
+        <environment></environment>
+        <path></path>
+        <node>console</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run alarm_component alarm_component</parameters>
+        <environment></environment>
+        <path>/home/user1/UC3/laboratory-tour</path>
+        <node>console</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>launch launch/bt_launch_robot.py</parameters>
+        <environment></environment>
+        <path>/home/user1/UC3/laboratory-tour</path>
+        <node>console</node>
+    </module>
+
+    <module>
+        <name>yarprobotinterface</name>
+        <parameters>--context google --from googleSpeechToText.ini</parameters>
+        <node>console-llm</node>
+    </module>
+    
+    <module>
+      <name>yarprobotinterface</name>
+      <parameters>--context google --from googleSynthesizer.ini</parameters>
+      <node>console-llm</node>
+    </module>
+
+    <module>
+        <name>yarprobotinterface</name>
+        <parameters>--config micAudio.xml</parameters>
+        <node>r1-torso</node>
+    </module>
+
+    <module>
+        <name>yarprobotinterface</name>
+        <parameters>--context vadModule --from audioPlayer.ini</parameters>
+        <node>r1-face</node>
+    </module>
+
+    <connection>
+        <from>/audioRecorder_nws/audio:o</from>
+        <to>/vad/audio:i</to>
+        <protocol>tcp+recv.portmonitor+file.soundfilter_resample+type.dll+channel.0+frequency.16000</protocol>
+    </connection>
+
+    <connection>
+        <from>/vad/audio:o</from>
+        <to>/simone/interactor</to>
+        <protocol>tcp+recv.portmonitor+file.soundfilter_resample+type.dll+channel.0+frequency.16000</protocol>
+    </connection>
+
+    
+
+
+
+
+
+
+
+</application>
