@@ -88,13 +88,13 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
             return false;
         }
     }
-    // -------------------------Dialog Flow chatBot nwc---------------------------------
+    // -------------------------Chat LLM nwc---------------------------------
     {
         okCheck = rf.check("CHATBOT-CLIENT");
         device = "LLM_nwc_yarp";
         local = "/DialogComponent/chatBotClient/rpc:o";
         //remote = "/poi_chat/LLM_nws/rpc:i";
-        remote = "/dummy_chat/LLM_nws/rpc:i";
+        remote = "/poi_madama_chat/LLM_nws/rpc:i";
 
         if (okCheck)
         {
@@ -177,7 +177,7 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
     {
         okCheck = rf.check("AUDIORECORDER-CLIENT");
         device = "audioRecorder_nwc_yarp";
-        local = "/DialogComponent/";
+        local = "/DialogComponent/audio";
         remote = "/audioRecorder_nws";
 
         if (okCheck)
@@ -426,12 +426,13 @@ void DialogComponent::EnableDialog(const std::shared_ptr<dialog_interfaces::srv:
 
 void DialogComponent::DialogExecution()
 {
+    long int progressive_counter = 0;
     std::chrono::duration wait_ms = 200ms;      // TODO - parameterize
+    bool isRecording = false;
     while (!m_exit && !(m_state==SUCCESS))
     {
-		//yInfo() << "DialogComponent::DialogExecution call received" << __LINE__;
+        yDebug() << "[DialogComponent::DialogExecution] iteration: " << ++progressive_counter;
         // Mic management
-        bool isRecording = false;
         m_iAudioGrabberSound->isRecording(isRecording);
         //m_iRender->isPlaying(isPlaying);
         /*
@@ -447,7 +448,6 @@ void DialogComponent::DialogExecution()
             isPlaying = true;
         }
         */
-
 
         if (!isRecording && !m_speakerCallback.isPlaying())
         {
@@ -468,12 +468,14 @@ void DialogComponent::DialogExecution()
             if (!m_speechTranscriberCallback.getText(questionText))
             {
                 std::this_thread::sleep_for(wait_ms);
+                yDebug() << "[DialogComponent::DialogExecution] can't get text " << __LINE__;
                 continue;
             }
         }
         else
         {
             std::this_thread::sleep_for(wait_ms);
+            yDebug() << "[DialogComponent::DialogExecution] no new msg " << __LINE__;
             continue;
         }
         yInfo() << "DialogComponent::DialogExecution Getting PoIs" << __LINE__;
@@ -512,7 +514,7 @@ void DialogComponent::DialogExecution()
         std::string scriptedString = "";
         if(!CommandManager(answerText, currentPoi, genericPoI, scriptedString))
         {
-            yError() << "[DialogComponent::DialogExecution] Unable to interpret command: " << answerText;
+            yError() << "[DialogComponent::DialogExecution] Error in Command Manager for the command: " << answerText;
             std::this_thread::sleep_for(wait_ms);
             continue;
         }
@@ -527,23 +529,8 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
     // Load the command into a bottle to split it
     yarp::os::Bottle extracted_command;
     extracted_command.fromString(command);
-    //std::string replaced_str = command;
-    //std::string action;
-	// Find what to say:
-	//auto first_pos = replaced_str.find('"');
-	// if (first_pos != replaced_str.size())
-    // {
-	// 	auto second_pos = replaced_str.find('"', first_pos + 1);
-    //     yInfo() << "[DialogComponent::CommandManager] begin: " << first_pos << " end: " << second_pos;
-	// 	if (second_pos != replaced_str.size())
-	// 	{
-    //         action = replaced_str.substr(first_pos + 1, (second_pos - first_pos) - 1);
-    //         //yInfo() << "[DialogComponent::InterpretCommand] returning from the raw say: " << phrase << __LINE__;
-	// 		//auto third_pos = replaced_str.find('"', second_pos + 1);
-	// 	}
-	// }
 
-    //yDebug() << "[DialogComponent::InterpretCommand] Number of elements in bottle: " << extracted_command.size();
+    yDebug() << "[DialogComponent::InterpretCommand] Number of elements in bottle: " << extracted_command.size();
     // In the first position we have the general thing to do, like: explain, next_poi, end_tour
     auto theList = extracted_command.get(0).asList();
     std::string action = theList->get(0).asString();
@@ -552,62 +539,25 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
     {
         m_lastQuestion = theList->get(1).asString();
     }
+
     // Let's check what to do with the action
-	// Find what to say:
-	//auto explain_pos = command.find("explain");
-    //if (explain_pos < command.size())    //found
     if(action == "explain" || action == "cmd_unknown")
     {
-        // TODO create a struct map
-        // if (command.find("artist") < command.size())
-        // {
-        //     action = "explainQuestionAuthor";
-        // }
-        // else if (command.find("art_piece") < command.size())
-        // {
-        //     action = "explainQuestionMainPiece";
-        // }
-        // else if (command.find("historical_period") < command.size())
-        // {
-        //     action = "explainQuestionEpoch";
-        // }
-        // else if (command.find("technique") < command.size())
-        // {
-        //     action = "explainQuestionTechnique";
-        // }
-        // else if (command.find("questions"))
-        // {
-        //     action = "explainListOfQuestions";
-        // }
-        // else
-        // {
-        //     yError() << "[DialogComponent::CommandManager] Unable to assign a known topic";
-	    //     return false;
-        // }
-        // yDebug() << "[DialogComponent::InterpretCommand] Got topic: " << action;
-
-        // TODO for other action types
         // Check the second element for determining the exact action: artist, art_piece, historical_period, technique
         std::string topic = theList->get(1).asString();
         if (action == "cmd_unknown")
         {
             topic = "museum";
         }
-        if (topic == "artist")
+
+
+        if (topic == "function")
         {
-            action = "explainQuestionAuthor";
+            action = "explainFunction";
         }
-        else if (topic == "art_piece")
+        if (topic == "description")
         {
-            action = "explainQuestionMainPiece";
-        }
-        else if (topic == "historical_period")
-        {
-            action = "explainQuestionEpoch";
-        }
-        else if (topic == "technique")
-        {
-            action = "explainQuestionTechnique";
+            action = "explainDescription";
         }
         else if (topic == "museum")
         {
@@ -671,12 +621,17 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
             return false;
         }
     }
-
-    // NEXT POI
-    if (action == "next_poi")   // means that it has been found
+    else if (action == "next_poi")   // means that it has been found // NEXT POI
     {
         m_state = SUCCESS;
-        // Call a service maybe?
+        yInfo() << "[DialogComponent::InterpretCommand] Next Poi Detected" << __LINE__;
+        // TODO Call a service maybe?
+    }
+    else if (action == "end_tour")  // END TOUR
+    {
+        m_state = SUCCESS;
+        yInfo() << "[DialogComponent::InterpretCommand] End Tour Detected" << __LINE__;
+        // TODO call service
     }
 
     return true;
@@ -789,11 +744,12 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
                     if (m_speakerCallback.isPlaying())
                     {
                         yDebug() << "[DialogComponent::InterpretCommand] Waiting for previous speech to finish" ;
-                    }
-                    while (m_speakerCallback.isPlaying() && !m_exit)
-                    {
-                        // Wait
-                        std::this_thread::sleep_for(100ms); // TODO - parameterize
+                        while (m_speakerCallback.isPlaying() && !m_exit)
+                        {
+                            // Wait
+                            std::this_thread::sleep_for(100ms); // TODO - parameterize
+                            yDebug() << "[DialogComponent::InterpretCommand] Waiting for previous speech to finish" ;
+                        }
                     }
 
                     // Synthesize the text
@@ -812,9 +768,12 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
 
                     yInfo() << "[DialogComponent::InterpretCommand] Sending Sound to port" << __LINE__;
                     m_speakersAudioPort.write();
-                    while((!m_speakerCallback.isPlaying() && m_speakerCallback.isEnabled()) && !m_exit)
+
+                    //Should this be removed?
+                    while((!m_speakerCallback.isPlaying()) && !m_exit)
                     {
                         std::this_thread::sleep_for(100ms);
+                        yDebug() << "[DialogComponent::InterpretCommand] Waiting for START playing" ;
                     }
 
                     // save as backup if is a valid expression, not from an error
@@ -832,6 +791,7 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
                         // Move around
                         // TODO
                     //}
+                    yInfo() << "[DialogComponent::InterpretCommand] Dance! ";
                     break;
                 case ActionTypes::SIGNAL:
                 {
@@ -859,6 +819,7 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
                     {
                         containsSpeak = false;
                     }*/
+                    yInfo() << "[DialogComponent::InterpretCommand] Signal! ";
                     break;
                 }
                 case ActionTypes::INVALID:
