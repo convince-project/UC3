@@ -20,6 +20,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 "srv/GetLanguage.srv"
 "srv/Speak.srv"
 "srv/IsSpeaking.srv"
+"srv/SetMicrophone.srv"
 DEPENDENCIES std_msgs
 LIBRARY_NAME ${PROJECT_NAME} 
 )
