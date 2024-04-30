@@ -330,6 +330,10 @@
                     <interface type="sync-service" />
                 </ROS2data>
             </protocol>
+            <returnValue>
+                <dataType>bool</dataType>
+                <dataField>is_done</dataField>
+            </returnValue>
         </function>
     </interface>
 

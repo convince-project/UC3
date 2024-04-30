@@ -48,6 +48,11 @@ bool DanceComponent::start(int argc, char*argv[])
                                                                                 this,
                                                                                 std::placeholders::_1,
                                                                                 std::placeholders::_2));
+    m_getPartNamesService = m_node->create_service<dance_interfaces::srv::GetPartNames>("/DanceComponent/GetPartNames",
+                                                                                std::bind(&DanceComponent::GetPartNames,
+                                                                                this,
+                                                                                std::placeholders::_1,
+                                                                                std::placeholders::_2));
 
     RCLCPP_DEBUG(m_node->get_logger(), "DanceComponent::start");
     std::cout << "DanceComponent::start";        
@@ -80,7 +85,6 @@ void DanceComponent::GetMovement([[maybe_unused]] const std::shared_ptr<dance_in
     response->time = dance.GetMovements()[m_currentMovement].GetTime();
     response->offset = dance.GetMovements()[m_currentMovement].GetOffset();
     response->joints = dance.GetMovements()[m_currentMovement].GetJoints();
-
     response->is_ok = true;
 }
 
@@ -144,5 +148,17 @@ void DanceComponent::GetDanceDuration([[maybe_unused]] const std::shared_ptr<dan
         return;
     }
     response->duration = dance.GetDuration();
+    response->is_ok = true;
+}
+
+
+void DanceComponent::GetPartNames([[maybe_unused]] const std::shared_ptr<dance_interfaces::srv::GetPartNames::Request> request,
+             std::shared_ptr<dance_interfaces::srv::GetPartNames::Response>      response) 
+{
+    std::set<std::string> part_names = m_movementStorage->GetMovementsContainer().GetPartNames();
+    for(auto part_name : part_names)
+    {
+        response->parts.push_back(part_name);
+    }
     response->is_ok = true;
 }
