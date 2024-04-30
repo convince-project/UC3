@@ -180,6 +180,7 @@ bool TextToSpeechComponent::start(int argc, char*argv[])
     
     m_timer = m_node->create_wall_timer(200ms, 
                     [this]()->void {
+			std::lock_guard<std::mutex> lock(m_mutex);
                         auto data = m_audioStatusPort.read();
                         if (data != nullptr)
                         {
@@ -192,9 +193,10 @@ bool TextToSpeechComponent::start(int argc, char*argv[])
                                 {
                                     bool isRecording;
                                     m_iAudioGrabberSound->isRecording(isRecording);
-                                    if(isRecording)
+                                    if(!isRecording)
                                     {
-                                        if(!m_iAudioGrabberSound->stopRecording())
+                                        RCLCPP_ERROR_STREAM(m_node->get_logger(), "TextToSpeechComponent " << __LINE__ );
+                                        if(!m_iAudioGrabberSound->startRecording())
                                         {
                                             RCLCPP_ERROR(m_node->get_logger(), "Unable to stop recording!");
                                         }
@@ -224,7 +226,8 @@ void TextToSpeechComponent::spin()
 void TextToSpeechComponent::Speak(const std::shared_ptr<text_to_speech_interfaces::srv::Speak::Request> request,
                         std::shared_ptr<text_to_speech_interfaces::srv::Speak::Response> response)
 {
-    yInfo() << "[TextToSpeechComponent::Speak] service called";
+    std::lock_guard<std::mutex> lock(m_mutex);
+    yInfo() << "[TextToSpeechComponent::Speak] service called with text: " << request->text;
     bool isRecording;
     m_iAudioGrabberSound->isRecording(isRecording);
     if (isRecording)
@@ -240,6 +243,7 @@ void TextToSpeechComponent::Speak(const std::shared_ptr<text_to_speech_interface
         response->is_ok=false;
         response->error_msg="Unable to synthesize text";
         m_iAudioGrabberSound->startRecording();
+                                            RCLCPP_ERROR_STREAM(m_node->get_logger(), "TextToSpeechComponent " << __LINE__ );
     }
     else
     {
@@ -247,6 +251,15 @@ void TextToSpeechComponent::Speak(const std::shared_ptr<text_to_speech_interface
         m_audioPort.write();
         response->is_ok=true;
     }
+    bool isSpeaking =false;
+    while (!isSpeaking){
+	auto data = m_audioStatusPort.read();
+	if (data != nullptr && data->current_buffer_size > 0) {
+		isSpeaking = true;
+	}
+    }
+
+                 
 }
 
 void TextToSpeechComponent::SetLanguage(const std::shared_ptr<text_to_speech_interfaces::srv::SetLanguage::Request> request,
