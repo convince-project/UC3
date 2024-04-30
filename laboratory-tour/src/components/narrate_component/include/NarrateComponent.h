@@ -14,6 +14,7 @@
 #include <narrate_interfaces/srv/is_done.hpp>
 #include <scheduler_interfaces/srv/update_action.hpp>
 #include <scheduler_interfaces/srv/get_current_action.hpp>
+#include <scheduler_interfaces/srv/set_command.hpp>
 #include <text_to_speech_interfaces/srv/speak.hpp>
 #include <text_to_speech_interfaces/srv/is_speaking.hpp>
 
