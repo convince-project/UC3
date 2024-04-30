@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<root main_tree_to_execute="BehaviorTree">
+    <!-- ////////// -->
+    <BehaviorTree ID="BehaviorTree">
+        <ReactiveSequence>
+            <ReactiveFallback>
+                <Action ID="ROS2Action" interface="ROS2SERVICE" name="Other Failures Management subtree" nodeName="" topicName=""/>
+            </ReactiveFallback>
+            <ReactiveFallback>
+                <ReactiveSequence>
+                    <Condition ID="ROS2Condition" interface="ROS2SERVICE" name="tour aborted by visitors" nodeName="" topicName=""/>
+                    <Action ID="ROS2Action" interface="ROS2SERVICE" name="Greet and Go back" nodeName="" topicName=""/>
+                </ReactiveSequence>
+                <ReactiveSequence>
+                    <Condition ID="ROS2Condition" interface="ROS2SERVICE" name="networkDown" nodeName="" topicName=""/>
+                    <Action ID="ROS2Action" interface="ROS2SERVICE" name="manageModulesifnetworkdown" nodeName="" topicName=""/>
+                </ReactiveSequence>
+                <ReactiveSequence>
+                    <ReactiveFallback>
+                        <Condition ID="ROS2Condition" interface="ROS2SERVICE" name="at current POI" nodeName="" topicName=""/>
+                        <ReactiveFallback name="">
+                            <Condition ID="ROS2Condition" interface="ROS2SERVICE" name="VisitorsFollowingRobot" nodeName="" topicName=""/>
+                            <Parallel failure_threshold="1" success_threshold="">
+                                <Action ID="ROS2Action" interface="ROS2SERVICE" name="gotoDestination" nodeName="" topicName=""/>
+                                <Action ID="ROS2Action" interface="ROS2SERVICE" name="sayFollowMe" nodeName="" topicName=""/>
+                            </Parallel>
+                        </ReactiveFallback>
+                        <Parallel failure_threshold="1" success_threshold="">
+                            <Action ID="ROS2Action" interface="ROS2SERVICE" name="GoToDestination" nodeName="" topicName=""/>
+                            <Action ID="ROS2Action" interface="ROS2SERVICE" name="SayWhileNaviigating" nodeName="" topicName=""/>
+                        </Parallel>
+                    </ReactiveFallback>
+                    <Sequence>
+                        <ReactiveFallback name="">
+                            <Condition ID="ROS2Condition" interface="ROS2SERVICE" name="ArtworkPresent" nodeName="" topicName=""/>
+                            <Fallback>
+                                <Action ID="ROS2Action" interface="ROS2SERVICE" name="SearchArtwork" nodeName="" topicName=""/>
+                                <Action ID="ROS2Action" interface="ROS2SERVICE" name="RescheduleTour" nodeName="" topicName=""/>
+                            </Fallback>
+                        </ReactiveFallback>
+                        <ReactiveFallback>
+                            <Condition ID="ROS2Condition" interface="ROS2SERVICE" name="ArtworkFree" nodeName="" topicName=""/>
+                            <Action ID="ROS2Action" interface="ROS2SERVICE" name="RescheduleTour" nodeName="" topicName=""/>
+                        </ReactiveFallback>
+                        <Action ID="ROS2Action" interface="ROS2SERVICE" name="Narrate POI" nodeName="" topicName=""/>
+                        <Action ID="ROS2Action" interface="ROS2SERVICE" name="Interact with visitors" nodeName="" topicName=""/>
+                        <Fallback name="">
+                            <Condition ID="ROS2Condition" interface="ROS2SERVICE" name="VisitorsEngaged" nodeName="" topicName=""/>
+                            <Action ID="ROS2Action" interface="ROS2SERVICE" name="RescheduleTour" nodeName="" topicName=""/>
+                        </Fallback>
+                        <Fallback>
+                            <Inverter>
+                                <Condition ID="ROS2Condition" interface="ROS2SERVICE" name="MuseumTooCrowded" nodeName="" topicName=""/>
+                            </Inverter>
+                            <Action ID="ROS2Action" interface="ROS2SERVICE" name="RescheduleTour" nodeName="" topicName=""/>
+                        </Fallback>
+                        <Action ID="ROS2Action" interface="ROS2SERVICE" name="Update poi" nodeName="" topicName=""/>
+                    </Sequence>
+                </ReactiveSequence>
+            </ReactiveFallback>
+        </ReactiveSequence>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <TreeNodesModel>
+        <Action ID="ROS2Action">
+            <input_port default="ROS2SERVICE" name="interface"/>
+            <input_port name="nodeName"/>
+            <input_port name="topicName"/>
+        </Action>
+        <Condition ID="ROS2Condition">
+            <input_port default="ROS2SERVICE" name="interface"/>
+            <input_port name="nodeName"/>
+            <input_port name="topicName"/>
+        </Condition>
+    </TreeNodesModel>
+    <!-- ////////// -->
+</root>
+

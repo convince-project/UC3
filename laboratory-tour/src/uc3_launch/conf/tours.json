@@ -15324,30 +15324,49 @@
           },
           "sala_delle_guardie": {
             "m_availableActions": {
-              "explainOpera": [
+              "explainRoom": [
                 {
                   "m_isBlocking": false,
-                  "m_param": "Passate attraverso le storiche sale di Palazzo Madama a Torino e lasciatevi incantare dalla magnificenza della Camera delle Guardie.",
+                  "m_param": "Ci troviamo al primo piano di Palazzo Madama dove visse Maria Giovanna Battista di Savoia Nemours, principessa francese, nata a Parigi nel 1644, e trasferitasi a Torino per sposare il duca di Savoia.",
                   "m_type": "speak"
                 },
                 {
                   "m_isBlocking": false,
-                  "m_param": "Questa sala, immersa nella luce soffusa che filtra dalle ampie finestre, è un esemplare sublime dell'arte decorativa rococò.",
+                  "m_param": "Donna di carattere forte, protesse la sua nuova patria durante la minore età del figlio, il futuro re Vittorio Amedeo II, rimasto orfano a soli 9 anni. Quando il figlio si sposò, Maria Giovanna lasciò Palazzo Reale e scelse come sua residenza il primo piano del castello che arredò e decorò secondo il suo gusto.",
                   "m_type": "speak"
                 },
                 {
                   "m_isBlocking": false,
-                  "m_param": "Gli stucchi eleganti adornano il soffitto a volta, intrecciandosi in motivi floreali e geometrici che evocano la maestria artigianale del passato.",
+                  "m_param": "Qui visse per quarant’anni, dal 1684 alla sua morte avvenuta nel 1724, servita da 191 persone che intervenivano nella sua vita quotidiana, spirituale e materiale. Degli arredi non resta quasi nulla, ma in questo percorso ti racconterò le funzioni delle sale e come si svolgeva la vita della duchessa.",
+                  "m_type": "speak"
+                }
+              ],
+              "explainFunction": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Benissimo, ci troviamo in Camera delle Guardie. Intorno al 1721 l’ospite che faceva visita a Madama Reale poteva contare su due accessi: passare dal grande scalone di Filippo Juvarra ed entrare nel salone (oggi Sala Senato); oppure accedere al castello direttamente da Palazzo Reale percorrendo la manica di collegamento che univa i due edifici e che si concludeva presso la sala “della galleria”, ambiente che oggi ospita il Caffè Madama.",
                   "m_type": "speak"
                 },
                 {
                   "m_isBlocking": false,
-                  "m_param": "Ogni parete è una galleria in sé, con quadri dell'epoca che raccontano storie di santi e eroi mitologici, ciascuno incorniciato splendidamente e sospeso in perfetto equilibrio tra passato e presente.",
+                  "m_param": "Entrambi i tragitti conducevano alla Camera delle Guardie, dove ci troviamo ora: è questa la prima sala da cui partiva il percorso cerimoniale all’interno dell’appartamento di Maria Giovanna Battista di Savoia-Nemours.",
                   "m_type": "speak"
                 },
                 {
                   "m_isBlocking": false,
-                  "m_param": "La pavimentazione in parquet a spina di pesce aggiunge un tocco di calore naturale a questa stanza che un tempo fu testimone dei fasti della corte sabauda. Visitare la Camera delle Guardie è come fare un viaggio nel tempo, una fermata obbligatoria per chiunque desideri immergersi nella storia e nell'arte del cuore di Torino.",
+                  "m_param": "Prima di arrivare alla stanza del trono (chiamata camera di parata) gli ospiti dovevano attraversare tre anticamere e attendere di essere introdotti alla presenza della duchessa. Solo gli ospiti di maggior riguardo potevano raggiungere gli ambienti più riservati e privati del palazzo.",
+                  "m_type": "speak"
+                }
+              ],
+              "explainDescription": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Perfetto! La sala è stata decorata tra il 1708 e il 1715. Ora guarda in alto! La decorazione in stucco bianco presenta trofei d’armi inseriti agli angoli della volta che alludono alla destinazione dell’ambiente presidiato dalle guardie del corpo della duchessa: armature, lance, frecce, cannoni, scudi, trombe alludono al mondo della guerra e dei soldati.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Nel profilo ondulato del cornicione si alternano quattro aquile con la croce di Savoia nel petto e la pianta di fritillaria, emblema di Madama Reale: si tratta di una pianta della famiglia dei gigli con grandi fiori arancioni. Lo zoccolo e le sovrapporte in stucco furono eseguiti nel 1927 con calchi in gesso tratti dalle decorazioni della Reggia di Venaria Reale.",
                   "m_type": "speak"
                 }
               ]
@@ -15356,30 +15375,52 @@
           },
           "sala_guidobono": {
             "m_availableActions": {
-              "explainOpera": [
+              "explainRoom": [
                 {
                   "m_isBlocking": false,
-                  "m_param": "Immergetevi nell'atmosfera aristocratica della Sala Guidobono di Palazzo Madama, dove le pareti rivestite di un vellutato verde smeraldo fanno da sfondo a un'eccezionale collezione di opere d'arte.",
+                  "m_param": "Eccoci! A inizio Settecento la sala era conosciuta come Stanza dei Valletti a piè, giovani servitori che sostavano in questa sala in attesa di comandi: potevano fungere da corrieri per portare o ritirare messaggi in città per conto della duchessa.",
                   "m_type": "speak"
                 },
                 {
                   "m_isBlocking": false,
-                  "m_param": "In questa sala, l'arte scultorea è protagonista, con pezzi dinamici che emergono con forza dal pavimento, in un dialogo silenzioso ma eloquente con i dipinti che narrano storie di epoche passate.",
+                  "m_param": " Ma il compito più importante era accompagnare la duchessa facendo strada alla carrozza, garantire la sicurezza del viaggio sgombrando con bastoni eventuali ostacoli o pericoli, e illuminare di notte il percorso con le torce. Per questo il loro nome “valletti a piedi”: correre o camminare per proteggere la duchessa.",
                   "m_type": "speak"
                 },
                 {
                   "m_isBlocking": false,
-                  "m_param": "Sopra di voi, il soffitto a cassettoni stuccato celebra il cielo e la terra con affreschi che sembrano danzare nella luce che filtra dalle finestre.",
+                  "m_param": "Alcuni di loro si vedono nel grande dipinto che raffigura il castello di Rivoli. Guardali qui, in questo grande quadro, in basso a destra, con le loro braghe rosse, la camicia bianca e il tricorno nero in testa scortano la carrozza del re.",
+                  "m_type": "speak"
+                }
+              ],
+              "explainDescription": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Per apprezzare al meglio questa sala devi alzare la testa verso il soffitto! La volta è dedicata all’allegoria della Primavera che appare al centro su nubi sospinte da testine di zefiri. Il finto soffitto traforato è sostenuto da un loggiato in prospettiva con colonne e aperture da cui si affacciano pappagalli, rapaci, uccelli acquatici e domestici.",
                   "m_type": "speak"
                 },
                 {
                   "m_isBlocking": false,
-                  "m_param": "Ogni opera d'arte è stata selezionata con cura per rappresentare la diversità e la ricchezza della tradizione artistica che si estende attraverso i secoli, facendo di questa stanza un crocevia culturale dove il passato incontra il presente.",
+                  "m_param": "L’affresco risale all’epoca della campagna decorativa condotta tra il 1708 e il 1714. Maria Giovanna Battista affidò l’esecuzione a Domenico Guidobono, mostrando così di prediligere il gusto per il naturalismo e l’illusionismo spaziale tipico della pittura barocca genovese, più informale ed esuberante rispetto alla decorazione aulica e classicheggiante favorita dal figlio Vittorio Amedeo II per Palazzo Reale.",
                   "m_type": "speak"
                 },
                 {
                   "m_isBlocking": false,
-                  "m_param": "Un'esperienza in questa galleria non è soltanto un viaggio visivo, ma anche un percorso emotivo attraverso la bellezza e l'ingegno umano.",
+                  "m_param": "Sopra il cornicione a est compare la firma dell’artista e la data del completamento dei lavori, il 16 dicembre 1714. La finta architettura si deve probabilmente all’intervento di un quadraturista, ossia un pittore specializzato nella realizzazione di prospettive architettoniche.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "La volta presenta molti fori di chiodi utilizzati per fissare le cordicelle e i cartoni impiegati per tracciare le linee della composizione. La base è realizzata ad affresco, con ombreggiature a secco, purtroppo parzialmente asportate nel 1927 nel corso di un aggressivo intervento di pulitura.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": " Per le figure Domenico scelse la tecnica del “mezzo fresco”, che consente di dipingere più velocemente con pigmenti a calce più corposi.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Sul fondo della volta furono infine applicati con un impasto a base di olio e resina una moltitudine di pallini e di rigature in foglia d’oro, che impreziosiscono e illuminano le parti cromatiche.",
                   "m_type": "speak"
                 }
               ]
@@ -15388,30 +15429,52 @@
           },
           "sala_delle_feste": {
             "m_availableActions": {
-              "explainOpera": [
+              "explainRoom": [
                 {
                   "m_isBlocking": false,
-                  "m_param": "Scoprite lo splendore della Sala Delle Feste di Palazzo Madama, dove l'arte e la storia si uniscono in una sinfonia di oro e luce.",
+                  "m_param": "Seguimi, ti porto nel punto migliore per poter apprezzare questo ambiente. Come puoi notare è un salone molto grande ma che nel Settecento era suddiviso in due sale distinte: la Camera dei Paggi e la Camera di Parata, in particolare quest’ultima era usata da Madama Reale Maria Giovanna Battista per ricevere in udienza pubblica gli ospiti di maggior riguardo.",
                   "m_type": "speak"
                 },
                 {
                   "m_isBlocking": false,
-                  "m_param": "Il ricco decoro dorato che incornicia le opere d'arte trasforma le pareti in una narrazione visiva che parla delle glorie passate del Piemonte.",
+                  "m_param": "Un inventario redatto nel 1724 ci informa che la sala era illuminata da un lampadario in argento ed era decorata da tappezzerie in velluto rosso bordate da galloni dorati. Lo stesso tessuto (sostituito in estate da damasco nero con fiori dorati) rivestiva il trono e il baldacchino della duchessa, due portiere e dodici panche addossate alle pareti.",
                   "m_type": "speak"
                 },
                 {
                   "m_isBlocking": false,
-                  "m_param": "Alzate lo sguardo per ammirare i capolavori di stucco che si intrecciano nel soffitto, evocando le muse celesti in un cielo dipinto.",
+                  "m_param": "I pannelli in legno intagliato che rivestivano le pareti e il camino della Camera da Parata sono perduti. Le dodici panche potrebbero invece essere identificate con i divani di primo Settecento oggi esposti in questa sala, uguali per disegno e intaglio alla balaustra di trono della foto, che fa parte delle collezioni del Museo.",
+                  "m_type": "speak"
+                }
+              ],
+              "explainDescription": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Anche qui devi guardare verso l’alto! Nel Settecento la volta della Camera da Parata fu coperta da una nuova pittura. Una piccola porzione della decorazione originaria è visibile poco sopra la porta di ingresso a destra, dove un saggio di scoprimento, riconoscibile da un tratteggio bianco, ha riportato in luce un frammento dell’intervento tardo seicentesco, forse da riferire all’opera di Bartolomeo Guidobono.",
                   "m_type": "speak"
                 },
                 {
                   "m_isBlocking": false,
-                  "m_param": "Mentre passeggiate tra le file di sedie in attesa di un evento, potete quasi sentire l'eco delle discussioni e delle musiche che hanno riempito questa sala nei secoli.",
+                  "m_param": "Anche la volta dell’adiacente Anticamera dei Paggi fu ricostruita nel corso del Settecento. Forse già sai che Palazzo Madama ha avuto diverse funzioni nel corso della sua storia millenaria e anche questa sala è stata usata in diversi modi.",
                   "m_type": "speak"
                 },
                 {
                   "m_isBlocking": false,
-                  "m_param": "La Sala Delle Feste non è solo un luogo di incontro per la mente e lo spirito, ma anche un teatro in cui ogni angolo racconta una storia, un inno vivente alla bellezza e alla cultura che persiste attraverso il tempo.",
+                  "m_param": "Infatti, dopo aver ospitato gli uffici del Senato (1848-1863) e della Corte di Cassazione (1869-1923), le sale del primo piano di Palazzo Madama furono concesse al Comune di Torino come sede per manifestazioni di carattere civico e patriottico. ",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Nel 1925 si decise di demolire la parete divisoria tra l’Anticamera dei Paggi e la Camera da Parata di Madama Reale per creare un ampio salone di rappresentanza. Per realizzare la volta a padiglione del nuovo ambiente si mise in atto una soluzione ardita e singolare.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Il soffitto della Camera dei Paggi fu demolito e le tele del Beaumont disperse tra varie residenze sabaude mentre quello della Camera di Parata fu tagliato in due parti. La testata sud fu lasciata al suo posto mentre l’altra metà, impostata sulla parete demolita, fu traslata sul lato opposto del salone a nord.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "La volta, infine, fu dipinta da Carlo Cussetti riprendendo e prolungando il disegno della quadratura architettonica settecentesca dell’antica Camera da Parata. Il 18 ottobre del 1961 in questa sala è stata firmata la Carta Sociale Europea.",
                   "m_type": "speak"
                 }
               ]
@@ -15420,15 +15483,42 @@
           },
           "sala_4_stagioni": {
             "m_availableActions": {
-              "explainOpera": [
+              "explainRoom": [
                 {
                   "m_isBlocking": false,
-                  "m_param": "Questa stanza di Palazzo Madama a Torino è un gioiello del barocco, con un soffitto dorato riccamente decorato e pareti adornate da stucchi e tappezzerie eleganti.",
+                  "m_param": "In questa sala, sotto un cielo di un blu intenso e con la sensazione di trovarsi all’interno di una grande voliera di fili d’oro intrecciati, si svolgevano i momenti di svago della corte di Maria Giovanna Battista, composta di dame e cavalieri che specialmente alla sera si riunivano per fare circolo, intrattenendo la duchessa con musica, danze, conversazioni e giochi.",
                   "m_type": "speak"
                 },
                 {
                   "m_isBlocking": false,
-                  "m_param": "Specchi e opere d'arte aggiungono un tocco di raffinatezza, mentre le ampie finestre illuminano il pavimento in legno che echeggia la storia. È un esempio splendido dell'opulenza storica italiana.",
+                  "m_param": "Il programma iconografico della decorazione è una celebrazione del tempo in tutte le sue forme. Nei quattro angoli in alto vedi le personificazioni delle stagioni alludono anche alle quattro età dell’uomo, dall’infanzia di Bacco-Autunno alla vecchiaia dell’Inverno che si riscalda davanti al fuoco; all’interno di cornici appaiono le attività dell’uomo legate all’agricoltura, mentre al centro della volta una serie di puttini si intrattengono in svaghi e giochi, alludendo così alla funzione ricreativa della sala.",
+                  "m_type": "speak"
+                }
+              ],
+              "explainDescription": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Benissimo! Molte grazie per il tuo interesse! Il nome della sala deriva dalle allegorie delle Stagioni, ognuna collocata in uno dei quattro angoli all’interno di cartelle dorate.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "L’elaborata decorazione della volta eseguita a stucco e affresco fu realizzata tra il 1708 e il 1715 attingendo ai modelli decorativi di Jean Bèrain, architetto e disegnatore ornamentale francese, attivo alla corte di Luigi XIV.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Nel primo Settecento l’ambiente era denominato “Gabinetto grande del Circolo” e aveva la funzione di anticamera alla stanza da letto di Madama Reale.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "A seconda della stagione, le pareti erano rivestite da tappezzerie diverse: in inverno si applicavano bande di spesso velluto cremisi che in estate lasciava il posto alla seta damascata a fiori d’oro e d’argento, in accordo con gli intagli delle porte rivestite da lamina d’oro e d’argento.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Quest’ultimo metallo si è ossidato in modo ormai irreversibile e oggi appare nero.",
                   "m_type": "speak"
                 }
               ]
@@ -15437,15 +15527,62 @@
           },
           "camera_di_madama_reale": {
             "m_availableActions": {
-              "explainOpera": [
+              "explainRoom": [
                 {
                   "m_isBlocking": false,
-                  "m_param": "Entrate in questa altra stanza di Palazzo Madama, dove il rosso vibrante delle pareti fa da sfondo a sontuosi affreschi che adornano il soffitto, raccontando storie mitologiche tra nuvole e figure celesti.",
+                  "m_param": "Eccoci! Il percorso cerimoniale dell’appartamento si concludeva nella Camera di Madama Reale, l’ambiente più sfarzoso dell’appartamento della duchessa e appositamente collocato sul lato sud del palazzo e sopra agli ambienti delle cucine in modo da ricevere il calore del sole e dei camini.",
                   "m_type": "speak"
                 },
                 {
                   "m_isBlocking": false,
-                  "m_param": "Cornici dorate e specchi lavorati riflettono sia la luce che la grandiosità dell'arte barocca, mentre i dipinti storici invitano a momenti di riflessione e ammirazione. La stanza è un inno al lusso e alla creatività del passato.",
+                  "m_param": "Il letto con baldacchino era collocato tra le due grandi specchiere: la tappezzeria, coordinata con i rivestimenti di porte, letto e tendaggi, d’inverno era di velluto blu, in accordo con il colore dei nastri delle ghirlande di fiori dipinti sul soffitto, mentre d’estate si sostituiva con tele di broccato d’oro a fondo d’argento con fiori di seta di vari colori.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "In questa sala la duchessa poteva consumare. Qui si svolgeva la cerimonia del risveglio e della vestizione della duchessa, che in questa sala riceveva in udienza privata principi e principesse straniere, secondo un’usanza nata alla corte di Luigi XIV e diffusa tra i sovrani europei dell’epoca.",
+                  "m_type": "speak"
+                }
+              ],
+              "explainDescription": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "La camera da letto era anche un luogo di ricevimento per gli ospiti e a tale scopo risponde la decorazione interamente dedicata al trionfo e alla celebrazione delle virtù della duchessa.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Se alzi la testa la vedi ritratta al centro della volta su un cocchio trainato da cavalli alati e nell’atto di essere incoronata con un tralcio di alloro: intorno alla scena centrale le figure femminili incarnano le virtù di buona regnante di Maria Giovanna Battista.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Completano il programma decorativo le quattro sovrapporte con le allegorie di Autorità, Bontà, Fedeltà e, forse, Carità. La tradizionale impaginazione delle scene in scomparti è movimentata dal gioco degli stucchi colorati che invadono la volta fino ad amalgamarsi e a fondersi con la pittura.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Le indagini condotte durante il restauro hanno permesso di comprendere la qualità delle tecniche utilizzate dall’artista. Al di sotto della pellicola pittorica, realizzata quasi interamente con colori a olio, sono stati individuati diversi tipi di intonaco, omogeneo nelle zone all’interno dei medaglioni e con una granulosità maggiore nel resto della superficie.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Questa particolarità rivela l’intenzione di rendere più movimentata la decorazione, forse simulando la presenza di grandi quadri su tela, dall’aspetto più liscio e brillante, incastonati nel soffitto dipinto. I rivestimenti delle pareti in legno intagliato e dorato con foglie, fiori, frutti e conchiglie riprendono per ricchezza le decorazioni della volta.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Sopra al camino, all’interno di una ricca cornice con specchio, è incastonato il ritratto di Carlo Emanuele II, duca di Savoia e marito di Maria Giovanna Battista di Savoia-Nemours, una delle poche opere conservate tra gli arredi originari del primo appartamento realizzato verso il 1690.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Come puoi notare, il gusto di Maria Giovanna Battista era sfarzoso: sulla mensola del camino trovavano posto delicate porcellane, mentre il resto della camera era puntellato di oggetti d’argento, con placche porta-candele, vasi, bracieri e due sculture di mori reggi conchiglia in dimensioni simili al vero e del peso di 66 kg ciascuna.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Nessuno di questi oggetti è oggi conservato perché, come in altri casi, pochi anni dopo la morte di Madama Reale furono portati alla zecca per essere fusi e recuperare così il metallo.",
                   "m_type": "speak"
                 }
               ]

@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package format="3">
+    <name>uc3_launch</name>
+    <version>0.1.0</version>
+    <description>ROS2 package containing launch files</description>
+    <maintainer email="ettore.landini@iit.it">Your Name</maintainer>
+    <license>TODO: License declaration</license>
+
+    <buildtool_depend>ament_cmake</buildtool_depend>
+    <build_depend>launch</build_depend>
+
+    <export>
+        <build_type>ament_cmake</build_type>
+    </export>
+</package>
