@@ -20,7 +20,7 @@
             </group>
         </device>
 
-        <device name="audioRecWrapper" type="audioRecorder_nws">
+        <device name="audioRecWrapper" type="audioRecorder_nws_yarp">
             <param extern-name="rec_min_samples_over_network" name="min_samples_over_network">
                 8820
             </param>
