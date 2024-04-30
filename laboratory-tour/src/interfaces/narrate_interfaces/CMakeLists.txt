@@ -7,7 +7,6 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(sensor_msgs REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
@@ -15,10 +14,8 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(narrate_interfaces
 "srv/Narrate.srv"
 "srv/IsDone.srv"
-DEPENDENCIES sensor_msgs
 LIBRARY_NAME narrate_interfaces 
 )
-ament_export_dependencies( sensor_msgs)
 
 
 if(BUILD_TESTING)
