@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<!--
+ Copyright (C) 2020 Fondazione Istituto Italiano di Tecnologia (IIT)
+ All Rights Reserved.
+-->
+<root main_tree_to_execute="BehaviorTree">
+    <!-- ////////// -->
+    <BehaviorTree ID="BehaviorTree">
+        <ReactiveSequence>
+            <ReactiveFallback>
+                <ReactiveSequence>
+                    <Condition ID="YARPCondition" name="BatteryLevel" port_name="BatteryLevelSkill" carrier="tcp+send.portmonitor2+file.Skill_request+type.dll"/>
+                    <Condition ID="YARPCondition" name="BatteryNotCharging" port_name="BatteryNotChargingSkill" carrier="tcp+send.portmonitor2+file.Skill_request+type.dll"/>
+                </ReactiveSequence>
+                <ReactiveSequence>
+                    <ReactiveFallback>
+                        <Condition ID="YARPCondition" name="IsAtChargingStation" port_name="" carrier="tcp+send.portmonitor2+file.Skill_request+type.dll"/>
+                        <Action ID="YARPAction" name="GoToChargingStation" carrier="tcp+send.portmonitor2+file.Skill_request+type.dll"/>
+                    </ReactiveFallback>
+                    <Action ID="AlwaysRunning" name="Wait"/>
+                </ReactiveSequence>
+            </ReactiveFallback>
+            <ReactiveFallback>
+                <Condition ID="YARPCondition" name="IsFetched" port_name="" carrier="tcp+send.portmonitor2+file.Skill_request+type.dll"/>
+                <ReactiveSequence>
+                  <ReactiveFallback>
+                      <Condition ID="YARPCondition" name="IsAtUser" port_name="" carrier="tcp+send.portmonitor2+file.Skill_request+type.dll"/>
+                      <Action ID="YARPAction" name="GoToUser" port_name="goTo" carrier="tcp+send.portmonitor2+file.Skill_request+type.dll"/>
+                  </ReactiveFallback>
+                  <Action ID="YARPAction" name="Fetch" carrier="tcp+send.portmonitor2+file.Skill_request+type.dll"/>
+                </ReactiveSequence>
+            </ReactiveFallback>
+            <ReactiveFallback>
+                <Condition ID="YARPCondition" name="IsAtDestination" port_name="" carrier="tcp+send.portmonitor2+file.Skill_request+type.dll"/>
+                <Action ID="YARPAction" name="GoToDestination" port_name="goTo" carrier="tcp+send.portmonitor2+file.Skill_request+type.dll"/>
+            </ReactiveFallback>
+        </ReactiveSequence>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <TreeNodesModel>
+        <Action ID="AlwaysRunning"/>
+        <Condition ID="FlipFlopCondition"/>
+        <Action ID="YARPAction">
+            <input_port name="port_name" type="std::string"/>
+            <input_port name="carrier" type="std::string"/>
+        </Action>
+        <Condition ID="YARPCondition">
+            <input_port name="port_name" type="std::string"/>
+            <input_port name="carrier" type="std::string"/>
+        </Condition>
+    </TreeNodesModel>
+    <!-- ////////// -->
+</root>
