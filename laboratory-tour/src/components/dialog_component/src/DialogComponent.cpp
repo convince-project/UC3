@@ -435,7 +435,7 @@ void DialogComponent::DialogExecution()
         }
         auto result = setMicrophoneClient->async_send_request(request);
         // Wait for the result.
-        if (rclcpp::spin_until_future_complete(m_node, result) == rclcpp::FutureReturnCode::SUCCESS)
+        if (rclcpp::spin_until_future_complete(setCommandClientNode, result) == rclcpp::FutureReturnCode::SUCCESS)
         {
           RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Mic Enabled");
         } else {
@@ -531,13 +531,42 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
     // We get a string formatted like in https://github.com/hsp-iit/tour-guide-robot/blob/iron/app/llmTest/conf/Format_commands_poi_prompt.txt
     // Load the command into a bottle to split it
     yarp::os::Bottle extracted_command;
-    extracted_command.fromString(command);
+    if (command[0] != '('){
+	                    yInfo() << "[DialogComponent::DialogExecution] Starting Text to Speech Service";
+                auto setCommandClientNode2 = rclcpp::Node::make_shared("TextToSpeechComponentSetCommandNode2");
 
+                auto speakClient2 = setCommandClientNode2->create_client<text_to_speech_interfaces::srv::Speak>("/TextToSpeechComponent/Speak");
+                auto speak_request2 = std::make_shared<text_to_speech_interfaces::srv::Speak::Request>();
+                speak_request2->text = command;
+                // Wait for service
+                while (!speakClient2->wait_for_service(std::chrono::seconds(1))) {
+                    if (!rclcpp::ok()) {
+                        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setCommandClient'. Exiting.");
+                    }
+                }
+                auto speak_result2 = speakClient2->async_send_request(speak_request2);
+
+                // Wait for the result.
+                if (rclcpp::spin_until_future_complete(setCommandClientNode2, speak_result2) == rclcpp::FutureReturnCode::SUCCESS)
+                {
+                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Speak succeeded");
+                } else {
+                  RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service speak");
+                  return false;
+                }
+
+	return true;
+    }
+
+    extracted_command.fromString(command);
+    
     yDebug() << "[DialogComponent::InterpretCommand] Number of elements in bottle: " << extracted_command.size();
     // In the first position we have the general thing to do, like: explain, next_poi, end_tour
     auto theList = extracted_command.get(0).asList();
+    yDebug() << "DialogComponent::InterpretCommand" << __LINE__;
     std::string action = theList->get(0).asString();
-    yDebug() << "[DialogComponent::InterpretCommand] Got action: " << action << extracted_command.toString() << "Command: " << command;
+    yDebug() << "DialogComponent::InterpretCommand" << __LINE__;
+    // yDebug() << "[DialogComponent::InterpretCommand] Got action: " << action << extracted_command.toString() << "Command: " << command;
     if (action == "cmd_unknown")
     {
         m_lastQuestion = theList->get(1).asString();
@@ -594,7 +623,7 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
                 auto speak_result = speakClient->async_send_request(speak_request);
                 
                 // Wait for the result.
-                if (rclcpp::spin_until_future_complete(m_node, speak_result) == rclcpp::FutureReturnCode::SUCCESS)
+                if (rclcpp::spin_until_future_complete(setCommandClientNode, speak_result) == rclcpp::FutureReturnCode::SUCCESS)
                 {
                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Speak succeeded");
                 } else {
@@ -822,7 +851,7 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
                         auto speak_result = speakClient->async_send_request(speak_request);
 
                         // Wait for the result.
-                        if (rclcpp::spin_until_future_complete(m_node, speak_result) == rclcpp::FutureReturnCode::SUCCESS)
+                        if (rclcpp::spin_until_future_complete(setCommandClientNode, speak_result) == rclcpp::FutureReturnCode::SUCCESS)
                         {
                           RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Speak succeeded");
                         } else {
