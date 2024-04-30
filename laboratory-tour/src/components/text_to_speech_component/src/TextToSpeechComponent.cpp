@@ -39,24 +39,107 @@ bool TextToSpeechComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
     prop.put("device", device);
     prop.put("local", local);
     prop.put("remote", remote);
-    //prop.put("period", 5);
 
     m_speechSynthPoly.open(prop);
     if (!m_speechSynthPoly.isValid())
     {
-        yError() << "Error opening speech synthesizer Client PolyDriver. Check parameters";
+        yError() << "[TextToSpeechComponent::ConfigureYARP] Error opening speech synthesizer Client PolyDriver. Check parameters";
         return false;
     }
     m_speechSynthPoly.view(m_iSpeechSynth);
     if (!m_iSpeechSynth)
     {
-        yError() << "Error opening iSpeechSynth interface. Device not available";
+        yError() << "[TextToSpeechComponent::ConfigureYARP] Error opening iSpeechSynth interface. Device not available";
         return false;
     }
 
+    // ---------------------SPEAKERS----------------------------
+    {
+        okCheck = rf.check("TEXT_TO_SPEECH_COMPONENT");
+        if (okCheck)
+        {
+            yarp::os::Searchable &speakersConfig = rf.findGroup("TEXT_TO_SPEECH_COMPONENT");
+            std::string localAudioName = "/TextToSpeechComponent/audio:o";
+            std::string remoteAudioName = "/audioPlayerWrapper/audio:i";
+            std::string statusRemoteName = "/audioPlayerWrapper/status:o";
+            std::string statusLocalName = "/TextToSpeechComponent/audioPlayerWrapper/status:i";
+            if (speakersConfig.check("localAudioName"))
+            {
+                localAudioName = speakersConfig.find("localAudioName").asString();
+            }
+            if (speakersConfig.check("remoteAudioName"))
+            {
+                remoteAudioName = speakersConfig.find("remoteAudioName").asString();
+            }
+            if (speakersConfig.check("statusRemoteName"))
+            {
+                statusRemoteName = speakersConfig.find("statusRemoteName").asString();
+            }
+            if (speakersConfig.check("statusLocalName"))
+            {
+                statusLocalName = speakersConfig.find("statusLocalName").asString();
+            }
+
+            m_audioPort.open(localAudioName);
+            if (!yarp::os::Network::connect(remoteAudioName, localAudioName))
+            {
+                yWarning() << "[TextToSpeechComponent::ConfigureYARP] Unable to connect port: " << remoteAudioName << " with: " << localAudioName;
+            }
+
+            m_audioStatusPort.open(statusLocalName);
+            if (!yarp::os::Network::connect(statusRemoteName, statusLocalName))
+            {
+                yWarning() << "[TextToSpeechComponent::ConfigureYARP] Unable to connect port: " << statusRemoteName << " with: " << statusLocalName;
+            }
+        }
+    }
+
+    // ---------------------Microphone Activation----------------------------
+    {
+        okCheck = rf.check("MICROPHONE");
+        device = "audioRecorder_nwc_yarp";
+        local = "/DialogComponent/audio";
+        remote = "/audioRecorder_nws";
+
+        if (okCheck)
+        {
+            yarp::os::Searchable &mic_config = rf.findGroup("MICROPHONE");
+            if (mic_config.check("device"))
+            {
+                device = mic_config.find("device").asString();
+            }
+            if (mic_config.check("local-suffix"))
+            {
+                local = "/DialogComponent" + mic_config.find("local-suffix").asString();
+            }
+            if (mic_config.check("remote"))
+            {
+                remote = mic_config.find("remote").asString();
+            }
+        }
+
+        yarp::os::Property audioRecorder_prop;
+        audioRecorder_prop.put("device", device);
+        audioRecorder_prop.put("local", local);
+        audioRecorder_prop.put("remote", remote);
+
+        m_audioRecorderPoly.open(audioRecorder_prop);
+        if (!m_audioRecorderPoly.isValid())
+        {
+            yError() << "[DialogComponent::ConfigureYARP] Error opening audioRecorder Client PolyDriver. Check parameters";
+            return false;
+        }
+        m_audioRecorderPoly.view(m_iAudioGrabberSound);
+        if (!m_iAudioGrabberSound)
+        {
+            yError() << "[DialogComponent::ConfigureYARP] Error opening audioRecorderSound interface. Device not available";
+            return false;
+        }
+    }
+
     //Audio Device Helper
-    m_audioPort.open("/TextToSpeechComponent/audio:o");
-    m_audioStatusPort.open("/TextToSpeechComponent/audioStatus:i");
+    //m_audioPort.open("/TextToSpeechComponent/audio:o");
+    //m_audioStatusPort.open("/TextToSpeechComponent/audioStatus:i");
     return true;
 }
 
@@ -88,9 +171,14 @@ bool TextToSpeechComponent::start(int argc, char*argv[])
                                                                                                 this,
                                                                                                 std::placeholders::_1,
                                                                                                 std::placeholders::_2));
-    m_speakerStatusPub = m_node->create_publisher<std_msgs::msg::Bool>("/TextToSpeechComponent/DoneSpeaking", 10);
+    m_SetMicrophoneService = m_node->create_service<text_to_speech_interfaces::srv::SetMicrophone>("/TextToSpeechComponent/SetMicrophone",
+                                                                                        std::bind(&TextToSpeechComponent::SetMicrophone,
+                                                                                                this,
+                                                                                                std::placeholders::_1,
+                                                                                                std::placeholders::_2));
+    m_speakerStatusPub = m_node->create_publisher<std_msgs::msg::Bool>("/TextToSpeechComponent/is_speaking", 10);
     
-    m_timer = m_node->create_wall_timer(20ms, 
+    m_timer = m_node->create_wall_timer(200ms, 
                     [this]()->void {
                         auto data = m_audioStatusPort.read();
                         if (data != nullptr)
@@ -99,8 +187,21 @@ bool TextToSpeechComponent::start(int argc, char*argv[])
                             if(data->current_buffer_size > 0)
                                 msg.data = true;
                             else
+                            {
+                                if (!m_manualMicDisabled)
+                                {
+                                    bool isRecording;
+                                    m_iAudioGrabberSound->isRecording(isRecording);
+                                    if(isRecording)
+                                    {
+                                        if(!m_iAudioGrabberSound->stopRecording())
+                                        {
+                                            RCLCPP_ERROR(m_node->get_logger(), "Unable to stop recording!");
+                                        }
+                                    }
+                                }
                                 msg.data = false;
-                            
+                            }
                             m_speakerStatusPub->publish(msg);
                         }
                     });
@@ -123,16 +224,26 @@ void TextToSpeechComponent::spin()
 void TextToSpeechComponent::Speak(const std::shared_ptr<text_to_speech_interfaces::srv::Speak::Request> request,
                         std::shared_ptr<text_to_speech_interfaces::srv::Speak::Response> response)
 {
-    yarp::sig::Sound sound;
+    yInfo() << "[TextToSpeechComponent::Speak] service called";
+    bool isRecording;
+    m_iAudioGrabberSound->isRecording(isRecording);
+    if (isRecording)
+    {
+        m_iAudioGrabberSound->stopRecording();
+    }
+    yInfo() << "[TextToSpeechComponent::Speak] passed mic";
+    yarp::sig::Sound sound = m_audioPort.prepare();
+    sound.clear();
     if (!m_iSpeechSynth->synthesize(request->text, sound))
     {
+        yError() << "[TextToSpeechComponent::Speak] Error in synthesize";
         response->is_ok=false;
         response->error_msg="Unable to synthesize text";
+        m_iAudioGrabberSound->startRecording();
     }
     else
     {
-        auto& soundport  = m_audioPort.prepare();
-        soundport = sound;
+        yInfo() << "[TextToSpeechComponent::Speak] synthesized with size: " << sound.getDuration();
         m_audioPort.write();
         response->is_ok=true;
     }
@@ -208,4 +319,37 @@ void TextToSpeechComponent::IsSpeaking(const std::shared_ptr<text_to_speech_inte
         else
             response->is_speaking = false;
     }
+}
+
+void TextToSpeechComponent::SetMicrophone(const std::shared_ptr<text_to_speech_interfaces::srv::SetMicrophone::Request> request,
+                        std::shared_ptr<text_to_speech_interfaces::srv::SetMicrophone::Response> response)
+{
+    bool isRecording;
+    m_iAudioGrabberSound->isRecording(isRecording);
+    if (request->enabled && isRecording)
+    {
+        response->is_ok = false;
+        response->error_msg = "The robot is already Speaking";
+        return;
+    }
+    
+    if (request->enabled)
+    {
+        m_manualMicDisabled = false;
+        if(!m_iAudioGrabberSound->startRecording())
+        {
+            response->is_ok = false;
+            response->error_msg = "Unable to START recording";
+        }
+    }
+    else
+    {
+        if(!m_iAudioGrabberSound->stopRecording())
+        {
+            response->is_ok = false;
+            response->error_msg = "Unable to STOP recording";
+        }
+        m_manualMicDisabled = true;
+    }
+    response->is_ok = true;
 }
