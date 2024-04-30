@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(narrate_skill)
+project(narrate_poi_skill)
 # set(CMAKE_CXX_STANDARD 20)
 # set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -29,10 +29,10 @@ target_include_directories(${PROJECT_NAME}
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
 target_sources( ${PROJECT_NAME} PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp 
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/NarrateSkill.cpp 
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/NarrateSkill.h
-  #${CMAKE_CURRENT_SOURCE_DIR}/src/NarrateDataModel.cpp 
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/NarratePoiSkill.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/NarratePoiSkill.h
+  #${CMAKE_CURRENT_SOURCE_DIR}/src/NarrateDataModel.cpp
   #${CMAKE_CURRENT_SOURCE_DIR}/include/NarrateDataModel.h
   )
 
@@ -50,6 +50,6 @@ if(BUILD_TESTING)
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
-qt6_add_statecharts(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/src/NarrateSkillSM.scxml)
+qt6_add_statecharts(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/src/NarratePoiSkillSM.scxml)
 
 ament_package()

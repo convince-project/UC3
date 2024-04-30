@@ -1,7 +1,7 @@
-<scxml 
-  initial="idle" 
-  version="1.0" 
-  name="NarrateSkillAction"
+<scxml
+  initial="idle"
+  version="1.0"
+  name="NarratePoiSkillAction"
   datamodel="ecmascript"
   xmlns="http://www.w3.org/2005/07/scxml">
 
@@ -11,7 +11,7 @@
 
   <state id="idle">
       <transition event="CMD_TICK" target="talk" />
-      <transition event="CMD_HALT" target="sendHalted" /> 
+      <transition event="CMD_HALT" target="sendHalted" />
   </state>
 
   <state id="talk">
@@ -49,7 +49,7 @@
   </state>
 
 
-  <state id="checkIfDone"> 
+  <state id="checkIfDone">
     <transition cond="m_is_done" target="sendDone" />
     <transition target="sendRunning"/>
   </state>
@@ -57,7 +57,7 @@
   <state id="sendDone">
     <onentry>
         <send event="TICK_RESPONSE">
-          <param name="result" expr='"SUCCESS"'/> 
+          <param name="result" expr='"SUCCESS"'/>
         </send>
     </onentry>
     <transition cond="m_is_done" target="idle" />

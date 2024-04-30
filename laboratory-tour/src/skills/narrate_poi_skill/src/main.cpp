@@ -4,7 +4,7 @@
 
 
 #include <iostream>
-#include "NarrateSkill.h"
+#include "NarratePoiSkill.h"
 
 #include <thread>
 #include <chrono>
@@ -14,12 +14,12 @@
 int main(int argc, char *argv[])
 {
   QCoreApplication app(argc, argv);
-  NarrateSkill stateMachine("Narrate");
+  NarratePoiSkill stateMachine("Narrate");
   stateMachine.start(argc, argv);
 
   int ret=app.exec();
-  
+
   return ret;
-  
+
 }
 

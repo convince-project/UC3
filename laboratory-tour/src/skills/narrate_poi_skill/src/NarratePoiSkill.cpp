@@ -5,7 +5,7 @@
  *                                                                            *
  ******************************************************************************/
 
-#include "NarrateSkill.h"
+#include "NarratePoiSkill.h"
 #include <future>
 #include <QTimer>
 #include <QDebug>
@@ -23,7 +23,7 @@ T convert(const std::string& str) {
         return std::stod(str);
     } else if constexpr (std::is_same_v<T, float>) {
         return std::stof(str);
-    } 
+    }
     else if constexpr (std::is_same_v<T, std::string>) {
         return str;
     }
@@ -33,18 +33,18 @@ T convert(const std::string& str) {
     }
 }
 
-NarrateSkill::NarrateSkill(std::string name ) :
+NarratePoiSkill::NarratePoiSkill(std::string name ) :
 		m_name(std::move(name))
 {
 }
 
-void NarrateSkill::spin(std::shared_ptr<rclcpp::Node> node)
+void NarratePoiSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
 	rclcpp::spin(node);
 	rclcpp::shutdown();
 }
 
-bool NarrateSkill::start(int argc, char*argv[])
+bool NarratePoiSkill::start(int argc, char*argv[])
 {
 	if(!rclcpp::ok())
 	{
@@ -52,17 +52,17 @@ bool NarrateSkill::start(int argc, char*argv[])
 	}
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
-	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "NarrateSkill::start");
-	std::cout << "NarrateSkill::start";
+	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "NarratePoiSkill::start");
+	std::cout << "NarratePoiSkill::start";
 
 	m_tickService = m_node->create_service<bt_interfaces::srv::TickAction>(m_name + "Skill/tick",
-                                                                           	std::bind(&NarrateSkill::tick,
+                                                                           	std::bind(&NarratePoiSkill::tick,
                                                                            	this,
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
 
 	m_haltService = m_node->create_service<bt_interfaces::srv::HaltAction>(m_name + "Skill/halt",
-                                                                            	std::bind(&NarrateSkill::halt,
+                                                                            	std::bind(&NarratePoiSkill::halt,
                                                                             	this,
                                                                             	std::placeholders::_1,
                                                                             	std::placeholders::_2));
@@ -77,14 +77,14 @@ bool NarrateSkill::start(int argc, char*argv[])
                 RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'Narrate'. Exiting.");
                 wait_succeded = false;
                 m_stateMachine.submitEvent("NarrateComponent.Narrate.Return");
-            } 
+            }
         }
         if (wait_succeded) {
-            // send the request                                                                    
+            // send the request
             auto result = clientNarrate->async_send_request(request);
             auto futureResult = rclcpp::spin_until_future_complete(nodeNarrate, result);
             auto response = result.get();
-            if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
+            if (futureResult == rclcpp::FutureReturnCode::SUCCESS)
             {
                 if( response->is_ok ==true) {
                     QVariantMap data;
@@ -102,7 +102,7 @@ bool NarrateSkill::start(int argc, char*argv[])
     });
 
 	m_stateMachine.connectToEvent("TICK_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){
-		RCLCPP_INFO(m_node->get_logger(), "NarrateSkill::tickReturn %s", event.data().toMap()["result"].toString().toStdString().c_str());
+		RCLCPP_INFO(m_node->get_logger(), "NarratePoiSkill::tickReturn %s", event.data().toMap()["result"].toString().toStdString().c_str());
 		std::string result = event.data().toMap()["result"].toString().toStdString();
 		if (result == "SUCCESS" )
 		{
@@ -113,7 +113,7 @@ bool NarrateSkill::start(int argc, char*argv[])
 			m_tickResult.store(Status::running);
 		}
 		else if (result == "FAILURE" )
-		{ 
+		{
 			m_tickResult.store(Status::failure);
 		}
 	});
@@ -128,14 +128,14 @@ bool NarrateSkill::start(int argc, char*argv[])
                 RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'IsDone'. Exiting.");
                 wait_succeded = false;
                 m_stateMachine.submitEvent("NarrateComponent.IsDone.Return");
-            } 
+            }
         }
         if (wait_succeded) {
-            // send the request                                                                    
+            // send the request
             auto result = clientIsDone->async_send_request(request);
             auto futureResult = rclcpp::spin_until_future_complete(nodeIsDone, result);
             auto response = result.get();
-            if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
+            if (futureResult == rclcpp::FutureReturnCode::SUCCESS)
             {
                 if( response->is_ok ==true) {
                     QVariantMap data;
@@ -153,7 +153,7 @@ bool NarrateSkill::start(int argc, char*argv[])
     });
 
 	m_stateMachine.connectToEvent("HALT_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){
-		RCLCPP_INFO(m_node->get_logger(), "NarrateSkill::haltresponse");
+		RCLCPP_INFO(m_node->get_logger(), "NarratePoiSkill::haltresponse");
 		m_haltResult.store(true);
 	});
 
@@ -163,21 +163,21 @@ bool NarrateSkill::start(int argc, char*argv[])
 	return true;
 }
 
-void NarrateSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::TickAction::Request> request,
+void NarratePoiSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::TickAction::Request> request,
                                 std::shared_ptr<bt_interfaces::srv::TickAction::Response>      response)
 {
     std::lock_guard<std::mutex> lock(m_requestMutex);
-    RCLCPP_INFO(m_node->get_logger(), "NarrateSkill::tick");
+    RCLCPP_INFO(m_node->get_logger(), "NarratePoiSkill::tick");
     auto message = bt_interfaces::msg::ActionResponse();
     m_tickResult.store(Status::undefined); //here we can put a struct
     m_stateMachine.submitEvent("CMD_TICK");
-   
-    while(m_tickResult.load()== Status::undefined) 
+
+    while(m_tickResult.load()== Status::undefined)
     {
         std::this_thread::sleep_for (std::chrono::milliseconds(100));
         // qInfo() <<  "active names" << m_stateMachine.activeStateNames();
     }
-    switch(m_tickResult.load()) 
+    switch(m_tickResult.load())
     {
         case Status::running:
             response->status.status = message.SKILL_RUNNING;
@@ -187,27 +187,27 @@ void NarrateSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces::s
             break;
         case Status::success:
             response->status.status = message.SKILL_SUCCESS;
-            break;            
+            break;
     }
-    RCLCPP_INFO(m_node->get_logger(), "NarrateSkill::tickDone");
-   
+    RCLCPP_INFO(m_node->get_logger(), "NarratePoiSkill::tickDone");
+
     response->is_ok = true;
 }
 
-void NarrateSkill::halt( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::HaltAction::Request> request,
+void NarratePoiSkill::halt( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::HaltAction::Request> request,
     [[maybe_unused]] std::shared_ptr<bt_interfaces::srv::HaltAction::Response> response)
 {
     std::lock_guard<std::mutex> lock(m_requestMutex);
-    RCLCPP_INFO(m_node->get_logger(), "NarrateSkill::halt");
+    RCLCPP_INFO(m_node->get_logger(), "NarratePoiSkill::halt");
     m_haltResult.store(false); //here we can put a struct
     m_stateMachine.submitEvent("CMD_HALT");
-   
-    while(!m_haltResult.load()) 
+
+    while(!m_haltResult.load())
     {
         std::this_thread::sleep_for (std::chrono::milliseconds(100));
         // qInfo() <<  "active names" << m_stateMachine.activeStateNames();
     }
-    RCLCPP_INFO(m_node->get_logger(), "NarrateSkill::haltDone");
-   
+    RCLCPP_INFO(m_node->get_logger(), "NarratePoiSkill::haltDone");
+
     response->is_ok = true;
 }
