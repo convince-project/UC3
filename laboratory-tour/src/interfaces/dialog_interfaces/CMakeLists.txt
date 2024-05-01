@@ -15,12 +15,13 @@ find_package(sensor_msgs REQUIRED)
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
-rosidl_generate_interfaces(navigation_interfaces
+rosidl_generate_interfaces(dialog_interfaces
                             "srv/SetLanguage.srv"
                             "srv/GetLanguage.srv"
                             "srv/EnableDialog.srv"
                             "srv/SetPoi.srv"
                             "srv/GetState.srv"
+                            "srv/IsSpeaking.srv"
                             DEPENDENCIES sensor_msgs
                             LIBRARY_NAME dialog_interfaces 
 )

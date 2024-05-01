@@ -16,6 +16,8 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(dialog_interfaces REQUIRED)
+find_package(nlohmann_json REQUIRED)
+find_package(text_to_speech_interfaces REQUIRED)
 #find_package(YCM REQUIRED)
 find_package(YARP REQUIRED COMPONENTS dev os sig REQUIRED)
 
@@ -59,6 +61,8 @@ ament_target_dependencies(${PROJECT_NAME}
 "YARP"
 "rclcpp"
 "dialog_interfaces"
+"nlohmann_json"
+"text_to_speech_interfaces"
 )
 
 install(TARGETS ${PROJECT_NAME}
