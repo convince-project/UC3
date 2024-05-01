@@ -67,6 +67,7 @@ void NarrateComponent::Narrate(const std::shared_ptr<narrate_interfaces::srv::Na
     }
     std::thread threadLocal([this](){
         // calls the SetCommand service
+	            RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), "NEW_THREAD");
         auto setCommandClientNode = rclcpp::Node::make_shared("NarrateComponentSetCommandNode");
         std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::SetCommand>> setCommandClient =  
         setCommandClientNode->create_client<scheduler_interfaces::srv::SetCommand>("/SchedulerComponent/SetCommand");
@@ -143,8 +144,8 @@ void NarrateComponent::Narrate(const std::shared_ptr<narrate_interfaces::srv::Na
                 auto isSpeakingResult = isSpeakingClient->async_send_request(isSpeakingRequest);
                 auto futureIsSpeakingResult = rclcpp::spin_until_future_complete(isSpeakingClientNode, isSpeakingResult);
                 auto isSpeakingResponse = isSpeakingResult.get();
-                isSpeaking = !isSpeakingResponse->is_speaking;
-                
+                isSpeaking = isSpeakingResponse->is_speaking;
+                RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "is_speaking" << isSpeakingResponse->is_speaking); 
             } while (isSpeaking);
             // calls the UpdateAction service
             auto updateActionClientNode = rclcpp::Node::make_shared("NarrateComponentUpdateActionNode");
@@ -163,6 +164,7 @@ void NarrateComponent::Narrate(const std::shared_ptr<narrate_interfaces::srv::Na
             
             auto updateActionResponse = updateActionResult.get();
             m_doneWithPoi = updateActionResponse->done_with_poi;
+	    RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "donee_with_poi" << updateActionResponse->done_with_poi);
         } while (!m_doneWithPoi);  
         std::cout << " Done with Poi " << std::endl;
     });
