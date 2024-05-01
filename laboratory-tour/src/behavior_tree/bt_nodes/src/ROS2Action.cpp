@@ -36,13 +36,14 @@ ROS2Action::ROS2Action(const std::string name, const BT::NodeConfiguration& conf
 int ROS2Action::sendTickToSkill() 
 {
     auto msg = bt_interfaces::msg::ActionResponse();
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "sending tick to  %s ", ActionNodeBase::name().c_str());
     auto request = std::make_shared<bt_interfaces::srv::TickAction::Request>();
     while (!m_clientTick->wait_for_service(std::chrono::seconds(1))) {
         if (!rclcpp::ok()) {
         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service TickAction. Exiting.");
         return msg.SKILL_FAILURE;
         }
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "service TickAction not available, waiting again...");
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "service TickAction in %s not available, waiting again...", ActionNodeBase::name().c_str());
     }
     auto result = m_clientTick->async_send_request(request);
     std::this_thread::sleep_for (std::chrono::milliseconds(100));
@@ -116,8 +117,8 @@ bool ROS2Action::init()
     }
 
     m_node = rclcpp::Node::make_shared(m_name+ "Leaf");
-    m_clientTick = m_node->create_client<bt_interfaces::srv::TickAction>(m_name + "Skill/tick" + m_suffixMonitor);
-    m_clientHalt = m_node->create_client<bt_interfaces::srv::HaltAction>(m_name + "Skill/halt" + m_suffixMonitor);
+    m_clientTick = m_node->create_client<bt_interfaces::srv::TickAction>(ActionNodeBase::name() + "Skill/tick" + m_suffixMonitor);
+    m_clientHalt = m_node->create_client<bt_interfaces::srv::HaltAction>(ActionNodeBase::name() + "Skill/halt" + m_suffixMonitor);
     RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"),"name " << m_name << "suffixmonitor " << m_suffixMonitor);
     
     return true;
