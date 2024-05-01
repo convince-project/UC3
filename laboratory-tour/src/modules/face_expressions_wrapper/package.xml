@@ -8,7 +8,7 @@
   <license>TODO: License declaration</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
-  <depend>face_expressions_wrapper_interfaces</depend>
+  <depend>face_expressions_interfaces</depend>
   <!--<depend>text_to_speech_interfaces</depend>-->
 
   <test_depend>ament_lint_auto</test_depend>
