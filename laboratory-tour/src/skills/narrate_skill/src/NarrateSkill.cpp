@@ -140,13 +140,15 @@ bool NarrateSkill::start(int argc, char*argv[])
                 if( response->is_ok ==true) {
                     QVariantMap data;
                     data.insert("result", "SUCCESS");
+                    data.insert("is_done", response->is_done);
                     m_stateMachine.submitEvent("NarrateComponent.IsDone.Return", data);
-                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NarrateComponent.IsDone.Return");
+                    RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "NarrateComponent.IsDone.Return success" << response->is_done);
                 } else {
                     QVariantMap data;
                     data.insert("result", "FAILURE");
+		    data.insert("is_done", response->is_done);
                     m_stateMachine.submitEvent("NarrateComponent.IsDone.Return", data);
-                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NarrateComponent.IsDone.Return");
+                    RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "NarrateComponent.IsDone.Return failure " << response->is_done);
                 }
             }
         }

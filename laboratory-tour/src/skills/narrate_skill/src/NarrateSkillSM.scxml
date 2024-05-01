@@ -7,6 +7,7 @@
 
   <datamodel>
     <data id="m_text" expr="'Follow me!'"/>
+    <data id="m_is_done" expr="0"/>
   </datamodel>
 
   <state id="idle">
@@ -50,7 +51,12 @@
 
 
   <state id="checkIfDone"> 
-    <transition cond="m_is_done" target="sendDone" />
+    <onentry>
+        <log expr='"checkIfDone"'/>
+	<log expr="m_is_done"/>
+    </onentry>
+
+    <transition cond="m_is_done == 1" target="sendDone" />
     <transition target="sendRunning"/>
   </state>
 
