@@ -1,0 +1,113 @@
+<scxml 
+  initial="idle" 
+  version="1.0" 
+  name="SayWhileNavigatingSkillAction"
+  datamodel="ecmascript"
+  xmlns="http://www.w3.org/2005/07/scxml">
+
+  <datamodel>
+    <data id="m_is_done"/>
+    <data id="m_result"/>
+    <data id="m_command" expr="'sayWhileNavigating'"/>
+  </datamodel>
+
+  <state id="idle">
+      <transition event="CMD_TICK" target="talk" />
+      <transition event="CMD_HALT" target="stop" /> 
+  </state>
+
+  <state id="talk">
+      <onentry>
+          <send event="NarrateComponent.Narrate.Call">
+            <param name="command" expr="m_command"/>
+          </send>
+      </onentry>
+      <transition event="NarrateComponent.Narrate.Return" target="talkResult">
+        <assign expr="_event.data.result" location="m_result"/>
+      </transition>
+  </state>
+
+  <state id="talkResult">
+    <transition cond="m_result == 'SUCCESS'" target="sendRunning" />
+    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+  </state>
+
+  <state id="stop">
+      <onentry>
+          <send event="NarrateComponent.Stop.Call">
+          </send>
+      </onentry>
+      <transition event="NarrateComponent.Stop.Return" target="stopResult">
+        <assign expr="_event.data.result" location="m_result"/>
+      </transition>
+  </state>
+
+  <state id="stopResult">
+    <transition cond="m_result == 'SUCCESS'" target="sendHalted" />
+    <transition cond="m_result == 'FAILURE'" target="sendHalted" />
+  </state>
+
+<state id="sendRunning">
+    <onentry>
+      <send event="TICK_RESPONSE">
+        <param name="result" expr='"RUNNING"'/>
+      </send>
+    </onentry>
+    <transition target="WaitForFinish" />
+</state>
+
+<state id="WaitForFinish">
+    <transition event="CMD_TICK" target="getIfIsDone" />
+    <transition event="CMD_HALT" target="stop" />
+  </state>
+
+  <state id="getIfIsDone">
+    <onentry>
+      <send event="NarrateComponent.IsDone.Call">
+      </send>
+    </onentry>
+    <transition event="NarrateComponent.IsDone.Return" target="getIfIsDoneResult" >
+       <assign expr="_event.data.is_done" location="m_is_done"/>
+       <assign expr="_event.data.result" location="m_result"/>
+    </transition>
+  </state>
+
+  <state id="getIfIsDoneResult">
+    <transition cond="m_result == 'SUCCESS'" target="checkIfDone" />
+    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+  </state>  
+
+  <state id="checkIfDone"> 
+    <transition cond="m_is_done" target="sendDone" />
+    <transition target="sendRunning"/>
+  </state>
+
+  <state id="sendDone">
+    <onentry>
+        <send event="TICK_RESPONSE">
+          <param name="result" expr='"SUCCESS"'/> 
+        </send>
+    </onentry>
+    <transition cond="m_is_done" target="idle" />
+
+  </state>
+
+  <state id="sendHalted">
+      <onentry>
+          <send event="HALT_RESPONSE">
+          </send>
+      </onentry>
+      <transition target="idle" />
+  </state>
+
+  <state id="sendFailure">
+    <onentry>
+      <send event="TICK_RESPONSE">
+        <param name="result" expr='"FAILURE"'/>
+      </send>
+    </onentry>
+    <transition target="idle" />
+  </state>
+
+
+</scxml>
