@@ -29,6 +29,11 @@ bool NarrateComponent::start(int argc, char*argv[])
                                                                                 this,
                                                                                 std::placeholders::_1,
                                                                                 std::placeholders::_2));
+    m_stopService = m_node->create_service<narrate_interfaces::srv::Stop>("/NarrateComponent/Stop",  
+                                                                                std::bind(&NarrateComponent::Stop,
+                                                                                this,
+                                                                                std::placeholders::_1,
+                                                                                std::placeholders::_2));
 
     RCLCPP_DEBUG(m_node->get_logger(), "NarrateComponent::start");
     std::cout << "NarrateComponent::start";        
@@ -65,6 +70,7 @@ void NarrateComponent::Narrate(const std::shared_ptr<narrate_interfaces::srv::Na
     if (m_threadNarration.joinable()) {
         m_threadNarration.join();
     }
+    m_stopped = false;
     std::thread threadLocal([this](){
         // calls the SetCommand service
 	            RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), "NEW_THREAD");
@@ -169,5 +175,16 @@ void NarrateComponent::Narrate(const std::shared_ptr<narrate_interfaces::srv::Na
         std::cout << " Done with Poi " << std::endl;
     });
     m_threadNarration = std::move(threadLocal);
+    response->is_ok = true;
+}
+
+
+void NarrateComponent::Stop([[maybe_unused]] const std::shared_ptr<narrate_interfaces::srv::Stop::Request> request,
+             std::shared_ptr<narrate_interfaces::srv::Stop::Response>      response) 
+{
+    m_stopped = true;
+    if (m_threadNarration.joinable()) {
+        m_threadNarration.join();
+    }
     response->is_ok = true;
 }
