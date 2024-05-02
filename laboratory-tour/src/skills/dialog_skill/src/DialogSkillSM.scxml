@@ -13,7 +13,7 @@
 
   <state id="idle">
       <transition event="CMD_TICK" target="talk" />
-      <transition event="CMD_HALT" target="sendHalted" /> 
+      <transition event="CMD_HALT" target="stop" /> 
   </state>
 
   <state id="talk">
@@ -22,9 +22,31 @@
             <param name="enable" expr='"true"'/>
           </send>
       </onentry>
-      <transition event="DialogComponent.EnableDialog.Return" target="sendRunning">
+      <transition event="DialogComponent.EnableDialog.Return" target="talkResult">
+        <assign expr="_event.data.result" location="m_result"/>
       </transition>
   </state>
+
+  <state id="talkResult">
+    <transition cond="m_result == 'SUCCESS'" target="sendRunning" />
+    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+  </state>
+
+  <state id="stop">
+    <onentry>
+        <send event="DialogComponent.EnableDialog.Call">
+          <param name="enable" expr='"false"'/>
+        </send>
+    </onentry>
+    <transition event="DialogComponent.EnableDialog.Return" target="stopResult">
+      <assign expr="_event.data.result" location="m_result"/>
+    </transition>
+</state>
+
+<state id="stopResult">
+  <transition cond="m_result == 'SUCCESS'" target="sendHalted" />
+  <transition cond="m_result == 'FAILURE'" target="sendHalted" />
+</state>
 
 <state id="sendRunning">
     <onentry>
@@ -37,7 +59,7 @@
 
 <state id="WaitForFinish">
     <transition event="CMD_TICK" target="getIfIsDone" />
-    <transition event="CMD_HALT" target="sendHalted" />
+    <transition event="CMD_HALT" target="stop" />
   </state>
 
   <state id="getIfIsDone">
@@ -45,18 +67,18 @@
       <send event="DialogComponent.GetState.Call">
       </send>
     </onentry>
-    <transition event="DialogComponent.GetState.Return" target="checkIfDone" >
-       <assign expr="_event.data.state" location="m_state"/>
+    <transition event="DialogComponent.GetState.Return" target="getIfIsDoneResult" >
+      <assign expr="_event.data.result" location="m_result"/>
+      <assign expr="_event.data.state" location="m_state"/>
     </transition>
   </state>
   
-
+  <state id="getIfIsDoneResult">
+    <transition cond="m_result == 'SUCCESS'" target="checkIfDone" />
+    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+  </state>  
 
   <state id="checkIfDone"> 
-    <onentry>
-      <log expr="STATUS_DONE"/>
-      <log expr="m_state"/>
-    </onentry>
     <transition cond="m_state == STATUS_DONE" target="sendSuccess" />
     <transition target="sendRunning"/>
   </state>
@@ -67,7 +89,7 @@
           <param name="result" expr='"SUCCESS"'/> 
         </send>
     </onentry>
-    <transition cond="m_is_done" target="idle" />
+    <transition target="idle" />
 
   </state>
 
@@ -77,6 +99,16 @@
           </send>
       </onentry>
       <transition target="idle" />
+  </state>
+
+  <state id="sendFailure">
+    <onentry>
+      <send event="TICK_RESPONSE">
+        <param name="result" expr='"FAILURE"'/>
+      </send>
+      
+    </onentry>
+    <transition target="idle" />
   </state>
 
 
