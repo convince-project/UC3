@@ -71,14 +71,14 @@ void NarrateComponent::Narrate(const std::shared_ptr<narrate_interfaces::srv::Na
         m_threadNarration.join();
     }
     m_stopped = false;
-    std::thread threadLocal([this](){
+    std::thread threadLocal([this, request](){
         // calls the SetCommand service
-	            RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), "NEW_THREAD");
+	    RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), "NEW_THREAD");
         auto setCommandClientNode = rclcpp::Node::make_shared("NarrateComponentSetCommandNode");
         std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::SetCommand>> setCommandClient =  
         setCommandClientNode->create_client<scheduler_interfaces::srv::SetCommand>("/SchedulerComponent/SetCommand");
         auto setCommandRequest = std::make_shared<scheduler_interfaces::srv::SetCommand::Request>();
-        setCommandRequest->command = "explainOpera";
+        setCommandRequest->command = request->command;
         while (!setCommandClient->wait_for_service(std::chrono::seconds(1))) {
             if (!rclcpp::ok()) {
                 RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setCommandClient'. Exiting.");
@@ -170,6 +170,10 @@ void NarrateComponent::Narrate(const std::shared_ptr<narrate_interfaces::srv::Na
             
             auto updateActionResponse = updateActionResult.get();
             m_doneWithPoi = updateActionResponse->done_with_poi;
+            if(m_stopped)
+            {
+                break;   
+            }
 	    RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "donee_with_poi" << updateActionResponse->done_with_poi);
         } while (!m_doneWithPoi);  
         std::cout << " Done with Poi " << std::endl;
