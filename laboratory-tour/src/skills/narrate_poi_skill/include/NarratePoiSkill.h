@@ -10,7 +10,7 @@
 #include <mutex>
 #include <thread>
 #include <rclcpp/rclcpp.hpp>
-#include "NarrateSkillSM.h"
+#include "NarratePoiSkillSM.h"
 #include <bt_interfaces/msg/action_response.hpp>
 #include <narrate_interfaces/srv/narrate.hpp>
 #include <narrate_interfaces/srv/is_done.hpp>
@@ -24,10 +24,10 @@ enum class Status{
 	failure
 };
 
-class NarrateSkill
+class NarratePoiSkill
 {
 public:
-	NarrateSkill(std::string name );
+	NarratePoiSkill(std::string name );
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	void tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::TickAction::Request> request,
@@ -40,7 +40,7 @@ private:
 	std::shared_ptr<rclcpp::Node> m_node;
 	std::mutex m_requestMutex;
 	std::string m_name;
-	NarrateSkillAction m_stateMachine;
+	NarratePoiSkillAction m_stateMachine;
 	
 	std::atomic<Status> m_tickResult{Status::undefined};
 	rclcpp::Service<bt_interfaces::srv::TickAction>::SharedPtr m_tickService;

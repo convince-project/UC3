@@ -4,7 +4,7 @@
 
 
 #include <iostream>
-#include "NarrateSkill.h"
+#include "DialogSkill.h"
 
 #include <thread>
 #include <chrono>
@@ -14,7 +14,7 @@
 int main(int argc, char *argv[])
 {
   QCoreApplication app(argc, argv);
-  NarrateSkill stateMachine("Narrate");
+  DialogSkill stateMachine("Dialog");
   stateMachine.start(argc, argv);
 
   int ret=app.exec();

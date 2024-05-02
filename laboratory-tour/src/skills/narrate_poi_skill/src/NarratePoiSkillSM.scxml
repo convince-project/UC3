@@ -1,13 +1,12 @@
 <scxml 
   initial="idle" 
   version="1.0" 
-  name="NarrateSkillAction"
+  name="NarratePoiSkillAction"
   datamodel="ecmascript"
   xmlns="http://www.w3.org/2005/07/scxml">
 
   <datamodel>
-    <data id="m_text" expr="'Follow me!'"/>
-    <data id="m_is_done" expr="0"/>
+    <data id="m_is_done"/>
   </datamodel>
 
   <state id="idle">
@@ -51,12 +50,7 @@
 
 
   <state id="checkIfDone"> 
-    <onentry>
-        <log expr='"checkIfDone"'/>
-	<log expr="m_is_done"/>
-    </onentry>
-
-    <transition cond="m_is_done == 1" target="sendDone" />
+    <transition cond="m_is_done" target="sendDone" />
     <transition target="sendRunning"/>
   </state>
 
