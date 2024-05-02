@@ -361,6 +361,40 @@ void DialogComponent::EnableDialog(const std::shared_ptr<dialog_interfaces::srv:
 {
     if (request->enable)
     {
+        // calls the scheduler to get the current poi
+        std::shared_ptr<rclcpp::Node> nodeGetCurrentPoi = rclcpp::Node::make_shared("DialogComponentNodeGetCurrentPoi");
+        std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::GetCurrentPoi>> clientGetCurrentPoi = nodeGetCurrentPoi->create_client<scheduler_interfaces::srv::GetCurrentPoi>("/SchedulerComponent/GetCurrentPoi");
+        auto request = std::make_shared<scheduler_interfaces::srv::GetCurrentPoi::Request>();
+        while (!clientGetCurrentPoi->wait_for_service(std::chrono::seconds(1))) {
+            if (!rclcpp::ok()) {
+                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'GetCurrentPoi'. Exiting.");
+                response->is_ok = false;
+                response->error_msg = "Interrupted while waiting for the service 'GetCurrentPoi'. Exiting.";
+                return;
+            } 
+        }
+        // send the request                                                                    
+        auto result = clientGetCurrentPoi->async_send_request(request);
+        auto futureResult = rclcpp::spin_until_future_complete(nodeGetCurrentPoi, result);
+        auto response = result.get();
+        if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
+        {
+            if( response->is_ok ==true) {
+                m_currentPoiName = response->poi_name;
+            } else {
+                RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), "Error in getting the current poi" << response->error_msg);
+                response->is_ok=false;
+                response->error_msg = "Error in getting the current poi" + response->error_msg;
+                return;
+            }
+        } else {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Error in getting the current poi");
+            response->is_ok=false;
+            response->error_msg = "Error in getting the current poi";
+            return;
+        }
+        
+
         // Enable mic
         /*bool recording = false;
         m_iAudioGrabberSound->isRecording(recording);
