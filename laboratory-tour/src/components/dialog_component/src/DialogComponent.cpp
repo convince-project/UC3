@@ -380,7 +380,7 @@ void DialogComponent::EnableDialog(const std::shared_ptr<dialog_interfaces::srv:
         if (futureResultGetCurrentPoi == rclcpp::FutureReturnCode::SUCCESS) 
         {
             if( responseGetCurrentPoi->is_ok ==true) {
-                m_currentPoiName = response->poi_name;
+                m_currentPoiName = responseGetCurrentPoi->poi_name;
             } else {
                 RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), "Error in getting the current poi" << response->error_msg);
                 response->is_ok=false;
