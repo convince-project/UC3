@@ -9,7 +9,8 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   <depend>dialog_interfaces</depend>
-  <depend>text_to_speech_component</depend>
+  <depend>scheduler_interfaces</depend>
+  <depend>text_to_speech_interfaces</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
