@@ -10,6 +10,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(bt_interfaces REQUIRED)
 find_package(dialog_interfaces REQUIRED)
+find_package(scheduler_interfaces REQUIRED)
 find_package(Qt6 COMPONENTS Core Scxml StateMachine  REQUIRED)
 add_executable(${PROJECT_NAME} )
 
@@ -22,7 +23,7 @@ endif()
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-ament_target_dependencies(${PROJECT_NAME} bt_interfaces rclcpp dialog_interfaces)
+ament_target_dependencies(${PROJECT_NAME} bt_interfaces rclcpp dialog_interfaces scheduler_interfaces)
 target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Scxml Qt6::StateMachine)
 target_include_directories(${PROJECT_NAME}
   PUBLIC

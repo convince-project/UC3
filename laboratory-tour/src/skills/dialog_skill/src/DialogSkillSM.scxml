@@ -9,11 +9,44 @@
     <data id="STATUS_DONE" expr="'2'"/>
     <data id="m_state"/>
     <data id="m_result"/>
+    <data id="m_language"/>
   </datamodel>
 
   <state id="idle">
-      <transition event="CMD_TICK" target="talk" />
+      <transition event="CMD_TICK" target="getLanguage" />
       <transition event="CMD_HALT" target="stop" /> 
+  </state>
+
+  <state id="getLanguage">
+    <onentry>
+        <send event="SchedulerComponent.GetCurrentLanguage.Call">
+        </send>
+    </onentry>
+    <transition event="SchedulerComponent.GetCurrentLanguage.Return" target="getLanguageResult">
+      <assign expr="_event.data.result" location="m_result"/>
+      <assign expr="_event.data.language" location="m_language"/>
+    </transition>
+  </state>
+
+  <state id="getLanguageResult">
+    <transition cond="m_result == 'SUCCESS'" target="setLanguage" />
+    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+  </state>
+
+  <state id="setLanguage">
+    <onentry>
+        <send event="DialogComponent.SetLanguage.Call">
+          <param name="new_language" expr="m_language"/>
+        </send>
+    </onentry>
+    <transition event="DialogComponent.SetLanguage.Return" target="setLanguageResult">
+      <assign expr="_event.data.result" location="m_result"/>
+    </transition>
+  </state>
+
+  <state id="setLanguageResult">
+  <transition cond="m_result == 'SUCCESS'" target="talk" />
+  <transition cond="m_result == 'FAILURE'" target="sendFailure" />
   </state>
 
   <state id="talk">

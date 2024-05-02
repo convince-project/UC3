@@ -12,6 +12,8 @@
 #include <rclcpp/rclcpp.hpp>
 #include "DialogSkillSM.h"
 #include <bt_interfaces/msg/action_response.hpp>
+#include <scheduler_interfaces/srv/get_current_language.hpp>
+#include <dialog_interfaces/srv/set_language.hpp>
 #include <dialog_interfaces/srv/enable_dialog.hpp>
 #include <dialog_interfaces/srv/get_state.hpp>
 #include <bt_interfaces/srv/tick_action.hpp>
