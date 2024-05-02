@@ -335,7 +335,7 @@ bool DialogComponent::start(int argc, char*argv[])
 
 bool DialogComponent::close()
 {
-	m_exit = true;
+    m_state = IDLE;
     m_speechTranscriberPort.close();
     //Should I stop speaking somehow?
 
@@ -366,6 +366,7 @@ void DialogComponent::EnableDialog(const std::shared_ptr<dialog_interfaces::srv:
         std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::GetCurrentPoi>> clientGetCurrentPoi = nodeGetCurrentPoi->create_client<scheduler_interfaces::srv::GetCurrentPoi>("/SchedulerComponent/GetCurrentPoi");
         auto requestGetCurrentPoi = std::make_shared<scheduler_interfaces::srv::GetCurrentPoi::Request>();
         while (!clientGetCurrentPoi->wait_for_service(std::chrono::seconds(1))) {
+	    std::this_thread::sleep_for(std::chrono::milliseconds(100));
             if (!rclcpp::ok()) {
                 RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'GetCurrentPoi'. Exiting.");
                 response->is_ok = false;
@@ -478,7 +479,7 @@ void DialogComponent::DialogExecution()
     }
     // TODO check answer or error
 
-    while (!m_exit && !(m_state==SUCCESS))
+    while (m_state!=SUCCESS)
     {
         yDebug() << "[DialogComponent::DialogExecution] iteration: " << ++progressive_counter;
         // Mic management
