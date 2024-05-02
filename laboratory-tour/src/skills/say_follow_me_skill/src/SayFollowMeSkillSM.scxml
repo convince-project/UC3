@@ -7,6 +7,8 @@
 
   <datamodel>
     <data id="m_text" expr="'Follow me!'"/>
+    <data id="m_is_speaking"/>
+    <data id="m_result"/>
   </datamodel>
 
   <state id="idle">
@@ -21,13 +23,39 @@
           </send>
       </onentry>
       <transition event="TextToSpeechComponent.Speak.Return" target="talkResult">
-          <assign expr="_event.data.result" location="m_result"/>
+        <assign expr="_event.data.result" location="m_result"/>
     </transition>
   </state>
 
   <state id="talkResult">
-    <transition cond="m_result == 'SUCCESS'" target="sendSuccess" />
+    <transition cond="m_result == 'SUCCESS'" target="sendRunning" />
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+  </state>
+
+  <state id="talking">
+    <transition event="CMD_TICK" target="isSpeaking" />
+    <transition event="CMD_HALT" target="sendHalted" /> 
+  </state>
+
+  <state id="isSpeaking">
+    <onentry>
+        <send event="TextToSpeechComponent.IsSpeaking.Call">
+        </send>
+    </onentry>
+    <transition event="TextToSpeechComponent.IsSpeaking.Return" target="isSpeakingResult">
+        <assign expr="_event.data.result" location="m_result"/>
+        <assign expr="_event.data.is_speaking" location="m_is_speaking"/>
+  </transition>
+  </state>
+
+  <state id="isSpeakingResult">
+    <transition cond="m_result == 'SUCCESS'" target="checkIfSpeaking" />
+    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+  </state>
+
+  <state id="checkIfSpeaking"> 
+    <transition cond="m_is_speaking" target="sendRunning" />
+    <transition target="sendSuccess"/>
   </state>
 
   <state id="sendFailure">
@@ -46,6 +74,15 @@
       </send>
     </onentry>
     <transition target="idle" />
+</state>
+
+<state id="sendRunning">
+  <onentry>
+    <send event="TICK_RESPONSE">
+      <param name="result" expr='"RUNNING"'/>
+    </send>
+  </onentry>
+  <transition target="talking" />
 </state>
 
   <state id="sendHalted">
