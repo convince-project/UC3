@@ -9,7 +9,8 @@
     <!-- ////////// -->
     <BehaviorTree ID="CheckArtworkAndExplain">
         <Sequence>
-            <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="Narrate" nodeName="Narrate"/>
+            <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="NarratePoi" nodeName="NarratePoi"/>
+            <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="Dialog" nodeName="Dialog"/>
             <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="UpdatePoi" nodeName="UpdatePoi"/>
         </Sequence>
     </BehaviorTree>
