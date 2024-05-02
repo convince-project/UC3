@@ -14,6 +14,7 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(narrate_interfaces
 "srv/Narrate.srv"
 "srv/IsDone.srv"
+"srv/Stop.srv"
 LIBRARY_NAME narrate_interfaces 
 )
 
