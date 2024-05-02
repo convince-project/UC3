@@ -24,6 +24,15 @@ T convert(const std::string& str) {
     } else if constexpr (std::is_same_v<T, float>) {
         return std::stof(str);
     } 
+    else if constexpr (std::is_same_v<T, bool>) { 
+        if (str == "true" || str == "1") { 
+            return true; 
+        } else if (str == "false" || str == "0") { 
+            return false; 
+        } else { 
+            throw std::invalid_argument("Invalid boolean value"); 
+        } 
+    } 
     else if constexpr (std::is_same_v<T, std::string>) {
         return str;
     }
@@ -98,6 +107,41 @@ bool SayFollowMeSkill::start(int argc, char*argv[])
                     data.insert("result", "FAILURE");
                     m_stateMachine.submitEvent("TextToSpeechComponent.Speak.Return", data);
                     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TextToSpeechComponent.Speak.Return");
+                }
+            }
+        }
+    });
+
+    m_stateMachine.connectToEvent("TextToSpeechComponent.IsSpeaking.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
+        std::shared_ptr<rclcpp::Node> nodeIsSpeaking = rclcpp::Node::make_shared(m_name + "SkillNodeIsSpeaking");
+        std::shared_ptr<rclcpp::Client<text_to_speech_interfaces::srv::IsSpeaking>> clientIsSpeaking = nodeIsSpeaking->create_client<text_to_speech_interfaces::srv::IsSpeaking>("/TextToSpeechComponent/IsSpeaking");
+        auto request = std::make_shared<text_to_speech_interfaces::srv::IsSpeaking::Request>();
+        bool wait_succeded{true};
+        while (!clientIsSpeaking->wait_for_service(std::chrono::seconds(1))) {
+            if (!rclcpp::ok()) {
+                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'IsSpeaking'. Exiting.");
+                wait_succeded = false;
+                m_stateMachine.submitEvent("TextToSpeechComponent.IsSpeaking.Return");
+            } 
+        }
+        if (wait_succeded) {
+            // send the request                                                                    
+            auto result = clientIsSpeaking->async_send_request(request);
+            auto futureResult = rclcpp::spin_until_future_complete(nodeIsSpeaking, result);
+            auto response = result.get();
+            if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
+            {
+                if( response->is_ok ==true) {
+                    QVariantMap data;
+                    data.insert("result", "SUCCESS");
+                    data.insert("is_speaking", response->is_speaking);
+                    m_stateMachine.submitEvent("TextToSpeechComponent.IsSpeaking.Return", data);
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TextToSpeechComponent.IsSpeaking.Return");
+                } else {
+                    QVariantMap data;
+                    data.insert("result", "FAILURE");
+                    m_stateMachine.submitEvent("TextToSpeechComponent.IsSpeaking.Return", data);
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TextToSpeechComponent.IsSpeaking.Return");
                 }
             }
         }
