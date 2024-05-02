@@ -1,0 +1,78 @@
+<scxml 
+  initial="idle" 
+  version="1.0" 
+  name="DialogSkillAction"
+  datamodel="ecmascript"
+  xmlns="http://www.w3.org/2005/07/scxml">
+
+  <datamodel>
+    <data id="m_text" expr="'Follow me!'"/>
+    <data id="STATUS_DONE" expr="2"/>
+  </datamodel>
+
+  <state id="idle">
+      <transition event="CMD_TICK" target="talk" />
+      <transition event="CMD_HALT" target="sendHalted" /> 
+  </state>
+
+  <state id="talk">
+      <onentry>
+          <send event="DialogComponent.EnableDialog.Call">
+          </send>
+      </onentry>
+      <transition event="DialogComponent.EnableDialog.Return" target="sendRunning">
+
+      </transition>
+  </state>
+
+<state id="sendRunning">
+    <onentry>
+      <send event="TICK_RESPONSE">
+        <param name="result" expr='"RUNNING"'/>
+      </send>
+    </onentry>
+    <transition target="WaitForFinish" />
+</state>
+
+<state id="WaitForFinish">
+    <transition event="CMD_TICK" target="getIfIsDone" />
+    <transition event="CMD_HALT" target="sendHalted" />
+  </state>
+
+  <state id="getIfIsDone">
+    <onentry>
+      <send event="DialogComponent.GetState.Call">
+      </send>
+    </onentry>
+    <transition event="DialogComponent.GetState.Return" target="checkIfDone" >
+       <assign expr="_event.data.state" location="m_state"/>
+    </transition>
+  </state>
+  
+
+
+  <state id="checkIfDone"> 
+    <transition cond="m_state == STATUS_DONE" target="sendDone" />
+    <transition target="sendRunning"/>
+  </state>
+
+  <state id="sendDone">
+    <onentry>
+        <send event="TICK_RESPONSE">
+          <param name="result" expr='"SUCCESS"'/> 
+        </send>
+    </onentry>
+    <transition cond="m_is_done" target="idle" />
+
+  </state>
+
+  <state id="sendHalted">
+      <onentry>
+          <send event="HALT_RESPONSE">
+          </send>
+      </onentry>
+      <transition target="idle" />
+  </state>
+
+
+</scxml>
