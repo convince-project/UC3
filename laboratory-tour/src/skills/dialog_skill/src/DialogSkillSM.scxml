@@ -6,8 +6,9 @@
   xmlns="http://www.w3.org/2005/07/scxml">
 
   <datamodel>
-    <data id="m_text" expr="'Follow me!'"/>
-    <data id="STATUS_DONE" expr="2"/>
+    <data id="STATUS_DONE" expr="'2'"/>
+    <data id="m_state"/>
+    <data id="m_result"/>
   </datamodel>
 
   <state id="idle">
@@ -18,10 +19,10 @@
   <state id="talk">
       <onentry>
           <send event="DialogComponent.EnableDialog.Call">
+            <param name="enable" expr='"true"'/>
           </send>
       </onentry>
       <transition event="DialogComponent.EnableDialog.Return" target="sendRunning">
-
       </transition>
   </state>
 
@@ -52,11 +53,15 @@
 
 
   <state id="checkIfDone"> 
-    <transition cond="m_state == STATUS_DONE" target="sendDone" />
+    <onentry>
+      <log expr="STATUS_DONE"/>
+      <log expr="m_state"/>
+    </onentry>
+    <transition cond="m_state == STATUS_DONE" target="sendSuccess" />
     <transition target="sendRunning"/>
   </state>
 
-  <state id="sendDone">
+  <state id="sendSuccess">
     <onentry>
         <send event="TICK_RESPONSE">
           <param name="result" expr='"SUCCESS"'/> 

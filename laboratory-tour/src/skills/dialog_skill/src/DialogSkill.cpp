@@ -71,6 +71,8 @@ bool DialogSkill::start(int argc, char*argv[])
         std::shared_ptr<rclcpp::Node> nodeEnableDialog = rclcpp::Node::make_shared(m_name + "SkillNodeEnableDialog");
         std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::EnableDialog>> clientEnableDialog = nodeEnableDialog->create_client<dialog_interfaces::srv::EnableDialog>("/DialogComponent/EnableDialog");
         auto request = std::make_shared<dialog_interfaces::srv::EnableDialog::Request>();
+        auto eventParams = event.data().toMap();
+        request->enable = true;
         bool wait_succeded{true};
         while (!clientEnableDialog->wait_for_service(std::chrono::seconds(1))) {
             if (!rclcpp::ok()) {
@@ -141,6 +143,7 @@ bool DialogSkill::start(int argc, char*argv[])
                     QVariantMap data;
                     data.insert("result", "SUCCESS");
                     data.insert("state", response->state);
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "GetState: %d", response->state);
                     m_stateMachine.submitEvent("DialogComponent.GetState.Return", data);
                     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.GetState.Return");
                 } else {
