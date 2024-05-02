@@ -24,6 +24,15 @@ T convert(const std::string& str) {
     } else if constexpr (std::is_same_v<T, float>) {
         return std::stof(str);
     } 
+    else if constexpr (std::is_same_v<T, bool>) { 
+        if (str == "true" || str == "1") { 
+            return true; 
+        } else if (str == "false" || str == "0") { 
+            return false; 
+        } else { 
+            throw std::invalid_argument("Invalid boolean value"); 
+        } 
+    } 
     else if constexpr (std::is_same_v<T, std::string>) {
         return str;
     }
@@ -72,7 +81,7 @@ bool DialogSkill::start(int argc, char*argv[])
         std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::EnableDialog>> clientEnableDialog = nodeEnableDialog->create_client<dialog_interfaces::srv::EnableDialog>("/DialogComponent/EnableDialog");
         auto request = std::make_shared<dialog_interfaces::srv::EnableDialog::Request>();
         auto eventParams = event.data().toMap();
-        request->enable = true;
+        request->enable = convert<decltype(request->enable)>(eventParams["enable"].toString().toStdString());
         bool wait_succeded{true};
         while (!clientEnableDialog->wait_for_service(std::chrono::seconds(1))) {
             if (!rclcpp::ok()) {
@@ -143,7 +152,6 @@ bool DialogSkill::start(int argc, char*argv[])
                     QVariantMap data;
                     data.insert("result", "SUCCESS");
                     data.insert("state", response->state);
-                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "GetState: %d", response->state);
                     m_stateMachine.submitEvent("DialogComponent.GetState.Return", data);
                     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.GetState.Return");
                 } else {

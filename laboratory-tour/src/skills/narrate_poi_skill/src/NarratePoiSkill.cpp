@@ -24,6 +24,15 @@ T convert(const std::string& str) {
     } else if constexpr (std::is_same_v<T, float>) {
         return std::stof(str);
     } 
+    else if constexpr (std::is_same_v<T, bool>) { 
+        if (str == "true" || str == "1") { 
+            return true; 
+        } else if (str == "false" || str == "0") { 
+            return false; 
+        } else { 
+            throw std::invalid_argument("Invalid boolean value"); 
+        } 
+    } 
     else if constexpr (std::is_same_v<T, std::string>) {
         return str;
     }
@@ -71,6 +80,8 @@ bool NarratePoiSkill::start(int argc, char*argv[])
         std::shared_ptr<rclcpp::Node> nodeNarrate = rclcpp::Node::make_shared(m_name + "SkillNodeNarrate");
         std::shared_ptr<rclcpp::Client<narrate_interfaces::srv::Narrate>> clientNarrate = nodeNarrate->create_client<narrate_interfaces::srv::Narrate>("/NarrateComponent/Narrate");
         auto request = std::make_shared<narrate_interfaces::srv::Narrate::Request>();
+        auto eventParams = event.data().toMap();
+        request->command = convert<decltype(request->command)>(eventParams["command"].toString().toStdString());
         bool wait_succeded{true};
         while (!clientNarrate->wait_for_service(std::chrono::seconds(1))) {
             if (!rclcpp::ok()) {
@@ -96,6 +107,40 @@ bool NarratePoiSkill::start(int argc, char*argv[])
                     data.insert("result", "FAILURE");
                     m_stateMachine.submitEvent("NarrateComponent.Narrate.Return", data);
                     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NarrateComponent.Narrate.Return");
+                }
+            }
+        }
+    });
+
+    m_stateMachine.connectToEvent("NarrateComponent.Stop.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
+        std::shared_ptr<rclcpp::Node> nodeStop = rclcpp::Node::make_shared(m_name + "SkillNodeStop");
+        std::shared_ptr<rclcpp::Client<narrate_interfaces::srv::Stop>> clientStop = nodeStop->create_client<narrate_interfaces::srv::Stop>("/NarrateComponent/Stop");
+        auto request = std::make_shared<narrate_interfaces::srv::Stop::Request>();
+        bool wait_succeded{true};
+        while (!clientStop->wait_for_service(std::chrono::seconds(1))) {
+            if (!rclcpp::ok()) {
+                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'Stop'. Exiting.");
+                wait_succeded = false;
+                m_stateMachine.submitEvent("NarrateComponent.Stop.Return");
+            } 
+        }
+        if (wait_succeded) {
+            // send the request                                                                    
+            auto result = clientStop->async_send_request(request);
+            auto futureResult = rclcpp::spin_until_future_complete(nodeStop, result);
+            auto response = result.get();
+            if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
+            {
+                if( response->is_ok ==true) {
+                    QVariantMap data;
+                    data.insert("result", "SUCCESS");
+                    m_stateMachine.submitEvent("NarrateComponent.Stop.Return", data);
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NarrateComponent.Stop.Return");
+                } else {
+                    QVariantMap data;
+                    data.insert("result", "FAILURE");
+                    m_stateMachine.submitEvent("NarrateComponent.Stop.Return", data);
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NarrateComponent.Stop.Return");
                 }
             }
         }
