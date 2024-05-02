@@ -181,6 +181,17 @@
                 <dataField>type</dataField>
             </returnValue>
         </function>
+        <function id="GetCurrentLanguage">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>string</dataType>
+                <dataField>language</dataField>
+            </returnValue>
+        </function>
     </interface>
 
     <interface id="text_to_speech_interfaces">
@@ -346,6 +357,13 @@
 
     <interface id="dialog_interfaces">
         <function id="EnableDialog">
+            <protocol>
+                <ROS2data>
+                    <interface type="sync-service" />
+                </ROS2data>
+            </protocol>
+        </function>
+        <function id="SetLanguage">
             <protocol>
                 <ROS2data>
                     <interface type="sync-service" />
