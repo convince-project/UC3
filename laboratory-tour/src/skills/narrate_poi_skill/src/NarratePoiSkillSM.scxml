@@ -8,7 +8,7 @@
   <datamodel>
     <data id="m_is_done"/>
     <data id="m_result"/>
-    <data id="m_command" expr="'explainOpera'"/>
+    <data id="m_command" expr="'explainRoom'"/>
   </datamodel>
 
   <state id="idle">
