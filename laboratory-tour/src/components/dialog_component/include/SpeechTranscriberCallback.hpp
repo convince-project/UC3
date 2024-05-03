@@ -14,6 +14,11 @@ public:
     void onRead(yarp::os::Bottle &msg) override
     {
         std::lock_guard<std::mutex> lock(m_mutex);
+        if(hasNewMessage())
+        {
+            yWarning() << "New message received before the previous one was consumed";
+            return;
+        }
         m_listenedText = msg.get(0).asString();
         m_hasNewMessage = true;
     };
@@ -23,9 +28,23 @@ public:
         std::lock_guard<std::mutex> lock(m_mutex);
         if (m_listenedText == "")
             return false;
-        
+
         text = m_listenedText;
+        //m_hasNewMessage = false;
+        return true;
+    };
+
+    bool setMessageConsumed()
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (m_listenedText == "")
+        {
+            yWarning() << "No message to consume";
+            return false;
+        }
         m_hasNewMessage = false;
+        m_listenedText = "";
+        yWarning() << "Message consumed";
         return true;
     };
 
