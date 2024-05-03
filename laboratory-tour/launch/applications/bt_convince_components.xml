@@ -1,0 +1,83 @@
+<application>
+    <name>bt_convince_components</name>
+
+ 
+
+
+    <module>
+        <name>text_to_speech_component</name>
+        <parameters>--from /home/user1/UC3/laboratory-tour/src/components/text_to_speech_component/config/text_to_speech_config.ini</parameters>
+        <workdir>/home/user1/UC3/laboratory-tour/build/text_to_speech_component</workdir>
+        <node>r1-base</node>
+    </module>
+
+
+
+    <module>
+        <name>dialog_component</name>
+        <parameters>--from /home/user1/UC3/laboratory-tour/src/components/dialog_component/config/config.ini</parameters>
+        <workdir>/home/user1/UC3/laboratory-tour/build/dialog_component</workdir>
+        <node>r1-base</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run navigation_component navigation_component</parameters>
+        <workdir></workdir>
+        <node>r1-base</node>
+    </module>
+
+
+    <module>
+        <name>ros2</name>
+        <parameters>run blackboard_component blackboard_component</parameters>
+        <workdir></workdir>
+        <node>r1-base</node>
+    </module>
+
+
+
+    <module>
+        <name>ros2</name>
+        <parameters>run alarm_component alarm_component</parameters>
+        <workdir></workdir>
+        <node>r1-base</node>
+    </module>
+
+
+
+
+    <module>
+        <name>ros2</name>
+        <parameters>run check_network_component check_network_component</parameters>
+        <workdir></workdir>
+        <node>r1-base</node>
+    </module>
+
+
+
+    <module>
+        <name>ros2</name>
+        <parameters>run narrate_component narrate_component</parameters>
+        <workdir></workdir>
+        <node>r1-base</node>
+    </module>
+
+
+
+    <module>
+        <name>ros2</name>
+        <parameters>run scheduler_component scheduler_component  conf/tours.json TOUR_MADAMA_3</parameters>
+        <workdir>/home/user1/UC3/laboratory-tour</workdir>
+        <node>r1-base</node>
+    </module>
+
+
+
+
+
+
+
+
+
+</application>
