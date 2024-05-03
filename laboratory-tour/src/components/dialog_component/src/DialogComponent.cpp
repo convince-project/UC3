@@ -93,6 +93,9 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
     {
         okCheck = rf.check("POICHAT-CLIENT");
         device = "LLM_nwc_yarp";
+        prompt_context = "llmTest";
+        prompt_poi_file = "poi_madama_prompt.txt";
+        prompt_start_file = "Format_commands_welcome_prompt.txt";
         local = "/DialogComponent/chatBotClient/rpc:o";
         //remote = "/poi_chat/LLM_nws/rpc:i";
         remote = "/poi_madama_chat/LLM_nws/rpc:i";
@@ -100,6 +103,22 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
         if (okCheck)
         {
             yarp::os::Searchable &chatBot_config = rf.findGroup("POICHAT-CLIENT");
+            if (chatBot_config.check("prompt-context"))
+            {
+                prompt_context = chatBot_config.find("prompt-context").asString();
+            }
+            if (chatBot_config.check("prompt-poi-file"))
+            {
+                prompt_poi_file = chatBot_config.find("prompt-poi-file").asString();
+            }
+            if (chatBot_config.check("prompt-poi-file"))
+            {
+                prompt_poi_file = chatBot_config.find("prompt-poi-file").asString();
+            }
+            if (chatBot_config.check("prompt-context"))
+            {
+                prompt_context = chatBot_config.find("prompt-context").asString();
+            }
             if (chatBot_config.check("device"))
             {
                 device = chatBot_config.find("device").asString();
@@ -130,6 +149,34 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
         {
             yError() << "[DialogComponent::ConfigureYARP] Error opening iChatBot interface. Device not available";
             return false;
+        }
+
+        yarp::os::ResourceFinder resource_finder;
+        resource_finder.setDefaultContext(prompt_ctx);
+        std::string prompt_file_fullpath = resource_finder.findFile(prompt_poi_file);
+        auto stream = std::ifstream(prompt_file_fullpath);
+        if (!stream)
+        {
+            yWarning() << "File:" << prompt_file_fullpath << "does not exist or path is invalid";
+        }
+        else
+        {
+            std::ostringstream sstr;
+            sstr << stream.rdbuf(); //Reads the entire file into the stringstream
+            m_poiPrompt = sstr.str();
+        }
+        resource_finder.setDefaultContext(prompt_ctx);
+        prompt_file_fullpath = resource_finder.findFile(prompt_start_file);
+        stream = std::ifstream(prompt_file_fullpath);
+        if (!stream)
+        {
+            yWarning() << "File:" << prompt_file_fullpath << "does not exist or path is invalid";
+        }
+        else
+        {
+            std::ostringstream sstr;
+            sstr << stream.rdbuf(); //Reads the entire file into the stringstream
+            m_startPrompt = sstr.str();
         }
     }
     // -------------------------Museum llm nwc---------------------------------
@@ -424,6 +471,17 @@ void DialogComponent::EnableDialog(const std::shared_ptr<dialog_interfaces::srv:
         {
             if( responseGetCurrentPoi->is_ok ==true) {
                 m_currentPoiName = responseGetCurrentPoi->poi_name;
+                // Set poi chat prompt
+                if(m_currentPoiName == "madama_start")
+                {
+                    m_iPoiChat->deleteConversation();
+                    m_iPoIChat->setPrompt(m_startPrompt);
+                }
+                else
+                {
+                    m_iPoiChat->deleteConversation();
+                    m_iPoIChat->setPrompt(m_poiPrompt);
+                }
             } else {
                 RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), "Error in getting the current poi" << response->error_msg);
                 response->is_ok=false;

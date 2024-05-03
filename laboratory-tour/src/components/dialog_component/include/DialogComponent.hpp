@@ -73,6 +73,8 @@ private:
     yarp::dev::ILLM *m_iPoiChat{nullptr};
     yarp::dev::ILLM *m_iMuseumChat{nullptr};
     yarp::dev::ILLM *m_iGenericChat{nullptr};
+    std::string m_poiPrompt;
+    std::string m_startPrompt;
     // Microphone
     //yarp::dev::PolyDriver m_audioRecorderPoly;
     //yarp::dev::IAudioGrabberSound *m_iAudioGrabberSound{nullptr};
