@@ -46,6 +46,9 @@
       <componentDeclaration id="DialogComponent" interface="dialog_interfaces">
         <componentDefinition />
       </componentDeclaration>
+      <componentDeclaration id="ManagePeopleDetectorComponent" interface="manage_service_interfaces">
+        <componentDefinition />
+      </componentDeclaration>
     </componentList>
 
     <interfaces path="../interface-definition-IDL/interfaces.xml"/>
