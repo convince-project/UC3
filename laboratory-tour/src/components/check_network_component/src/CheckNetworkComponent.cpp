@@ -31,7 +31,7 @@ bool CheckNetworkComponent::setup(int argc, char* argv[])
     }
     
     m_node = rclcpp::Node::make_shared(m_name);
-    m_address_name = "google.com";
+    m_address_name = "192.168.100.150";
     m_publisherStatus = m_node->create_publisher<std_msgs::msg::Bool>("/CheckNetworkComponent/NetworkStatus", 10);
     timer_ = m_node->create_wall_timer(1000ms, std::bind(&CheckNetworkComponent::topic_callback, this));
 
@@ -114,19 +114,27 @@ bool CheckNetworkComponent::isNetworkConnected(const std::string& host) {
     std::smatch match_ttl;
 
     if(std::regex_search(packets_summary_line, match_packets, rgx_packets))
-        std::cout << "match:" << match_packets[1] << std::endl;
+        std::cout << "matchmatch_packets, :" << match_packets[1] << std::endl;
 
-    if(std::regex_search(rtt_summary_line,match_ttl,rgx_ttl))
-        std::cout << "match: " << match_ttl[1] << std::endl;
-
+    double rtt = 0.0; 
+    bool match_ttl_found = std::regex_search(rtt_summary_line,match_ttl,rgx_ttl);
+    if (match_ttl_found){
+		    
+	rtt = stod(match_ttl[1]);
+        std::cout << "match match_ttl: " << match_ttl[1] << std::endl;
+    }
+    std::cout << "found " << match_ttl_found <<  "match: " << match_ttl[1] << std::endl;
     double packet_loss = stod(match_packets[1]);
-    double rtt = stod(match_ttl[1]);
 
     if(packet_loss < 100.){
+	if (!match_ttl_found) {
+	    is_connected = false;
+	} else {	
         if(rtt < threshold)
             is_connected = true;
         else 
             is_connected = false;
+	}
     }
 
     if(is_connected){
