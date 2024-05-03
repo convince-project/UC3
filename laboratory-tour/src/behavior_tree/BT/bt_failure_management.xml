@@ -3,7 +3,6 @@
     <!-- ////////// -->
     <BehaviorTree ID="BehaviorTree">
         <ReactiveSequence>
-            <SubTree ID="NetworkManagement"/>
             <SubTree ID="gotoPoi"/>
             <SubTree ID="CheckArtworkAndExplain"/>
         </ReactiveSequence>
