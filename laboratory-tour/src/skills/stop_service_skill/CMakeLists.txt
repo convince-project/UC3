@@ -1,15 +1,15 @@
-cmake_minimum_required(VERSION 3.8)
-project(stop_services_skill)
+cmake_minimum_required(VERSION 3.16)
+project(stop_service_skill)
+# set(CMAKE_CXX_STANDARD 20)
+# set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(rclcpp_lifecycle REQUIRED)
-find_package(lifecycle_msgs REQUIRED)
 find_package(bt_interfaces REQUIRED)
-find_package(other_interfaces REQUIRED)
+find_package(manage_service_interfaces REQUIRED)
 find_package(Qt6 COMPONENTS Core Scxml StateMachine  REQUIRED)
 add_executable(${PROJECT_NAME} )
 
@@ -22,7 +22,7 @@ endif()
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-ament_target_dependencies(${PROJECT_NAME} bt_interfaces other_interfaces rclcpp rclcpp_lifecycle lifecycle_msgs)
+ament_target_dependencies(${PROJECT_NAME} bt_interfaces rclcpp manage_service_interfaces)
 target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Scxml Qt6::StateMachine)
 target_include_directories(${PROJECT_NAME}
   PUBLIC
@@ -30,10 +30,11 @@ target_include_directories(${PROJECT_NAME}
     $<INSTALL_INTERFACE:include>)
 target_sources( ${PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp 
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/StopServicesSkill.cpp 
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/StopServicesSkill.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/StopServicesDataModel.cpp 
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/StopServicesDataModel.h)
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/StopServiceSkill.cpp 
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/StopServiceSkill.h
+  #${CMAKE_CURRENT_SOURCE_DIR}/src/StopServiceDataModel.cpp 
+  #${CMAKE_CURRENT_SOURCE_DIR}/include/StopServiceDataModel.h
+  )
 
 
 install(TARGETS ${PROJECT_NAME}
@@ -49,6 +50,6 @@ if(BUILD_TESTING)
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
-qt6_add_statecharts(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/src/StopServicesSkillSM.scxml)
+qt6_add_statecharts(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/src/StopServiceSkillSM.scxml)
 
 ament_package()
