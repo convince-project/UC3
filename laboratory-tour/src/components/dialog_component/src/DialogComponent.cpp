@@ -686,8 +686,10 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
         if (rclcpp::spin_until_future_complete(setCommandClientNode2, speak_result2) == rclcpp::FutureReturnCode::SUCCESS)
         {
             RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Speak succeeded");
+            m_speechTranscriberCallback.setMessageConsumed();
         } else {
             RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service speak");
+            m_speechTranscriberCallback.setMessageConsumed();
             return false;
         }
 
@@ -807,8 +809,10 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
             if (rclcpp::spin_until_future_complete(setCommandClientNode, speak_result) == rclcpp::FutureReturnCode::SUCCESS)
             {
                 RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Speak succeeded");
+                m_speechTranscriberCallback.setMessageConsumed();
             } else {
                 RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service speak");
+                m_speechTranscriberCallback.setMessageConsumed();
                 return false;
             }
         }
@@ -848,8 +852,10 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
             if (rclcpp::spin_until_future_complete(setCommandClientNode, speak_result) == rclcpp::FutureReturnCode::SUCCESS)
             {
                 RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Speak succeeded");
+                m_speechTranscriberCallback.setMessageConsumed();
             } else {
                 RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service speak");
+                m_speechTranscriberCallback.setMessageConsumed();
                 return false;
             }
         }
@@ -881,8 +887,10 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
             if (rclcpp::spin_until_future_complete(setCommandClientNode, speak_result) == rclcpp::FutureReturnCode::SUCCESS)
             {
                 RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Speak succeeded");
+                m_speechTranscriberCallback.setMessageConsumed();
             } else {
                 RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service speak");
+                m_speechTranscriberCallback.setMessageConsumed();
                 return false;
             }
         }
@@ -1059,8 +1067,10 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
                         if (rclcpp::spin_until_future_complete(setCommandClientNode, speak_result) == rclcpp::FutureReturnCode::SUCCESS)
                         {
                           RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Speak succeeded");
+                          m_speechTranscriberCallback.setMessageConsumed();
                         } else {
                           RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service speak");
+                          m_speechTranscriberCallback.setMessageConsumed();
                           return false;
                         }
                     }
