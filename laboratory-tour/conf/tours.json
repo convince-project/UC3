@@ -15091,6 +15091,13 @@
         },
         "sala_delle_guardie": {
           "m_availableActions": {
+            "sayWhileNavigating":[
+              {
+                "m_isBlocking": true,
+                "m_param": "We are moving to the Guards' Chamber.",
+                "m_type": "speak"
+              }
+            ],
             "explainRoom": [
               {
                 "m_isBlocking": false,
@@ -15157,6 +15164,13 @@
         },
         "sala_guidobono": {
           "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "We are moving to the Guidobono Room.",
+                "m_type": "speak"
+              }
+            ],
             "explainRoom": [
               {
                 "m_isBlocking": false,
@@ -15244,6 +15258,13 @@
         },
         "sala_delle_feste": {
           "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "We are moving to the Hall of Festivities.",
+                "m_type": "speak"
+              }
+            ],
             "explainRoom": [
               {
                 "m_isBlocking": false,
@@ -15329,6 +15350,13 @@
         },
         "sala_4_stagioni": {
           "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "We are moving to the Room of the Four Seasons.",
+                "m_type": "speak"
+              }
+            ],
             "explainRoom": [
               {
                 "m_isBlocking": false,
@@ -15400,6 +15428,13 @@
         },
         "camera_di_madama_reale": {
           "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "We are moving to the Chamber of the Royal Madama.",
+                "m_type": "speak"
+              }
+            ],
             "explainRoom": [
               {
                 "m_isBlocking": false,
@@ -15670,6 +15705,13 @@
         },
         "sala_delle_guardie": {
           "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Ci stiamo spostando nella Camera delle Guardie.",
+                "m_type": "speak"
+              }
+            ],
             "explainRoom": [
               {
                 "m_isBlocking": false,
@@ -15736,6 +15778,13 @@
         },
         "sala_guidobono": {
           "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Ci stiamo spostando nella Sala Guidobono.",
+                "m_type": "speak"
+              }
+            ],
             "explainRoom": [
               {
                 "m_isBlocking": false,
@@ -15822,6 +15871,13 @@
         },
         "sala_delle_feste": {
           "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Ci stiamo spostando nella Sala delle Feste.",
+                "m_type": "speak"
+              }
+            ],
             "explainRoom": [
               {
                 "m_isBlocking": false,
@@ -15908,6 +15964,13 @@
         },
         "sala_4_stagioni": {
           "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Ci stiamo spostando nella Sala delle quattro Stagioni.",
+                "m_type": "speak"
+              }
+            ],
             "explainRoom": [
               {
                 "m_isBlocking": false,
@@ -15979,6 +16042,13 @@
         },
         "camera_di_madama_reale": {
           "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Ci stiamo spostando nella Camera di Madama Reale.",
+                "m_type": "speak"
+              }
+            ],
             "explainRoom": [
               {
                 "m_isBlocking": false,
