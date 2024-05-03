@@ -4,7 +4,7 @@
 
 
 #include <iostream>
-#include "StartServicesSkill.h"
+#include "StartServiceSkill.h"
 
 #include <thread>
 #include <chrono>
@@ -14,7 +14,7 @@
 int main(int argc, char *argv[])
 {
   QCoreApplication app(argc, argv);
-  StartServicesSkill stateMachine("StartServicesSkill");
+  StartServiceSkill stateMachine("StartService");
   stateMachine.start(argc, argv);
 
   int ret=app.exec();
