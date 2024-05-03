@@ -5,7 +5,11 @@
     </dependencies>
 
     <application>
-        <name>Navigation_ROS2_R1SN003</name>
+        <name>bt_convince</name>
+        <prefix></prefix>
+    </application>
+    <application>
+        <name>Navigation_Madama_ROS2_R1SN003</name>
         <prefix></prefix>
     </application>
 <!-- 
@@ -29,6 +33,13 @@
     <module>
         <name>yarprobotinterface</name>
         <parameters>--context llmTest --from poiMadamaChat.ini </parameters>
+        <environment></environment>
+        <node>console-llm</node>
+    </module>
+
+    <module>
+        <name>yarprobotinterface</name>
+        <parameters>--context llmTest --from welcomeChat.ini </parameters>
         <environment></environment>
         <node>console-llm</node>
     </module>
@@ -65,70 +76,6 @@
         <name>yarprobotinterface</name>
         <parameters>--context vadModule --from audioPlayer.ini</parameters>
         <node>r1-face</node>
-    </module>
-
-    <module>
-        <name>text_to_speech_component</name>
-        <parameters>--from /home/user1/UC3/laboratory-tour/src/components/text_to_speech_component/config/text_to_speech_config.ini</parameters>
-        <workdir>/home/user1/UC3/laboratory-tour/build/text_to_speech_component</workdir>
-        <node>r1-base</node>
-    </module>
-
-
-    <module>
-        <name>dialog_component</name>
-        <parameters>--from /home/user1/UC3/laboratory-tour/src/components/dialog_component/config/config.ini</parameters>
-        <workdir>/home/user1/UC3/laboratory-tour/build/dialog_component</workdir>
-        <node>r1-base</node>
-    </module>
-
-
-    <module>
-        <name>ros2</name>
-        <parameters>run dialog_skill dialog_skill</parameters>
-        <workdir></workdir>
-        <node>r1-base</node>
-    </module>
-
-
-    <module>
-        <name>ros2</name>
-        <parameters>run narrate_skill narrate_skill</parameters>
-        <workdir></workdir>
-        <node>r1-base</node>
-    </module>
-
-
-    <module>
-        <name>ros2</name>
-        <parameters>run narrate_component narrate_component</parameters>
-        <workdir></workdir>
-        <node>r1-base</node>
-    </module>
-
-
-    <module>
-        <name>ros2</name>
-        <parameters>run update_poi_skill update_poi_skill</parameters>
-        <workdir></workdir>
-        <node>r1-base</node>
-    </module>
-
-    <module>
-        <name>ros2</name>
-        <parameters>run scheduler_component scheduler_component  conf/tours.json TOUR_MADAMA_3</parameters>
-        <workdir>/home/user1/UC3/laboratory-tour</workdir>
-        <node>r1-base</node>
-    </module>
-
-
-
-
-    <module>
-        <name>ros2</name>
-        <parameters>launch launch/bt_launch_narrate.py</parameters>
-        <workdir>/home/user1/UC3/laboratory-tour</workdir>
-        <node>r1-base</node>
     </module>
 
 
@@ -168,16 +115,20 @@
     </module>
 
  -->
+  <connection>
+    <from>/audioRecorder_nws/status:o</from>
+    <to>/faceExpressionImage/earsAudioStatus:i</to>
+    <protocol>fast_tcp</protocol>
+  </connection>
 
-
-    <connection>
+  <connection>
     <from>/faceExpressionImage/image:o</from>
     <to>/robot/faceDisplay/image:i</to>
     <protocol>fast_tcp</protocol>
   </connection>
 
     <connection>
-    <from>/audioRecorder_nws/status:o</from>
+    <from>/audioPlayerWrapper/status:o</from>
     <to>/faceExpressionImage/mouthAudioData:i </to>
     <protocol>fast_tcp</protocol>
   </connection>
@@ -185,6 +136,13 @@
     <connection>
         <from>/audioRecorder_nws/audio:o</from>
         <to>/vad/audio:i</to>
+        <protocol>tcp+recv.portmonitor+file.soundfilter_resample+type.dll+channel.0+frequency.16000</protocol>
+    </connection>
+
+
+    <connection>
+        <from>/audioRecorder_nws/audio:o</from>
+        <to>/faceExpressionImage/earsAudioData:i</to>
         <protocol>tcp+recv.portmonitor+file.soundfilter_resample+type.dll+channel.0+frequency.16000</protocol>
     </connection>
 

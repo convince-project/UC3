@@ -1,0 +1,24 @@
+<application>
+    <name>bt_convince</name>
+
+    <application>
+        <name>bt_convince_components</name>
+        <prefix></prefix>
+    </application>
+    
+    <application>
+        <name>bt_convince_skills</name>
+        <prefix></prefix>
+    </application>
+    
+    <module>
+        <name>ros2</name>
+        <parameters>launch launch/bt_launch_narrate.py</parameters>
+        <workdir>/home/user1/UC3/laboratory-tour</workdir>
+        <node>r1-base</node>
+    </module>
+
+
+
+
+</application>
