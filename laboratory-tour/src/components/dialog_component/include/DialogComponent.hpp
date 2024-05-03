@@ -67,9 +67,11 @@ private:
     //yarp::dev::PolyDriver m_speechSynthPoly;
     //yarp::dev::ISpeechSynthesizer *m_iSpeechSynth{nullptr};
     // ChatGPT
-    yarp::dev::PolyDriver m_chatGPTPoly;
+    yarp::dev::PolyDriver m_poiChatPoly;
     yarp::dev::PolyDriver m_genericChatPoly;
-    yarp::dev::ILLM *m_iChatGPT{nullptr};
+    yarp::dev::PolyDriver m_museumChatPoly;
+    yarp::dev::ILLM *m_iPoiChat{nullptr};
+    yarp::dev::ILLM *m_iMuseumChat{nullptr};
     yarp::dev::ILLM *m_iGenericChat{nullptr};
     // Microphone
     //yarp::dev::PolyDriver m_audioRecorderPoly;
