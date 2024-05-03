@@ -1,0 +1,30 @@
+<!--This skill checks from the battery component if it is charging or not, 
+    it return success if it is charging, failure otherwise-->
+<scxml 
+  initial="idle" 
+  version="1.0" 
+  name="NetworkUpSkillCondition"
+  datamodel="cplusplus:NetworkUpSkillDataModel:NetworkUpSkillDataModel.h"
+  xmlns="http://www.w3.org/2005/07/scxml">
+
+
+    <state id="idle">
+        <transition event="CMD_TICK" target="edgeDetected" />
+    </state>
+
+    <state id="edgeDetected">
+        <onentry>
+            <if cond="m_status"> 
+                <send event="TICK_RESPONSE">
+                    <param name="result" expr='"SUCCESS"'/>
+                </send>
+            <else/>
+                <send event="TICK_RESPONSE">
+                    <param name="result" expr='"FAILURE"'/>
+                </send>
+            </if>
+        </onentry>
+        <transition target="idle" />
+    </state>
+
+</scxml>
