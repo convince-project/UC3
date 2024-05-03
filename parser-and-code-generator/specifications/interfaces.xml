@@ -382,5 +382,21 @@
             </returnValue>
         </function>
     </interface>
+    <interface id="manage_service_interfaces">
+        <function id="StartService">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+        </function>
+        <function id="StopService">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+        </function>
+    </interface>
 
 </interfaces>
