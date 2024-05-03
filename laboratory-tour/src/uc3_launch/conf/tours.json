@@ -14910,6 +14910,7 @@
     },
     "TOUR_MADAMA_3": {
       "m_activeTourPoIs": [
+        "madama_1_start",
         "sala_delle_guardie",
         "sala_guidobono",
         "sala_delle_feste",
@@ -15322,6 +15323,34 @@
             },
             "m_name": "___generic___"
           },
+          "madama_1_start": {
+            "m_availableActions": {
+              "explainRoom": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Ci troviamo al primo piano di Palazzo Madama dove visse Maria Giovanna Battista di Savoia Nemours, principessa francese, nata a Parigi nel 1644, e trasferitasi a Torino per sposare il duca di Savoia.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Donna di carattere forte, protesse la sua nuova patria durante la minore età del figlio, il futuro re Vittorio Amedeo II, rimasto orfano a soli 9 anni. Quando il figlio si sposò, Maria Giovanna lasciò Palazzo Reale e scelse come sua residenza il primo piano del castello che arredò e decorò secondo il suo gusto.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Qui visse per quarant’anni, dal 1684 alla sua morte avvenuta nel 1724, servita da 191 persone che intervenivano nella sua vita quotidiana, spirituale e materiale. Degli arredi non resta quasi nulla, ma in questo percorso ti racconterò le funzioni delle sale e come si svolgeva la vita della duchessa.",
+                  "m_type": "speak"
+                }
+              ],
+              "explainFunction": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Benissimo, ci troviamo in Camera delle Guardie. Intorno al 1721 l’ospite che faceva visita a Madama Reale poteva contare su due accessi: passare dal grande scalone di Filippo Juvarra ed entrare nel salone (oggi Sala Senato); oppure accedere al castello direttamente da Palazzo Reale percorrendo la manica di collegamento che univa i due edifici e che si concludeva presso la sala “della galleria”, ambiente che oggi ospita il Caffè Madama.",
+                  "m_type": "speak"
+                }
+              ]
+            }
+          },
           "sala_delle_guardie": {
             "m_availableActions": {
               "explainRoom": [
@@ -15392,6 +15421,23 @@
                   "m_type": "speak"
                 }
               ],
+              "explainFunction": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Eccoci! A inizio Settecento la sala era conosciuta come Stanza dei Valletti a piè, giovani servitori che sostavano in questa sala in attesa di comandi: potevano fungere da corrieri per portare o ritirare messaggi in città per conto della duchessa.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": " Ma il compito più importante era accompagnare la duchessa facendo strada alla carrozza, garantire la sicurezza del viaggio sgombrando con bastoni eventuali ostacoli o pericoli, e illuminare di notte il percorso con le torce. Per questo il loro nome “valletti a piedi”: correre o camminare per proteggere la duchessa.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Alcuni di loro si vedono nel grande dipinto che raffigura il castello di Rivoli. Guardali qui, in questo grande quadro, in basso a destra, con le loro braghe rosse, la camicia bianca e il tricorno nero in testa scortano la carrozza del re.",
+                  "m_type": "speak"
+                }
+              ],
               "explainDescription": [
                 {
                   "m_isBlocking": false,
@@ -15430,6 +15476,23 @@
           "sala_delle_feste": {
             "m_availableActions": {
               "explainRoom": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Seguimi, ti porto nel punto migliore per poter apprezzare questo ambiente. Come puoi notare è un salone molto grande ma che nel Settecento era suddiviso in due sale distinte: la Camera dei Paggi e la Camera di Parata, in particolare quest’ultima era usata da Madama Reale Maria Giovanna Battista per ricevere in udienza pubblica gli ospiti di maggior riguardo.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Un inventario redatto nel 1724 ci informa che la sala era illuminata da un lampadario in argento ed era decorata da tappezzerie in velluto rosso bordate da galloni dorati. Lo stesso tessuto (sostituito in estate da damasco nero con fiori dorati) rivestiva il trono e il baldacchino della duchessa, due portiere e dodici panche addossate alle pareti.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "I pannelli in legno intagliato che rivestivano le pareti e il camino della Camera da Parata sono perduti. Le dodici panche potrebbero invece essere identificate con i divani di primo Settecento oggi esposti in questa sala, uguali per disegno e intaglio alla balaustra di trono della foto, che fa parte delle collezioni del Museo.",
+                  "m_type": "speak"
+                }
+              ],
+              "explainFunction": [
                 {
                   "m_isBlocking": false,
                   "m_param": "Seguimi, ti porto nel punto migliore per poter apprezzare questo ambiente. Come puoi notare è un salone molto grande ma che nel Settecento era suddiviso in due sale distinte: la Camera dei Paggi e la Camera di Parata, in particolare quest’ultima era usata da Madama Reale Maria Giovanna Battista per ricevere in udienza pubblica gli ospiti di maggior riguardo.",
@@ -15495,6 +15558,18 @@
                   "m_type": "speak"
                 }
               ],
+              "explainFunction": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "In questa sala, sotto un cielo di un blu intenso e con la sensazione di trovarsi all’interno di una grande voliera di fili d’oro intrecciati, si svolgevano i momenti di svago della corte di Maria Giovanna Battista, composta di dame e cavalieri che specialmente alla sera si riunivano per fare circolo, intrattenendo la duchessa con musica, danze, conversazioni e giochi.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Il programma iconografico della decorazione è una celebrazione del tempo in tutte le sue forme. Nei quattro angoli in alto vedi le personificazioni delle stagioni alludono anche alle quattro età dell’uomo, dall’infanzia di Bacco-Autunno alla vecchiaia dell’Inverno che si riscalda davanti al fuoco; all’interno di cornici appaiono le attività dell’uomo legate all’agricoltura, mentre al centro della volta una serie di puttini si intrattengono in svaghi e giochi, alludendo così alla funzione ricreativa della sala.",
+                  "m_type": "speak"
+                }
+              ],
               "explainDescription": [
                 {
                   "m_isBlocking": false,
@@ -15528,6 +15603,23 @@
           "camera_di_madama_reale": {
             "m_availableActions": {
               "explainRoom": [
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Eccoci! Il percorso cerimoniale dell’appartamento si concludeva nella Camera di Madama Reale, l’ambiente più sfarzoso dell’appartamento della duchessa e appositamente collocato sul lato sud del palazzo e sopra agli ambienti delle cucine in modo da ricevere il calore del sole e dei camini.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "Il letto con baldacchino era collocato tra le due grandi specchiere: la tappezzeria, coordinata con i rivestimenti di porte, letto e tendaggi, d’inverno era di velluto blu, in accordo con il colore dei nastri delle ghirlande di fiori dipinti sul soffitto, mentre d’estate si sostituiva con tele di broccato d’oro a fondo d’argento con fiori di seta di vari colori.",
+                  "m_type": "speak"
+                },
+                {
+                  "m_isBlocking": false,
+                  "m_param": "In questa sala la duchessa poteva consumare. Qui si svolgeva la cerimonia del risveglio e della vestizione della duchessa, che in questa sala riceveva in udienza privata principi e principesse straniere, secondo un’usanza nata alla corte di Luigi XIV e diffusa tra i sovrani europei dell’epoca.",
+                  "m_type": "speak"
+                }
+              ],
+              "explainFunction": [
                 {
                   "m_isBlocking": false,
                   "m_param": "Eccoci! Il percorso cerimoniale dell’appartamento si concludeva nella Camera di Madama Reale, l’ambiente più sfarzoso dell’appartamento della duchessa e appositamente collocato sul lato sud del palazzo e sopra agli ambienti delle cucine in modo da ricevere il calore del sole e dei camini.",
