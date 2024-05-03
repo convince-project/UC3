@@ -15343,6 +15343,7 @@
               {
                 "m_isBlocking": false,
                 "m_param": "Do you have any other questions? If you don't remember the available questions, feel free to ask for clarification, or we can continue the tour if you'd like",
+                "m_type": "speak"
               }
             ]
           },
