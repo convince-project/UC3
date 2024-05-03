@@ -93,9 +93,9 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
     {
         okCheck = rf.check("POICHAT-CLIENT");
         device = "LLM_nwc_yarp";
-        prompt_context = "llmTest";
-        prompt_poi_file = "poi_madama_prompt.txt";
-        prompt_start_file = "Format_commands_welcome_prompt.txt";
+        std::string prompt_context = "llmTest";
+        std::string prompt_poi_file = "poi_madama_prompt.txt";
+        std::string prompt_start_file = "Format_commands_welcome_prompt.txt";
         local = "/DialogComponent/chatBotClient/rpc:o";
         //remote = "/poi_chat/LLM_nws/rpc:i";
         remote = "/poi_madama_chat/LLM_nws/rpc:i";
@@ -152,7 +152,7 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
         }
 
         yarp::os::ResourceFinder resource_finder;
-        resource_finder.setDefaultContext(prompt_ctx);
+        resource_finder.setDefaultContext(prompt_context);
         std::string prompt_file_fullpath = resource_finder.findFile(prompt_poi_file);
         auto stream = std::ifstream(prompt_file_fullpath);
         if (!stream)
@@ -165,7 +165,7 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
             sstr << stream.rdbuf(); //Reads the entire file into the stringstream
             m_poiPrompt = sstr.str();
         }
-        resource_finder.setDefaultContext(prompt_ctx);
+        resource_finder.setDefaultContext(prompt_context);
         prompt_file_fullpath = resource_finder.findFile(prompt_start_file);
         stream = std::ifstream(prompt_file_fullpath);
         if (!stream)
@@ -475,12 +475,12 @@ void DialogComponent::EnableDialog(const std::shared_ptr<dialog_interfaces::srv:
                 if(m_currentPoiName == "madama_start")
                 {
                     m_iPoiChat->deleteConversation();
-                    m_iPoIChat->setPrompt(m_startPrompt);
+                    m_iPoiChat->setPrompt(m_startPrompt);
                 }
                 else
                 {
                     m_iPoiChat->deleteConversation();
-                    m_iPoIChat->setPrompt(m_poiPrompt);
+                    m_iPoiChat->setPrompt(m_poiPrompt);
                 }
             } else {
                 RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), "Error in getting the current poi" << response->error_msg);
