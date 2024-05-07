@@ -328,9 +328,14 @@ void TextToSpeechComponent::IsSpeaking(const std::shared_ptr<text_to_speech_inte
     {
         response->is_ok = true;
         if (player_status->current_buffer_size > 0)
+        {
+            response->seconds_left = player_status->current_buffer_size / 44100; //AUDIO_BASE::rate
             response->is_speaking = true;
+        }
         else
+        {
             response->is_speaking = false;
+        }
     }
 }
 
