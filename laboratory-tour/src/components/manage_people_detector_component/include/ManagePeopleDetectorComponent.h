@@ -26,17 +26,17 @@ public:
 
     bool close();
     void spin();
-    void StopPeopleDetector([[maybe_unused]] const std::shared_ptr<manage_service_interfaces::srv::StopService::Request> request,
+    void StopService([[maybe_unused]] const std::shared_ptr<manage_service_interfaces::srv::StopService::Request> request,
                 std::shared_ptr<manage_service_interfaces::srv::StopService::Response>      response);
-    void StartPeopleDetector( [[maybe_unused]] const std::shared_ptr<manage_service_interfaces::srv::StartService::Request> request,
+    void StartService( [[maybe_unused]] const std::shared_ptr<manage_service_interfaces::srv::StartService::Request> request,
                 std::shared_ptr<manage_service_interfaces::srv::StartService::Response>      response);
 
 private:
     std::optional<lifecycle_msgs::msg::State> get_state(const std::chrono::seconds& timeout = 3s);
     bool is_client_available(const std::chrono::seconds& timeout = 3s);
     rclcpp::Node::SharedPtr m_node;
-    rclcpp::Service<manage_service_interfaces::srv::StopService>::SharedPtr m_stopPeopleDetectorService;
-    rclcpp::Service<manage_service_interfaces::srv::StartService>::SharedPtr m_startPeopleDetectorService;
+    rclcpp::Service<manage_service_interfaces::srv::StopService>::SharedPtr m_stopServiceService;
+    rclcpp::Service<manage_service_interfaces::srv::StartService>::SharedPtr m_startServiceService;
     std::mutex m_mutex;
     std::shared_ptr<std::thread> m_thread;
     rclcpp::Client<lifecycle_msgs::srv::GetState>::SharedPtr m_client_get_state;

@@ -15,17 +15,17 @@ bool ManagePeopleDetectorComponent::start(int argc, char*argv[])
         rclcpp::init(/*argc*/ argc, /*argv*/ argv);
     }
     m_node = rclcpp::Node::make_shared("ManagePeopleDetectorComponentNode");
-    m_startPeopleDetectorService = m_node->create_service<manage_service_interfaces::srv::StartService>("/ManagePeopleDetectorComponent/StartPeopleDetector",  
-                                                                                std::bind(&ManagePeopleDetectorComponent::StartPeopleDetector,
+    m_startServiceService = m_node->create_service<manage_service_interfaces::srv::StartService>("/ManagePeopleDetectorComponent/StartService",  
+                                                                                std::bind(&ManagePeopleDetectorComponent::StartService,
                                                                                 this,
                                                                                 std::placeholders::_1,
                                                                                 std::placeholders::_2));
-    m_stopPeopleDetectorService = m_node->create_service<manage_service_interfaces::srv::StopService>("/ManagePeopleDetectorComponent/StopPeopleDetector",  
-                                                                                std::bind(&ManagePeopleDetectorComponent::StopPeopleDetector,
+    m_stopServiceService = m_node->create_service<manage_service_interfaces::srv::StopService>("/ManagePeopleDetectorComponent/StopService",  
+                                                                                std::bind(&ManagePeopleDetectorComponent::StopService,
                                                                                 this,
                                                                                 std::placeholders::_1,
                                                                                 std::placeholders::_2));
-                                                                                    m_node = rclcpp::Node::make_shared(m_name);
+    m_node = rclcpp::Node::make_shared(m_name);
     m_client_get_state = m_node->create_client<lifecycle_msgs::srv::GetState>("/dr_spaam_ros_node/get_state");
     m_client_change_state = m_node->create_client<lifecycle_msgs::srv::ChangeState>("/dr_spaam_ros_node/change_state");
 
@@ -84,14 +84,13 @@ void ManagePeopleDetectorComponent::spin()
     rclcpp::spin(m_node);  
 }
 
-void ManagePeopleDetectorComponent::StartPeopleDetector([[maybe_unused]] const std::shared_ptr<manage_service_interfaces::srv::StartService::Request> request,
+void ManagePeopleDetectorComponent::StartService([[maybe_unused]] const std::shared_ptr<manage_service_interfaces::srv::StartService::Request> request,
              std::shared_ptr<manage_service_interfaces::srv::StartService::Response>      response) 
 {
     auto internalRequest = std::make_shared<lifecycle_msgs::srv::ChangeState::Request>();
     internalRequest->transition.id = lifecycle_msgs::msg::Transition::TRANSITION_ACTIVATE;
     
     auto internalResult = m_client_change_state->async_send_request(internalRequest);
-    
     if (rclcpp::spin_until_future_complete(m_node,internalResult,m_timeout) == rclcpp::FutureReturnCode::SUCCESS)
     {
         RCLCPP_DEBUG(m_node->get_logger(), "StartServicesDataModel::start(). Success");
@@ -99,11 +98,11 @@ void ManagePeopleDetectorComponent::StartPeopleDetector([[maybe_unused]] const s
     } else {
         RCLCPP_DEBUG(m_node->get_logger(), "StartServicesDataModel::start(). Failure");
         response->is_ok = false;
-    }
+    } 
 }
 
 
-void ManagePeopleDetectorComponent::StopPeopleDetector([[maybe_unused]] const std::shared_ptr<manage_service_interfaces::srv::StopService::Request> request,
+void ManagePeopleDetectorComponent::StopService([[maybe_unused]] const std::shared_ptr<manage_service_interfaces::srv::StopService::Request> request,
              std::shared_ptr<manage_service_interfaces::srv::StopService::Response>      response) 
 {
     auto internalRequest = std::make_shared<lifecycle_msgs::srv::ChangeState::Request>();
