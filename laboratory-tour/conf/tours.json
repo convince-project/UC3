@@ -14910,11 +14910,12 @@
   },
   "TOUR_MADAMA_3": {
     "m_activeTourPoIs": [
-      "sala_delle_guardie",
-      "sala_guidobono",
-      "sala_delle_feste",
-      "sala_4_stagioni",
-      "camera_di_madama_reale"
+       "madama_start",
+       "sala_delle_guardie",
+       "sala_guidobono",
+       "sala_delle_feste",
+       "sala_4_stagioni",
+       "camera_di_madama_reale"
     ],
     "m_availablePoIs": {
       "en-US": {
@@ -15704,6 +15705,19 @@
           },
           "m_name": "___generic___"
         },
+	"madama_start": {
+	  "m_availableActions": {
+            "explainRoom": [
+              {
+                "m_isBlocking": false,
+                "m_param": "per iniziare puoi farmi le domande o dirmi di iniziare il tour", 
+                "m_type": "speak"
+              }
+            ]
+	  },
+          "m_name": "sala_delle_guardie"
+
+	},
         "sala_delle_guardie": {
           "m_availableActions": {
             "sayWhileNavigating": [
