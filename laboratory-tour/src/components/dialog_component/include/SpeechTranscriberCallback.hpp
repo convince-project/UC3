@@ -34,6 +34,7 @@ public:
             return false;
 
         text = m_listenedText;
+        m_listenedText = "";
         //m_hasNewMessage = false;
         return true;
     };
