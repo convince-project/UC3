@@ -441,6 +441,108 @@
           }
         ]
       },
+      "argue0": {
+        "m_movements": [
+          {
+            "m_partName": "right_arm",
+            "m_time": 3,
+            "m_offset": 0,
+            "m_joints": [
+              29.44,
+              11.60,
+              25.40,
+              70.14,
+              63.08,
+              0,
+              -0.11,
+              0.07
+            ]
+          },
+          {
+            "m_partName": "left_arm",
+            "m_time": 3,
+            "m_offset": 0,
+            "m_joints": [
+              29.36,
+              9.05,
+              -10.02,
+              50.27,
+              32.8217,
+              0,
+              -0.02,
+              -0.36	
+            ]
+          }
+        ]
+      },
+      "argue1": {
+        "m_movements": [
+          {
+            "m_partName": "right_arm",
+            "m_time": 3,
+            "m_offset": 0,
+            "m_joints": [
+              29.44,
+              11.60,
+              -10.11,
+              73.74,
+              62.99,
+              0,
+              -0.02,
+              0.23
+            ]
+          },
+          {
+            "m_partName": "left_arm",
+            "m_time": 3,
+            "m_offset": 0,
+            "m_joints": [
+              29.36,
+              9.05,
+              8.53,
+              71.02,
+              61.04,
+              0,
+              -0.06,
+              -0.29	
+            ]
+          }
+        ]
+      },
+      "argue2": {
+        "m_movements": [
+          {
+            "m_partName": "right_arm",
+            "m_time": 3,
+            "m_offset": 0,
+            "m_joints": [
+              29.44,
+              11.60,
+              25.40,
+              70.14,
+              63.08,
+              0,
+              -0.11,
+              0.07
+            ]
+          },
+          {
+            "m_partName": "left_arm",
+            "m_time": 3,
+            "m_offset": 0,
+            "m_joints": [
+              29.36,
+              9.05,
+              8.53,
+              71.02,
+              61.04,
+              0,
+              -0.06,
+              -0.29	
+            ]
+          }
+        ]
+      },
       "fallbackMove": {
         "m_movements": [
           {
