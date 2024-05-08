@@ -107,7 +107,14 @@ void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_inte
         if (movement->is_ok == false) {
             RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "ExecuteDanceComponent::ExecuteDance. Movement not found, skipping...");
         } else {
-            bool status = SendMovement(movement->time, movement->offset, movement->joints, m_pCtpService.at(movement->part_name));
+            bool status;
+            if(m_danceName == "idleMove")
+            {
+                status = SendMovementNow(movement->time, movement->offset, movement->joints, m_pCtpService.at(movement->part_name));
+            }
+            else{
+                status = SendMovementToQueue(movement->time, movement->offset, movement->joints, m_pCtpService.at(movement->part_name));
+            }
             if (!status)
             {
                 RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "Movement failed to sent. Is ctpService for part" << movement->part_name << "running?");
@@ -148,6 +155,7 @@ void ExecuteDanceComponent::ExecuteDance(const std::shared_ptr<execute_dance_int
     setDanceClientNode->create_client<dance_interfaces::srv::SetDance>("/DanceComponent/SetDance");
     auto setDanceRequest = std::make_shared<dance_interfaces::srv::SetDance::Request>();
     setDanceRequest->dance = request->dance_name;
+    m_danceName = request->dance_name;
     while (!setDanceClient->wait_for_service(std::chrono::seconds(1))) {
         if (!rclcpp::ok()) {
             RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setDanceClient'. Exiting.");
@@ -163,8 +171,6 @@ void ExecuteDanceComponent::ExecuteDance(const std::shared_ptr<execute_dance_int
         return;
     }
     RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "ExecuteDanceComponent::ExecuteDance. Dance set correctly: " << request->dance_name);
-    //create new thread with lambda function
-
     if (m_threadExecute.joinable()) {
         m_threadExecute.join();
     }
@@ -203,11 +209,29 @@ void ExecuteDanceComponent::IsDancing(const std::shared_ptr<execute_dance_interf
 }
 
 
-bool ExecuteDanceComponent::SendMovement(float time, int offset, std::vector<float> joints, yarp::os::Port &port)
+bool ExecuteDanceComponent::SendMovementToQueue(float time, int offset, std::vector<float> joints, yarp::os::Port &port)
 {
     yarp::os::Bottle res;
     yarp::os::Bottle cmd;
     cmd.addVocab32("ctpq");
+    cmd.addVocab32("time");
+    cmd.addFloat64(time);
+    cmd.addVocab32("off");
+    cmd.addFloat64(offset);
+    cmd.addVocab32("pos");
+    yarp::os::Bottle &list = cmd.addList();
+    for (auto joint : joints)
+    {
+        list.addFloat64(joint);
+    }
+    return port.write(cmd, res);
+}
+
+bool ExecuteDanceComponent::SendMovementNow(float time, int offset, std::vector<float> joints, yarp::os::Port &port)
+{
+    yarp::os::Bottle res;
+    yarp::os::Bottle cmd;
+    cmd.addVocab32("ctpn");
     cmd.addVocab32("time");
     cmd.addFloat64(time);
     cmd.addVocab32("off");

@@ -135,6 +135,8 @@ void NarrateComponent::danceTask() {
     int size = m_danceBuffer.size();
     m_danceMutex.unlock();
     int l_seconds_left;
+    int old_randomNumber;
+    int randomNumber;
     do{
         
         std::cout << "qui do" << std::endl;
@@ -158,6 +160,16 @@ void NarrateComponent::danceTask() {
             m_danceMutex.lock();
             if(m_danceBuffer.size() != 0){
                 text = m_danceBuffer.front();
+                if(text == "argue"){
+                    srand (time(NULL));
+                    randomNumber = rand() % 3;
+                    if(randomNumber == old_randomNumber)
+                    {
+                        randomNumber = (randomNumber + 1) % 3;
+                    }
+                    old_randomNumber = randomNumber;
+                    text += std::to_string(randomNumber);
+                }
             }
             m_danceMutex.unlock();
             std::cout << "qui else out" << std::endl;
@@ -183,27 +195,26 @@ void NarrateComponent::danceTask() {
         if (danceFutureResult->is_ok == true) { // 0 is dance
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
         }
-        // std::this_thread::sleep_for(std::chrono::seconds(30));
-        // waits until the robot has finished dancing
-        bool isDancing = false;
-        do {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            // calls the isDancing service
-            auto isDancingClientNode = rclcpp::Node::make_shared("NarrateComponentIsDancingNode");
-            std::shared_ptr<rclcpp::Client<execute_dance_interfaces::srv::IsDancing>> isDancingClient =
-            isDancingClientNode->create_client<execute_dance_interfaces::srv::IsDancing>("/ExecuteDanceComponent/IsDancing");
-            auto isDancingRequest = std::make_shared<execute_dance_interfaces::srv::IsDancing::Request>();
-            while (!isDancingClient->wait_for_service(std::chrono::seconds(1))) {
-                if (!rclcpp::ok()) {
-                    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'isDancingClient'. Exiting.");
-                }
-            }
-            auto isDancingResult = isDancingClient->async_send_request(isDancingRequest);
-            auto futureIsDancingResult = rclcpp::spin_until_future_complete(isDancingClientNode, isDancingResult);
-            auto isDancingResponse = isDancingResult.get();
-            isDancing = isDancingResponse->is_dancing;
-            RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "is_dancing " << isDancingResponse->is_dancing); 
-        } while (isDancing);
+        std::this_thread::sleep_for(std::chrono::seconds(3));
+        // bool isDancing = false;
+        // do {
+        //     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        //     // calls the isDancing service
+        //     auto isDancingClientNode = rclcpp::Node::make_shared("NarrateComponentIsDancingNode");
+        //     std::shared_ptr<rclcpp::Client<execute_dance_interfaces::srv::IsDancing>> isDancingClient =
+        //     isDancingClientNode->create_client<execute_dance_interfaces::srv::IsDancing>("/ExecuteDanceComponent/IsDancing");
+        //     auto isDancingRequest = std::make_shared<execute_dance_interfaces::srv::IsDancing::Request>();
+        //     while (!isDancingClient->wait_for_service(std::chrono::seconds(1))) {
+        //         if (!rclcpp::ok()) {
+        //             RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'isDancingClient'. Exiting.");
+        //         }
+        //     }
+        //     auto isDancingResult = isDancingClient->async_send_request(isDancingRequest);
+        //     auto futureIsDancingResult = rclcpp::spin_until_future_complete(isDancingClientNode, isDancingResult);
+        //     auto isDancingResponse = isDancingResult.get();
+        //     isDancing = isDancingResponse->is_dancing;
+        //     RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "is_dancing " << isDancingResponse->is_dancing); 
+        // } while (isDancing);
         if(m_stopped)
         {
             std::cout << "stop recieved" << std::endl;

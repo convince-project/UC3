@@ -10,6 +10,8 @@
 #include <thread>
 #include <queue>
 #include <rclcpp/rclcpp.hpp>
+#include <stdlib.h> 
+#include <time.h>
 
 #include <narrate_interfaces/srv/narrate.hpp>
 #include <narrate_interfaces/srv/is_done.hpp>
