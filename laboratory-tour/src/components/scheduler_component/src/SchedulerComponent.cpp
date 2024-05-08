@@ -33,6 +33,11 @@ bool SchedulerComponent::start(int argc, char*argv[])
                                                                                 this,
                                                                                 std::placeholders::_1,
                                                                                 std::placeholders::_2));
+    m_endTourService = m_node->create_service<scheduler_interfaces::srv::EndTour>("/SchedulerComponent/EndTour",  
+                                                                                std::bind(&SchedulerComponent::EndTour,
+                                                                                this,
+                                                                                std::placeholders::_1,
+                                                                                std::placeholders::_2));
     m_getCurrentPoiService = m_node->create_service<scheduler_interfaces::srv::GetCurrentPoi>("/SchedulerComponent/GetCurrentPoi",  
                                                                                 std::bind(&SchedulerComponent::GetCurrentPoi,
                                                                                 this,
@@ -100,6 +105,15 @@ void SchedulerComponent::Reset([[maybe_unused]] const std::shared_ptr<scheduler_
     response->is_ok = true;
 }
 
+
+void SchedulerComponent::EndTour([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::EndTour::Request> request,
+             std::shared_ptr<scheduler_interfaces::srv::EndTour::Response>      response) 
+{
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "SchedulerComponent " << __LINE__);
+    m_currentPoi = m_tourStorage->GetTour().getPoIsList().size() - 1;
+    m_currentAction = 0;
+    response->is_ok = true;
+}
 
 void SchedulerComponent::UpdatePoi([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::UpdatePoi::Request> request,
              std::shared_ptr<scheduler_interfaces::srv::UpdatePoi::Response>      response) 
