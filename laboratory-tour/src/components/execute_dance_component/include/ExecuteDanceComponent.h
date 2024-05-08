@@ -38,10 +38,11 @@ public:
     void IsDancing(const std::shared_ptr<execute_dance_interfaces::srv::IsDancing::Request> request,
                    std::shared_ptr<execute_dance_interfaces::srv::IsDancing::Response> response);
 private:
-    bool SendMovement(float time, int offset, std::vector<float> joints, yarp::os::Port &port);
+    bool SendMovementToQueue(float time, int offset, std::vector<float> joints, yarp::os::Port &port);
+    bool SendMovementNow(float time, int offset, std::vector<float> joints, yarp::os::Port &port);
 
     void executeTask(const std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Request> request);
-
+    std::string m_danceName;
     rclcpp::Node::SharedPtr m_node;
     rclcpp::Service<execute_dance_interfaces::srv::ExecuteDance>::SharedPtr m_executeDanceService;
     rclcpp::Service<execute_dance_interfaces::srv::IsDancing>::SharedPtr m_isDancingService;
