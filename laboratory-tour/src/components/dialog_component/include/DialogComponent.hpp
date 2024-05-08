@@ -31,6 +31,7 @@
 #include <text_to_speech_interfaces/srv/set_microphone.hpp>
 #include <text_to_speech_interfaces/srv/speak.hpp>
 #include <scheduler_interfaces/srv/get_current_poi.hpp>
+#include <scheduler_interfaces/srv/end_tour.hpp>
 #include "nlohmann/json.hpp"
 #include <random>
 
