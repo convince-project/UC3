@@ -4,6 +4,7 @@
 #include <iostream>
 #include <random>
 #include <string>
+#include <algorithm>
 
 using namespace std::chrono_literals;
 
@@ -666,14 +667,24 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
     // We get a string formatted like in https://github.com/hsp-iit/tour-guide-robot/blob/iron/app/llmTest/conf/Format_commands_poi_prompt.txt
     // Load the command into a bottle to split it
     yarp::os::Bottle extracted_command;
-    if (command[0] != '(')
+    // TRIM leading and trailing white spaces ------------------------- START //
+    size_t start = command.find_first_not_of(" \t\n\r");
+    std::string trimmedCmd;
+    if(start != std::string::npos)
     {
+        size_t end = command.find_last_not_of(" \t\n\r");
+        trimmedCmd = command.substr(start,end - start + 1);
+    }
+    // TRIM leading and trailing white spaces --------------------------- END //
+    if (trimmedCmd[0] != '(')
+    {
+	yWarning() << "Not a bottle:" << trimmedCmd;
         yInfo() << "[DialogComponent::DialogExecution] Starting Text to Speech Service";
         auto setCommandClientNode2 = rclcpp::Node::make_shared("TextToSpeechComponentSetCommandNode2");
 
         auto speakClient2 = setCommandClientNode2->create_client<text_to_speech_interfaces::srv::Speak>("/TextToSpeechComponent/Speak");
         auto speak_request2 = std::make_shared<text_to_speech_interfaces::srv::Speak::Request>();
-        speak_request2->text = command;
+        speak_request2->text = trimmedCmd;
         // Wait for service
         while (!speakClient2->wait_for_service(std::chrono::seconds(1))) {
             if (!rclcpp::ok()) {
@@ -696,7 +707,7 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
 	    return true;
     }
 
-    extracted_command.fromString(command);
+    extracted_command.fromString(trimmedCmd);
 
     yDebug() << "[DialogComponent::InterpretCommand] Number of elements in bottle: " << extracted_command.size();
     // In the first position we have the general thing to do, like: explain, next_poi, end_tour
@@ -704,14 +715,14 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
     yDebug() << "DialogComponent::InterpretCommand" << __LINE__;
     std::string action = theList->get(0).asString();
     yDebug() << "DialogComponent::InterpretCommand" << __LINE__;
-    // yDebug() << "[DialogComponent::InterpretCommand] Got action: " << action << extracted_command.toString() << "Command: " << command;
+    // yDebug() << "[DialogComponent::InterpretCommand] Got action: " << action << extracted_command.toString() << "Command: " << trimmedCmd;
     if (action == "cmd_unknown")
     {
         m_lastQuestion = theList->get(1).asString();
     }
 
     // Let's check what to do with the action
-    if(action == "explain")
+    if(action == "epl1")
     {
         // Check the second element for determining the exact action: artist, art_piece, historical_period, technique
         std::string topic = theList->get(1).asString();
@@ -720,13 +731,107 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
         {
             action = "explainFunction";
         }
-        else if (topic == "description")
+        else if (topic == "description" || topic == "descriptions" ||
+                 topic == "decoration" || topic == "decorations")
         {
             action = "explainDescription";
+        }
+	else if (topic == "museum")
+        {
+            ///TODO: This is an awful solution. Remove it as soon as possible
+            // Horrible solution ------------------------------------------------------------ START//
+
+            //m_iAudioGrabberSound->stopRecording();
+            std::chrono::duration wait_ms = 200ms;
+            yarp::dev::LLM_Message answer;
+            if(!m_iMuseumChat->ask(m_lastQuestion, answer))
+            {
+                yError() << "[DialogComponent::DialogExecution] Unable to interact with chatGPT with question: " << m_lastQuestion;
+                std::this_thread::sleep_for(wait_ms);
+            m_speechTranscriberCallback.setMessageConsumed();
+                return false;
+            }
+            std::string answerText = answer.content;
+            // ---------------------------------Text to Speech Service SPEAK------------------------------
+            {
+                yInfo() << "[DialogComponent::DialogExecution] Starting Text to Speech Service";
+                auto setCommandClientNode = rclcpp::Node::make_shared("TextToSpeechComponentSetCommandNode");
+
+                auto speakClient = setCommandClientNode->create_client<text_to_speech_interfaces::srv::Speak>("/TextToSpeechComponent/Speak");
+                auto speak_request = std::make_shared<text_to_speech_interfaces::srv::Speak::Request>();
+                speak_request->text = answerText;
+                // Wait for service
+                while (!speakClient->wait_for_service(std::chrono::seconds(1))) {
+                    if (!rclcpp::ok()) {
+                        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setCommandClient'. Exiting.");
+                    }
+                }
+                auto speak_result = speakClient->async_send_request(speak_request);
+
+                // Wait for the result.
+                if (rclcpp::spin_until_future_complete(setCommandClientNode, speak_result) == rclcpp::FutureReturnCode::SUCCESS)
+                {
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Speak succeeded");
+                    m_speechTranscriberCallback.setMessageConsumed();
+                } else {
+                    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service speak");
+                    m_speechTranscriberCallback.setMessageConsumed();
+                    return false;
+                }
+            }
+
+            return true;
+        }
+        else if(topic == "project")
+        {
+            ///TODO: This is an awful solution. Remove it as soon as possible
+            // Horrible solution ------------------------------------------------------------ START//
+
+            //m_iAudioGrabberSound->stopRecording();
+            std::chrono::duration wait_ms = 200ms;
+            yarp::dev::LLM_Message answer;
+            if(!m_iGenericChat->ask(m_lastQuestion, answer))
+            {
+                yError() << "[DialogComponent::DialogExecution] Unable to interact with chatGPT with question: " << m_lastQuestion;
+                std::this_thread::sleep_for(wait_ms);
+            m_speechTranscriberCallback.setMessageConsumed();
+                return false;
+            }
+            std::string answerText = answer.content;
+            // ---------------------------------Text to Speech Service SPEAK------------------------------
+            {
+                yInfo() << "[DialogComponent::DialogExecution] Starting Text to Speech Service";
+                auto setCommandClientNode = rclcpp::Node::make_shared("TextToSpeechComponentSetCommandNode");
+
+                auto speakClient = setCommandClientNode->create_client<text_to_speech_interfaces::srv::Speak>("/TextToSpeechComponent/Speak");
+                auto speak_request = std::make_shared<text_to_speech_interfaces::srv::Speak::Request>();
+                speak_request->text = answerText;
+                // Wait for service
+                while (!speakClient->wait_for_service(std::chrono::seconds(1))) {
+                    if (!rclcpp::ok()) {
+                        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setCommandClient'. Exiting.");
+                    }
+                }
+                auto speak_result = speakClient->async_send_request(speak_request);
+
+                // Wait for the result.
+                if (rclcpp::spin_until_future_complete(setCommandClientNode, speak_result) == rclcpp::FutureReturnCode::SUCCESS)
+                {
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Speak succeeded");
+                    m_speechTranscriberCallback.setMessageConsumed();
+                } else {
+                    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service speak");
+                    m_speechTranscriberCallback.setMessageConsumed();
+                    return false;
+                }
+            }
+
+            return true;
         }
         else
         {
             yError() << "[DialogComponent::CommandManager] Unable to assign a known topic: " << topic;
+        m_speechTranscriberCallback.setMessageConsumed();
 	        return false;
         }
 
@@ -766,13 +871,25 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
 
         // Horrible solution -------------------------------------------------------------- END//
 
-        // Now let's Find that command in the JSON
+        // Now let's Find that trimmedCmd in the JSON
         if(! InterpretCommand(action, currentPoI, genericPoI, phrase))
         {
             yError() << "[DialogComponent::CommandManager] Interpret action: " << action;
+        m_speechTranscriberCallback.setMessageConsumed();
             return false;
         }
         return true;
+    }
+    else if (action == "greetings")
+    {
+        // Now let's Find that trimmedCmd in the JSON
+        yDebug() << "Got language:" << theList->get(1).asString();
+        if(! InterpretCommand(action, currentPoI, genericPoI, phrase))
+        {
+            yError() << "[DialogComponent::CommandManager] Interpret action: " << action;
+        m_speechTranscriberCallback.setMessageConsumed();
+            return false;
+        }
     }
     else if (action == "museum")
     {
@@ -786,6 +903,7 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
         {
             yError() << "[DialogComponent::DialogExecution] Unable to interact with chatGPT with question: " << m_lastQuestion;
             std::this_thread::sleep_for(wait_ms);
+        m_speechTranscriberCallback.setMessageConsumed();
             return false;
         }
         std::string answerText = answer.content;
@@ -829,6 +947,7 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
         {
             yError() << "[DialogComponent::DialogExecution] Unable to interact with chatGPT with question: " << m_lastQuestion;
             std::this_thread::sleep_for(wait_ms);
+        m_speechTranscriberCallback.setMessageConsumed();
             return false;
         }
         std::string answerText = answer.content;
@@ -862,6 +981,7 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
     }
     else if (action == "say")
     {
+	yWarning() << "The trimmedCmd:" << trimmedCmd;
         ///TODO: This is an awful solution. Remove it as soon as possible
         // Horrible solution ------------------------------------------------------------ START//
 
@@ -895,17 +1015,23 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
             }
         }
     }
-    else if (action == "next_poi")   // means that it has been found // NEXT POI
+    else if (action == "next_poi" || "start_tour")   // means that it has been found // NEXT POI
     {
         m_state = SUCCESS;
         yInfo() << "[DialogComponent::InterpretCommand] Next Poi Detected" << __LINE__;
+        m_speechTranscriberCallback.setMessageConsumed();
         // TODO Call a service maybe?
     }
     else if (action == "end_tour")  // END TOUR
     {
         m_state = SUCCESS;
         yInfo() << "[DialogComponent::InterpretCommand] End Tour Detected" << __LINE__;
+	        m_speechTranscriberCallback.setMessageConsumed();
+
         // TODO call service
+    } else {
+	m_speechTranscriberCallback.setMessageConsumed();
+	        yInfo() << "[DialogComponent::InterpretCommand] cannot interpret message " << trimmedCmd << " " << __LINE__;
     }
 
     return true;
@@ -919,40 +1045,48 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
 
     bool isCurrent = currentPoI.isCommandValid(command);
     bool isGeneric = genericPoI.isCommandValid(command);
-
+    yInfo() << __LINE__;
     if (isCurrent || isGeneric) // If the command is available either in the current PoI or the generic ones
     {
+    yInfo() << __LINE__;
         int cmd_multiples;
         if (isCurrent) // If it is in the current overwrite the generic
         {
+    yInfo() << __LINE__;
             cmd_multiples = currentPoI.getCommandMultiplesNum(command);
         }
         else
         {
+    yInfo() << __LINE__;
             cmd_multiples = genericPoI.getCommandMultiplesNum(command);
         }
 
         if (cmd_multiples > 1)
         {
+    yInfo() << __LINE__;
             m_uniform_distrib.param(std::uniform_int_distribution<std::mt19937::result_type>::param_type(1, cmd_multiples));
             int index = m_uniform_distrib(m_random_gen) - 1;
             cmd = command;
             if (index != 0)
             {
+    yInfo() << __LINE__;
                 cmd = cmd.append(std::to_string(index));
             }
         }
         else // The is only 1 command. It cannot be 0 because we checked if the command is available at the beginning
         {
+    yInfo() << __LINE__;
             cmd = command;
         }
 
         if (isCurrent)
         {
+    yInfo() << __LINE__;
             isOk = currentPoI.getActions(cmd, actions);
         }
         else
         {
+    yInfo() << __LINE__;
             isOk = genericPoI.getActions(cmd, actions);
         }
     }
@@ -964,6 +1098,7 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
     // After the command has been validated, let's do something
     if (isOk && !actions.empty())
     {
+    yInfo() << __LINE__;
         int actionIndex = 0;
         bool isCommandBlocking = true;
         Action lastNonSignalAction;
@@ -976,20 +1111,24 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
                 tempActions.push_back(actions[i]);
                 if (actions[i].getType() != ActionTypes::SIGNAL)
                 {
+    yInfo() << __LINE__;
                     lastNonSignalAction = actions[i];
                 }
                 if (actions[i].isBlocking())
                 {
                     actionIndex = i + 1;
+    yInfo() << __LINE__;
                     break;
                 }
                 else
                 {
                     if (i == actions.size() - 1)
                     {
+    yInfo() << __LINE__;
                         actionIndex = actions.size();
                         if (!lastNonSignalAction.isBlocking())
                         {
+    yInfo() << __LINE__;
                             isCommandBlocking = false;
                         }
                     }
@@ -1016,6 +1155,7 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
 
                     // Check if the robot is already speaking and wait for it to finish
                     {
+    yInfo() << __LINE__;
                         // waits until the robot has finished speaking
                         bool isSpeaking = false;
                         do {
@@ -1032,7 +1172,8 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
                             auto isSpeakingResult = isSpeakingClient->async_send_request(isSpeakingRequest);
                             auto futureIsSpeakingResult = rclcpp::spin_until_future_complete(isSpeakingClientNode, isSpeakingResult);
                             auto isSpeakingResponse = isSpeakingResult.get();
-                            isSpeaking = !isSpeakingResponse->is_speaking;
+                            isSpeaking = isSpeakingResponse->is_speaking;
+    yInfo() << __LINE__;
 
                         } while (isSpeaking);
                     }
