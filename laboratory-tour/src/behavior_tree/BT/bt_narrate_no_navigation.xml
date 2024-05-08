@@ -4,7 +4,7 @@
     <BehaviorTree ID="BehaviorTree">
         <ReactiveSequence>
 
-		<SubTree ID="gotoPoi"/>
+		<!--	<SubTree ID="gotoPoi"/>-->
 		<SubTree ID="CheckArtworkAndExplain"/>
 	</ReactiveSequence>
     </BehaviorTree>
