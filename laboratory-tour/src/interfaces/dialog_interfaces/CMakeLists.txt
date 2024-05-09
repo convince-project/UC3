@@ -22,8 +22,9 @@ rosidl_generate_interfaces(dialog_interfaces
                             "srv/SetPoi.srv"
                             "srv/GetState.srv"
                             "srv/IsSpeaking.srv"
+                            "srv/SkipExplanation.srv"
                             DEPENDENCIES sensor_msgs
-                            LIBRARY_NAME dialog_interfaces 
+                            LIBRARY_NAME dialog_interfaces
 )
 ament_export_dependencies(sensor_msgs)
 

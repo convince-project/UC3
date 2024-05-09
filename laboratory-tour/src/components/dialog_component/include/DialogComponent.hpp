@@ -25,6 +25,7 @@
 #include <dialog_interfaces/srv/enable_dialog.hpp>
 #include <dialog_interfaces/srv/set_poi.hpp>
 #include <dialog_interfaces/srv/get_state.hpp>
+#include <dialog_interfaces/srv/skip_explanation.hpp>
 //#include <dialog_interfaces/srv/is_speaking.hpp>
 #include <yarp/dev/AudioPlayerStatus.h>
 #include <text_to_speech_interfaces/srv/is_speaking.hpp>
@@ -59,6 +60,8 @@ public:
                         std::shared_ptr<dialog_interfaces::srv::SetPoi::Response> response);
     void GetState(const std::shared_ptr<dialog_interfaces::srv::GetState::Request> request,
                         std::shared_ptr<dialog_interfaces::srv::GetState::Response> response);
+    void SkipExplanation(const std::shared_ptr<dialog_interfaces::srv::SkipExplanation::Request> request,
+                        std::shared_ptr<dialog_interfaces::srv::SkipExplanation::Response> response);
     //void IsSpeaking(const std::shared_ptr<dialog_interfaces::srv::IsSpeaking::Request> request,
     //                    std::shared_ptr<dialog_interfaces::srv::IsSpeaking::Response> response);
 
@@ -98,6 +101,7 @@ private:
     rclcpp::Service<dialog_interfaces::srv::EnableDialog>::SharedPtr m_enableDialogService;
     rclcpp::Service<dialog_interfaces::srv::SetPoi>::SharedPtr m_setPoiService;
     rclcpp::Service<dialog_interfaces::srv::GetState>::SharedPtr m_GetStateService;
+    rclcpp::Service<dialog_interfaces::srv::SkipExplanation>::SharedPtr m_SkipExplanationService;
     //rclcpp::Service<dialog_interfaces::srv::IsSpeaking>::SharedPtr m_IsSpeakingService;
 
     rclcpp::Client<text_to_speech_interfaces::srv::IsSpeaking>::SharedPtr m_isSpeakingClient;
@@ -142,6 +146,7 @@ private:
     };
 
     State m_state;
+    std::atomic<bool> m_skipSpeaking{false};
 };
 
 #endif
