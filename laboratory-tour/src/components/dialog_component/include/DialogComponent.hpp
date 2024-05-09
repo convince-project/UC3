@@ -131,6 +131,7 @@ private:
     bool CommandManager(const std::string &command, PoI currentPoI, PoI genericPoI, std::string & phrase);
     bool InterpretCommand(const std::string &command, PoI currentPoI, PoI genericPoI, std::string & phrase);
     bool m_exit;
+    void WaitForSpeakEnd();
 
     /* Internal State Machine*/
     enum State {
