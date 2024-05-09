@@ -413,6 +413,11 @@ bool DialogComponent::start(int argc, char*argv[])
                                                                                             this,
                                                                                             std::placeholders::_1,
                                                                                             std::placeholders::_2));
+    m_SkipExplanationService = m_node->create_service<dialog_interfaces::srv::SkipExplanation>("/DialogComponent/SkipExplanation",
+                                                                                        std::bind(&DialogComponent::SkipExplanation,
+                                                                                            this,
+                                                                                            std::placeholders::_1,
+                                                                                            std::placeholders::_2));
 
     m_isSpeakingClient = m_node->create_client<text_to_speech_interfaces::srv::IsSpeaking>("/TextToSpeechComponent/IsSpeaking");
     m_setMicrophoneClient = m_node->create_client<text_to_speech_interfaces::srv::SetMicrophone>("/TextToSpeechComponent/SetMicrophone");
@@ -444,6 +449,21 @@ bool DialogComponent::close()
 void DialogComponent::spin()
 {
     rclcpp::spin(m_node);
+}
+
+void DialogComponent::SkipExplanation(const std::shared_ptr<dialog_interfaces::srv::SkipExplanation::Request> request,
+                        std::shared_ptr<dialog_interfaces::srv::SkipExplanation::Response> response)
+{
+    if (m_state == RUNNING)
+    {
+        m_skipSpeaking.store(true);
+        response->is_ok = true;
+    }
+    else
+    {
+        response->error_msg = "Component is not running";
+        response->is_ok = false;
+    }
 }
 
 void DialogComponent::EnableDialog(const std::shared_ptr<dialog_interfaces::srv::EnableDialog::Request> request,
@@ -538,7 +558,7 @@ void DialogComponent::EnableDialog(const std::shared_ptr<dialog_interfaces::srv:
         */
 
         // kill thread and stop the speaking
-	m_speechTranscriberPort.disableCallback();	
+	m_speechTranscriberPort.disableCallback();
         if (m_dialogThread.joinable())
         {
             m_dialogThread.join();
@@ -797,7 +817,7 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
             {
                 yError() << "[DialogComponent::DialogExecution] Unable to interact with chatGPT with question: " << m_lastQuestion;
                 std::this_thread::sleep_for(wait_ms);
-            m_speechTranscriberCallback.setMessageConsumed();
+                m_speechTranscriberCallback.setMessageConsumed();
                 return false;
             }
             std::string answerText = answer.content;
@@ -821,7 +841,7 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
                 if (rclcpp::spin_until_future_complete(setCommandClientNode, speak_result) == rclcpp::FutureReturnCode::SUCCESS)
                 {
                     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Speak succeeded");
-		    WaitForSpeakEnd();
+		            WaitForSpeakEnd();
                     m_speechTranscriberCallback.setMessageConsumed();
                 } else {
                     RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service speak");
@@ -835,7 +855,7 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
         else
         {
             yError() << "[DialogComponent::CommandManager] Unable to assign a known topic: " << topic;
-        m_speechTranscriberCallback.setMessageConsumed();
+            m_speechTranscriberCallback.setMessageConsumed();
 	        return false;
         }
 
@@ -876,10 +896,10 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
         // Horrible solution -------------------------------------------------------------- END//
 
         // Now let's Find that trimmedCmd in the JSON
-        if(! InterpretCommand(action, currentPoI, genericPoI, phrase))
+        if(!InterpretCommand(action, currentPoI, genericPoI, phrase))
         {
             yError() << "[DialogComponent::CommandManager] Interpret action: " << action;
-        m_speechTranscriberCallback.setMessageConsumed();
+            m_speechTranscriberCallback.setMessageConsumed();
             return false;
         }
         return true;
@@ -888,10 +908,10 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
     {
         // Now let's Find that trimmedCmd in the JSON
         yDebug() << "Got language:" << theList->get(1).asString();
-        if(! InterpretCommand(action, currentPoI, genericPoI, phrase))
+        if(!InterpretCommand(action, currentPoI, genericPoI, phrase))
         {
             yError() << "[DialogComponent::CommandManager] Interpret action: " << action;
-        m_speechTranscriberCallback.setMessageConsumed();
+            m_speechTranscriberCallback.setMessageConsumed();
             return false;
         }
     }
@@ -1202,6 +1222,11 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
                 {
                 case ActionTypes::SPEAK:
                 {
+                    if(m_skipSpeaking)
+                    {
+                        m_skipSpeaking.store(false);
+                        return true;
+                    }
                     // Speak, but make it invalid if it is a fallback or it is an error message
                     //Speak(action.getParam(), (cmd != "fallback" && cmd.find("Error") == std::string::npos));
                     //phrase = action.getParam();
