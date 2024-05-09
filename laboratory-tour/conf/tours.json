@@ -196,9 +196,8 @@
                 "m_param": "thank you for participating, don't forget to fill the questionnaire. goodbye.",
                 "m_type": "speak"
               }
-	     ],
-
-	    "greetings": [
+            ],
+            "greetings": [
               {
                 "m_isBlocking": false,
                 "m_param": "Good morning, I'm R1 and I'm here to accompany you in discovering this floor of Palazzo Madama. Do you want to start the tour or ask me some questions about the palace, about me, or about the project of which this demonstration is a part?",
@@ -652,7 +651,7 @@
             ]
           },
           "m_name": "camera_di_madama_reale"
-        }        
+        }
       },
       "it-IT": {
         "___generic___": {
@@ -1297,8 +1296,1467 @@
           },
           "m_name": "camera_di_madama_reale"
         }
+      },
+      "fr-FR": {
+        "___generic___": {
+          "m_availableActions": {
+            "resetTourManager": [
+              {
+                "m_isBlocking": false,
+                "m_param": "reset",
+                "m_type": "signal"
+              }
+            ]
+          }
+        },
+        "madama_start": {
+          "m_availableActions": {
+            "explainRoom": [
+              {
+                "m_isBlocking": false,
+                "m_param": "bonjour je suis R1",
+                "m_type": "speak"
+              }
+            ],
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "merci de votre participation, n'oubliez pas de remplir le questionnaire. Au revoir.",
+                "m_type": "speak"
+              }
+            ],
+            "greetings": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Bonjour, je suis R1 et je suis ici pour vous accompagner à la découverte de cet étage du Palazzo Madama. Voulez-vous commencer la visite ou me poser des questions sur le palais, sur moi ou sur le projet dont cette démonstration fait partie?",
+                "m_type": "speak"
+              }
+            ]
+          },
+          "m_name": "madama_start"
+        },
+        "sala_delle_guardie": {
+          "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Très bien. Alors suivez-moi jusqu'à la première étape de cette visite.",
+                "m_type": "speak"
+              }
+            ],
+            "explainRoom": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Nous sommes au premier étage du Palazzo Madama où Maria Giovanna Battista di Savoia Nemours, une princesse française née à Paris en 1644, a vécu et s'est installée à Turin pour épouser le duc de Savoie.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Femme de caractère, elle a protégé sa nouvelle patrie pendant la minorité de son fils, le futur roi Vittorio Amedeo II, qui a été orphelin à seulement 9 ans. Lorsque son fils s'est marié, Maria Giovanna a quitté le Palais Royal et a choisi le premier étage du château comme sa résidence, qu'elle a meublé et décoré selon ses goûts.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Elle a vécu ici pendant quarante ans, de 1684 jusqu'à sa mort en 1724, servie par 191 personnes impliquées dans sa vie quotidienne, spirituelle et matérielle. Presque rien ne subsiste du mobilier, mais au cours de cette visite, je vous parlerai des fonctions des pièces et de la vie de la duchesse.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Avez-vous des questions? Je peux vous parler de la fonction de cette pièce, de sa décoration. Ou vous pouvez me poser des questions sur le palais, sur le projet Convince, ou sur moi. Sinon, nous pouvons continuer la visite.",
+                "m_type": "speak"
+              }
+            ],
+            "explainFunction": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Excellent, nous sommes dans la salle des gardes. Vers 1721, les invités visitant Madama Reale avaient deux accès : ils pouvaient soit passer par le grand escalier de Filippo Juvarra et entrer dans la salle (aujourd'hui la salle du Sénat); soit accéder directement au château depuis le Palais Royal, en traversant le manchon de liaison qui reliait les deux bâtiments et se terminait dans la salle de la galerie, qui abrite aujourd'hui le Caffè Madama.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Les deux itinéraires menaient à la salle des gardes, où nous sommes maintenant : c'était la première pièce d'où commençait le parcours cérémoniel à l'intérieur de l'appartement de Maria Giovanna Battista di Savoia-Nemours.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Avant d'atteindre la salle du trône (appelée la salle de parade), les invités devaient passer par trois antichambres et attendre d'être présentés à la duchesse. Seuls les invités les plus respectés pouvaient accéder aux pièces les plus réservées et privées du palais.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Avez-vous d'autres questions? Si vous ne vous souvenez pas des questions disponibles, n'hésitez pas à demander des éclaircissements, sinon, nous pouvons continuer la visite si vous le souhaitez.",
+                "m_type": "speak"
+              }
+            ],
+            "explainDescription": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Parfait! La pièce a été décorée entre 1708 et 1715. Maintenant, regardez en haut! La décoration en stuc blanc présente des trophées d'armes insérés aux coins de la voûte, faisant allusion à la destination de la pièce gardée par les gardes du corps de la duchesse: armures, lances, flèches, canons, boucliers, trompettes font allusion au monde de la guerre et des soldats.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Dans le profil ondulé de la corniche, quatre aigles alternent avec la croix de Savoie sur leur poitrine et la fritillaire, emblème de Madama Reale: c'est une plante de la famille des lys avec de grandes fleurs oranges. La base et le stuc des dessus de porte ont été exécutés en 1927 avec des moulages en plâtre pris sur les décors du Palais Royal de Venaria.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Avez-vous d'autres questions? Si vous ne vous souvenez pas des questions disponibles, n'hésitez pas à demander des éclaircissements, sinon, nous pouvons continuer la visite si vous le souhaitez.",
+                "m_type": "speak"
+              }
+            ]
+          },
+          "m_name": "sala_delle_guardie"
+        },
+        "sala_guidobono": {
+          "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Très bien, je suis ravi de continuer à illustrer ce magnifique étage du Palazzo Madama. Veuillez me suivre, je vais vous emmener à la prochaine salle.",
+                "m_type": "speak"
+              }
+            ],
+            "explainRoom": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Nous y voilà! Au début du XVIIIe siècle, la pièce était connue sous le nom de Salle des Laquais, de jeunes serviteurs qui restaient dans cette pièce en attendant des ordres : ils pouvaient agir comme messagers pour livrer ou récupérer des messages dans la ville au nom de la duchesse.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": " Mais leur tâche la plus importante était d'accompagner la duchesse en dégageant le chemin pour la calèche, assurant la sécurité du voyage en éliminant les obstacles ou les dangers avec des bâtons, et illuminant le chemin avec des torches la nuit. D'où leur nom de 'laquais' : ils devaient courir ou marcher pour protéger la duchesse.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Certains d'entre eux peuvent être vus dans le grand tableau représentant le château de Rivoli. Regardez-les ici, dans ce grand tableau, en bas à droite, avec leurs culottes rouges, leurs chemises blanches et leurs chapeaux tricornes noirs escortant la calèche du roi.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Avez-vous des questions? Je peux vous parler de la décoration de cette pièce. Ou vous pouvez me poser des questions sur le palais, le projet Convince, ou sur moi. Sinon, nous pouvons continuer la visite.",
+                "m_type": "speak"
+              }
+            ],
+            "explainFunction": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Nous y voilà! Au début du XVIIIe siècle, la pièce était connue sous le nom de Salle des Laquais, de jeunes serviteurs qui restaient dans cette pièce en attendant des ordres : ils pouvaient agir comme messagers pour livrer ou récupérer des messages dans la ville au nom de la duchesse.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": " Mais leur tâche la plus importante était d'accompagner la duchesse en dégageant le chemin pour la calèche, assurant la sécurité du voyage en éliminant les obstacles ou les dangers avec des bâtons, et illuminant le chemin avec des torches la nuit. D'où leur nom de 'laquais' : courir ou marcher pour protéger la duchesse.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Certains d'entre eux peuvent être vus dans le grand tableau représentant le château de Rivoli. Regardez-les ici, dans ce grand tableau, en bas à droite, avec leurs culottes rouges, leurs chemises blanches et leurs chapeaux tricornes noirs escortant la calèche du roi.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Avez-vous d'autres questions? Si vous ne vous souvenez pas des questions disponibles, n'hésitez pas à demander des éclaircissements, sinon, nous pouvons continuer la visite si vous le souhaitez.",
+                "m_type": "speak"
+              }
+            ],
+            "explainDescription": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Pour apprécier pleinement cette pièce, vous devez regarder le plafond! La voûte est dédiée à l'allégorie du Printemps, qui apparaît au centre sur des nuages poussés par des têtes de zéphyr. Le plafond faux perforé est soutenu par une loggia en perspective avec des colonnes et des ouvertures d'où des perroquets, des rapaces, des oiseaux aquatiques et des oiseaux domestiques regardent.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "La fresque remonte à la campagne décorative menée entre 1708 et 1714. Maria Giovanna Battista a confié l'exécution à Domenico Guidobono, montrant ainsi une préférence pour le goût du naturalisme et de l'illusionnisme spatial typique de la peinture baroque génoise, plus informelle et exubérante que la décoration courtoise et classicisante préférée par son fils Vittorio Amedeo II pour le Palais Royal.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Au-dessus de la corniche à l'est, apparaît la signature de l'artiste et la date de fin des travaux, le 16 décembre 1714. L'architecture faux est probablement due à l'intervention d'un quadraturiste, un peintre spécialisé dans la réalisation de perspectives architecturales.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "La voûte comporte de nombreux trous de clous utilisés pour fixer les cordes et le carton utilisés pour tracer les lignes de la composition. La base est exécutée en fresque, avec un ombrage sec, malheureusement partiellement enlevé en 1927 lors d'une intervention de nettoyage agressive.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Pour les figures, Domenico a choisi la technique du 'mezzo fresco', qui permet une peinture plus rapide avec des pigments de chaux plus substantiels.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Enfin, à l'arrière de la voûte, une multitude de petites boules et de rayures en feuille d'or ont été appliquées avec un mélange d'huile et de résine, qui embellissent et illuminent les parties chromatiques.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Avez-vous d'autres questions? Si vous ne vous souvenez pas des questions disponibles, n'hésitez pas à demander des éclaircissements, sinon, nous pouvons continuer la visite si vous le souhaitez.",
+                "m_type": "speak"
+              }
+            ]
+          },
+          "m_name": "sala_guidobono"
+        },
+        "sala_delle_feste": {
+          "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Suivez-moi, je vais vous emmener à l'endroit idéal pour apprécier cet environnement et où vous pourrez vous asseoir un moment. Comme vous pouvez l'entendre, le sol craque sous nos pieds... c'est du bois de cerisier, donnant un aspect très élégant à cet endroit mais nécessitant une restauration et un entretien continus. Vous pouvez vous asseoir ici, mais restez toujours près de moi !",
+                "m_type": "speak"
+              }
+            ],
+            "explainRoom": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Comme vous pouvez le voir, c'est une très grande salle mais au XVIIIe siècle, elle était divisée en deux salles distinctes : la Salle des Fêtes et la Salle de Parade, en particulier cette dernière était utilisée par Madama Reale Maria Giovanna Battista pour recevoir les invités les plus estimés en audience publique.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Un inventaire dressé en 1724 nous informe que la salle était éclairée par un lustre en argent et décorée de tapisseries de velours rouge bordées de galons dorés. Le même tissu (remplacé en été par du damas noir avec des fleurs dorées) recouvrait le trône et le baldaquin de la duchesse, deux rideaux et douze bancs contre les murs.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Les panneaux de bois sculptés qui recouvraient les murs et la cheminée de la Salle de Parade ont disparu. Les douze bancs pourraient plutôt être identifiés avec les canapés du début du XVIIIe siècle maintenant exposés dans cette pièce, identiques en design et en sculpture à la balustrade du trône.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Avez-vous des questions? Je peux vous parler de la décoration de cette pièce. Ou vous pouvez me poser des questions sur le palais, le projet Convince, ou sur moi. Sinon, nous pouvons continuer la visite.",
+                "m_type": "speak"
+              }
+            ],
+            "explainFunction": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Suivez-moi, je vais vous emmener à l'endroit idéal pour apprécier cet environnement. Comme vous pouvez le voir, c'est une très grande salle mais au XVIIIe siècle, elle était divisée en deux salles distinctes : la Salle des Fêtes et la Salle de Parade, en particulier cette dernière était utilisée par Madama Reale Maria Giovanna Battista pour recevoir les invités les plus estimés en audience publique.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Un inventaire dressé en 1724 nous informe que la salle était éclairée par un lustre en argent et décorée de tapisseries de velours rouge bordées de galons dorés. Le même tissu (remplacé en été par du damas noir avec des fleurs dorées) recouvrait le trône et le baldaquin de la duchesse, deux rideaux et douze bancs contre les murs.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Les panneaux de bois sculptés qui recouvraient les murs et la cheminée de la Salle de Parade ont disparu. Les douze bancs pourraient plutôt être identifiés avec les canapés du début du XVIIIe siècle maintenant exposés dans cette pièce, identiques en design et en sculpture à la balustrade du trône dans la photo, qui fait partie des collections du musée.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Avez-vous d'autres questions? Si vous ne vous souvenez pas des questions disponibles, n'hésitez pas à demander des éclaircissements, sinon, nous pouvons continuer la visite si vous le souhaitez.",
+                "m_type": "speak"
+              }
+            ],
+            "explainDescription": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Vous devez aussi regarder ici! Au XVIIIe siècle, la voûte de la Salle de Parade était recouverte d'une nouvelle peinture. Une petite portion de la décoration originale est visible juste au-dessus de la porte d'entrée à droite, où un échantillon de découverte, reconnaissable par un panneau blanc, a mis au jour un fragment de l'intervention de la fin du XVIIe siècle, peut-être attribuable au travail de Bartolomeo Guidobono.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "La voûte du vestibule adjacent de la Salle des Fêtes a également été reconstruite au XVIIIe siècle. Vous savez peut-être déjà que le Palazzo Madama a eu différentes fonctions tout au long de son histoire millénaire et cette salle a également été utilisée de différentes manières.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "En effet, après avoir accueilli les bureaux du Sénat (1848-1863) et la Cour de Cassation (1869-1923), les salles du premier étage du Palazzo Madama ont été accordées à la Municipalité de Turin comme lieu d'événements civiques et patriotiques.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "En 1925, il a été décidé de démolir le mur de séparation entre le vestibule de la Salle des Fêtes et la Salle de Parade de Madama Reale pour créer une grande salle de réception. Pour créer le plafond en dôme de la nouvelle pièce, une solution audacieuse et unique a été mise en œuvre.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Le plafond de la Salle des Fêtes a été démoli tandis que celui de la Salle de Parade a été coupé en deux. La partie sud est restée en place tandis que l'autre moitié, placée sur le mur démoli, a été déplacée vers le côté opposé de la salle, au nord.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "La voûte a finalement été peinte par Carlo Cussetti, reprenant et étendant la conception de la quadrature architecturale du XVIIIe siècle de l'ancienne Salle de Parade. Le 18 octobre 1961, la Charte sociale européenne a été signée dans cette salle.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Avez-vous d'autres questions? Si vous ne vous souvenez pas des questions disponibles, n'hésitez pas à demander des éclaircissements, sinon, nous pouvons continuer la visite si vous le souhaitez.",
+                "m_type": "speak"
+              }
+            ]
+          },
+          "m_name": "sala_delle_feste"
+        },
+        "sala_4_stagioni": {
+          "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Allons-y ! Pouvez-vous vous lever et me suivre jusqu'à la prochaine pièce ? Je suis un peu lent car le sol est légèrement irrégulier et je dois faire attention ! Je vous demande gentiment de rester derrière moi.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": true,
+                "m_param": "Dans la pièce suivante, vous verrez sur votre gauche une zone délimitée car les restaurateurs repositionnent les planches selon un motif géométrique précis. Comme je l'ai mentionné, un entretien continu est nécessaire.",
+                "m_type": "speak"
+              }
+            ],
+            "explainRoom": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Dans cette pièce, sous un ciel bleu intense et avec la sensation d'être à l'intérieur d'une grande volière de fils dorés entrelacés, la cour de Maria Giovanna Battista profitait de moments de loisirs. Composée de dames et de chevaliers, surtout le soir, ils se réunissaient pour divertir la duchesse avec de la musique, des danses, des conversations et des jeux.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Le programme iconographique de la décoration est une célébration du temps sous toutes ses formes. Dans les quatre coins au-dessus, vous voyez les personnifications des saisons, également en référence aux quatre âges de l'homme, de l'enfance de Bacchus-Automne à la vieillesse de l'Hiver se réchauffant au coin du feu ; à l'intérieur des cadres apparaissent des activités humaines liées à l'agriculture, tandis qu'au centre de la voûte, une série de chérubins s'adonnent à des divertissements et des jeux, évoquant ainsi la fonction récréative de la pièce.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Avez-vous des questions ? Je peux vous parler de la décoration de cette pièce. Ou vous pouvez me poser des questions sur le palais, le projet Convince, ou sur moi. Sinon, nous pouvons continuer la visite.",
+                "m_type": "speak"
+              }
+            ],
+            "explainFunction": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Dans cette pièce, sous un ciel bleu intense et avec la sensation d'être à l'intérieur d'une grande volière de fils dorés entrelacés, la cour de Maria Giovanna Battista profitait de moments de loisirs. Composée de dames et de chevaliers, surtout le soir, ils se réunissaient pour divertir la duchesse avec de la musique, des danses, des conversations et des jeux.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Le programme iconographique de la décoration est une célébration du temps sous toutes ses formes. Dans les quatre coins au-dessus, vous voyez les personnifications des saisons, également en référence aux quatre âges de l'homme, de l'enfance de Bacchus-Automne à la vieillesse de l'Hiver se réchauffant au coin du feu ; à l'intérieur des cadres apparaissent des activités humaines liées à l'agriculture, tandis qu'au centre de la voûte, une série de chérubins s'adonnent à des divertissements et des jeux, évoquant ainsi la fonction récréative de la pièce.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Avez-vous d'autres questions ? Si vous ne vous souvenez pas des questions disponibles, n'hésitez pas à demander des éclaircissements, sinon, nous pouvons continuer la visite si vous le souhaitez.",
+                "m_type": "speak"
+              }
+            ],
+            "explainDescription": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Excellent ! Merci beaucoup pour votre intérêt ! Le nom de la pièce dérive des allégories des Saisons, chacune placée dans l'un des quatre coins à l'intérieur de cadres dorés.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "La décoration élaborée de la voûte exécutée en stuc et fresque a été créée entre 1708 et 1715 en s'inspirant des modèles décoratifs de Jean Bèrain, un architecte et designer ornemental français, actif à la cour de Louis XIV.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Au début du XVIIIe siècle, la pièce était appelée le 'Grand Cabinet du Cercle' et servait de pièce d'attente à la chambre à coucher de Madama Reale.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Selon la saison, les murs étaient recouverts de différentes tapisseries : en hiver, des bandes de velours cramoisi épais étaient appliquées, tandis qu'en été, elles cédaient la place à la soie damassée avec des fleurs dorées et argentées, conformément aux sculptures des portes recouvertes de feuilles d'or et d'argent.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Ce dernier métal s'est oxydé de manière irréversible et apparaît maintenant noir.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Avez-vous d'autres questions ? Si vous ne vous souvenez pas des questions disponibles, n'hésitez pas à demander des éclaircissements, sinon, nous pouvons continuer la visite si vous le souhaitez.",
+                "m_type": "speak"
+              }
+            ]
+          },
+          "m_name": "sala_4_stagioni"
+        },
+        "camera_di_madama_reale": {
+          "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Nous entrons dans la Chambre de Madama Reale.",
+                "m_type": "speak"
+              }
+            ],
+            "explainRoom": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Nous y voilà ! Le chemin cérémoniel de l'appartement se terminait dans la Chambre de Madama Reale, l'environnement le plus splendide de l'appartement de la duchesse et spécialement situé du côté sud du palais et au-dessus des zones de cuisine pour recevoir la chaleur du soleil et des cheminées.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Le lit à baldaquin était placé entre les deux grands miroirs : la garniture, coordonnée avec les revêtements des portes, du lit et des rideaux, en hiver était en velours bleu, en accord avec la couleur des rubans des guirlandes de fleurs peintes au plafond, tandis qu'en été, elle était remplacée par un brocart d'or sur fond argenté avec des fleurs de soie de différentes couleurs.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Dans cette pièce, la duchesse pouvait prendre ses repas. Ici, la cérémonie du réveil et de l'habillage de la duchesse avait lieu, qui recevait dans cette pièce en audience privée des princes et des princesses étrangers, selon une coutume née à la cour de Louis XIV et répandue parmi les souverains européens de l'époque.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Avez-vous des questions ? Je peux vous parler de la décoration de cette pièce. Ou vous pouvez me poser des questions sur le palais, le projet Convince, ou sur moi. Sinon, nous pouvons continuer la visite.",
+                "m_type": "speak"
+              }
+            ],
+            "explainFunction": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Nous y voilà ! Le chemin cérémoniel de l'appartement se terminait dans la Chambre de Madama Reale, l'environnement le plus splendide de l'appartement de la duchesse et spécialement situé du côté sud du palais et au-dessus des zones de cuisine pour recevoir la chaleur du soleil et des cheminées.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Le lit à baldaquin était placé entre les deux grands miroirs : la garniture, coordonnée avec les revêtements des portes, du lit et des rideaux, en hiver était en velours bleu, en accord avec la couleur des rubans des guirlandes de fleurs peintes au plafond, tandis qu'en été, elle était remplacée par un brocart d'or sur fond argenté avec des fleurs de soie de différentes couleurs.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Dans cette pièce, la duchesse pouvait prendre ses repas. Ici, la cérémonie du réveil et de l'habillage de la duchesse avait lieu, qui recevait dans cette pièce en audience privée des princes et des princesses étrangers, selon une coutume née à la cour de Louis XIV et répandue parmi les souverains européens de l'époque.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Avez-vous d'autres questions ? Si vous ne vous souvenez pas des questions disponibles, n'hésitez pas à demander des éclaircissements, sinon, nous pouvons continuer la visite si vous le souhaitez.",
+                "m_type": "speak"
+              }
+            ],
+            "explainDescription": [
+              {
+                "m_isBlocking": false,
+                "m_param": "La chambre était également une salle de réception pour les invités, et la décoration entièrement dédiée au triomphe et à la célébration des vertus de la duchesse reflète cet objectif.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Si vous regardez en haut, vous la voyez représentée au centre de la voûte sur un chariot tiré par des chevaux ailés et en train d'être couronnée d'une couronne de laurier : autour de la scène centrale, des figures féminines incarnent les vertus d'une bonne gouvernance de Maria Giovanna Battista.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Le programme décoratif est complété par les quatre dessus-de-porte avec les allégories de l'Autorité, de la Bonté, de la Fidélité, et peut-être de la Charité. La disposition traditionnelle des scènes en compartiments est animée par le jeu de stucs colorés qui envahissent la voûte jusqu'à se mêler et se confondre avec la peinture.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Les investigations menées lors de la restauration nous ont permis de comprendre la qualité des techniques utilisées par l'artiste. Sous le film pictural, réalisé presque entièrement avec des couleurs à l'huile, différents types de plâtre ont été identifiés, homogènes dans les zones à l'intérieur des médaillons et avec une granularité plus grande dans le reste de la surface.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Cette particularité révèle l'intention de rendre la décoration plus vivante, peut-être en simulant la présence de grandes peintures sur toile, avec un aspect plus lisse et plus brillant, intégrées au plafond peint. Les revêtements muraux en bois sculpté et doré avec des feuilles, des fleurs, des fruits et des coquilles font écho à la richesse des décors au plafond.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Au-dessus de la cheminée, à l'intérieur d'un cadre riche avec un miroir, est placé le portrait de Carlo Emanuele II, duc de Savoie et mari de Maria Giovanna Battista de Savoie-Nemours, l'une des rares œuvres conservées parmi les meubles d'origine du premier appartement créé vers 1690.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Comme vous pouvez le voir, Maria Giovanna Battista avait un goût luxueux : la porcelaine délicate trouvait sa place sur le manteau de la cheminée, tandis que le reste de la pièce était parsemé d'objets en argent, y compris des bougeoirs, des vases et des braseros.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Aucun de ces objets n'est conservé aujourd'hui car, comme dans d'autres cas, quelques années après la mort de Madama Reale, ils ont été emmenés à la Monnaie pour être fondus et récupérer le métal.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Avez-vous d'autres questions ? Si vous ne vous souvenez pas des questions disponibles, n'hésitez pas à demander des éclaircissements, sinon, nous pouvons continuer la visite si vous le souhaitez.",
+                "m_type": "speak"
+              }
+            ]
+          },
+          "m_name": "camera_di_madama_reale"
+        }
+      },
+      "es-ES": {
+        "___generic___": {
+          "m_availableActions": {
+            "resetTourManager": [
+              {
+                "m_isBlocking": false,
+                "m_param": "reset",
+                "m_type": "signal"
+              }
+            ]
+          }
+        },
+        "madama_start": {
+          "m_availableActions": {
+            "explainRoom": [
+              {
+                "m_isBlocking": false,
+                "m_param": "ciao sono r1",
+                "m_type": "speak"
+              }
+          ],
+          "sayWhileNavigating": [
+              {
+                "m_isBlocking": false,
+                "m_param": "gracias por participar, recuerda completar la encuesta. ¡Adiós!",
+                "m_type": "speak"
+              }
+          ],
+          "greetings": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Buenos días, soy R1 y estoy aquí para llevarte a descubrir este piso del Palacio Madama. ¿Quieres comenzar el recorrido o hacerme alguna pregunta sobre el palacio, sobre mí o sobre el proyecto al que pertenece esta demostración?",
+                "m_type": "speak"
+              }
+            ]
+          },
+          "m_name": "madama_start"
+        },
+        "sala_delle_guardie": {
+          "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Muy bien. Entonces, sígueme hasta la primera parada de este recorrido.",
+                "m_type": "speak"
+              }
+            ],
+            "explainRoom": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Estamos en el primer piso del Palazzo Madama, donde vivió y se trasladó a Turín para casarse con el Duque de Saboya María Giovanna Battista di Savoia Nemours, una princesa francesa nacida en París en 1644.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Una mujer de carácter fuerte, protegió a su nuevo hogar durante la minoría de su hijo, el futuro Rey Vittorio Amedeo II, quien quedó huérfano a los 9 años. Cuando su hijo se casó, María Giovanna dejó el Palacio Real y eligió el primer piso del castillo como su residencia, que amuebló y decoró según su gusto.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Vivió aquí durante cuarenta años, desde 1684 hasta su muerte en 1724, atendida por 191 personas que participaban en su vida diaria, espiritual y material. Casi nada queda de los muebles, pero a lo largo de este recorrido, te contaré sobre las funciones de las habitaciones y cómo se desarrolló la vida de la duquesa.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "¿Tienes alguna pregunta? Puedo hablarte sobre la función de esta habitación, su decoración. O puedes preguntarme cualquier cosa sobre el palacio, el proyecto Convince, o sobre mí. De lo contrario, podemos continuar con el recorrido.",
+                "m_type": "speak"
+              }
+            ],
+            "explainFunction": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Excelente, estamos en la Sala de Guardias. Hacia 1721, los invitados que visitaban a Madama Reale tenían dos accesos: podían pasar por la gran escalera de Filippo Juvarra y entrar en la sala (ahora la Sala del Senado); o acceder al castillo directamente desde el Palacio Real, atravesando la manga de conexión que unía los dos edificios y terminaba en la sala de la galería, que hoy alberga el Caffè Madama.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Ambas rutas conducían a la Sala de Guardias, donde estamos ahora: esta era la primera habitación desde la que comenzaba la ruta ceremonial dentro del apartamento de María Giovanna Battista di Savoia-Nemours.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Antes de llegar a la sala del trono (llamada sala de desfile), los invitados debían pasar por tres antecámaras y esperar ser presentados a la presencia de la duquesa. Solo los huéspedes más respetados podían llegar a las habitaciones más reservadas y privadas del palacio.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "¿Tienes alguna otra pregunta? Si no recuerdas las preguntas disponibles, no dudes en pedir aclaraciones, de lo contrario, podemos continuar con el recorrido si prefieres.",
+                "m_type": "speak"
+              }
+            ],
+            "explainDescription": [
+              {
+                "m_isBlocking": false,
+                "m_param": "¡Perfecto! La habitación fue decorada entre 1708 y 1715. ¡Ahora mira hacia arriba! La decoración de estuco blanco presenta trofeos de armas insertados en las esquinas de la bóveda, aludiendo al destino de la sala custodiada por los guardias de la duquesa: armaduras, lanzas, flechas, cañones, escudos, trompetas aluden al mundo de la guerra y los soldados.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Las paredes también están decoradas con trofeos militares, armas, y escudos. Además, la sala cuenta con dos grandes candelabros de madera pintada en blanco y dorado, que enmarcan el tablero de ajedrez, símbolo de la astucia y la inteligencia, en la mesa central.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Las ventanas, situadas en el lado sur de la sala, aportan una luz suave a la sala, que se refleja en las paredes decoradas, destacando los trofeos y la ornamentación de la habitación.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "¡Ahora te invito a que sigamos adelante! Si tienes alguna pregunta o quieres saber más sobre esta sala, no dudes en decírmelo.",
+                "m_type": "speak"
+              }
+            ]
+          },
+          "m_name": "sala_delle_guardie"
+        },
+        "sala_guidobono": {
+          "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "¡Bueno, me alegra continuar ilustrando este hermoso piso del Palazzo Madama! Por favor, sígueme, te llevaré a la próxima habitación.",
+                "m_type": "speak"
+              }
+            ],
+            "explainRoom": [
+              {
+                "m_isBlocking": false,
+                "m_param": "¡Aquí estamos! A principios del siglo XVIII, la habitación era conocida como la Sala de los Lacayos, jóvenes criados que se quedaban en esta habitación esperando órdenes: podían actuar como mensajeros para entregar o recuperar mensajes en la ciudad en nombre de la duquesa.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Pero su tarea más importante era acompañar a la duquesa despejando el camino para el carruaje, asegurando la seguridad del viaje al eliminar cualquier obstáculo o peligro con palos, e iluminando el camino con antorchas por la noche. De ahí su nombre 'lacayos': tenían que correr o caminar para proteger a la duquesa.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Algunos de ellos se pueden ver en el gran cuadro que representa el castillo de Rivoli. Míralos aquí, en este gran cuadro, en la parte inferior derecha, con sus pantalones rojos, camisas blancas y sombreros tricornios negros escoltando el carruaje del rey.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "¿Tienes alguna pregunta? Puedo hablarte sobre la decoración de esta habitación. O puedes preguntarme cualquier cosa sobre el palacio, el proyecto Convince, o sobre mí. De lo contrario, podemos continuar con el recorrido.",
+                "m_type": "speak"
+              }
+            ],
+            "explainFunction": [
+              {
+                "m_isBlocking": false,
+                "m_param": "¡Aquí estamos! A principios del siglo XVIII, la habitación era conocida como la Sala de los Lacayos, jóvenes criados que se quedaban en esta habitación esperando órdenes: podían actuar como mensajeros para entregar o recuperar mensajes en la ciudad en nombre de la duquesa.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Pero su tarea más importante era acompañar a la duquesa despejando el camino para el carruaje, asegurando la seguridad del viaje al eliminar cualquier obstáculo o peligro con palos, e iluminando el camino con antorchas por la noche. De ahí su nombre 'lacayos': corriendo o caminando para proteger a la duquesa.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Algunos de ellos se pueden ver en el gran cuadro que representa el castillo de Rivoli. Míralos aquí, en este gran cuadro, en la parte inferior derecha, con sus pantalones rojos, camisas blancas y sombreros tricornios negros escoltando el carruaje del rey.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "¿Tienes alguna otra pregunta? Si no recuerdas las preguntas disponibles, no dudes en pedir aclaraciones, de lo contrario, podemos continuar con el recorrido si prefieres.",
+                "m_type": "speak"
+              }
+            ],
+            "explainDescription": [
+              {
+                "m_isBlocking": false,
+                "m_param": "¡Para apreciar completamente esta habitación, necesitas mirar hacia arriba al techo! La bóveda está dedicada a la alegoría de la Primavera, que aparece en el centro sobre nubes impulsadas por cabezas de zéfiros. El falso techo perforado está sostenido por una logia de perspectiva con columnas y aberturas desde las cuales miran loros, aves de presa, aves acuáticas y aves domésticas.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "El fresco data de la campaña decorativa realizada entre 1708 y 1714. María Giovanna Battista encomendó la ejecución a Domenico Guidobono, mostrando así una preferencia por el gusto por el naturalismo y la fidelidad a los modelos franceses, una elección que siguió su difunto esposo, el duque Víctor Amadeo II.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "La iconografía de las estaciones en la bóveda se combina con la de las aves en la logia inferior, alegoría de la felicidad y la abundancia que fluyen de la soberanía ducal, como fuente principal de toda actividad agrícola.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Los aspectos simbólicos también están presentes en los suelos, donde los mármoles, cuidadosamente seleccionados, fueron escogidos no solo por sus valores estéticos sino también por sus virtudes y propiedades intrínsecas.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "¡Es impresionante, verdad? ¿Tienes alguna otra pregunta? Si no recuerdas las preguntas disponibles, no dudes en pedir aclaraciones, de lo contrario, podemos continuar con el recorrido si prefieres.",
+                "m_type": "speak"
+              }
+            ]
+          },
+          "m_name": "sala_guidobono"
+        },
+        "sala_delle_feste": {
+          "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Sígueme, te llevaré al mejor lugar para apreciar este ambiente y donde puedas sentarte un rato. Como puedes escuchar, el suelo cruje bajo nuestros pies... es madera de cerezo, que le da un aspecto muy elegante a este lugar pero necesita restauración y mantenimiento continuo. Puedes sentarte aquí, ¡pero siempre mantente cerca de mí!",
+                "m_type": "speak"
+              }
+            ],
+            "explainRoom": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Como puedes ver, es una sala muy grande pero en el siglo XVIII, se dividía en dos salas distintas: la Sala del Espectáculo y la Sala del Desfile, particularmente esta última era utilizada por la Madama Reale Maria Giovanna Battista para recibir a los huéspedes más distinguidos en audiencia pública.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Un inventario realizado en 1724 nos informa que la sala estaba iluminada por un candelabro de plata y estaba decorada con tapices de terciopelo rojo bordeados por trenzas doradas. El mismo tejido (reemplazado en verano por damasco negro con flores doradas) cubría el trono y el dosel de la duquesa, dos cortinas y doce bancos contra las paredes.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Los paneles de madera tallada que cubrían las paredes y la chimenea de la Sala del Desfile se han perdido. Los doce bancos podrían identificarse con los sofás de principios del siglo XVIII que se exhiben en esta sala, idénticos en diseño y tallado al balaustrado del trono.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "¿Tienes alguna pregunta? Puedo hablarte sobre la decoración de esta sala. O puedes hacerme cualquier pregunta sobre el palacio, el proyecto Convince o sobre mí. De lo contrario, podemos continuar con el recorrido.",
+                "m_type": "speak"
+              }
+            ],
+            "explainFunction": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Sígueme, te llevaré al mejor lugar para apreciar este ambiente. Como puedes ver, es una sala muy grande pero en el siglo XVIII, se dividía en dos salas distintas: la Sala del Espectáculo y la Sala del Desfile, particularmente esta última era utilizada por la Madama Reale Maria Giovanna Battista para recibir a los huéspedes más distinguidos en audiencia pública.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Un inventario realizado en 1724 nos informa que la sala estaba iluminada por un candelabro de plata y estaba decorada con tapices de terciopelo rojo bordeados por trenzas doradas. El mismo tejido (reemplazado en verano por damasco negro con flores doradas) cubría el trono y el dosel de la duquesa, dos cortinas y doce bancos contra las paredes.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Los paneles de madera tallada que cubrían las paredes y la chimenea de la Sala del Desfile se han perdido. Los doce bancos podrían identificarse con los sofás de principios del siglo XVIII que se exhiben en esta sala, idénticos en diseño y tallado al balaustrado del trono en la foto, que forma parte de las colecciones del Museo.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "¿Tienes alguna otra pregunta? Si no recuerdas las preguntas disponibles, no dudes en pedir aclaraciones, de lo contrario, podemos continuar el recorrido si lo deseas.",
+                "m_type": "speak"
+              }
+            ],
+            "explainDescription": [
+              {
+                "m_isBlocking": false,
+                "m_param": "¡También necesitas mirar hacia arriba! En el siglo XVIII, la bóveda de la Sala del Desfile estaba cubierta con una nueva pintura. Una pequeña parte de la decoración original es visible justo encima de la puerta de entrada a la derecha, donde una muestra de descubrimiento, reconocible por una escotilla blanca, ha sacado a la luz un fragmento de la intervención de finales del siglo XVII, quizás atribuible a la obra de Bartolomeo Guidobono.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "La bóveda del Anticamera del Espectáculo adyacente también se reconstruyó durante el siglo XVIII. Tal vez ya sepas que el Palazzo Madama ha tenido varias funciones a lo largo de su milenaria historia y esta sala también se ha utilizado de diferentes maneras.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "De hecho, después de albergar las oficinas del Senado (1848-1863) y el Tribunal de Casación (1869-1923), las salas del primer piso del Palazzo Madama fueron concedidas al Municipio de Turín como lugar para eventos cívicos y patrióticos.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "En 1925, se decidió demoler la pared divisoria entre el Anticamera del Espectáculo y la Sala del Desfile de Madama Reale para crear una gran sala de recepción. Para crear el techo abovedado de la nueva sala, se implementó una solución audaz y única.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "El techo de la Sala del Espectáculo fue demolido mientras que el de la Sala del Desfile se cortó en dos partes. La parte sur se dejó en su lugar mientras que la otra mitad, colocada en la pared demolida, se trasladó al lado opuesto de la sala al norte.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Finalmente, la bóveda fue pintada por Carlo Cussetti, retomando y ampliando el diseño de la cuadratura arquitectónica del antiguo Desfile del siglo XVIII. El 18 de octubre de 1961, se firmó en esta sala la Carta Social Europea.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "¿Tienes alguna otra pregunta? Si no recuerdas las preguntas disponibles, no dudes en pedir aclaraciones, de lo contrario, podemos continuar el recorrido si lo deseas.",
+                "m_type": "speak"
+              }
+            ]
+          },
+          "m_name": "sala_delle_feste"
+        },
+        "sala_4_stagioni": {
+          "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "¡Vamos! ¿Puedes ponerte de pie y seguirme a la próxima habitación? Soy un poco lento porque el piso está ligeramente irregular y debo tener cuidado. Te pido amablemente que te quedes detrás de mí.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": true,
+                "m_param": "En la próxima habitación, verás a tu izquierda un área delimitada porque los restauradores están reposicionando las tablas siguiendo un patrón geométrico preciso. Como mencioné, es necesaria una mantenimiento continuo.",
+                "m_type": "speak"
+              }
+            ],
+            "explainRoom": [
+              {
+                "m_isBlocking": false,
+                "m_param": "En esta habitación, bajo un cielo azul intenso y con la sensación de estar dentro de un gran aviario de hilos dorados entrelazados, la corte de María Giovanna Battista disfrutaba de momentos de ocio. Compuesta por damas y caballeros, especialmente por las tardes, se reunían para entretener a la duquesa con música, bailes, conversaciones y juegos.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "El programa iconográfico de la decoración es una celebración del tiempo en todas sus formas. En las cuatro esquinas superiores, se ven las personificaciones de las estaciones también aludiendo a las cuatro edades del hombre, desde la infancia de Baco-Otoño hasta la vejez de Invierno calentándose junto al fuego; dentro de los marcos aparecen actividades humanas relacionadas con la agricultura, mientras que en el centro de la bóveda, una serie de querubines se dedican a diversiones y juegos, aludiendo así a la función recreativa de la habitación.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "¿Tienes alguna pregunta? Puedo hablarte sobre la decoración de esta habitación. O puedes preguntarme cualquier cosa sobre el palacio, el proyecto Convince, o sobre mí. De lo contrario, podemos continuar con el recorrido.",
+                "m_type": "speak"
+              }
+            ],
+            "explainFunction": [
+              {
+                "m_isBlocking": false,
+                "m_param": "En esta habitación, bajo un cielo azul intenso y con la sensación de estar dentro de un gran aviario de hilos dorados entrelazados, la corte de María Giovanna Battista disfrutaba de momentos de ocio. Compuesta por damas y caballeros, especialmente por las tardes, se reunían para entretener a la duquesa con música, bailes, conversaciones y juegos.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "El programa iconográfico de la decoración es una celebración del tiempo en todas sus formas. En las cuatro esquinas superiores, se ven las personificaciones de las estaciones también aludiendo a las cuatro edades del hombre, desde la infancia de Baco-Otoño hasta la vejez de Invierno calentándose junto al fuego; dentro de los marcos aparecen actividades humanas relacionadas con la agricultura, mientras que en el centro de la bóveda, una serie de querubines se dedican a diversiones y juegos, aludiendo así a la función recreativa de la habitación.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "¿Tienes alguna otra pregunta? Si no recuerdas las preguntas disponibles, no dudes en pedir aclaraciones, de lo contrario, podemos continuar con el recorrido si prefieres.",
+                "m_type": "speak"
+              }
+            ],
+            "explainDescription": [
+              {
+                "m_isBlocking": false,
+                "m_param": "¡Excelente! ¡Muchas gracias por tu interés! El nombre de la habitación deriva de las alegorías de las Estaciones, cada una colocada en una de las cuatro esquinas dentro de marcos dorados.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "La elaborada decoración de la bóveda ejecutada en estuco y fresco se creó entre 1708 y 1715, inspirándose en los modelos decorativos de Jean Bèrain, un arquitecto y diseñador ornamental francés, activo en la corte de Luis XIV.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "A principios del siglo XVIII, la habitación era llamada 'Gran Gabinete Circular' y servía como antesala al dormitorio de Madama Reale.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Según la temporada, las paredes estaban cubiertas con diferentes tapices: en invierno, se aplicaban bandas de terciopelo carmesí grueso, mientras que en verano, daban paso a la seda damasco con flores doradas y plateadas, de acuerdo con los tallados de las puertas cubiertas de pan de oro y plata.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Este último metal se ha oxidado irreversiblemente y ahora aparece negro.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "¿Tienes alguna otra pregunta? Si no recuerdas las preguntas disponibles, no dudes en pedir aclaraciones, de lo contrario, podemos continuar con el recorrido si prefieres.",
+                "m_type": "speak"
+              }
+            ]
+          },
+          "m_name": "sala_4_stagioni"
+        },
+        "camera_di_madama_reale": {
+          "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Estamos entrando en la Cámara de Madama Reale.",
+                "m_type": "speak"
+              }
+            ],
+            "explainRoom": [
+              {
+                "m_isBlocking": false,
+                "m_param": "¡Aquí estamos! El camino ceremonial del apartamento terminaba en la Cámara de Madama Reale, el ambiente más espléndido del apartamento de la duquesa y especialmente ubicado en el lado sur del palacio y sobre las áreas de la cocina para recibir el calor del sol y las chimeneas.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "La cama con dosel se colocaba entre los dos grandes espejos: la tapicería, coordinada con los revestimientos de puertas, cama y cortinas, en invierno era de terciopelo azul, de acuerdo con el color de las cintas de las guirnaldas de flores pintadas en el techo, mientras que en verano se reemplazaba con brocado de oro sobre fondo plateado con flores de seda de varios colores.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "En esta habitación, la duquesa podía tomar sus comidas. Aquí tenía lugar la ceremonia de despertar y vestir a la duquesa, quien en esta habitación recibía en audiencia privada a príncipes y princesas extranjeros, según una costumbre nacida en la corte de Luis XIV y extendida entre los soberanos europeos de la época.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "¿Tienes alguna pregunta? Puedo hablarte sobre la decoración de esta habitación. O puedes preguntarme cualquier cosa sobre el palacio, el proyecto Convince, o sobre mí. De lo contrario, podemos continuar con el recorrido.",
+                "m_type": "speak"
+              }
+            ],
+            "explainFunction": [
+              {
+                "m_isBlocking": false,
+                "m_param": "¡Aquí estamos! El camino ceremonial del apartamento terminaba en la Cámara de Madama Reale, el ambiente más espléndido del apartamento de la duquesa y especialmente ubicado en el lado sur del palacio y sobre las áreas de la cocina para recibir el calor del sol y las chimeneas.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "La cama con dosel se colocaba entre los dos grandes espejos: la tapicería, coordinada con los revestimientos de puertas, cama y cortinas, en invierno era de terciopelo azul, de acuerdo con el color de las cintas de las guirnaldas de flores pintadas en el techo, mientras que en verano se reemplazaba con brocado de oro sobre fondo plateado con flores de seda de varios colores.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "En esta habitación, la duquesa podía tomar sus comidas. Aquí tenía lugar la ceremonia de despertar y vestir a la duquesa, quien en esta habitación recibía en audiencia privada a príncipes y princesas extranjeros, según una costumbre nacida en la corte de Luis XIV y extendida entre los soberanos europeos de la época.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "¿Tienes alguna otra pregunta? Si no recuerdas las preguntas disponibles, no dudes en pedir aclaraciones, de lo contrario, podemos continuar con el recorrido si prefieres.",
+                "m_type": "speak"
+              }
+            ],
+            "explainDescription": [
+              {
+                "m_isBlocking": false,
+                "m_param": "La habitación también era un área de recepción para los invitados, y la decoración dedicada enteramente al triunfo y la celebración de las virtudes de la duquesa refleja este propósito.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Si miras hacia arriba, la verás representada en el centro de la bóveda en un carro tirado por caballos alados y en el acto de ser coronada con una corona de laurel: alrededor de la escena central, figuras femeninas encarnan las virtudes de un buen gobierno de María Giovanna Battista.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "El programa decorativo se completa con las cuatro sobrepuertas con las alegorías de la Autoridad, la Bondad, la Fidelidad y quizás la Caridad. El diseño tradicional de las escenas en compartimentos se anima con el juego de estucos de colores que invaden la bóveda hasta que se mezclan y fusionan con la pintura.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Las investigaciones realizadas durante la restauración nos han permitido comprender la calidad de las técnicas utilizadas por el artista. Debajo de la película pictórica, realizada casi en su totalidad con colores al óleo, se han identificado diferentes tipos de yeso, homogéneos en las áreas dentro de los medallones y con una mayor granulosidad en el resto de la superficie.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Esta peculiaridad revela la intención de hacer la decoración más animada, quizás simulando la presencia de grandes pinturas de lienzo, con una apariencia más suave y brillante, incrustadas en el techo pintado. Los revestimientos de pared en madera tallada y dorada con hojas, flores, frutas y conchas hacen eco de la riqueza de las decoraciones en el techo.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Encima de la chimenea, dentro de un rico marco con un espejo, está colocado el retrato de Carlo Emanuele II, Duque de Saboya y esposo de María Giovanna Battista de Saboya-Nemours, una de las pocas obras conservadas entre los muebles originales del primer apartamento creado alrededor de 1690.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Como puedes ver, María Giovanna Battista tenía un gusto suntuoso: la porcelana delicada encontró un lugar en la repisa de la chimenea, mientras que el resto de la habitación estaba salpicada de objetos de plata, incluidos candelabros, jarrones y braseros.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Ninguno de estos objetos se conserva hoy porque, como en otros casos, pocos años después de la muerte de Madama Reale, fueron llevados a la casa de la moneda para ser fundidos y recuperar el metal.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "¿Tienes alguna otra pregunta? Si no recuerdas las preguntas disponibles, no dudes en pedir aclaraciones, de lo contrario, podemos continuar con el recorrido si prefieres.",
+                "m_type": "speak"
+              }
+            ]
+          },
+          "m_name": "camera_di_madama_reale"
+        }
+      },
+      "de-DE": {
+        "___generic___": {
+          "m_availableActions": {
+            "resetTourManager": [
+              {
+                "m_isBlocking": false,
+                "m_param": "reset",
+                "m_type": "signal"
+              }
+            ]
+          }
+        },
+        "madama_start": {
+          "m_availableActions": {
+            "explainRoom": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Hallo, ich bin R1",
+                "m_type": "speak"
+              }
+            ],
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Vielen Dank für die Teilnahme, bitte vergessen Sie nicht, den Fragebogen auszufüllen. Auf Wiedersehen.",
+                "m_type": "speak"
+              }
+            ],
+            "greetings": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Guten Tag, ich bin R1 und ich bin hier, um Sie durch diese Etage des Palazzo Madama zu führen. Möchten Sie mit der Tour beginnen oder haben Sie Fragen zum Palast, zu mir oder zum Projekt, zu dem diese Vorführung gehört?",
+                "m_type": "speak"
+              }
+            ]
+          },
+          "m_name": "madama_start"
+        },
+        "sala_delle_guardie": {
+          "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Sehr gut. Dann folge mir zum ersten Stopp dieser Tour.",
+                "m_type": "speak"
+              }
+            ],
+            "explainRoom": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Wir sind im ersten Stock des Palazzo Madama, wo Maria Giovanna Battista di Savoia Nemours lebte, eine französische Prinzessin, geboren in Paris im Jahr 1644, die nach Turin zog, um den Herzog von Savoyen zu heiraten.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Eine starke Persönlichkeit, schützte sie ihre neue Heimat während der Minderjährigkeit ihres Sohnes, des zukünftigen Königs Vittorio Amedeo II, der mit nur 9 Jahren Waise wurde. Als ihr Sohn heiratete, verließ Maria Giovanna den Königspalast und wählte den ersten Stock des Schlosses als ihren Wohnsitz, den sie nach ihrem Geschmack eingerichtet und dekoriert hatte.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Sie lebte hier vierzig Jahre lang, von 1684 bis zu ihrem Tod im Jahr 1724, bedient von 191 Personen, die in ihrem täglichen, spirituellen und materiellen Leben involviert waren. Von den Möbeln ist kaum etwas übrig geblieben, aber ich werde dir auf dieser Reise die Funktionen der Räume erzählen und wie das Leben der Herzogin ablief.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Hast du Fragen? Ich kann dir etwas über die Funktion dieses Zimmers, seine Dekoration erzählen. Oder du kannst mir Fragen zum Palast, zum Convince-Projekt oder zu mir stellen. Andernfalls können wir mit der Tour fortfahren.",
+                "m_type": "speak"
+              }
+            ],
+            "explainFunction": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Ausgezeichnet, wir befinden uns in der Wachezimmer. Um 1721 konnte der Gast, der Madama Reale besuchte, zwischen zwei Zugängen wählen: durch die große Treppe von Filippo Juvarra und in den Saal (heute Senatssaal) eintreten; oder direkt vom Königspalast aus das Schloss betreten, indem man den Verbindungsgang zwischen den beiden Gebäuden entlangging, der im Raum 'der Galerie' endete, einem Raum, der heute das Café Madama beherbergt.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Beide Wege führten zur Wachezimmer, in dem wir uns jetzt befinden: Dies war der erste Raum, von dem aus der Zeremonienweg im Apartment von Maria Giovanna Battista di Savoia-Nemours begann.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Bevor die Gäste den Thronsaal erreichten (auch Prunkzimmer genannt), mussten sie drei Vorzimmer durchqueren und darauf warten, der Herzogin vorgestellt zu werden. Nur die angesehensten Gäste durften die reserviertesten und privaten Bereiche des Palastes betreten.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Hast du weitere Fragen? Wenn du die verfügbaren Fragen nicht mehr weißt, frage mich einfach nach Klarstellungen, ansonsten können wir die Tour fortsetzen, wenn du möchtest.",
+                "m_type": "speak"
+              }
+            ],
+            "explainDescription": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Perfekt! Der Raum wurde zwischen 1708 und 1715 dekoriert. Schau jetzt nach oben! Die weiße Stuckdekoration zeigt Waffen trophäen an den Ecken des Gewölbes, die auf den Zweck des Raumes hinweisen, der von den Leibwächtern der Herzogin bewacht wurde: Rüstungen, Lanzen, Pfeile, Kanonen, Schilde, Trompeten weisen auf die Welt des Krieges und der Soldaten hin.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Im wellenförmigen Profil des Gesimses wechseln sich vier Adler mit dem Savoyer Kreuz auf der Brust und dem Fritillaria-Pflanze ab, dem Emblem der Madama Reale: Es handelt sich um eine Pflanze aus der Lilienfamilie mit großen orangefarbenen Blüten. Die Sockelleiste und die Stuckübertragungen wurden 1927 mit Gipsabdrücken von den Dekorationen des Königspalastes von Venaria Reale hergestellt.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Hast du weitere Fragen? Wenn du die verfügbaren Fragen nicht mehr weißt, frage mich einfach nach Klarstellungen, ansonsten können wir die Tour fortsetzen, wenn du möchtest.",
+                "m_type": "speak"
+              }
+            ]
+          },
+          "m_name": "sala_delle_guardie"
+        },
+        "sala_guidobono": {
+          "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Gut, ich freue mich, weiterhin diesen wunderschönen Stock des Palazzo Madama zu erklären. Bitte folge mir, ich werde dich in den nächsten Raum bringen.",
+                "m_type": "speak"
+              }
+            ],
+            "explainRoom": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Hier sind wir! Anfang des 18. Jahrhunderts war der Raum als Zimmer der Laufburschen bekannt, junge Diener, die in diesem Raum auf Befehle warteten: Sie konnten als Boten dienen, um Nachrichten in der Stadt im Auftrag der Herzogin zu überbringen oder abzuholen.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Die wichtigste Aufgabe bestand jedoch darin, die Herzogin bei der Fahrt mit der Kutsche zu begleiten, die Sicherheit der Reise zu gewährleisten, indem sie mit Stöcken mögliche Hindernisse oder Gefahren räumten, und den Weg nachts mit Fackeln zu beleuchten. Daher ihr Name „Laufburschen“, weil sie rennen oder gehen mussten, um die Herzogin zu schützen.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Einige von ihnen sind in dem großen Gemälde zu sehen, das das Schloss von Rivoli darstellt. Schau sie dir hier an, in diesem großen Gemälde, unten rechts, mit ihren roten Hosen, dem weißen Hemd und dem schwarzen Dreispitz auf dem Kopf, begleiten sie die Kutsche des Königs.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Hast du Fragen? Ich kann dir etwas über die Dekoration dieses Raumes erzählen. Oder du kannst mir Fragen zum Palast, zum Convince-Projekt oder zu mir stellen. Andernfalls können wir mit der Tour fortfahren.",
+                "m_type": "speak"
+              }
+            ],
+            "explainFunction": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Hier sind wir! Anfang des 18. Jahrhunderts war der Raum als Zimmer der Laufburschen bekannt, junge Diener, die in diesem Raum auf Befehle warteten: Sie konnten als Boten dienen, um Nachrichten in der Stadt im Auftrag der Herzogin zu überbringen oder abzuholen.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Die wichtigste Aufgabe bestand jedoch darin, die Herzogin bei der Fahrt mit der Kutsche zu begleiten, die Sicherheit der Reise zu gewährleisten, indem sie mit Stöcken mögliche Hindernisse oder Gefahren räumten, und den Weg nachts mit Fackeln zu beleuchten. Daher ihr Name „Laufburschen“, weil sie rennen oder gehen mussten, um die Herzogin zu schützen.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Einige von ihnen sind in dem großen Gemälde zu sehen, das das Schloss von Rivoli darstellt. Schau sie dir hier an, in diesem großen Gemälde, unten rechts, mit ihren roten Hosen, dem weißen Hemd und dem schwarzen Dreispitz auf dem Kopf, begleiten sie die Kutsche des Königs.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Hast du weitere Fragen? Wenn du die verfügbaren Fragen nicht mehr weißt, frage mich einfach nach Klarstellungen, ansonsten können wir die Tour fortsetzen, wenn du möchtest.",
+                "m_type": "speak"
+              }
+            ],
+            "explainDescription": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Um diesen Raum vollständig zu schätzen, musst du deinen Blick zur Decke erheben! Das Gewölbe ist der Allegorie des Frühlings gewidmet, der in der Mitte auf Wolken erscheint, die von Zephyrköpfen getragen werden. Die durchbrochene Scheindecke wird von einer perspektivischen Loggia mit Säulen und Öffnungen getragen, aus denen Papageien, Raubvögel, Wasservögel und Haustiere hervorschauen.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Das Fresko stammt aus der Zeit der dekorativen Kampagne, die zwischen 1708 und 1714 durchgeführt wurde. Maria Giovanna Battista beauftragte Domenico Guidobono mit der Ausführung, was zeigt, dass sie den Geschmack für den Naturalismus und den räumlichen Illusionismus der genuesischen Barockmalerei bevorzugte, der informeller und üppiger ist als die hofische und klassizistische Dekoration, die von ihrem Sohn Vittorio Amedeo II für den Königspalast bevorzugt wurde.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Über dem Ostgesims erscheint die Signatur des Künstlers und das Datum der Fertigstellung der Arbeiten, der 16. Dezember 1714. Die falsche Architektur ist wahrscheinlich auf das Eingreifen eines Quadraturisten zurückzuführen, eines Malers, der sich auf die Herstellung von architektonischen Perspektiven spezialisiert hat.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Das Gewölbe weist viele Nagellöcher auf, die zum Befestigen der Schnüre und Kartons verwendet wurden, um die Linien der Komposition zu zeichnen. Die Basis ist Fresko, mit Schatten in trockenem, leider teilweise im Jahr 1927 bei einem aggressiven Reinigungseingriff entfernt.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Für die Figuren wählte Domenico die Technik des „halbfertigen Freskos“, die es ermöglicht, schneller mit dickeren Kalkpigmenten zu malen.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Am Ende wurden auf dem Hintergrund des Gewölbes mit einer Mischung aus Öl und Harz eine Vielzahl von Kugeln und Goldlinien aufgetragen, die die Farbteile verschönern und beleuchten.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Hast du weitere Fragen? Wenn du die verfügbaren Fragen nicht mehr weißt, frage mich einfach nach Klarstellungen, ansonsten können wir die Tour fortsetzen, wenn du möchtest.",
+                "m_type": "speak"
+              }
+            ]
+          },
+          "m_name": "sala_guidobono"
+        },
+        "sala_delle_feste": {
+          "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Folge mir, ich bringe dich zum besten Ort, um diese Umgebung zu schätzen und wo du dich ein wenig hinsetzen kannst. Wie du hören kannst, knarrt der Boden unter unseren Füßen... er ist aus Kirschholz und verleiht diesem Ort ein sehr elegantes Aussehen, benötigt aber kontinuierliche Restaurierungen und Wartungen. Hier kannst du dich hinsetzen, aber bleib immer in meiner Nähe!",
+                "m_type": "speak"
+              }
+            ],
+            "explainRoom": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Wie du sehen kannst, ist es ein sehr großer Saal, der jedoch im 18. Jahrhundert in zwei getrennte Räume unterteilt war: die Kammer der Pagen und die Paradekammer, letztere wurde insbesondere von Madama Reale Maria Giovanna Battista genutzt, um die angesehensten Gäste öffentlich zu empfangen.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Ein Inventar aus dem Jahr 1724 informiert uns, dass der Saal von einem Silberlüster beleuchtet wurde und mit Tapeten aus rotem Samt mit goldenen Borten geschmückt war. Derselbe Stoff (im Sommer durch schwarzen Damast mit goldenen Blumen ersetzt) bedeckte den Thron und den Baldachin der Herzogin, zwei Vorhänge und zwölf Bänke an den Wänden.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Die geschnitzten Holzpaneele, die die Wände und den Kamin der Paradekammer verkleideten, sind verloren gegangen. Die zwölf Bänke könnten hingegen mit den Sofas aus dem frühen 18. Jahrhundert identifiziert werden, die heute in diesem Raum ausgestellt sind, die im Design und Schnitzwerk identisch mit dem Geländer des Thrones sind.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Hast du Fragen? Ich kann dir etwas über die Dekoration dieses Raumes erzählen. Oder du kannst mir Fragen zum Palast, zum Convince-Projekt oder zu mir stellen. Andernfalls können wir mit der Tour fortfahren.",
+                "m_type": "speak"
+              }
+            ],
+            "explainFunction": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Folge mir, ich bringe dich zum besten Ort, um diese Umgebung zu schätzen. Wie du sehen kannst, ist es ein sehr großer Saal, der jedoch im 18. Jahrhundert in zwei getrennte Räume unterteilt war: die Kammer der Pagen und die Paradekammer, letztere wurde insbesondere von Madama Reale Maria Giovanna Battista genutzt, um die angesehensten Gäste öffentlich zu empfangen.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Ein Inventar aus dem Jahr 1724 informiert uns, dass der Saal von einem Silberlüster beleuchtet wurde und mit Tapeten aus rotem Samt mit goldenen Borten geschmückt war. Derselbe Stoff (im Sommer durch schwarzen Damast mit goldenen Blumen ersetzt) bedeckte den Thron und den Baldachin der Herzogin, zwei Vorhänge und zwölf Bänke an den Wänden.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Die geschnitzten Holzpaneele, die die Wände und den Kamin der Paradekammer verkleideten, sind verloren gegangen. Die zwölf Bänke könnten hingegen mit den Sofas aus dem frühen 18. Jahrhundert identifiziert werden, die heute in diesem Raum ausgestellt sind, die im Design und Schnitzwerk identisch mit dem Geländer des Thrones sind.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Hast du weitere Fragen? Wenn du die verfügbaren Fragen nicht mehr weißt, frage mich einfach nach Klarstellungen, ansonsten können wir mit der Tour fortfahren.",
+                "m_type": "speak"
+              }
+            ],
+            "explainDescription": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Auch hier musst du nach oben schauen! Im 18. Jahrhundert wurde das Gewölbe der Paradekammer mit einem neuen Gemälde bedeckt. Ein kleiner Teil der originalen Dekoration ist kurz über der Eingangstür rechts sichtbar, wo eine Abdeckprobe, erkennbar an einer weißen Linie, ein Fragment des späten 17. Jahrhunderts freigelegt hat, vielleicht von Bartolomeo Guidobono.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Auch das Gewölbe der angrenzenden Kammer der Pagen wurde im Laufe des 18. Jahrhunderts neu gestaltet. Vielleicht weißt du bereits, dass Palazzo Madama im Laufe seiner tausendjährigen Geschichte verschiedene Funktionen hatte, und auch dieser Raum wurde auf verschiedene Weise genutzt.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Tatsächlich wurden nachdem es das Büro des Senats (1848-1863) und des Obersten Gerichtshofs (1869-1923) beherbergte, die Räume im ersten Stock von Palazzo Madama der Stadt Turin als Veranstaltungsort für zivile und patriotische Veranstaltungen überlassen.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Im Jahr 1925 wurde beschlossen, die Trennwand zwischen der Kammer der Pagen und der Paradekammer von Madama Reale abzureißen, um einen großen Repräsentationssaal zu schaffen. Um das Zeltdach des neuen Raums zu schaffen, wurde eine kühne und einzigartige Lösung umgesetzt.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Die Decke der Kammer der Pagen wurde abgerissen, während die Decke der Paradekammer in zwei Teile geschnitten wurde. Die südliche Kopfseite blieb an ihrem Platz, während die andere Hälfte, die auf der abgerissenen Wand lag, auf die andere Seite des Saals im Norden verschoben wurde.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Die Decke wurde schließlich von Carlo Cussetti bemalt, der das Design der architektonischen Quadratur des 18. Jahrhunderts der alten Paradekammer aufgriff und verlängerte. Am 18. Oktober 1961 wurde in diesem Raum die Europäische Sozialcharta unterzeichnet.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Hast du weitere Fragen? Wenn du die verfügbaren Fragen nicht mehr weißt, frage mich einfach nach Klarstellungen, ansonsten können wir mit der Tour fortsetzen.",
+                "m_type": "speak"
+              }
+            ]
+          },
+          "m_name": "sala_delle_feste"
+        },
+        "sala_4_stagioni": {
+          "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Dann lass uns gehen! Kannst du aufstehen und mir in den nächsten Raum folgen? Ich bin etwas langsam, weil der Boden leicht uneben ist, und ich muss aufpassen! Ich bitte dich höflich, hinter mir zu bleiben.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": true,
+                "m_param": "Im nächsten Raum wirst du auf deiner linken Seite einen abgegrenzten Bereich sehen, weil die Restauratoren die Dielen nach einem präzisen geometrischen Muster neu verlegen. Wie ich bereits sagte, ist kontinuierliche Wartung erforderlich.",
+                "m_type": "speak"
+              }
+            ],
+            "explainRoom": [
+              {
+                "m_isBlocking": false,
+                "m_param": "In diesem Raum, unter einem Himmel von intensivem Blau und mit dem Gefühl, sich in einem großen Vogelkäfig aus goldverflochtenen Drähten zu befinden, fanden die Vergnügungsmomente des Hofes von Maria Giovanna Battista statt, bestehend aus Damen und Rittern, die sich besonders abends versammelten, um die Herzogin mit Musik, Tänzen, Gesprächen und Spielen zu unterhalten.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Das ikonografische Programm der Dekoration ist eine Feier der Zeit in all ihren Formen. In den vier oberen Ecken siehst du die Personifikationen der Jahreszeiten, die auch auf die vier Lebensalter des Menschen hinweisen, von der Kindheit des Bacchus-Herbstes bis zum Greisenalter des Winters, der sich vor dem Feuer wärmt; innerhalb von Rahmen erscheinen die menschlichen Aktivitäten im Zusammenhang mit der Landwirtschaft, während in der Mitte des Gewölbes eine Gruppe von Putten sich mit Vergnügen und Spielen unterhält, was auf die unterhaltende Funktion des Raumes hinweist.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Hast du Fragen? Ich kann dir etwas über die Dekoration dieses Raumes erzählen. Oder du kannst mir Fragen zum Palast, zum Convince-Projekt oder zu mir stellen. Andernfalls können wir mit der Tour fortfahren.",
+                "m_type": "speak"
+              }
+            ],
+            "explainFunction": [
+              {
+                "m_isBlocking": false,
+                "m_param": "In diesem Raum, unter einem Himmel von intensivem Blau und mit dem Gefühl, sich in einem großen Vogelkäfig aus goldverflochtenen Drähten zu befinden, fanden die Vergnügungsmomente des Hofes von Maria Giovanna Battista statt, bestehend aus Damen und Rittern, die sich besonders abends versammelten, um die Herzogin mit Musik, Tänzen, Gesprächen und Spielen zu unterhalten.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Das ikonografische Programm der Dekoration ist eine Feier der Zeit in all ihren Formen. In den vier oberen Ecken siehst du die Personifikationen der Jahreszeiten, die auch auf die vier Lebensalter des Menschen hinweisen, von der Kindheit des Bacchus-Herbstes bis zum Greisenalter des Winters, der sich vor dem Feuer wärmt; innerhalb von Rahmen erscheinen die menschlichen Aktivitäten im Zusammenhang mit der Landwirtschaft, während in der Mitte des Gewölbes eine Gruppe von Putten sich mit Vergnügen und Spielen unterhält, was auf die unterhaltende Funktion des Raumes hinweist.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Hast du weitere Fragen? Wenn du die verfügbaren Fragen nicht mehr weißt, frage mich einfach nach Klarstellungen, ansonsten können wir mit der Tour fortfahren.",
+                "m_type": "speak"
+              }
+            ],
+            "explainDescription": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Sehr gut! Vielen Dank für dein Interesse! Der Name des Raumes leitet sich von den Allegorien der Jahreszeiten ab, die jeweils in einer der vier Ecken innerhalb goldener Rahmen platziert sind.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Die aufwändige Deckendekoration aus Stuck und Fresko wurde zwischen 1708 und 1715 angefertigt und griff auf die dekorativen Modelle von Jean Bèrain zurück, einem französischen Architekten und Ornamentzeichner, der am Hofe Ludwigs XIV. tätig war.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Im frühen 18. Jahrhundert wurde der Raum als „Großes Zirkelkabinett“ bezeichnet und diente als Vorraum zum Schlafzimmer von Madama Reale.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Je nach Jahreszeit waren die Wände mit verschiedenen Tapeten verkleidet: Im Winter wurden breite Streifen aus dickem karminrotem Samt angebracht, die im Sommer einem Damast aus schwarzer Seide mit goldenen und silbernen Blumen Platz machten, passend zu den Schnitzereien der mit Gold- und Silberblatt überzogenen Türen.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Dieses Metall ist mittlerweile irreversibel oxidiert und erscheint heute schwarz.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Hast du weitere Fragen? Wenn du die verfügbaren Fragen nicht mehr weißt, frage mich einfach nach Klarstellungen, ansonsten können wir mit der Tour fortfahren.",
+                "m_type": "speak"
+              }
+            ]
+          },
+          "m_name": "sala_4_stagioni"
+        },
+        "camera_di_madama_reale": {
+          "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Wir bewegen uns jetzt in das Zimmer von Madama Reale.",
+                "m_type": "speak"
+              }
+            ],
+            "explainRoom": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Hier sind wir! Der zeremonielle Weg der Wohnung endete im Zimmer von Madama Reale, dem prächtigsten Raum in der Wohnung der Herzogin und speziell auf der Südseite des Palastes und über den Küchenräumen platziert, um die Wärme der Sonne und der Kamine zu empfangen.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Das Himmelbett war zwischen den beiden großen Spiegeln platziert: Die Polsterung, koordiniert mit den Türverkleidungen, dem Bett und den Vorhängen, war im Winter aus blauem Samt, passend zur Farbe der Bänder der Blumengirlanden, die auf dem Deckengemälde gemalt waren, während im Sommer Brokatstoffe mit goldenem Grund und silbernen Blumen anstelle dessen verwendet wurden.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "In diesem Raum konnte die Herzogin ihre Mahlzeiten einnehmen. Hier fand die Zeremonie des Aufwachens und Ankleidens der Herzogin statt, die in diesem Raum gemäß einer Tradition am Hofe Ludwigs XIV. und unter den europäischen Herrschern ihrer Zeit Empfänge von ausländischen Prinzen und Prinzessinnen abhielt.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Hast du Fragen? Ich kann dir etwas über die Dekoration dieses Raumes erzählen. Oder du kannst mir Fragen zum Palast, zum Convince-Projekt oder zu mir stellen. Andernfalls können wir die Tour hier beenden.",
+                "m_type": "speak"
+              }
+            ],
+            "explainFunction": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Hier sind wir! Der zeremonielle Weg der Wohnung endete im Zimmer von Madama Reale, dem prächtigsten Raum in der Wohnung der Herzogin und speziell auf der Südseite des Palastes und über den Küchenräumen platziert, um die Wärme der Sonne und der Kamine zu empfangen.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Das Himmelbett war zwischen den beiden großen Spiegeln platziert: Die Polsterung, koordiniert mit den Türverkleidungen, dem Bett und den Vorhängen, war im Winter aus blauem Samt, passend zur Farbe der Bänder der Blumengirlanden, die auf dem Deckengemälde gemalt waren, während im Sommer Brokatstoffe mit goldenem Grund und silbernen Blumen anstelle dessen verwendet wurden.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "In diesem Raum konnte die Herzogin ihre Mahlzeiten einnehmen. Hier fand die Zeremonie des Aufwachens und Ankleidens der Herzogin statt, die in diesem Raum gemäß einer Tradition am Hofe Ludwigs XIV. und unter den europäischen Herrschern ihrer Zeit Empfänge von ausländischen Prinzen und Prinzessinnen abhielt.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Hast du weitere Fragen? Wenn du die verfügbaren Fragen nicht mehr weißt, frage mich einfach nach Klarstellungen, ansonsten können wir die Tour hier beenden.",
+                "m_type": "speak"
+              }
+            ],
+            "explainDescription": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Das Schlafzimmer war auch ein Empfangsraum für Gäste, und die Dekoration ist ganz der Verherrlichung und Feier der Tugenden der Herzogin gewidmet.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Wenn du nach oben schaust, siehst du sie im Zentrum des Gewölbes auf einem von geflügelten Pferden gezogenen Wagen und in der Hand einen Lorbeerkranz: Um die zentrale Szene herum verkörpern weibliche Figuren die Tugenden der guten Regentin Maria Giovanna Battista.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Ergänzt wird das dekorative Programm durch die vier Überkopfbilder mit den Allegorien von Autorität, Güte, Treue und möglicherweise Nächstenliebe. Die traditionelle Anordnung der Szenen in Feldern wird durch das Spiel der farbigen Stuckarbeiten aufgelockert, die sich bis zur Decke ausbreiten und mit der Malerei verschmelzen.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Untersuchungen während der Restaurierung haben die Qualität der vom Künstler verwendeten Techniken verdeutlicht. Unterhalb der Gemäldeschicht, die fast ausschließlich mit Ölfarben ausgeführt wurde, wurden verschiedene Arten von Putz identifiziert, homogen in den Bereichen innerhalb der Medaillons und mit einer gröberen Körnung auf der restlichen Oberfläche.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Diese Besonderheit zeigt die Absicht, die Dekoration bewegter zu gestalten, vielleicht indem man das Vorhandensein großer Leinwandgemälde simuliert, die glatter und glänzender aussehen, in die Decke eingefügt. Die Wandverkleidungen aus geschnitztem und vergoldetem Holz mit Blättern, Blumen, Früchten und Muscheln spiegeln in ihrem Reichtum die Dekorationen des Gewölbes wider.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Über dem Kamin ist in einem prächtigen Spiegelrahmen das Porträt von Carlo Emanuele II., Herzog von Savoyen und Ehemann von Maria Giovanna Battista di Savoia-Nemours, eingelassen, eines der wenigen erhaltenen Werke aus den Originalmöbeln der ersten Wohnung, die um 1690 entstanden ist.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Wie du sehen kannst, war der Geschmack von Maria Giovanna Battista prunkvoll: Auf dem Kaminsims befanden sich zarte Porzellanobjekte, während der Rest des Zimmers mit Silbergegenständen wie Kerzenständern, Vasen und Feuerschalen gespickt war.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Keines dieser Objekte ist heute erhalten, denn wie in anderen Fällen wurden wenige Jahre nach dem Tod von Madama Reale viele von ihnen eingeschmolzen, um das Metall zurückzugewinnen.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Hast du weitere Fragen? Wenn du die verfügbaren Fragen nicht mehr weißt, frage mich einfach nach Klarstellungen, ansonsten können wir die Tour hier beenden.",
+                "m_type": "speak"
+              }
+            ]
+          },
+          "m_name": "camera_di_madama_reale"
+        }
+      },
+      "ja-JP": {
+        "___generic___": {
+          "m_availableActions": {
+            "resetTourManager": [
+              {
+                "m_isBlocking": false,
+                "m_param": "reset",
+                "m_type": "signal"
+              }
+            ]
+          }
+        }
       }
     }
   }
 }
-
