@@ -28,9 +28,11 @@
 #include <dialog_interfaces/srv/skip_explanation.hpp>
 //#include <dialog_interfaces/srv/is_speaking.hpp>
 #include <yarp/dev/AudioPlayerStatus.h>
+#include <yarp/dev/ISpeechTranscription.h>
 #include <text_to_speech_interfaces/srv/is_speaking.hpp>
 #include <text_to_speech_interfaces/srv/set_microphone.hpp>
 #include <text_to_speech_interfaces/srv/speak.hpp>
+#include <text_to_speech_interfaces/srv/set_language.hpp>
 #include <scheduler_interfaces/srv/get_current_poi.hpp>
 #include <scheduler_interfaces/srv/end_tour.hpp>
 #include <scheduler_interfaces/srv/set_language.hpp>
@@ -75,9 +77,11 @@ private:
     yarp::dev::PolyDriver m_poiChatPoly;
     yarp::dev::PolyDriver m_genericChatPoly;
     yarp::dev::PolyDriver m_museumChatPoly;
+    yarp::dev::PolyDriver m_speechTranscriptionPoly;
     yarp::dev::ILLM *m_iPoiChat{nullptr};
     yarp::dev::ILLM *m_iMuseumChat{nullptr};
     yarp::dev::ILLM *m_iGenericChat{nullptr};
+    yarp::dev::ISpeechTranscription *m_iSpeechTranscription{nullptr};
     std::string m_poiPrompt;
     std::string m_startPrompt;
     // Microphone

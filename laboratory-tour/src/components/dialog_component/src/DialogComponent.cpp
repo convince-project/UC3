@@ -264,6 +264,48 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
             return false;
         }
     }
+    // ---------------- SPEECH TRANSCRIPTION --------------------------------
+    {
+        okCheck = rf.check("SPEECHTRANSCRIPTION-CLIENT");
+        device = "speechTranscription_nwc_yarp";
+        local = "/DialogComponent/speechTranscription/rpc:o";
+        remote = "/speechTranscription_nws";
+
+        if (okCheck)
+        {
+            yarp::os::Searchable &speechTranscription_config = rf.findGroup("SPEECHTRANSCRIPTION-CLIENT");
+            if (speechTranscription_config.check("device"))
+            {
+                device = speechTranscription_config.find("device").asString();
+            }
+            if (speechTranscription_config.check("local-suffix"))
+            {
+                local = "/DialogComponent" + speechTranscription_config.find("local-suffix").asString();
+            }
+            if (speechTranscription_config.check("remote"))
+            {
+                remote = speechTranscription_config.find("remote").asString();
+            }
+        }
+
+        yarp::os::Property speechTranscription_prop;
+        speechTranscription_prop.put("device", device);
+        speechTranscription_prop.put("local", local);
+        speechTranscription_prop.put("remote", remote);
+
+        m_speechTranscriptionPoly.open(speechTranscription_prop);
+        if (!m_speechTranscriptionPoly.isValid())
+        {
+            yError() << "[DialogComponent::ConfigureYARP] Error opening speechTranscription Client PolyDriver. Check parameters";
+            return false;
+        }
+        m_speechTranscriptionPoly.view(m_iSpeechTranscription);
+        if (!m_iSpeechTranscription)
+        {
+            yError() << "[DialogComponent::ConfigureYARP] Error opening iSpeechTranscription interface. Device not available";
+            return false;
+        }
+    }
     // ---------------------Microphone Activation----------------------------
     /*{
         okCheck = rf.check("AUDIORECORDER-CLIENT");
@@ -909,34 +951,61 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
     }
     else if (action == "greetings")
     {
-        // Now let's Find that trimmedCmd in the JSON
         yInfo() << "[DialogComponent::InterpretCommand] Set Language Detected: " << theList->get(1).asString() << __LINE__;
-        // calls the end tour service of the scheduler component
-        // auto endTourClientNode = rclcpp::Node::make_shared("DialogComponentEndTourNode");
-        // auto endTourClient = endTourClientNode->create_client<scheduler_interfaces::srv::EndTour>("/SchedulerComponent/EndTour");
-        // auto endTourRequest = std::make_shared<scheduler_interfaces::srv::EndTour::Request>();
-        // while (!endTourClient->wait_for_service(std::chrono::seconds(1))) {
-        //     if (!rclcpp::ok()) {
-        //         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'endTourClient'. Exiting.");
-        //     }
-        // }
-        // auto endTourResult = endTourClient->async_send_request(endTourRequest);
-        // auto futureEndTourResult = rclcpp::spin_until_future_complete(endTourClientNode, endTourResult);
-        // if (futureEndTourResult == rclcpp::FutureReturnCode::SUCCESS)
-        // {
-        //     if(endTourResult.get()->is_ok)
-        //     {
-        //         yInfo() << "[DialogComponent::InterpretCommand] End Tour Succeeded" << __LINE__;
-        //     }
-        //     else
-        //     {
-        //         yError() << "[DialogComponent::InterpretCommand] End Tour Failed" << __LINE__;
-        //     }
-        // }
-        // else
-        // {
-        //     yError() << "[DialogComponent::InterpretCommand] End Tour Failed" << __LINE__;
-        // }
+        // Calls the set language service of the scheduler component
+        auto setLangClientNode = rclcpp::Node::make_shared("DialogComponentSetLangNode");
+        auto setLangClient = setLangClientNode->create_client<scheduler_interfaces::srv::SetLanguage>("/SchedulerComponent/SetLanguage");
+        auto request = std::make_shared<scheduler_interfaces::srv::SetLanguage::Request>();
+        request->language = theList->get(1).asString();
+        while (!setLangClient->wait_for_service(std::chrono::seconds(1))) {
+            if (!rclcpp::ok()) {
+                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setLangClient'. Exiting.");
+                m_speechTranscriberCallback.setMessageConsumed();
+                return false;
+            }
+        }
+        auto result = setLangClient->async_send_request(request);
+        if (rclcpp::spin_until_future_complete(setLangClientNode, result) == rclcpp::FutureReturnCode::SUCCESS)
+        {
+            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Set Language succeeded");
+            m_speechTranscriberCallback.setMessageConsumed();
+            return true;
+        } else {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service set_language");
+            m_speechTranscriberCallback.setMessageConsumed();
+            return false;
+        }
+        // Calls the set language service of the text to speech component
+        auto setLangClientNode2 = rclcpp::Node::make_shared("DialogComponentSetLangNode2");
+        auto setLangClient2 = setLangClientNode2->create_client<text_to_speech_interfaces::srv::SetLanguage>("/TextToSpeechComponent/SetLanguage");
+        auto request2 = std::make_shared<text_to_speech_interfaces::srv::SetLanguage::Request>();
+        request2->new_language = theList->get(1).asString();
+        while (!setLangClient2->wait_for_service(std::chrono::seconds(1))) {
+            if (!rclcpp::ok()) {
+                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setLangClient'. Exiting.");
+                m_speechTranscriberCallback.setMessageConsumed();
+                return false;
+            }
+        }
+        auto result2 = setLangClient2->async_send_request(request2);
+        if (rclcpp::spin_until_future_complete(setLangClientNode2, result2) == rclcpp::FutureReturnCode::SUCCESS)
+        {
+            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Set Language succeeded");
+            m_speechTranscriberCallback.setMessageConsumed();
+            return true;
+        } else {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service set_language");
+            m_speechTranscriberCallback.setMessageConsumed();
+            return false;
+        }
+        // Setting language in the speech transcriber
+        if(!m_iSpeechTranscription->setLanguage(theList->get(1).asString()))
+        {
+            yError() << "[DialogComponent::InterpretCommand] Unable to set language: " << theList->get(1).asString();
+            m_speechTranscriberCallback.setMessageConsumed();
+            return false;
+        }
+
         if(!InterpretCommand(action, currentPoI, genericPoI, phrase))
         {
             yError() << "[DialogComponent::CommandManager] Interpret action: " << action;
