@@ -177,8 +177,8 @@ bool TextToSpeechComponent::start(int argc, char*argv[])
                                                                                                 std::placeholders::_1,
                                                                                                 std::placeholders::_2));
     m_speakerStatusPub = m_node->create_publisher<std_msgs::msg::Bool>("/TextToSpeechComponent/is_speaking", 10);
-    
-    m_timer = m_node->create_wall_timer(200ms, 
+
+    m_timer = m_node->create_wall_timer(200ms,
                     [this]()->void {
 			std::lock_guard<std::mutex> lock(m_mutex);
                         auto data = m_audioStatusPort.read();
@@ -214,13 +214,13 @@ bool TextToSpeechComponent::start(int argc, char*argv[])
 
 bool TextToSpeechComponent::close()
 {
-    rclcpp::shutdown();  
+    rclcpp::shutdown();
     return true;
 }
 
 void TextToSpeechComponent::spin()
 {
-    rclcpp::spin(m_node);  
+    rclcpp::spin(m_node);
 }
 
 void TextToSpeechComponent::Speak(const std::shared_ptr<text_to_speech_interfaces::srv::Speak::Request> request,
@@ -258,8 +258,6 @@ void TextToSpeechComponent::Speak(const std::shared_ptr<text_to_speech_interface
 		isSpeaking = true;
 	}
     }
-
-                 
 }
 
 void TextToSpeechComponent::SetLanguage(const std::shared_ptr<text_to_speech_interfaces::srv::SetLanguage::Request> request,
@@ -350,7 +348,7 @@ void TextToSpeechComponent::SetMicrophone(const std::shared_ptr<text_to_speech_i
         response->error_msg = "The robot is already Speaking";
         return;
     }
-    
+
     if (request->enabled)
     {
         m_manualMicDisabled = false;
