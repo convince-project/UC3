@@ -952,11 +952,26 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
     else if (action == "greetings")
     {
         // sets the language internally
-	if(!m_tourStorage->m_loadedTour.setCurrentLanguage(theList->get(1).asString()))
+        if(!m_tourStorage->m_loadedTour.setCurrentLanguage(theList->get(1).asString()))
         {
                 RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "cannot set language to tour storage");
                 m_speechTranscriberCallback.setMessageConsumed();
                 return false;
+        }
+
+        // Get the poi object from the Tour manager
+        if(!m_tourStorage->GetTour().getPoI(m_currentPoiName, currentPoI))
+        {
+            yError() << "[DialogComponent::DialogExecution] Unable to get the current PoI name: " << m_currentPoiName;
+            m_speechTranscriberCallback.setMessageConsumed();
+            return false;
+        }
+        // Generic PoI
+        if (!m_tourStorage->GetTour().getPoI("___generic___", genericPoI))
+        {
+            yError() << "[DialogComponent::DialogExecution] Unable to get the generic PoI";
+            m_speechTranscriberCallback.setMessageConsumed();
+            return false;
         }
 
         yInfo() << "[DialogComponent::InterpretCommand] Set Language Detected: " << theList->get(1).asString() << __LINE__;
