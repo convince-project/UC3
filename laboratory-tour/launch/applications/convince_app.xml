@@ -39,7 +39,7 @@
 
     <module>
         <name>yarprobotinterface</name>
-        <parameters>--context llmTest --from welcomeChat.ini </parameters>
+        <parameters>--context llmTest --from welcomeTalkChat.ini </parameters>
         <environment></environment>
         <node>console-llm</node>
     </module>
@@ -88,7 +88,7 @@
   <module>
     <name>faceExpressionImage5GTour</name>
     <parameters></parameters>
-    <node>r1-base</node>
+    <node>r1-face</node>
   </module>
 
 

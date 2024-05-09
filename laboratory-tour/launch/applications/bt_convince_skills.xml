@@ -51,11 +51,33 @@
         <node>r1-base</node>
     </module>
 
+    <module>
+        <name>ros2</name>
+        <parameters>run is_checking_for_people_skill is_checking_for_people_skill</parameters>
+        <workdir></workdir>
+        <node>opt</node>
+    </module>
 
     <module>
         <name>ros2</name>
-        <parameters>run dummy_condition dummy_condition --skill_name VisitorsFollowingRobot --default_status SUCCESS</parameters>
+        <parameters>run stop_and_turn_back_skill stop_and_turn_back_skill</parameters>
         <workdir></workdir>
-        <node>r1-base</node>
+        <node>opt</node>
     </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run visitors_following_robot_skill visitors_following_robot_skill</parameters>
+        <workdir></workdir>
+        <node>opt</node>
+    </module>
+    
+     <module>
+         <name>ros2</name>
+         <parameters>run dummy_condition dummy_condition --skill_name VisitorsFollowingRobot --default_status SUCCESS</parameters>
+         <workdir></workdir>
+         <node>r1-base</node>
+     </module>
+
+
 </application>
