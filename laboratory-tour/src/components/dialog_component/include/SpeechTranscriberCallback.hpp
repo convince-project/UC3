@@ -68,6 +68,14 @@ public:
         std::lock_guard<std::mutex> lock(m_mutex);
         return m_hasNewMessage;
     };
+
+    bool clearMessage()
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_listenedText = "";
+        m_hasNewMessage = false;
+        return true;
+    };
 private:
     std::mutex m_mutex;
     std::string m_listenedText = "";

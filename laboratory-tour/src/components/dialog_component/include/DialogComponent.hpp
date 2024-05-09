@@ -32,7 +32,8 @@
 #include <text_to_speech_interfaces/srv/set_microphone.hpp>
 #include <text_to_speech_interfaces/srv/speak.hpp>
 #include <scheduler_interfaces/srv/get_current_poi.hpp>
-#include <scheduler_interfaces/srv/reset.hpp>
+#include <scheduler_interfaces/srv/end_tour.hpp>
+#include <scheduler_interfaces/srv/set_language.hpp>
 #include "nlohmann/json.hpp"
 #include <random>
 
@@ -80,8 +81,8 @@ private:
     std::string m_poiPrompt;
     std::string m_startPrompt;
     // Microphone
-    //yarp::dev::PolyDriver m_audioRecorderPoly;
-    //yarp::dev::IAudioGrabberSound *m_iAudioGrabberSound{nullptr};
+    yarp::dev::PolyDriver m_audioRecorderPoly;
+    yarp::dev::IAudioGrabberSound *m_iAudioGrabberSound{nullptr};
 
     // Callback on SpeechTranscriber port
     SpeechTranscriberCallback m_speechTranscriberCallback;
