@@ -193,7 +193,7 @@
             "sayWhileNavigating": [
               {
                 "m_isBlocking": true,
-                "m_param": "goodbye.",
+                "m_param": "thank you for participating, don't forget to fill the questionnaire. goodbye.",
                 "m_type": "speak"
               }
 	     ],
@@ -838,7 +838,7 @@
             "sayWhileNavigating": [
               {
                 "m_isBlocking": false,
-                "m_param": "arrivederci.",
+                "m_param": "grazie mille per aver partecipato, ricordati di compilare il questionario. Arrivederci.",
                 "m_type": "speak"
               }
             ],
