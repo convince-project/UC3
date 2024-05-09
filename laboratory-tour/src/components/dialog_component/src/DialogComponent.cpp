@@ -951,6 +951,14 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
     }
     else if (action == "greetings")
     {
+        // sets the language internally
+	if(!m_tourStorage->m_loadedTour.setCurrentLanguage(theList->get(1).asString()))
+        {
+                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "cannot set language to tour storage");
+                m_speechTranscriberCallback.setMessageConsumed();
+                return false;
+        }
+
         yInfo() << "[DialogComponent::InterpretCommand] Set Language Detected: " << theList->get(1).asString() << __LINE__;
         // Calls the set language service of the scheduler component
         auto setLangClientNode = rclcpp::Node::make_shared("DialogComponentSetLangNode");
@@ -968,8 +976,6 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
         if (rclcpp::spin_until_future_complete(setLangClientNode, result) == rclcpp::FutureReturnCode::SUCCESS)
         {
             RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Set Language succeeded");
-            m_speechTranscriberCallback.setMessageConsumed();
-            return true;
         } else {
             RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service set_language");
             m_speechTranscriberCallback.setMessageConsumed();
@@ -991,8 +997,6 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
         if (rclcpp::spin_until_future_complete(setLangClientNode2, result2) == rclcpp::FutureReturnCode::SUCCESS)
         {
             RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Set Language succeeded");
-            m_speechTranscriberCallback.setMessageConsumed();
-            return true;
         } else {
             RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service set_language");
             m_speechTranscriberCallback.setMessageConsumed();
