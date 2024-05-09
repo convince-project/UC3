@@ -1296,7 +1296,6 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
                         {
                           RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Speak succeeded");
               WaitForSpeakEnd();
-                          m_speechTranscriberCallback.setMessageConsumed();
                         } else {
                           RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service speak");
                           m_speechTranscriberCallback.setMessageConsumed();
@@ -1386,6 +1385,7 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
                 }
                 }
             }
+            m_speechTranscriberCallback.setMessageConsumed();
 
             /*if ((containsSpeak || danceTime != 0.0f) && isCommandBlocking) // Waits for the longest move in the temp list of blocked moves and speak. If there is nothing in the temp list because we are not blocking it is skipped.
             {
