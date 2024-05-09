@@ -758,7 +758,7 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
         {
             action = "explainDescription";
         }
-	else if (topic == "museum")
+	    else if (topic == "museum")
         {
             ///TODO: This is an awful solution. Remove it as soon as possible
             // Horrible solution ------------------------------------------------------------ START//
@@ -1042,7 +1042,7 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
             }
         }
     }
-    else if (action == "next_poi" || "start_tour")   // means that it has been found // NEXT POI
+    else if (action == "next_poi" ||  action == "start_tour")   // means that it has been found // NEXT POI
     {
         m_state = SUCCESS;
         yInfo() << "[DialogComponent::InterpretCommand] Next Poi Detected" << __LINE__;
@@ -1053,7 +1053,7 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
     {
         m_state = SUCCESS;
         yInfo() << "[DialogComponent::InterpretCommand] End Tour Detected" << __LINE__;
-	        m_speechTranscriberCallback.setMessageConsumed();
+	    m_speechTranscriberCallback.setMessageConsumed();
         // calls the end tour service of the scheduler component
         auto endTourClientNode = rclcpp::Node::make_shared("DialogComponentEndTourNode");
         auto endTourClient = endTourClientNode->create_client<scheduler_interfaces::srv::EndTour>("/SchedulerComponent/EndTour");
