@@ -1055,19 +1055,19 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
         yInfo() << "[DialogComponent::InterpretCommand] End Tour Detected" << __LINE__;
 	    m_speechTranscriberCallback.setMessageConsumed();
         // calls the end tour service of the scheduler component
-        auto endTourClientNode = rclcpp::Node::make_shared("DialogComponentEndTourNode");
-        auto endTourClient = endTourClientNode->create_client<scheduler_interfaces::srv::EndTour>("/SchedulerComponent/EndTour");
-        auto endTourRequest = std::make_shared<scheduler_interfaces::srv::EndTour::Request>();
-        while (!endTourClient->wait_for_service(std::chrono::seconds(1))) {
+        auto resetClientNode = rclcpp::Node::make_shared("DialogComponentResetNode");
+        auto resetClient = resetClientNode->create_client<scheduler_interfaces::srv::Reset>("/SchedulerComponent/Reset");
+        auto resetRequest = std::make_shared<scheduler_interfaces::srv::Reset::Request>();
+        while (!resetClient->wait_for_service(std::chrono::seconds(1))) {
             if (!rclcpp::ok()) {
-                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'endTourClient'. Exiting.");
+                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'resetClient'. Exiting.");
             }
         }
-        auto endTourResult = endTourClient->async_send_request(endTourRequest);
-        auto futureEndTourResult = rclcpp::spin_until_future_complete(endTourClientNode, endTourResult);
-        if (futureEndTourResult == rclcpp::FutureReturnCode::SUCCESS)
+        auto resetResult = resetClient->async_send_request(resetRequest);
+        auto futureResetResult = rclcpp::spin_until_future_complete(resetClientNode, resetResult);
+        if (futureResetResult == rclcpp::FutureReturnCode::SUCCESS)
         {
-            if(endTourResult.get()->is_ok)
+            if(resetResult.get()->is_ok)
             {
                 yInfo() << "[DialogComponent::InterpretCommand] End Tour Succeeded" << __LINE__;
             }
