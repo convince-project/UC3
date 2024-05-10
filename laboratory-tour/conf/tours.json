@@ -2755,6 +2755,105 @@
               }
             ]
           }
+        },
+        "madama_start": {
+          "m_availableActions": {
+            "explainRoom": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Konnichiwa, watashi wa R1 desu.",
+                "m_type": "speak"
+              }
+            ],
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Sankashite itadaki, arigatou gozaimasu. Ankēto no kinyū o onegai shimasu. Sayōnara.",
+                "m_type": "speak"
+              }
+            ],
+            "greetings": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Ohayōgozaimasu. Watashi wa R1 desu. Kono Madama Kyūden no kai o annai suru tame ni koko ni imasu. Tsuā o hajimemasu ka, soretomo kyūden ya watashi ni tsuite no shitsumon o shite mo ii desu shi, kono demo ni kansuru purojekuto ni tsuite no shitsumon shite mo ii desu yo.",
+                "m_type": "speak"
+              }
+            ]
+          },
+          "m_name": "madama_start"
+        },
+        "sala_delle_guardie": {
+          "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Totemo yoroshii desu. Soredewa, kono tour no saisho no supotto ni shitagatte kudasai.",
+                "m_type": "speak"
+              }
+            ],
+            "explainRoom": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Watashitachi wa Madama Reale no ichi kai ni imasu. Koko ni wa, 1644-nen ni Pari de umare, Savoia Kō to kekkon suru tame ni Torino ni ijuu shita Furansu no ōjo, Maria Jovanna Battista di Savoia Numours ga kurashite imashita.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Kanojo wa tsuyoi seikaku no mochinushi de, musuko de aru mirai no Vittorio Amedeo 2-sei ga wazuka 9-sai de yatowarete shita toki ni, musuko no yōshōki o sasaeru tame ni atarashī kuni o mamorimashita. Musuko ga kekkon shita toki ni wa, Maria Jovanna wa ōkyū o hanare, jibun no gomi ni awaseta 1-kai no shiro ni kyoju suru koto o erabimashita.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Kanojo wa koko de 1724-nen ni nakunatta made 40-nenkan o sugoshi, kanojo no nichijōteki, reiteki, busshitsuteki na seikatsu ni nyūgai suru 191-ri no hitobito ni yotte sasaeraremashita. Kagu wa hotondo nokotte imasen ga, kono tour de anata ni heya no kinō ya kōshoku no koto o oshiemasu.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Nanika shitsumon wa arimasu ka? Kono heya no kinō ya sōshoku ni tsuite hanasukotoga dekimasu. Matawa, oshiete kudasai, kochira no basho ni tsuite no shitsumon. Aruiwa, tour o tsuzukemasu ka?",
+                "m_type": "speak"
+              }
+            ],
+            "explainFunction": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Subarashīdesu ne, watashitachi wa Gādo no heya ni imasu. Oyoso 1721-nen goro, Madama Reale ni otozureru kyaku wa 2tsu no akusesu o riyou suru koto ga dekimashita: Firippo Juvarra no ōkaidan o tōtte salon (genzai no Sera Senāto) ni hairu ka, ōkyū kara chokusetsu ni shiro ni akusesu shite, 2tsu no kenchiku o tsunagu kekketsu-bu o toshite tōchaku suru koto ga dekimashita. Kekketsu-bu wa "gararī no heya" toshite owaride, genzai wa Madama Kafe ga setchisarete imasu.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Dochira no keiro mo Gādo no heya ni tsūjite ori, koko ni imasu. Kore wa, Maria Jovanna Battista di Savoia-Nemours no apātomento nai girekishiki na keiro no saisho no heya desu.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Gyokuzoku no heya (kōkaiheya tomo yobareru) ni tōchaku suru mae ni, kyaku wa 3tsu no machiaishitsu o tōshite, kōshite wa, daitai no aikyū no oyobi, kyaku wa okurareru no o matta hō ga ii.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Hoka ni shitsumon wa arimasu ka? Shitsumon ga omoidasenai baai wa, enryo naku shitsumon shite kudasai. Aruiwa, tour o tsuzukemasu ka?",
+                "m_type": "speak"
+              }
+            ],
+            "explainDescription": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Kanpekidesu! Kono heya wa 1708-nen kara 1715-nen no aida ni sōshoku saremashita. Ima, ue o mite kudasai! Shiroi sutakko no sōshoku ni wa, heya o mamoru kōshū no buki no torofī ga tenjō no kado ni sōnyū sarete imasu: Yoroi, yari, ya, hōdō, tate, toranpetto wa, sensō to heishi no sekai o shimeshite imasu.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Namiutsu konisu no rinkaku ni wa, Savoia jūji to Madama Reale no enburemu de aru orenji-iro no ōkina hana o motsu 4tsu no washi ga kōgo ni arawaremasu. Sekkotsu no omotai kotsuzui wa, Venaria Reale no goten no sōshoku kara toriyō sareta gipsumu kara sōsaremashita.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Hoka ni shitsumon wa arimasu ka? Shitsumon ga omoidasenai baai wa, enryo naku shitsumon shite kudasai. Aruiwa, tour o tsuzukemasu ka?",
+                "m_type": "speak"
+              }
+            ]
+          },
+          "m_name": "sala_delle_guardie"
         }
       }
     }
