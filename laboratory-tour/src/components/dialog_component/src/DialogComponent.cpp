@@ -305,6 +305,50 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
             yError() << "[DialogComponent::ConfigureYARP] Error opening iSpeechTranscription interface. Device not available";
             return false;
         }
+
+        // ----- VOICES ---------
+        std::string eng = "en-US-Standard-G";
+        std::string ita = "it-IT-Standard-A";
+        std::string fra = "fr-FR-Standard-A";
+        std::string ger = "de-DE-Standard-A";
+        std::string spa = "es-ES-Standard-C";
+        std::string jap = "ja-JP-Standard-B";
+
+        if(rf.check("VOICES"))
+        {
+            yarp::os::Searchable &voices_cfg = rf.findGroup("VOICES");
+            if(voices_cfg.check("it-IT"))
+            {
+                ita = voices_cfg.find("it-IT").asString();
+            }
+            if(voices_cfg.check("en-US"))
+            {
+                eng = voices_cfg.find("en-US").asString();
+            }
+            if(voices_cfg.check("fr-FR"))
+            {
+                fra = voices_cfg.find("fr-FR").asString();
+            }
+            if(voices_cfg.check("de-DE"))
+            {
+                ger = voices_cfg.find("de-DE").asString();
+            }
+            if(voices_cfg.check("es-ES"))
+            {
+                spa = voices_cfg.find("es-ES").asString();
+            }
+            if(voices_cfg.check("ja-JP"))
+            {
+                jap = voices_cfg.find("ja-JP").asString();
+            }
+        }
+        m_voicesMap.clear();
+        m_voicesMap["it-IT"] = ita;
+        m_voicesMap["en-US"] = eng;
+        m_voicesMap["fr-FR"] = fra;
+        m_voicesMap["de-DE"] = ger;
+        m_voicesMap["es-ES"] = spa;
+        m_voicesMap["ja-JP"] = jap;
     }
     // ---------------------Microphone Activation----------------------------
     /*{
@@ -951,8 +995,9 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
     }
     else if (action == "greetings")
     {
+        std::string newLang = theList->get(1).asString();
         // sets the language internally
-        if(!m_tourStorage->m_loadedTour.setCurrentLanguage(theList->get(1).asString()))
+        if(!m_tourStorage->m_loadedTour.setCurrentLanguage(newLang))
         {
                 RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "cannot set language to tour storage");
                 m_speechTranscriberCallback.setMessageConsumed();
@@ -974,12 +1019,12 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
             return false;
         }
 
-        yInfo() << "[DialogComponent::InterpretCommand] Set Language Detected: " << theList->get(1).asString() << __LINE__;
+        yInfo() << "[DialogComponent::InterpretCommand] Set Language Detected: " << newLang << __LINE__;
         // Calls the set language service of the scheduler component
         auto setLangClientNode = rclcpp::Node::make_shared("DialogComponentSetLangNode");
         auto setLangClient = setLangClientNode->create_client<scheduler_interfaces::srv::SetLanguage>("/SchedulerComponent/SetLanguage");
         auto request = std::make_shared<scheduler_interfaces::srv::SetLanguage::Request>();
-        request->language = theList->get(1).asString();
+        request->language = newLang;
         while (!setLangClient->wait_for_service(std::chrono::seconds(1))) {
             if (!rclcpp::ok()) {
                 RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setLangClient'. Exiting.");
@@ -1000,7 +1045,7 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
         auto setLangClientNode2 = rclcpp::Node::make_shared("DialogComponentSetLangNode2");
         auto setLangClient2 = setLangClientNode2->create_client<text_to_speech_interfaces::srv::SetLanguage>("/TextToSpeechComponent/SetLanguage");
         auto request2 = std::make_shared<text_to_speech_interfaces::srv::SetLanguage::Request>();
-        request2->new_language = theList->get(1).asString();
+        request2->new_language = newLang;
         while (!setLangClient2->wait_for_service(std::chrono::seconds(1))) {
             if (!rclcpp::ok()) {
                 RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setLangClient'. Exiting.");
@@ -1017,10 +1062,30 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
             m_speechTranscriberCallback.setMessageConsumed();
             return false;
         }
-        // Setting language in the speech transcriber
-        if(!m_iSpeechTranscription->setLanguage(theList->get(1).asString()))
+        auto setVoiceClientNode = rclcpp::Node::make_shared("DialogComponentSetVoiceNode");
+        auto setVoiceClient = setVoiceClientNode->create_client<text_to_speech_interfaces::srv::SetVoice>("/TextToSpeechComponent/SetVoice");
+        auto request3 = std::make_shared<text_to_speech_interfaces::srv::SetVoice::Request>();
+        request3->new_voice = m_voicesMap[newLang];
+        while (!setVoiceClient->wait_for_service(std::chrono::seconds(1))) {
+            if (!rclcpp::ok()) {
+                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setVoiceClient'. Exiting.");
+                m_speechTranscriberCallback.setMessageConsumed();
+                return false;
+            }
+        }
+        auto result3 = setVoiceClient->async_send_request(request3);
+        if (rclcpp::spin_until_future_complete(setVoiceClientNode, result3) == rclcpp::FutureReturnCode::SUCCESS)
         {
-            yError() << "[DialogComponent::InterpretCommand] Unable to set language: " << theList->get(1).asString();
+            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Set Voice succeeded");
+        } else {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service set_voice");
+            m_speechTranscriberCallback.setMessageConsumed();
+            return false;
+        }
+        // Setting language in the speech transcriber
+        if(!m_iSpeechTranscription->setLanguage(newLang))
+        {
+            yError() << "[DialogComponent::InterpretCommand] Unable to set language: " << newLang;
             m_speechTranscriberCallback.setMessageConsumed();
             return false;
         }
