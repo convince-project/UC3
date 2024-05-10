@@ -18,7 +18,7 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <netinet/ip_icmp.h>
-#include <vector.h>
+#include <vector>
 
 // Packet struct
 constexpr int PING_PKT_S = 64;

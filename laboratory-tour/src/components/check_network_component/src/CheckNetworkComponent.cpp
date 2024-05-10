@@ -70,7 +70,7 @@ void CheckNetworkComponent::StatusChangedPublisher() {
     m_is_connected = isNetworkConnected(m_address_name);
     if (m_lastStatus.size() < 5) {
         m_lastStatus.push_back(m_is_connected);
-    } else (m_lastStatus.size() == 5) {
+    } else {
         int countFalse = 0;
         for (auto status : m_lastStatus) {
             if (status == false) {
@@ -87,11 +87,9 @@ void CheckNetworkComponent::StatusChangedPublisher() {
         changed = true;
     }
     m_previousStatusConnected = currentStatus;
-    if (m_statusChanged) {
-        auto msg = std_msgs::msg::Bool();
-        msg.data = changed;
-        m_publisherNetworkChanged->publish(msg);
-    }
+    auto msg = std_msgs::msg::Bool();
+    msg.data = changed;
+    m_publisherNetworkChanged->publish(msg);
 }
 
 void CheckNetworkComponent::topic_callback() {
