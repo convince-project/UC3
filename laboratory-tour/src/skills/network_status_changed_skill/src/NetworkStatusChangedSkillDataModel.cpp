@@ -31,23 +31,12 @@ bool NetworkStatusChangedSkillDataModel::setup(const QVariantMap& initialDataVal
 	m_node = rclcpp::Node::make_shared("NetworkStatusChangedSkillDataModelNode");
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
 	m_subscription = m_node->create_subscription<std_msgs::msg::Bool>(
-		"/CheckNetworkComponent/NetworkStatus", 10, std::bind(&NetworkStatusChangedSkillDataModel::topic_callback, this, std::placeholders::_1));
+		"/CheckNetworkComponent/NetworkChanged", 10, std::bind(&NetworkStatusChangedSkillDataModel::topic_callback, this, std::placeholders::_1));
 
 	return true;
 }
 
 void NetworkStatusChangedSkillDataModel::topic_callback(const std_msgs::msg::Bool::SharedPtr msg) {
-	m_old_status = m_status;
-	m_status = msg->data;
-	if(m_status != m_old_status)
-	{
-		m_edge_detected = EDGE_DETECTED;
-		std::cout << "Edge detected " << std::endl;
-	}
-	else
-	{
-		m_edge_detected = !EDGE_DETECTED;
-	}
-
+	m_edge_detected = msg->data;
 }
 
