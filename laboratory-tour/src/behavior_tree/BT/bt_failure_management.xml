@@ -2,10 +2,13 @@
 <root main_tree_to_execute="BehaviorTree">
     <!-- ////////// -->
     <BehaviorTree ID="BehaviorTree">
-        <Sequence>
-            <SubTree ID="gotoPoi"/>
-            <SubTree ID="CheckArtworkAndExplain"/>
-        </Sequence>
+        <ReactiveSequence>
+            <SubTree ID="NetworkManagement"/>
+            <Sequence>
+                <SubTree ID="gotoPoi"/>
+                <SubTree ID="CheckArtworkAndExplain"/>
+            </Sequence>
+        </ReactiveSequence>
     </BehaviorTree>
     <!-- ////////// -->
     <BehaviorTree ID="CheckArtworkAndExplain">
@@ -19,18 +22,18 @@
     <BehaviorTree ID="NetworkManagement">
         <ReactiveFallback>
             <Inverter>
-                <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="NetworkStateChanged" nodeName=""/>
+                <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="NetworkStatusChanged" nodeName="NetworkStatusChanged"/>
             </Inverter>
-            <Parallel failure_threshold="" success_threshold="2">
+            <Parallel failure_threshold="1" success_threshold="2">
                 <ReactiveFallback>
-                    <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="NetworkUp" nodeName="NetworkDown"/>
-                    <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="StartServices" nodeName="ManageModulesIfNetworkDown"/>
+                    <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="NetworkUp" nodeName="NetworkUp"/>
+                    <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="StartService" nodeName="StopService"/>
                 </ReactiveFallback>
                 <ReactiveFallback>
                     <Inverter>
-                        <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="NetworkUp" nodeName=""/>
+                        <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="NetworkUp" nodeName="NetworkUp"/>
                     </Inverter>
-                    <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="StopServices" nodeName=""/>
+                    <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="StopService" nodeName="StopService"/>
                 </ReactiveFallback>
             </Parallel>
         </ReactiveFallback>
