@@ -6,20 +6,54 @@
   xmlns="http://www.w3.org/2005/07/scxml">
 
   <datamodel>
-    <data id="m_text" expr="'Follow me!'"/>
+    <data id="m_param"/>
+    <data id="m_command" expr="'sayFollowMe'"/>
     <data id="m_is_speaking"/>
     <data id="m_result"/>
   </datamodel>
 
   <state id="idle">
-      <transition event="CMD_TICK" target="talk" />
+      <transition event="CMD_TICK" target="setCommand" />
       <transition event="CMD_HALT" target="sendHalted" /> 
   </state>
 
+  <state id="setCommand">
+    <onentry>
+        <send event="SchedulerComponent.SetCommand.Call">
+          <param name="command" expr="m_command"/>
+        </send>
+    </onentry>
+    <transition event="SchedulerComponent.SetCommand.Return" target="setCommandResult">
+      <assign expr="_event.data.result" location="m_result"/>
+  </transition>
+</state>
+
+<state id="setCommandResult">
+  <transition cond="m_result == 'SUCCESS'" target="getText" />
+  <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+</state>
+
+<state id="getText">
+  <onentry>
+      <send event="SchedulerComponent.GetCurrentAction.Call">
+      </send>
+  </onentry>
+  <transition event="SchedulerComponent.GetCurrentAction.Return" target="getTextResult">
+    <assign expr="_event.data.result" location="m_result"/>
+    <assign expr="_event.data.param" location="m_param"/>
+</transition>
+</state>
+
+<state id="getTextResult">
+  <transition cond="m_result == 'SUCCESS'" target="talk" />
+  <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+</state>
+
   <state id="talk">
       <onentry>
+        <log expr="m_param"/>
           <send event="TextToSpeechComponent.Speak.Call">
-            <param name="text" expr="m_text"/>
+            <param name="text" expr="m_param"/>
           </send>
       </onentry>
       <transition event="TextToSpeechComponent.Speak.Return" target="talkResult">

@@ -76,6 +76,79 @@ bool SayFollowMeSkill::start(int argc, char*argv[])
                                                                             	std::placeholders::_1,
                                                                             	std::placeholders::_2));
 
+    m_stateMachine.connectToEvent("SchedulerComponent.SetCommand.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
+        std::shared_ptr<rclcpp::Node> nodeSetCommand = rclcpp::Node::make_shared(m_name + "SkillNodeSetCommand");
+        std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::SetCommand>> clientSetCommand = nodeSetCommand->create_client<scheduler_interfaces::srv::SetCommand>("/SchedulerComponent/SetCommand");
+        auto request = std::make_shared<scheduler_interfaces::srv::SetCommand::Request>();
+        auto eventParams = event.data().toMap();
+        request->command = convert<decltype(request->command)>(eventParams["command"].toString().toStdString());
+        std::cout << "Request" << request->command << std::endl;
+        bool wait_succeded{true};
+        while (!clientSetCommand->wait_for_service(std::chrono::seconds(1))) {
+            if (!rclcpp::ok()) {
+                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'SetCommand'. Exiting.");
+                wait_succeded = false;
+                m_stateMachine.submitEvent("SchedulerComponent.SetCommand.Return");
+            } 
+        }
+        if (wait_succeded) {
+            // send the request                                                                    
+            auto result = clientSetCommand->async_send_request(request);
+            auto futureResult = rclcpp::spin_until_future_complete(nodeSetCommand, result);
+            auto response = result.get();
+            if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
+            {
+                if( response->is_ok ==true) {
+                    QVariantMap data;
+                    data.insert("result", "SUCCESS");
+                    m_stateMachine.submitEvent("SchedulerComponent.SetCommand.Return", data);
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.SetCommand.Return");
+                } else {
+                    QVariantMap data;
+                    data.insert("result", "FAILURE");
+                    m_stateMachine.submitEvent("SchedulerComponent.SetCommand.Return", data);
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.SetCommand.Return");
+                }
+            }
+        }
+    });
+
+    m_stateMachine.connectToEvent("SchedulerComponent.GetCurrentAction.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
+        std::shared_ptr<rclcpp::Node> nodeGetCurrentAction = rclcpp::Node::make_shared(m_name + "SkillNodeGetCurrentAction");
+        std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::GetCurrentAction>> clientGetCurrentAction = nodeGetCurrentAction->create_client<scheduler_interfaces::srv::GetCurrentAction>("/SchedulerComponent/GetCurrentAction");
+        auto request = std::make_shared<scheduler_interfaces::srv::GetCurrentAction::Request>();
+        bool wait_succeded{true};
+        while (!clientGetCurrentAction->wait_for_service(std::chrono::seconds(1))) {
+            if (!rclcpp::ok()) {
+                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'GetCurrentAction'. Exiting.");
+                wait_succeded = false;
+                m_stateMachine.submitEvent("SchedulerComponent.GetCurrentAction.Return");
+            } 
+        }
+        if (wait_succeded) {
+            // send the request                                                                    
+            auto result = clientGetCurrentAction->async_send_request(request);
+            auto futureResult = rclcpp::spin_until_future_complete(nodeGetCurrentAction, result);
+            auto response = result.get();
+            if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
+            {
+                if( response->is_ok ==true) {
+                    QVariantMap data;
+                    data.insert("result", "SUCCESS");
+                    data.insert("param", response->param.c_str());
+                    std::cout << "Param" << response->param.c_str() << std::endl;
+                    m_stateMachine.submitEvent("SchedulerComponent.GetCurrentAction.Return", data);
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.GetCurrentAction.Return");
+                } else {
+                    QVariantMap data;
+                    data.insert("result", "FAILURE");
+                    m_stateMachine.submitEvent("SchedulerComponent.GetCurrentAction.Return", data);
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.GetCurrentAction.Return");
+                }
+            }
+        }
+    });
+
     m_stateMachine.connectToEvent("TextToSpeechComponent.Speak.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
         std::shared_ptr<rclcpp::Node> nodeSpeak = rclcpp::Node::make_shared(m_name + "SkillNodeSpeak");
         std::shared_ptr<rclcpp::Client<text_to_speech_interfaces::srv::Speak>> clientSpeak = nodeSpeak->create_client<text_to_speech_interfaces::srv::Speak>("/TextToSpeechComponent/Speak");
