@@ -2,10 +2,10 @@
 <root main_tree_to_execute="BehaviorTree">
     <!-- ////////// -->
     <BehaviorTree ID="BehaviorTree">
-        <ReactiveSequence>
+        <Sequence>
             <SubTree ID="gotoPoi"/>
             <SubTree ID="CheckArtworkAndExplain"/>
-        </ReactiveSequence>
+        </Sequence>
     </BehaviorTree>
     <!-- ////////// -->
     <BehaviorTree ID="CheckArtworkAndExplain">
