@@ -35,6 +35,9 @@ bool CheckNetworkComponent::setup(int argc, char* argv[])
     m_publisherStatus = m_node->create_publisher<std_msgs::msg::Bool>("/CheckNetworkComponent/NetworkStatus", 10);
     timer_ = m_node->create_wall_timer(1000ms, std::bind(&CheckNetworkComponent::topic_callback, this));
 
+    m_publisherNetworkChanged = m_node->create_publisher<std_msgs::msg::Bool>("/CheckNetworkComponent/NetworkChanged", 10);
+    timer_2 = m_node->create_wall_timer(1000ms, std::bind(&CheckNetworkComponent::StatusChangedPublisher, this));
+
     RCLCPP_DEBUG(m_node->get_logger(), "CheckNetworkComponent::start");
     // m_thread = std::make_shared<std::thread>([this]{ start();});
     return true;
@@ -60,7 +63,39 @@ bool CheckNetworkComponent::start() {
     return true;
 }
 
+void CheckNetworkComponent::StatusChangedPublisher() {
+
+    // check if has 5 messages in the buffer
+    bool currentStatus=true;
+    m_is_connected = isNetworkConnected(m_address_name);
+    if (m_lastStatus.size() < 5) {
+        m_lastStatus.push_back(m_is_connected);
+    } else (m_lastStatus.size() == 5) {
+        int countFalse = 0;
+        for (auto status : m_lastStatus) {
+            if (status == false) {
+                countFalse++;
+            }
+        }
+        if (countFalse > 3) {
+            currentStatus = false;
+        }
+        m_lastStatus.clear();
+    }
+    bool changed = false;
+    if (m_previousStatusConnected != currentStatus) {
+        changed = true;
+    }
+    m_previousStatusConnected = currentStatus;
+    if (m_statusChanged) {
+        auto msg = std_msgs::msg::Bool();
+        msg.data = changed;
+        m_publisherNetworkChanged->publish(msg);
+    }
+}
+
 void CheckNetworkComponent::topic_callback() {
+
     std::cout << "CALLBACK" << std::endl;
     m_is_connected = isNetworkConnected(m_address_name);
     std::cout << "Our machine is connected? " << m_is_connected;
