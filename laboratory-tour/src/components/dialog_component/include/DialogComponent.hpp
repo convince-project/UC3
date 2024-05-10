@@ -33,11 +33,13 @@
 #include <text_to_speech_interfaces/srv/set_microphone.hpp>
 #include <text_to_speech_interfaces/srv/speak.hpp>
 #include <text_to_speech_interfaces/srv/set_language.hpp>
+#include <text_to_speech_interfaces/srv/set_voice.hpp>
 #include <scheduler_interfaces/srv/get_current_poi.hpp>
 #include <scheduler_interfaces/srv/end_tour.hpp>
 #include <scheduler_interfaces/srv/set_language.hpp>
 #include "nlohmann/json.hpp"
 #include <random>
+#include <map>
 
 #include "SpeechTranscriberCallback.hpp"
 #include "SpeakerStatusCallback.hpp"
@@ -81,7 +83,8 @@ private:
     yarp::dev::ILLM *m_iPoiChat{nullptr};
     yarp::dev::ILLM *m_iMuseumChat{nullptr};
     yarp::dev::ILLM *m_iGenericChat{nullptr};
-    yarp::dev::ISpeechTranscription *m_iSpeechTranscription{nullptr};
+    yarp::dev::ISpeechTranscription  *m_iSpeechTranscription{nullptr};
+    std::map<std::string,std::string> m_voicesMap;
     std::string m_poiPrompt;
     std::string m_startPrompt;
     // Microphone
