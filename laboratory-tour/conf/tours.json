@@ -1307,7 +1307,8 @@
                 "m_type": "signal"
               }
             ]
-          }
+          },
+          "m_name": "___generic___"
         },
         "madama_start": {
           "m_availableActions": {
@@ -1791,7 +1792,8 @@
                 "m_type": "signal"
               }
             ]
-          }
+          },
+          "m_name": "___generic___"
         },
         "madama_start": {
           "m_availableActions": {
@@ -2270,7 +2272,8 @@
                 "m_type": "signal"
               }
             ]
-          }
+          },
+          "m_name": "___generic___"
         },
         "madama_start": {
           "m_availableActions": {
@@ -2754,7 +2757,8 @@
                 "m_type": "signal"
               }
             ]
-          }
+          },
+          "m_name": "___generic___"
         },
         "madama_start": {
           "m_availableActions": {
@@ -2816,7 +2820,7 @@
             "explainFunction": [
               {
                 "m_isBlocking": false,
-                "m_param": "Subarashīdesu ne, watashitachi wa Gādo no heya ni imasu. Oyoso 1721-nen goro, Madama Reale ni otozureru kyaku wa 2tsu no akusesu o riyou suru koto ga dekimashita: Firippo Juvarra no ōkaidan o tōtte salon (genzai no Sera Senāto) ni hairu ka, ōkyū kara chokusetsu ni shiro ni akusesu shite, 2tsu no kenchiku o tsunagu kekketsu-bu o toshite tōchaku suru koto ga dekimashita. Kekketsu-bu wa "gararī no heya" toshite owaride, genzai wa Madama Kafe ga setchisarete imasu.",
+                "m_param": "Subarashīdesu ne, watashitachi wa Gādo no heya ni imasu. Oyoso 1721-nen goro, Madama Reale ni otozureru kyaku wa 2tsu no akusesu o riyou suru koto ga dekimashita: Firippo Juvarra no ōkaidan o tōtte salon (genzai no Sera Senāto) ni hairu ka, ōkyū kara chokusetsu ni shiro ni akusesu shite, 2tsu no kenchiku o tsunagu kekketsu-bu o toshite tōchaku suru koto ga dekimashita. Kekketsu-bu wa \"gararī no heya\" toshite owaride, genzai wa Madama Kafe ga setchisarete imasu.",
                 "m_type": "speak"
               },
               {
@@ -2854,6 +2858,373 @@
             ]
           },
           "m_name": "sala_delle_guardie"
+        },
+        "sala_guidobono": {
+          "m_availableActions": {
+              "sayWhileNavigating": [
+                  {
+                      "m_isBlocking": true,
+                      "m_param": "Yoshi, kono subarashī madama kyūden no puran o setsumei shi tsuzukete ureshīdesu. Dōzo tsuite kite kudasai, tsugi no heya ni annai shimasu.",
+                      "m_type": "speak"
+                  }
+              ],
+              "explainRoom": [
+                  {
+                      "m_isBlocking": false,
+                      "m_param": "Koko ni imasu! 18-seiki shotō ni, kono heya wa 'futtoman no heya' to shite shirete imashita. Koko ni taizai shite iru wakai shiyōnin-tachi wa, meirei o machi nagara kono heya ni taizai shite imashita. Karera wa kōshakufujin no dairi de machijū no messēji o haitsuyari kaishū suru tame no shisha toshite kōdō suru koto ga dekimashita.",
+                      "m_type": "speak"
+                  },
+                  {
+                      "m_isBlocking": false,
+                      "m_param": "Shikashi, karera no mottomo jūyōna ninmu wa, kōshakufujin o annai suru koto deshita. Basha no michi o kakuho shi, bō de shōgai no shōgai o torinozoki, yoru ni wa tōchi de michi o terashimashita. Sono tame karera no namae wa 'futtoman' desu. Karera wa kōshakufujin o mamoru tame ni hashittari arukitari shinakereba narimasendeshita.",
+                      "m_type": "speak"
+                  },
+                  {
+                      "m_isBlocking": false,
+                      "m_param": "Karera no ichibu wa, rivori-jō o egaita ōkina kaiga ni miru koto ga dekimasu. Koko de karera o mite kudasai, kono ōkina kaiga de, migi shita ni, akai zubon, shiroi shatsu, kuroi torikōn bōshi o kabutte ō no basha o goei shite imasu.",
+                      "m_type": "speak"
+                  },
+                  {
+                      "m_isBlocking": false,
+                      "m_param": "Shitsumon wa arimasu ka? Kono heya no sōshoku ni tsuite hanasu koto ga dekimasu. Matawa, kyūden, konvince purojekuto, matawa watashi ni tsuite nanika shitsumon ga arimasu ka. Samonakereba, tsuā o tsuzukeru koto ga dekimasu.",
+                      "m_type": "speak"
+                  }
+              ],
+              "explainFunction": [
+                  {
+                      "m_isBlocking": false,
+                      "m_param": "Koko ni imasu! 18-seiki shotō ni, kono heya wa 'futtoman no heya' to shite shirete imashita. Koko ni taizai shite iru wakai shiyōnin-tachi wa, meirei o machi nagara kono heya ni taizai shite imashita. Karera wa kōshakufujin no dairi de machijū no messēji o haitsuyari kaishū suru tame no shisha toshite kōdō suru koto ga dekimashita.",
+                      "m_type": "speak"
+                  },
+                  {
+                      "m_isBlocking": false,
+                      "m_param": "Shikashi, karera no mottomo jūyōna ninmu wa, kōshakufujin o annai suru koto deshita. Basha no michi o kakuho shi, bō de shōgai no shōgai o torinozoki, yoru ni wa tōchi de michi o terashimashita. Sono tame karera no namae wa 'futtoman' desu. Karera wa kōshakufujin o mamoru tame ni hashittari arukitari shinakereba narimasendeshita.",
+                      "m_type": "speak"
+                  },
+                  {
+                      "m_isBlocking": false,
+                      "m_param": "Karera no ichibu wa, rivori-jō o egaita ōkina kaiga ni miru koto ga dekimasu. Koko de karera o mite kudasai, kono ōkina kaiga de, migi shita ni, akai zubon, shiroi shatsu, kuroi torikōn bōshi o kabutte ō no basha o goei shite imasu.",
+                      "m_type": "speak"
+                  },
+                  {
+                      "m_isBlocking": false,
+                      "m_param": "Hoka no shitsumon wa arimasu ka? Ryōyōna shitsumon o oboete inai baai wa, shōmei o tanomu yō ni, sorekara watashitachi wa tsuā o tsuzukeru koto ga dekimasu ka.",
+                      "m_type": "speak"
+                  }
+              ],
+              "explainDescription": [
+                  {
+                      "m_isBlocking": false,
+                      "m_param": "Kono heya o kanzen ni tanoshimu ni wa, tenjō o miagete iru hitsuyō ga arimasu! Kono tenjō wa, zefīru no atama ni yotte osareta kumo no ue ni haru no gu yōki ga chūshin ni sasagarete imasu. Ugatukareta itsuwari no tenjō wa, chūshin ni aru hashira to kōkō ga arukeba basha, kari no tori, suichū no tori, tame no rōkasuru koto ga dekimasu.",
+                      "m_type": "speak"
+                  },
+                  {
+                      "m_isBlocking": false,
+                      "m_param": "Furesuko wa, 1708-nen kara 1714-nen no sōshoku kanpan no jidai ni modorimasu. Maria jiovanna battisuta wa, jenova no barokku kaiga ni tokuyū no shizen shugi to kūkan no genkaku no konomi o shimesu tame ni, domeniko gidobono ni jikkō o iinagashimashita. Kore wa, kanojo no musuko de aru vittorioda a medeio 2-sei ga ōshiku, kurasu no yōna sōshoku to hakkate, yori hiyōshite iru no ni, yori fukashigi de abarēshīna mono deshita.",
+                      "m_type": "speak"
+                  },
+                  {
+                      "m_isBlocking": false,
+                      "m_param": "Tōgawa no kōnin ni wa, sakka no shomei to sagyō kansei no hi, 1714-nen 12-gatsu 16-nichi ga hyōji sa remasu. Itsuwari no kenchiku wa, oshīe ni yotte, kenchiku tensakuga no seisan ni tokushu kaiga de aru kaiga no kokan ni yoru mono to suru koto ga dekimasu.",
+                      "m_type": "speak"
+                  },
+                  {
+                      "m_isBlocking": false,
+                      "m_param": "Boruto ni wa, seikei no sen o tsuiseki suru tame ni shiyō sareta ito ya kāton o kotei suru tame no ōku no kugin ana ga arimasu. Kibase wa furesuko de tsukurarete ori, 1927-nen ni okonawareta kōgekiteki na seisei chū ni bubun-teki ni torinozokare mashita.",
+                      "m_type": "speak"
+                  },
+                  {
+                      "m_isBlocking": false,
+                      "m_param": "Jinbutsu ni kanshite, domeniko wa 'meccha furesuko' no gijutsu o erabimashita. Kore ni yotte, yori hayaku, yori atsui sekkai gaijō o kaite, sorekara watashitachi wa tsuā o tsuzukeru koto ga dekimasu.",
+                      "m_type": "speak"
+                  },
+                  {
+                      "m_isBlocking": false,
+                      "m_param": "Saigo ni, bōruto no hondo ni wa, yūki to rein o motte ōku no kin no hoshakukotsu o ōru no basho ni ōyō shita koto de, ikiyoi to terashimasu.",
+                      "m_type": "speak"
+                  },
+                  {
+                      "m_isBlocking": false,
+                      "m_param": "Hoka ni shitsumon wa arimasu ka? Ryōyōna shitsumon o oboete inai baai wa, shōmei o tanomu yō ni, sorekara watashitachi wa tsuā o tsuzukeru koto ga dekimasu ka.",
+                      "m_type": "speak"
+                  }
+              ]
+          },
+          "m_name": "sala_guidobono"
+        },
+        "sala_delle_feste": {
+          "m_availableActions": {
+              "sayWhileNavigating": [
+                  {
+                      "m_isBlocking": true,
+                      "m_param": "Tsuite kite, koko wa kono kankyō o kansha suru tame no saiteki na basho ni tsurete ikimasu, soshite sukoshi suwaru koto ga dekimasu. Watashitachi no ashi no moto ni wa, tenjō ga koshitsu shimasu... kore wa sakuragi no mokuzai de, kono basho ni totemo yūbi na keshiki o ataeru ga, shūryo teien to shūkyū wa hitsuyō to shiteimasu. Koko de suwatte mo, itsumo watashi no soba ni imasu!",
+                      "m_type": "speak"
+                  }
+              ],
+              "explainRoom": [
+                  {
+                      "m_isBlocking": false,
+                      "m_param": "Koko ni chūi shimasu! 18-seiki ni wa totemo ōkina rūmu deshita ga, kono basho wa kambunshita kai ni futatsu no wakushiteita: paji no heya to shunkō no heya, tokuni kono watakushi no ue wa, Madama Reale Maria Giovanna Battista ga yūki no ōyobi shisha no kyakka o ukeireru tame ni tsukaimashita.",
+                      "m_type": "speak"
+                  },
+                  {
+                      "m_isBlocking": false,
+                      "m_param": "1724-nen ni sakusei sareta chakubutsu wa, gin no chandorai de terasarete ita to iu. Akai beruto no nuno de katadorareta tera o chokkan shite ita. Kyū no yō na nuno (natsu ni wa kin no hana no aru kuromino to kōkō o onaji nuno ni kaete iru) wa, kyakushitsu no taishi ya misema o katadori, futatsu no doa to jūnana benchi o kabe ni tsukatte kashira shita.",
+                      "m_type": "speak"
+                  },
+                  {
+                      "m_isBlocking": false,
+                      "m_param": "Chokkan sareta ki no panneri wa, paji no heya no kabe to kaminoyane o sōshita. Jūnana no benchi wa, kono doitsu seiki no sofā to shite mo shikibetsu dekimasu, ima wa kono rūmu ni tenji sarete iru, shokkō no shinryō to chokkan ni nikkori suru.",
+                      "m_type": "speak"
+                  },
+                  {
+                      "m_isBlocking": false,
+                      "m_param": "Shitsumon wa arimasu ka? Kono heya no sōshoku ni tsuite hanasu koto ga dekimasu. Matawa, kyūden, konvince purojekuto, matawa watashi ni tsuite nanika shitsumon ga arimasu ka. Samonakereba, tsuā o tsuzukeru koto ga dekimasu.",
+                      "m_type": "speak"
+                  }
+              ],
+              "explainFunction": [
+                  {
+                      "m_isBlocking": false,
+                      "m_param": "Tsuite kite, koko wa kono kankyō o kansha suru tame no saiteki na basho ni tsurete ikimasu. Koko ni chūi shimasu! 18-seiki ni wa totemo ōkina rūmu deshita ga, kono basho wa kambunshita kai ni futatsu no wakushiteita: paji no heya to shunkō no heya, tokuni kono watakushi no ue wa, Madama Reale Maria Giovanna Battista ga yūki no ōyobi shisha no kyakka o ukeireru tame ni tsukaimashita.",
+                      "m_type": "speak"
+                  },
+                  {
+                      "m_isBlocking": false,
+                      "m_param": "1724-nen ni sakusei sareta chakubutsu wa, gin no chandorai de terasarete ita to iu. Akai beruto no nuno de katadorareta tera o chokkan shite ita. Kyū no yō na nuno (natsu ni wa kin no hana no aru kuromino to kōkō o onaji nuno ni kaete iru) wa, kyakushitsu no taishi ya misema o katadori, futatsu no doa to jūnana benchi o kabe ni tsukatte kashira shita.",
+                      "m_type": "speak"
+                  },
+                  {
+                      "m_isBlocking": false,
+                      "m_param": "Chokkan sareta ki no panneri wa, paji no heya no kabe to kaminoyane o sōshita. Jūnana no benchi wa, kono doitsu seiki no sofā to shite mo shikibetsu dekimasu, ima wa kono rūmu ni tenji sarete iru, shokkō no shinryō to chokkan ni nikkori suru.",
+                      "m_type": "speak"
+                  },
+                  {
+                      "m_isBlocking": false,
+                      "m_param": "Hoka no shitsumon wa arimasu ka? Ryōyōna shitsumon o oboete inai baai wa, shōmei o tanomu yō ni, sorekara watashitachi wa tsuā o tsuzukeru koto ga dekimasu ka.",
+                      "m_type": "speak"
+                  }
+              ],
+              "explainDescription": [
+                  {
+                      "m_isBlocking": false,
+                      "m_param": "Koko mo, ue o mite kudasai! 18-seiki ni wa, shunkō no heya no tenjō wa atarashī geijutsu ga hōjirareta. Koko ni iru dōri no migi ni, hakken saretai yō na gishi wa, hakka no hataraki to kanjō no haikei kara, batoromeo gidobono no sakuhin to kashikaete iru kōki seiki ni ato o kizuku koto ga dekimasu.",
+                      "m_type": "speak"
+                  },
+                  {
+                      "m_isBlocking": false,
+                      "m_param": "Tsugi no bicchū ni wa, shunkō no heya no antikamera no tenjō mo, 18-seiki ni saikō sareta. Tabun anata wa, palazzo madama wa sono rekishi no naka de yūkōna kinō o motsu jūyōna basho de, kono rūmu mo yoi imi de tsukaimashita.",
+                      "m_type": "speak"
+                  },
+                  {
+                      "m_isBlocking": false,
+                      "m_param": "Jissai, senatokai no jimusho (1848-1863) ya saibansho (1869-1923) no ofisu o koshu suru koto o shita ato, torino no shiyakusho ni kono palazzo madama no ikkai no rūmu ga kashi sa reta. Kono atarashī kankyō no pabirion tenjō o jitsugen suru tame ni, antikamera no paji no kabe o bunkatsu suru koto ga kimarimashita.",
+                      "m_type": "speak"
+                  },
+                  {
+                      "m_isBlocking": false,
+                      "m_param": "Shunkō no heya no tenjō wa hōmotsu sarete iru ga, shunkō no heya no migi wa, sono basho ni tate rareta kabe ni tatsu bāsuto. Tōhyō-ban wa, setto no henka ni taishō shita sono hō ga zuriatta ga, saki no kyūden no jōhō to dōri no nijūtachi o shōhō shita.",
+                      "m_type": "speak"
+                  },
+                  {
+                      "m_isBlocking": false,
+                      "m_param": "Saigo ni, tenjō wa, karuro kussetti ni yotte, kodai no shunkō no kenchiku kara no kenchiku no kaku ni tsuite no gijutsu o riyō shite, saishū 1961-nen 10-gatsu 18-nichi ni koko de yoropēshon shakai kyōgiin o kangaemashita.",
+                      "m_type": "speak"
+                  },
+                  {
+                      "m_isBlocking": false,
+                      "m_param": "Hoka no shitsumon wa arimasu ka? Ryōyōna shitsumon o oboete inai baai wa, shōmei o tanomu yō ni, sorekara watashitachi wa tsuā o tsuzukeru koto ga dekimasu ka.",
+                      "m_type": "speak"
+                  }
+              ]
+          },
+          "m_name": "sala_delle_feste"
+        },
+        "sala_4_stagioni": {
+          "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Soredewa, ikimashou! Tachiagatte, tsugi no heya ni tsuite kite kudasai. Sukoshi osoi desu ga, yuka ga sukoshi surete irunode chūi ga hitsuyōdesu. Ushiro ni tsuite ite kudasaine.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": true,
+                "m_param": "Tsugi no heya de wa, hidarigawa ni kugirareta eria ga arimasu. Shūfukusayōna kikkake ni shitagatte, soku ni itadakimasu. Renzoku shita mentenansu ga hitsuyōdesu.",
+                "m_type": "speak"
+              }
+            ],
+            "explainRoom": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Kono heya de wa, koi aoi sora no shita, kin no ito de amimono sareta ōkina torikago no naka ni iru yōna kankaku de, Maria Jovanna Batisuta no kōtei no ikkinokori no toki ga sugosaremashita. Tokuni yoru ni wa, kifujin ya kishitachi ga atsumatte, ongakusuru toki, dansu, kaiwa, gemu de kōshaku fujin o tanoshimasete imashita.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Sōshoku no aikon ga puroguramu wa, subete no keitai no jikan no shōsai desu. Jōbu no yotsu no sumi ni wa, kisetsu no gijin ga arimasu, bako-aiki no yōnenki kara, hi no mae de atataka o toru fuyu no rōnenki made no jinsei no yotsu no jiki o anji shite imasu. Chūō ni wa, nōgyō to kanren shita ningen no katsudō ga egaka re, tenjō no chūō ni wa, puchini ga goraku ya asobi de tanoshinde iru yōsō ga egaka rete ori, heya no goraku-tekina kinō o shimeshite imasu.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Nanika shitsumon wa arimasu ka? Kono heya no sōshoku ni tsuite hanasu koto ga dekimasu. Mata, biru, Convince purojekuto, matawa watashi ni tsuite no shitsumon ga aru baai wa, oazuke no shitsumon o shite kudasai. Samonakereba, tsuā o tsuzukeru koto ga dekimasu.",
+                "m_type": "speak"
+              }
+            ],
+            "explainFunction": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Kono heya de wa, koi aoi sora no shita, kin no ito de amimono sareta ōkina torikago no naka ni iru yōna kankaku de, Maria Jovanna Batisuta no kōtei no ikkinokori no toki ga sugosaremashita. Tokuni yoru ni wa, kifujin ya kishitachi ga atsumatte, ongakusuru toki, dansu, kaiwa, gemu de kōshaku fujin o tanoshimasete imashita.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Sōshoku no aikon ga puroguramu wa, subete no keitai no jikan no shōsai desu. Jōbu no yotsu no sumi ni wa, kisetsu no gijin ga arimasu, bako-aiki no yōnenki kara, hi no mae de atataka o toru fuyu no rōnenki made no jinsei no yotsu no jiki o anji shite imasu. Chūō ni wa, nōgyō to kanren shita ningen no katsudō ga egaka re, tenjō no chūō ni wa, puchini ga goraku ya asobi de tanoshinde iru yōsō ga egaka rete ori, heya no goraku-tekina kinō o shimeshite imasu.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Nanika hoka no shitsumon wa arimasu ka? Shitsumon ga omoidasenai baai wa, enryo naku shitsumon shite kudasai. Samonakereba, tsuā o tsuzukeru koto ga dekimasu.",
+                "m_type": "speak"
+              }
+            ],
+            "explainDescription": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Yoi desu! Anata no kōi ni arigatōgozaimasu! Heya no namae wa 'Shiki' no ōrori kara orimasu, sorezore ga kogane-iro no kātasukoto o imi shimasu.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Settei to afureshita sabi to tōki no kanjō o motsu ukiyo no dekoreishon wa, 1708-nen kara 1715-nen no aida ni kōteki ni atsukatta, Rui XIV-ten no kōtei toshite katsuyaku shita Furansu no kenchiku to okashi no dezainā, Jean Berain no moderu o motte katto sa remashita.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Ichinichi no Settei wa, 'Sākuru no dai gabinetto' to yobare, kōtei no beddo no mae no anteikamera no kinō o motsu shite imashita.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Kisetsu ni yotte, kabe wa beruto ga fukuramu kurimuzon iro no ribon o tsukete imashita. Kisetsu ga kawatte, natsu ni wa, kin to gini no hana no damasuku no kawari ni, sumptuousu ga yurete ita koto o imi shite imasu, sore wa, oorugane to gin no itagae de karada o tsutsumu tobira no keshiki to aitsugu sōai shite imashita.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Saigo no metaru wa sudeni fukagyaku ni sanshoku shite ori, ima wa kuroi yō ni mie masu.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Hoka ni shitsumon wa arimasu ka? Shitsumon ga omoidasenai baai wa, enryo naku shitsumon shite kudasai. Samonakereba, tsuā o tsuzukeru koto ga dekimasu.",
+                "m_type": "speak"
+              }
+            ]
+          },
+          "m_name": "sala_4_stagioni"
+        },
+        "camera_di_madama_reale": {
+          "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Watashitachi wa Madama Reale no heya ni idō shite imasu.",
+                "m_type": "speak"
+              }
+            ],
+            "explainRoom": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Koko ni imasu! Apātomento no gishiki-tekina michi wa Madama Reale no heya de shūryō shimashita. Kore wa kōshukuna kankyō de ari, tokuni taiyō to jidō no attakasa o ukeru yō ni kyūden no minamigawa ni haichi sa rete imasu.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Horafuki beddo wa 2tsu no ōkina kagami no aida ni haichi sa remashita: naisō wa, doa no kabā, beddo, kāten to chōwa shite ori, fuyu wa aoi berubetto, sa no iro no ribon no hana kazari no tenjō, samazama no iro no shiruku no hanabira o motsu kini kin no burōkēdo no kurōsu wa kaette imasu.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Kono heya de wa, kōshukuna tabemono o shimasu. Koko de wa, kuchiki no kakusei to kisō no seremonī ga okonaware, kono heya de gaikoku no ōji to ōjo ga moshū shite imashita, ruiji XIV no gū o mochikaeshi, yōroppa no sukinin ō ni sa repurezentēshon no ato de, jidai no shōhein ni sa.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Mō shitsumon wa arimasu ka? Kono heya no sōshi ni tsuite hanashite agemasu. Aruiwa, kyūden, Convince purojekuto, matawa watashi ni tsuite no shitsumon o omoidasenai baai wa, kochira de tsuā o shūryō shimasu.",
+                "m_type": "speak"
+              }
+            ],
+            "explainFunction": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Watashitachi wa Madama Reale no heya ni idō shite imasu.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Horafuki beddo wa 2tsu no ōkina kagami no aida ni haichi sa remashita: naisō wa, doa no kabā, beddo, kāten to chōwa shite ori, fuyu wa aoi berubetto, sa no iro no ribon no hana kazari no tenjō, samazama no iro no shiruku no hanabira o motsu kini kin no burōkēdo no kurōsu wa kaette imasu.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Kono heya de wa, kōshukuna tabemono o shimasu. Koko de wa, kuchiki no kakusei to kisō no seremonī ga okonaware, kono heya de gaikoku no ōji to ōjo ga moshū shite imashita, ruiji XIV no gū o mochikaeshi, yōroppa no sukinin ō ni sa repurezentēshon no ato de, jidai no shōhein ni sa.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Mō shitsumon wa arimasu ka? Omoidasu koto no dekiru shitsumon ga arimasen baai wa, shōmei o tanomu yō ni itte kudasai, matawa, kochira de tsuā o shūryō shimasu.",
+                "m_type": "speak"
+              }
+            ],
+            "explainDescription": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Beddo wa goshuyo no dekoreto no tame ni mo uketsuke basho de ari, kore wa, kenyoku no shōryoku to shōkan no chikara o ōwa shite imasu.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Atama o ageruto, anata wa sono chūshin ni me gaete, tsubasa o motsu uma ni nosete, rorō no hanataba de kenshō sareru no o mita deshō: chūshin no shīn o meguru onna no sugata wa maria joanna battisuta no yoi chōrō no hyōjō o arawashite imasu.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Shikake no dekoreshon puroguramu wa, shihai, zen, fūyō, soshite, tabun, jizai no allegorī o sōten shite imasu. Kanshō no puratto no samazamana kikai o shiyō shita gengaku no gunka wa, tenjō o fusoku suru made baiorēto to gaka no kaori to wa tada, shinpiteki na fukakujitsu sae mite wa shō",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Saisei no saien wa, gaka ga tsukatta no tetsudō no kachi o rikai suru koto o kyoka shimashita. Zai no bijutsu teppai no shita, kanzengata no abura iro no sai no iro no ōkyū ga teiji shimasare, ribon no medarion no naka no chiku wa onaji de, hoka no bamen wa yori ōi yūsei no kōsakusei ga arimashita.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Kono tokushitsu wa, sōzō no katsuyō o masumasu idō sa sete, tabun, okina keshiki no gaka no tame no taoru ni ōki na gakka no aru ō e no zai ni, yori miryoku-tekina gaika no aru yō ni shimikomi, yoi.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Kaminoya no ue, karejīkona shashin wa, mirā to tomoni, maria joanna battisuta di savoia-nemōru no chikashitsu to shite, hōhoku, ō o motte, eikō o hōmurimashita. 1690-nen goro ni sakusei sareta saisho no apātomento no sozai no ichi no mottekina hōri no ichi wa, sonoya.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Anata ga ki o ageru to, maria joanna battisuta no gustō wa kōshukudesu: kaminoyadana no menzura de wa, bōkeina shoseki ga ari, sono heya no nokori wa, randoseru, vasu, hibachi de michiru.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Kore no nanimono mo kyō wa hozon sa rete inai node, hoka no jirei no yō ni, madama reare no shi no sukuinichi no sukoshi o kareta tame, kin o torimodosu tame ni, mynto ni torareta goen no aida ni, naiyō.",
+                "m_type": "speak"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Mō shitsumon wa arimasu ka? Omoidasu koto no dekiru shitsumon ga arimasen baai wa, shōmei o tanomu yō ni itte kudasai, matawa, kochira de tsuā o shūryō shimasu.",
+                "m_type": "speak"
+              }
+            ]
+          },
+          "m_name": "camera_di_madama_reale"
         }
       }
     }
