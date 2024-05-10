@@ -192,6 +192,13 @@
                 <dataField>language</dataField>
             </returnValue>
         </function>
+        <function id="SetCommand">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+        </function>
     </interface>
 
     <interface id="text_to_speech_interfaces">
