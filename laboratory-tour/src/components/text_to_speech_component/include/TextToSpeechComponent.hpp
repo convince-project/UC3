@@ -21,11 +21,12 @@
 #include <yarp/dev/IAudioGrabberSound.h>
 #include <text_to_speech_interfaces/srv/get_language.hpp>
 #include <text_to_speech_interfaces/srv/set_language.hpp>
+#include <text_to_speech_interfaces/srv/set_voice.hpp>
 #include <text_to_speech_interfaces/srv/speak.hpp>
 #include <text_to_speech_interfaces/srv/is_speaking.hpp>
 #include <text_to_speech_interfaces/srv/set_microphone.hpp>
 
-class TextToSpeechComponent 
+class TextToSpeechComponent
 {
 public:
     TextToSpeechComponent() = default;
@@ -39,6 +40,8 @@ public:
                         std::shared_ptr<text_to_speech_interfaces::srv::GetLanguage::Response> response);
     void SetLanguage(const std::shared_ptr<text_to_speech_interfaces::srv::SetLanguage::Request> request,
                         std::shared_ptr<text_to_speech_interfaces::srv::SetLanguage::Response> response);
+    void SetVoice(const std::shared_ptr<text_to_speech_interfaces::srv::SetVoice::Request> request,
+                        std::shared_ptr<text_to_speech_interfaces::srv::SetVoice::Response> response);
     void Speak(const std::shared_ptr<text_to_speech_interfaces::srv::Speak::Request> request,
                         std::shared_ptr<text_to_speech_interfaces::srv::Speak::Response> response);
     void IsSpeaking(const std::shared_ptr<text_to_speech_interfaces::srv::IsSpeaking::Request> request,
@@ -53,6 +56,7 @@ private:
     rclcpp::Node::SharedPtr m_node;
     rclcpp::Service<text_to_speech_interfaces::srv::GetLanguage>::SharedPtr m_getLanguageService;
     rclcpp::Service<text_to_speech_interfaces::srv::SetLanguage>::SharedPtr m_setLanguageService;
+    rclcpp::Service<text_to_speech_interfaces::srv::SetVoice>::SharedPtr m_setVoiceService;
     rclcpp::Service<text_to_speech_interfaces::srv::Speak>::SharedPtr m_speakService;
     rclcpp::Service<text_to_speech_interfaces::srv::IsSpeaking>::SharedPtr m_IsSpeakingService;
     rclcpp::Service<text_to_speech_interfaces::srv::SetMicrophone>::SharedPtr m_SetMicrophoneService;

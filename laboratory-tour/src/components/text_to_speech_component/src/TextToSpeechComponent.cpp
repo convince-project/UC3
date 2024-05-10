@@ -176,6 +176,13 @@ bool TextToSpeechComponent::start(int argc, char*argv[])
                                                                                                 this,
                                                                                                 std::placeholders::_1,
                                                                                                 std::placeholders::_2));
+    m_setVoiceService = m_node->create_service<text_to_speech_interfaces::srv::SetVoice>("/TextToSpeechComponent/SetVoice",
+                                                                                        std::bind(&TextToSpeechComponent::SetVoice,
+                                                                                                this,
+                                                                                                std::placeholders::_1,
+                                                                                                std::placeholders::_2));
+
+
     m_speakerStatusPub = m_node->create_publisher<std_msgs::msg::Bool>("/TextToSpeechComponent/is_speaking", 10);
 
     m_timer = m_node->create_wall_timer(200ms,
@@ -272,6 +279,25 @@ void TextToSpeechComponent::SetLanguage(const std::shared_ptr<text_to_speech_int
     {
         response->is_ok=false;
         response->error_msg="Unable to set new language";
+    }
+    else
+    {
+        response->is_ok=true;
+    }
+}
+
+void TextToSpeechComponent::SetVoice(const std::shared_ptr<text_to_speech_interfaces::srv::SetVoice::Request> request,
+                        std::shared_ptr<text_to_speech_interfaces::srv::SetVoice::Response> response)
+{
+    if (request->new_voice=="")
+    {
+        response->is_ok=false;
+        response->error_msg="Empty string passed to setting voice";
+    }
+    else if (!m_iSpeechSynth->setVoice(request->new_voice))
+    {
+        response->is_ok=false;
+        response->error_msg="Unable to set new voice";
     }
     else
     {
