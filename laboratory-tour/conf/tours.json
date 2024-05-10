@@ -26,6 +26,13 @@
                 "m_type": "signal"
               }
             ],
+            "sayFollowMe": [
+              {
+                "m_isBlocking": false,
+                "m_param": "I kindly ask you to follow me to continue the tour.",
+                "m_type": "speak"
+              }
+            ],
             "goalNotAvailableError": [
               {
                 "m_isBlocking": true,
@@ -661,6 +668,13 @@
                 "m_isBlocking": false,
                 "m_param": "reset",
                 "m_type": "signal"
+              }
+            ],
+            "sayFollowMe": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Vi chiedo cortesemente di seguirmi per continuare il tour.",
+                "m_type": "speak"
               }
             ],
             "nextPoi": [
@@ -1306,6 +1320,13 @@
                 "m_param": "reset",
                 "m_type": "signal"
               }
+            ],
+            "sayFollowMe": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Je vous demande gentiment de me suivre pour continuer la visite.",
+                "m_type": "speak"
+              }
             ]
           },
           "m_name": "___generic___"
@@ -1791,6 +1812,13 @@
                 "m_param": "reset",
                 "m_type": "signal"
               }
+            ],
+            "sayFollowMe": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Les pido amablemente que me sigan para continuar el tour.",
+                "m_type": "speak"
+              }
             ]
           },
           "m_name": "___generic___"
@@ -2270,6 +2298,13 @@
                 "m_isBlocking": false,
                 "m_param": "reset",
                 "m_type": "signal"
+              }
+            ],
+            "sayFollowMe": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Ich bitte Sie höflich, mir zu folgen, um die Tour fortzusetzen.",
+                "m_type": "speak"
               }
             ]
           },
@@ -2755,6 +2790,13 @@
                 "m_isBlocking": false,
                 "m_param": "reset",
                 "m_type": "signal"
+              }
+            ],
+            "sayFollowMe": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Koko made tsudzuku no o tanoshiminishiteimasu.",
+                "m_type": "speak"
               }
             ]
           },
