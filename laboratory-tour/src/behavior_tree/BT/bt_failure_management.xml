@@ -57,6 +57,7 @@
             <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsAtCurrentPoi" nodeName="IsAtCurrentPoi"/>
             <ReactiveSequence>
                 <ReactiveFallback name="">
+                    <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="CheckIfStart" nodeName="CheckIfStart"/>
                     <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="VisitorsFollowingRobot" nodeName="VisitorsFollowingRobot"/>
                     <ReactiveSequence>
                         <ReactiveFallback name="">
