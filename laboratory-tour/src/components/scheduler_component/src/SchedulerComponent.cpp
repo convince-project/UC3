@@ -168,12 +168,17 @@ void SchedulerComponent::GetCurrentAction([[maybe_unused]] const std::shared_ptr
         response->is_ok = false;
         return;
     }
+<<<<<<< Updated upstream
     
     RCLCPP_INFO_STREAM(m_node->get_logger(), "SchedulerComponent " << __LINE__ << " " << poi_name << " " << m_currentAction << " " << actions_vec.size());
     auto curact = actions_vec[m_currentAction];
     RCLCPP_INFO_STREAM(m_node->get_logger(), "SchedulerComponent " << __LINE__);
     auto actionType = curact.getType();
     RCLCPP_INFO_STREAM(m_node->get_logger(), "SchedulerComponent " << __LINE__);
+=======
+    // UPDATE 
+    ActionTypes actionType = actions_vec[m_currentAction].getType();
+>>>>>>> Stashed changes
     json j = actionType;
     RCLCPP_INFO_STREAM(m_node->get_logger(), "SchedulerComponent " << __LINE__);
     std::string actionTypeStr = j.get<std::string>();
@@ -301,9 +306,19 @@ bool SchedulerComponent::getActionsVector(const std::string &poiName, std::vecto
     }
     if(genericPoi.getActions(m_currentCommand, actions))
     {
+<<<<<<< Updated upstream
     RCLCPP_INFO_STREAM(m_node->get_logger(), "SchedulerComponent " << __LINE__);
         return true;
 
+=======
+        if(actions.size() > 0)
+        {
+            return true;
+        }
+        else{
+            std::cout << "Error empty action vector" << std::endl;      
+        }
+>>>>>>> Stashed changes
     }
     std::cout << "Error getting Actions" << std::endl;
     return false;
