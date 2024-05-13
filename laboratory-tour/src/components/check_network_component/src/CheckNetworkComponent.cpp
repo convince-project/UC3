@@ -31,7 +31,7 @@ bool CheckNetworkComponent::setup(int argc, char* argv[])
     }
     
     m_node = rclcpp::Node::make_shared(m_name);
-    m_address_name = "192.168.100.150";
+    m_address_name = "192.168.100.103";
     m_publisherStatus = m_node->create_publisher<std_msgs::msg::Bool>("/CheckNetworkComponent/NetworkStatus", 10);
     timer_ = m_node->create_wall_timer(1000ms, std::bind(&CheckNetworkComponent::topic_callback, this));
 
@@ -68,7 +68,7 @@ void CheckNetworkComponent::StatusChangedPublisher() {
     // check if has 5 messages in the buffer
     bool currentStatus=true;
     m_is_connected = isNetworkConnected(m_address_name);
-    if (m_lastStatus.size() < 5) {
+    if (m_lastStatus.size() < 3) {
         m_lastStatus.push_back(m_is_connected);
     } else {
         int countFalse = 0;
@@ -77,7 +77,7 @@ void CheckNetworkComponent::StatusChangedPublisher() {
                 countFalse++;
             }
         }
-        if (countFalse > 3) {
+        if (countFalse > 2) {
             currentStatus = false;
         }
         m_lastStatus.clear();
