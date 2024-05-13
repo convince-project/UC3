@@ -15,12 +15,12 @@ bool ManagePeopleDetectorComponent::start(int argc, char*argv[])
         rclcpp::init(/*argc*/ argc, /*argv*/ argv);
     }
     m_node = rclcpp::Node::make_shared("ManagePeopleDetectorComponentNode");
-    m_startPeopleDetectorService = m_node->create_service<manage_service_interfaces::srv::StartService>("/ManagePeopleDetectorComponent/StartPeopleDetector",  
+    m_startPeopleDetectorService = m_node->create_service<manage_service_interfaces::srv::StartService>("/ManagePeopleDetectorComponent/StartService",  
                                                                                 std::bind(&ManagePeopleDetectorComponent::StartPeopleDetector,
                                                                                 this,
                                                                                 std::placeholders::_1,
                                                                                 std::placeholders::_2));
-    m_stopPeopleDetectorService = m_node->create_service<manage_service_interfaces::srv::StopService>("/ManagePeopleDetectorComponent/StopPeopleDetector",  
+    m_stopPeopleDetectorService = m_node->create_service<manage_service_interfaces::srv::StopService>("/ManagePeopleDetectorComponent/StopService",  
                                                                                 std::bind(&ManagePeopleDetectorComponent::StopPeopleDetector,
                                                                                 this,
                                                                                 std::placeholders::_1,
@@ -78,16 +78,29 @@ void ManagePeopleDetectorComponent::StartPeopleDetector([[maybe_unused]] const s
 {
     // calls the change state service to activate the managed node
     auto startPeopleDetectorRequestClientNode = rclcpp::Node::make_shared("ManagePeopleDetectorStartNode");
+    RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), "line" << __LINE__);
     auto startPeopleDetectorRequestClient = startPeopleDetectorRequestClientNode->create_client<lifecycle_msgs::srv::ChangeState>("/dr_spaam_ros_local/change_state");
+    RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), "line" << __LINE__);
+    std::cout << __LINE__;
     auto startPeopleDetectorRequest = std::make_shared<lifecycle_msgs::srv::ChangeState::Request>();
+    RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), "line" << __LINE__);
+    std::cout << __LINE__;
     startPeopleDetectorRequest->transition.id = lifecycle_msgs::msg::Transition::TRANSITION_ACTIVATE;
+    RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), "line" << __LINE__);
+    std::cout << __LINE__;
     while (!startPeopleDetectorRequestClient->wait_for_service(std::chrono::seconds(1))) {
         if (!rclcpp::ok()) {
             RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'startPeopleDetectorRequestClient'. Exiting.");
         }
     }
+    RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), "line" << __LINE__);
+    std::cout << __LINE__;
     auto startPeopleDetectorResult = startPeopleDetectorRequestClient->async_send_request(startPeopleDetectorRequest);
+    std::cout << __LINE__;
+    RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), "line" << __LINE__);
     auto futureStartPeopleDetectorResult = rclcpp::spin_until_future_complete(startPeopleDetectorRequestClientNode, startPeopleDetectorResult);
+    std::cout << __LINE__;
+    RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), "line" << __LINE__);
     if (futureStartPeopleDetectorResult == rclcpp::FutureReturnCode::SUCCESS)
     {
         response->is_ok = true;
@@ -103,8 +116,11 @@ void ManagePeopleDetectorComponent::StopPeopleDetector([[maybe_unused]] const st
              std::shared_ptr<manage_service_interfaces::srv::StopService::Response>      response) 
 {
     // calls the change state service to deactivate the managed node
+    std::cout << __LINE__;
     auto stopPeopleDetectorRequestClientNode = rclcpp::Node::make_shared("ManagePeopleDetectorStopNode");
+    std::cout << __LINE__;
     auto stopPeopleDetectorRequestClient = stopPeopleDetectorRequestClientNode->create_client<lifecycle_msgs::srv::ChangeState>("/dr_spaam_ros_local/change_state");
+    std::cout << __LINE__;
     auto stopPeopleDetectorRequest = std::make_shared<lifecycle_msgs::srv::ChangeState::Request>();
     stopPeopleDetectorRequest->transition.id = lifecycle_msgs::msg::Transition::TRANSITION_DEACTIVATE;
     while (!stopPeopleDetectorRequestClient->wait_for_service(std::chrono::seconds(1))) {
