@@ -1,0 +1,152 @@
+<application>
+    <name>convince_bt_skills</name>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run dialog_skill dialog_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
+
+
+    <module>
+        <name>ros2</name>
+        <parameters>run narrate_poi_skill narrate_poi_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run update_poi_skill update_poi_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
+
+
+    <module>
+        <name>ros2</name>
+        <parameters>run is_at_current_poi_skill is_at_current_poi_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run say_follow_me_skill say_follow_me_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
+
+    <!-- ==================================== -->
+    <module>
+        <name>ros2</name>
+        <parameters>run battery_level_skill battery_level_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run is_at_charging_station_skill is_at_charging_station_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run go_to_charging_station_skill go_to_charging_station_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
+
+
+    <module>
+        <name>ros2</name>
+        <parameters>run alarm_battery_low_skill alarm_battery_low_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
+
+    <!-- =============================== -->
+    <module>
+        <name>ros2</name>
+        <parameters>run network_up_skill network_up_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
+    <module>
+        <name>ros2</name>
+        <parameters>run start_service_skill start_service_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run stop_service_skill stop_service_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run network_status_changed_skill network_status_changed_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
+
+
+
+    <!-- ============================= -->
+    <module>
+        <name>ros2</name>
+        <parameters>run check_if_start_skill check_if_start_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run is_checking_for_people_skill is_checking_for_people_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run stop_and_turn_back_skill stop_and_turn_back_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run visitors_following_robot_skill visitors_following_robot_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run say_while_navigating_skill say_while_navigating_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run go_to_current_poi_skill go_to_current_poi_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
+
+     <module>
+         <name>ros2</name>
+         <parameters>run dummy_condition dummy_condition --skill_name VisitorsFollowingRobot --default_status SUCCESS</parameters>
+         <workdir></workdir>
+         <node>opt</node>
+     </module>
+
+
+</application>
