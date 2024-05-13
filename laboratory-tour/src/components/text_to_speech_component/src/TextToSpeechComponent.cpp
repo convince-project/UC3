@@ -240,6 +240,7 @@ void TextToSpeechComponent::Speak(const std::shared_ptr<text_to_speech_interface
     if (isRecording)
     {
         m_iAudioGrabberSound->stopRecording();
+                                            RCLCPP_ERROR_STREAM(m_node->get_logger(), "TextToSpeechComponent stopping micorphone" << __LINE__ );
     }
     yInfo() << "[TextToSpeechComponent::Speak] passed mic";
     yarp::sig::Sound sound = m_audioPort.prepare();
@@ -249,8 +250,11 @@ void TextToSpeechComponent::Speak(const std::shared_ptr<text_to_speech_interface
         yError() << "[TextToSpeechComponent::Speak] Error in synthesize";
         response->is_ok=false;
         response->error_msg="Unable to synthesize text";
-        m_iAudioGrabberSound->startRecording();
+        if (isRecording)
+        {
+            m_iAudioGrabberSound->startRecording();
                                             RCLCPP_ERROR_STREAM(m_node->get_logger(), "TextToSpeechComponent " << __LINE__ );
+    	}
     }
     else
     {
