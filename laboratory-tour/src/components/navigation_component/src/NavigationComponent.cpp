@@ -220,8 +220,10 @@ void NavigationComponent::CheckNearToPoi(const std::shared_ptr<navigation_interf
     {
         response->is_ok = false;
         response->error_msg = "empty poi";
-    } else if (!m_iNav2D->checkNearToLocation(request->poi_name, request->distance))
+    } else if (!m_iNav2D->checkNearToLocation(request->poi_name, request->distance, request->angle))
     {
+        std::cout << "Request Angle " << request->angle << std::cout;
+        
         response->is_ok = true;
         response->is_near = false;
         response->error_msg = "failed to check if nearby";
@@ -236,6 +238,14 @@ void NavigationComponent::CheckNearToPoi(const std::shared_ptr<navigation_interf
 void NavigationComponent::TurnBack([[maybe_unused]] const std::shared_ptr<navigation_interfaces::srv::TurnBack::Request> request,
              std::shared_ptr<navigation_interfaces::srv::TurnBack::Response>      response) 
 {
+    if(!m_iNav2D->stopNavigation())
+    {
+        response->is_ok = false;
+        response->error_msg = "failed to stop navigation";
+    } else 
+    {
+        response->is_ok = true;
+    }
     if(!m_iNav2D->gotoTargetByRelativeLocation(0, 0, 180))
     {
         response->is_ok = false;
