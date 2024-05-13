@@ -1,0 +1,38 @@
+<application>
+    <name>convince_ctp_service</name>
+
+    <dependencies>
+    </dependencies>
+
+    <module>
+        <name>ctpService</name>
+        <parameters>--robot cer --part left_arm</parameters>
+        <node>r1-base</node>
+    </module>
+    <module>
+        <name>ctpService</name>
+        <parameters>--robot cer --part right_arm</parameters>
+        <node>r1-base</node>
+    </module>
+    <module>
+        <name>ctpService</name>
+        <parameters>--robot cer --part torso</parameters>
+        <node>r1-base</node>
+    </module>
+    <module>
+        <name>ctpService</name>
+        <parameters>--robot cer --part right_hand</parameters>
+        <node>r1-base</node>
+    </module>
+    <module>
+        <name>ctpService</name>
+        <parameters>--robot cer --part left_hand</parameters>
+        <node>r1-base</node>
+    </module>
+    <module>
+        <name>ctpService</name>
+        <parameters>--robot cer --part head</parameters>
+        <node>r1-base</node>
+    </module>
+
+</application>
