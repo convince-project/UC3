@@ -220,9 +220,10 @@ void NavigationComponent::CheckNearToPoi(const std::shared_ptr<navigation_interf
     {
         response->is_ok = false;
         response->error_msg = "empty poi";
-    } else if (!m_iNav2D->checkNearToLocation(request->poi_name, request->distance, request->angle))
+    } else if (!m_iNav2D->checkNearToLocation(request->poi_name, request->distance))
+    // } else if (!m_iNav2D->checkNearToLocation(request->poi_name, request->distance, request->angle))
     {
-        std::cout << "Request Angle " << request->angle << std::cout;
+        // std::cout << "Request Angle " << request->angle << std::cout;
         
         response->is_ok = true;
         response->is_near = false;
