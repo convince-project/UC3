@@ -10,7 +10,7 @@
         <data id="m_status"/>
         <data id="m_result"/>
         <data id="NAVIGATION_STATUS_MOVING" expr="2"/>
-        <data id="chargingStation" expr='"sim_gam_1"'/>
+        <data id="chargingStation" expr='"charging_station"'/>
         <data id="distance" expr='0.5'/>
     </datamodel>
 
