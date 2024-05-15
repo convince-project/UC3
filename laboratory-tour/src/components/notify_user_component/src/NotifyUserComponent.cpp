@@ -74,7 +74,9 @@ void NotifyUserComponent::NotifyUserCharged([[maybe_unused]] const std::shared_p
     std::lock_guard<std::mutex> lock(m_mutex);
     if (!*m_alarmActive) {
         *m_alarmActive = false;
-        m_threadAlarm->join();
+        if(m_threadAlarm != nullptr && m_threadAlarm->joinable()){
+            m_threadAlarm->join();
+        }
     }
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "I'm charged =======================================================================================================");
     response->is_ok = true;
