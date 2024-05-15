@@ -78,18 +78,17 @@
   </state>  
 
   <state id="checkIfDone"> 
-    <transition cond="m_is_done" target="sendDone" />
+    <transition cond="m_is_done" target="sendSuccess" />
     <transition target="sendRunning"/>
   </state>
 
-  <state id="sendDone">
+  <state id="sendSuccess">
     <onentry>
         <send event="TICK_RESPONSE">
           <param name="result" expr='"SUCCESS"'/> 
         </send>
     </onentry>
-    <transition cond="m_is_done" target="idle" />
-
+    <transition target="idle" />
   </state>
 
   <state id="sendHalted">
