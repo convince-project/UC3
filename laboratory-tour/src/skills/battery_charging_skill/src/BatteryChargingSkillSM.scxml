@@ -14,8 +14,8 @@
 
     <state id="isCharging">
         <onentry>
-            <!-- <if cond="m_status == POWER_SUPPLY_STATUS_CHARGING">  -->
-            <if cond="m_voltage >= VOLTAGE_LIMIT"> 
+            <if cond="m_status == POWER_SUPPLY_STATUS_CHARGING"> 
+            <!-- <if cond="m_voltage >= VOLTAGE_LIMIT">  -->
                 <send event="TICK_RESPONSE">
                     <param name="result" expr='"SUCCESS"'/>
                 </send>
