@@ -10,7 +10,7 @@
 cmake_minimum_required(VERSION 3.8)
 set (CMAKE_CXX_STANDARD 17)
 
-project(alarm_component)
+project(notify_user_component)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -18,6 +18,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(alarm_interfaces REQUIRED)
+find_package(notify_user_interfaces REQUIRED)
 # find_package(nlohmann_json 3.10.5 REQUIRED)
 add_executable(${PROJECT_NAME} )
 
@@ -29,15 +30,15 @@ include(FetchContent)
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-ament_target_dependencies(${PROJECT_NAME} alarm_interfaces rclcpp)
+ament_target_dependencies(${PROJECT_NAME} alarm_interfaces notify_user_interfaces rclcpp)
 
 target_include_directories(${PROJECT_NAME}
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
 target_sources( ${PROJECT_NAME} PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/AlarmComponent.cpp  
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/AlarmComponent.h 
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/NotifyUserComponent.cpp  
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/NotifyUserComponent.h 
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
 
