@@ -16,7 +16,6 @@
 ROS2Condition::ROS2Condition(const std::string name, const BT::NodeConfiguration& config) :
         ConditionNode(name, config)
 {
-    m_name = ConditionNode::name();
     BT::Optional<std::string> is_monitored = BT::TreeNode::getInput<std::string>("isMonitored");
     if (is_monitored.value() == "true")
     {
@@ -28,14 +27,13 @@ ROS2Condition::ROS2Condition(const std::string name, const BT::NodeConfiguration
     bool ok = init();
     if(!ok)
     {
-       RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Something went wrong in the node init() of %s", name.c_str());
+       RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Something went wrong in the node init() of %s", ConditionNode::name().c_str());
     }
 }
 
 BT::PortsList ROS2Condition::providedPorts()
 {
-    return { BT::InputPort<std::string>("nodeName"),
-             BT::InputPort<std::string>("interface"),
+    return { BT::InputPort<std::string>("interface"),
              BT::InputPort<std::string>("isMonitored") };
 }
 
@@ -48,9 +46,9 @@ bool ROS2Condition::init()
         rclcpp::init(/*argc*/ 0, /*argv*/ nullptr);
     }
 
-    m_node = rclcpp::Node::make_shared(m_name+ "Leaf");
-    m_clientTick = m_node->create_client<bt_interfaces::srv::TickCondition>(m_name + "Skill/tick" + m_suffixMonitor);
-    RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"),"name " << m_name << "suffixmonitor " << m_suffixMonitor);
+    m_node = rclcpp::Node::make_shared(ConditionNode::name()+ "Leaf");
+    m_clientTick = m_node->create_client<bt_interfaces::srv::TickCondition>(ConditionNode::name() + "Skill/tick" + m_suffixMonitor);
+    RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"),"name " << ConditionNode::name() << "suffixmonitor " << m_suffixMonitor);
     
     return true;
 
@@ -75,7 +73,7 @@ int ROS2Condition::sendTickToSkill()
         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service TickCondition. Exiting.");
         return msg.SKILL_FAILURE;
         }
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "%s service TickCondition not available, waiting again...", m_name.c_str());
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "%s service TickCondition not available, waiting again...", ConditionNode::name().c_str());
     }
     auto result = m_clientTick->async_send_request(request);
     std::this_thread::sleep_for (std::chrono::milliseconds(100));
