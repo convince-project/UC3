@@ -84,7 +84,7 @@ bool IsAllowedToMoveSkill::start(int argc, char*argv[])
             } 
             retries++;
             if(retries == SERVICE_TIMEOUT) {
-               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while waiting for the service 'UpdatePoi'.");
+               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while waiting for the service 'IsAllowedToMove'.");
                wait_succeded = false;
                break;
             }
@@ -107,7 +107,7 @@ bool IsAllowedToMoveSkill::start(int argc, char*argv[])
                }
            }
            else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
-               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'UpdatePoi'.");
+               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'IsAllowedToMove'.");
            }
         }
        QVariantMap data;
