@@ -14,8 +14,8 @@
 #include <thread>
 #include <rclcpp/rclcpp.hpp>
 
-//#define POWER_SUPPLY_STATUS_CHARGING 1
-#define VOLTAGE_LIMIT 28.3 // Below this limit the battery is not charging
+#define POWER_SUPPLY_STATUS_CHARGING 1
+// #define VOLTAGE_LIMIT 28.3 // Below this limit the battery is not charging
 
 
 class BatteryChargingSkillDataModel: public QScxmlCppDataModel
@@ -30,7 +30,7 @@ public:
     static void spin(std::shared_ptr<rclcpp::Node> node);
 private: 
     // sensor_msgs::msg::BatteryState m_batteryState;
-    // uint m_status;
+    uint m_status;
     float m_voltage;
     float m_old_voltage;
     bool m_charging;
