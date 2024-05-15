@@ -7,41 +7,40 @@
 
 # pragma once
 
+#include <mutex>
 #include <thread>
 #include <rclcpp/rclcpp.hpp>
-#include "BatteryLevelSkillSMcppDataModel.h"
-#include "BatteryLevelSkillDataModel.h"
+#include "BatteryLevelSkillSM.h"
 #include <bt_interfaces/msg/condition_response.hpp>
+#include "BatteryLevelSkillDataModel.h"
 #include <bt_interfaces/srv/tick_condition.hpp>
-#include <mutex>
 
-
-
+#define SERVICE_TIMEOUT 8
 
 enum class Status{
-    undefined,
-    success,
-    failure
+	undefined,
+	success,
+	failure
 };
-
 
 class BatteryLevelSkill
 {
 public:
-    BatteryLevelSkill(std::string name );
-    void topic_callback(const sensor_msgs::msg::BatteryState::SharedPtr msg);
-    bool start(int argc, char * argv[]);
-    static void spin(std::shared_ptr<rclcpp::Node> node);
-    void tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::TickCondition::Request> request,
-          std::shared_ptr<bt_interfaces::srv::TickCondition::Response>      response);
+	BatteryLevelSkill(std::string name );
+	bool start(int argc, char * argv[]);
+	static void spin(std::shared_ptr<rclcpp::Node> node);
+	void tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::TickCondition::Request> request,
+			   std::shared_ptr<bt_interfaces::srv::TickCondition::Response>      response);
 
 private:
-    std::shared_ptr<std::thread> m_threadSpin;
-    std::shared_ptr<rclcpp::Node> m_node;
-    rclcpp::Service<bt_interfaces::srv::TickCondition>::SharedPtr m_tickService;
-    std::string m_name;
-    std::atomic<Status> m_tickResult{Status::undefined};
-    BatteryLevelSkillDataModel m_dataModel;
-    BatteryLevelSkillSMcppDataModel m_stateMachine;
-    std::mutex m_requestMutex;
+	std::shared_ptr<std::thread> m_threadSpin;
+	std::shared_ptr<rclcpp::Node> m_node;
+	std::mutex m_requestMutex;
+	std::string m_name;
+	BatteryLevelSkillCondition m_stateMachine;
+	BatteryLevelSkillDataModel m_dataModel;
+	std::atomic<Status> m_tickResult{Status::undefined};
+	rclcpp::Service<bt_interfaces::srv::TickCondition>::SharedPtr m_tickService;
+	
 };
+
