@@ -17,10 +17,10 @@
 
   <state id="start">
       <onentry>
-          <send event="TimerComponent.StartTimer.Call">
+          <send event="TimerCheckForPeopleComponent.StartTimer.Call">
           </send>
       </onentry>
-      <transition event="TimerComponent.StartTimer.Return" target="startResult">
+      <transition event="TimerCheckForPeopleComponent.StartTimer.Return" target="startResult">
         <assign expr="_event.data.result" location="m_result"/>
       </transition>
   </state>

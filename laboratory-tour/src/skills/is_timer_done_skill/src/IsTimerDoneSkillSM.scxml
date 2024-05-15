@@ -16,10 +16,10 @@
 
   <state id="getStatus">
       <onentry>
-          <send event="TimerComponent.IsTimerActive.Call">
+          <send event="TimerCheckForPeopleComponent.IsTimerActive.Call">
           </send>
       </onentry>
-      <transition event="TimerComponent.IsTimerActive.Return" target="getStatusResult">
+      <transition event="TimerCheckForPeopleComponent.IsTimerActive.Return" target="getStatusResult">
         <assign expr="_event.data.result" location="m_result"/>
         <assign expr="_event.data.is_active" location="m_is_active"/>
       </transition>
