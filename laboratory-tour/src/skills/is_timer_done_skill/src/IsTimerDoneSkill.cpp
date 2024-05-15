@@ -70,9 +70,9 @@ bool IsTimerDoneSkill::start(int argc, char*argv[])
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
 
-    m_stateMachine.connectToEvent("TimerComponent.IsTimerActive.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
+    m_stateMachine.connectToEvent("TimerCheckForPeopleComponent.IsTimerActive.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
         std::shared_ptr<rclcpp::Node> nodeIsTimerActive = rclcpp::Node::make_shared(m_name + "SkillNodeIsTimerActive");
-        std::shared_ptr<rclcpp::Client<timer_check_for_people_interfaces::srv::IsTimerActive>> clientIsTimerActive = nodeIsTimerActive->create_client<timer_check_for_people_interfaces::srv::IsTimerActive>("/TimerComponent/IsTimerActive");
+        std::shared_ptr<rclcpp::Client<timer_check_for_people_interfaces::srv::IsTimerActive>> clientIsTimerActive = nodeIsTimerActive->create_client<timer_check_for_people_interfaces::srv::IsTimerActive>("/TimerCheckForPeopleComponent/IsTimerActive");
         auto request = std::make_shared<timer_check_for_people_interfaces::srv::IsTimerActive::Request>();
         bool wait_succeded{true};
         int retries = 0;
@@ -84,7 +84,7 @@ bool IsTimerDoneSkill::start(int argc, char*argv[])
             } 
             retries++;
             if(retries == SERVICE_TIMEOUT) {
-               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while waiting for the service 'UpdatePoi'.");
+               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while waiting for the service 'IsTimerActive'.");
                wait_succeded = false;
                break;
             }
@@ -101,19 +101,19 @@ bool IsTimerDoneSkill::start(int argc, char*argv[])
                    QVariantMap data;
                    data.insert("result", "SUCCESS");
                     data.insert("is_active", response->is_active);
-                   m_stateMachine.submitEvent("TimerComponent.IsTimerActive.Return", data);
-                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TimerComponent.IsTimerActive.Return");
+                   m_stateMachine.submitEvent("TimerCheckForPeopleComponent.IsTimerActive.Return", data);
+                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TimerCheckForPeopleComponent.IsTimerActive.Return");
                    return;
                }
            }
            else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
-               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'UpdatePoi'.");
+               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'IsTimerActive'.");
            }
         }
        QVariantMap data;
        data.insert("result", "FAILURE");
-       m_stateMachine.submitEvent("TimerComponent.IsTimerActive.Return", data);
-       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TimerComponent.IsTimerActive.Return");
+       m_stateMachine.submitEvent("TimerCheckForPeopleComponent.IsTimerActive.Return", data);
+       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TimerCheckForPeopleComponent.IsTimerActive.Return");
     });
 
 	m_stateMachine.connectToEvent("TICK_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){

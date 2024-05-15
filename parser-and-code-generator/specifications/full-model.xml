@@ -49,7 +49,7 @@
       <componentDeclaration id="ManagePeopleDetectorComponent" interface="manage_service_interfaces">
         <componentDefinition />
       </componentDeclaration>
-      <componentDeclaration id="TimerComponent" interface="timer_check_for_people_interfaces">
+      <componentDeclaration id="TimerCheckForPeopleComponent" interface="timer_check_for_people_interfaces">
         <componentDefinition />
       </componentDeclaration>
       <componentDeclaration id="NotifyUserComponent" interface="notify_user_interfaces">
