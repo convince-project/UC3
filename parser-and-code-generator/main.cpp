@@ -534,24 +534,32 @@ void processEvent(eventDataStr eventData, const skillDataStr skillData, std::str
                 
                 cppCode.handlersCode +=
                 "        bool wait_succeded{true};\n"
+                "        int retries = 0;\n"
                 "        while (!"+ clientName +"->wait_for_service(std::chrono::seconds(1))) {\n"
                 "            if (!rclcpp::ok()) {\n"
                 "                RCLCPP_ERROR(rclcpp::get_logger(\"rclcpp\"), \"Interrupted while waiting for the service '" + eventData.functionName + "'. Exiting.\");\n"
                 "                wait_succeded = false;\n"
-                "                m_stateMachine.submitEvent(\"" + eventData.componentName + "."+ eventData.functionName +".Return\");\n"
+                "                break;\n"
                 "            } \n"
+                "            retries++;\n"
+                "            if(retries == SERVICE_TIMEOUT) {\n"
+                "               RCLCPP_ERROR(rclcpp::get_logger(\"rclcpp\"), \"Timed out while waiting for the service 'UpdatePoi'.\");\n"
+                "               wait_succeded = false;\n"
+                "               break;\n"
+                "            }\n"
                 "        }\n"
                 
                 "        if (wait_succeded) {\n"
                 "            // send the request                                                                    \n"
                 "            auto result = "+ clientName +"->async_send_request(request);\n"
-                "            auto futureResult = rclcpp::spin_until_future_complete("+ nodeName +", result);\n"
-                "            auto response = result.get();\n"
+                "            const std::chrono::seconds timeout_duration(SERVICE_TIMEOUT);\n"
+                "            auto futureResult = rclcpp::spin_until_future_complete("+ nodeName +", result, timeout_duration);\n"
                 "            if (futureResult == rclcpp::FutureReturnCode::SUCCESS) \n"
                 "            {\n"
-                "                if( response->is_ok ==true) {\n"
-                "                    QVariantMap data;\n"
-                "                    data.insert(\"result\", \"SUCCESS\");\n";
+                "               auto response = result.get();\n"
+                "               if( response->is_ok ==true) {\n"
+                "                   QVariantMap data;\n"
+                "                   data.insert(\"result\", \"SUCCESS\");\n";
                 if(eventData.interfaceDataField != "")
                 {
                     cppCode.handlersCode +=
@@ -564,16 +572,19 @@ void processEvent(eventDataStr eventData, const skillDataStr skillData, std::str
                     ");\n";
                 }
                 cppCode.handlersCode +=
-                "                    m_stateMachine.submitEvent(\"" + eventData.componentName + "."+ eventData.functionName +".Return\", data);\n"
-                "                    RCLCPP_INFO(rclcpp::get_logger(\"rclcpp\"), \"" + eventData.componentName + "."+ eventData.functionName +".Return\");\n"
-                "                } else {\n"
-                "                    QVariantMap data;\n"
-                "                    data.insert(\"result\", \"FAILURE\");\n"
-                "                    m_stateMachine.submitEvent(\"" + eventData.componentName + "." + eventData.functionName +".Return\", data);\n"
-                "                    RCLCPP_INFO(rclcpp::get_logger(\"rclcpp\"), \"" + eventData.componentName + "."+ eventData.functionName +".Return\");\n"
-                "                }\n"
-                "            }\n"
-                "        }\n";
+                "                   m_stateMachine.submitEvent(\"" + eventData.componentName + "."+ eventData.functionName +".Return\", data);\n"
+                "                   RCLCPP_INFO(rclcpp::get_logger(\"rclcpp\"), \"" + eventData.componentName + "."+ eventData.functionName +".Return\");\n"
+                "                   return;\n"
+                "               }\n"
+                "           }\n"
+                "           else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){\n"
+                "               RCLCPP_ERROR(rclcpp::get_logger(\"rclcpp\"), \"Timed out while future complete for the service 'UpdatePoi'.\");\n"
+                "           }\n"
+                "        }\n"
+                "       QVariantMap data;\n"
+                "       data.insert(\"result\", \"FAILURE\");\n"
+                "       m_stateMachine.submitEvent(\"" + eventData.componentName + "." + eventData.functionName +".Return\", data);\n"
+                "       RCLCPP_INFO(rclcpp::get_logger(\"rclcpp\"), \"" + eventData.componentName + "."+ eventData.functionName +".Return\");\n";
             }
 
             cppCode.handlersCode +="    });\n\n";
@@ -691,6 +702,7 @@ void writeHCode(const skillDataStr skillData, hCodeStr& code, bool datamodel_mod
         "#include <bt_interfaces/msg/" + skillTypeLC +"_response.hpp>\n";   
     
     code.statusCode = 
+        "#define SERVICE_TIMEOUT 8\n\n"
         "enum class Status{\n"
         "\tundefined,\n";
         if(skillType == "Action")
