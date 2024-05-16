@@ -52,12 +52,16 @@
                 <ReactiveFallback name="">
                     <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="CheckIfStart"/>
                     <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="VisitorsFollowingRobot"/>
+                    <Inverter name="">
+                        <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsTimerDone"/>
+                    </Inverter>
                     <ReactiveSequence>
                         <ReactiveFallback name="">
                             <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsCheckingForPeople"/>
                             <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="StopAndTurnBack"/>
                         </ReactiveFallback>
                         <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SayFollowMe"/>
+                        <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="StartTimer"/>
                     </ReactiveSequence>
                 </ReactiveFallback>
                 <Parallel failure_threshold="1" success_threshold="2">
@@ -76,9 +80,9 @@
             <ReactiveFallback>
                 <ReactiveSequence>
                     <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="NetworkUp"/>
-                    <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="StartService"/>
+                    <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="StopService"/>
                 </ReactiveSequence>
-                <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="StopService"/>
+                <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="StartService"/>
             </ReactiveFallback>
         </ReactiveFallback>
     </BehaviorTree>
@@ -91,12 +95,13 @@
         <Action ID="ROS2Action">
             <input_port default="ROS2SERVICE" name="interface"/>
             <input_port default="false" name="isMonitored"/>
+            <input_port name="nodeName"/>
         </Action>
         <Condition ID="ROS2Condition">
             <input_port default="ROS2SERVICE" name="interface"/>
             <input_port default="false" name="isMonitored"/>
+            <input_port name="nodeName"/>
         </Condition>
     </TreeNodesModel>
     <!-- ////////// -->
 </root>
-
