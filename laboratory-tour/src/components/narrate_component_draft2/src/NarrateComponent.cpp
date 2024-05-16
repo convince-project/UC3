@@ -58,7 +58,7 @@ void NarrateComponent::spin()
 void NarrateComponent::IsDone([[maybe_unused]] const std::shared_ptr<narrate_interfaces::srv::IsDone::Request> request,
              std::shared_ptr<narrate_interfaces::srv::IsDone::Response>      response) 
 {
-    response->is_done = m_doneWithPoi;
+    response->is_done = (!m_speakTask && !m_danceTask);
     response->is_ok = true;
 }
 
