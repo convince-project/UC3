@@ -30,7 +30,7 @@ private:
     rclcpp::Publisher<sensor_msgs::msg::BatteryState>::SharedPtr m_publisherBatteryState;
     rclcpp::TimerBase::SharedPtr m_timer;
     rclcpp::Subscription<sensor_msgs::msg::BatteryState>::SharedPtr m_subscriptionBatteryState;
-    std::atomic<bool> m_batteryCharging{true};
+    std::atomic<bool> m_batteryCharging{false};
     std::queue<double> m_lastBatteryVoltagesBeforeChange;
     std::queue<double> m_lastBatteryVoltagesAfterChange;
     bool m_changeDetected{false};
