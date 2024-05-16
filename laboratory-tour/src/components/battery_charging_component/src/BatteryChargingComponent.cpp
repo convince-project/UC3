@@ -42,13 +42,13 @@ void BatteryChargingComponent::spin()
 
 void BatteryChargingComponent::BatteryStateSubscriptionCallback(const sensor_msgs::msg::BatteryState::SharedPtr msg)
 {
-    // RCLCPP_INFO(m_node->get_logger(), "BatteryChargingComponent::BatteryStateSubscriptionCallback");
+     RCLCPP_INFO_STREAM(m_node->get_logger(), "BatteryChargingComponent::BatteryStateSubscriptionCallback" << msg->voltage);
     // if there is no data in the queue, push the first value
     if (m_lastBatteryVoltagesBeforeChange.empty()) {
         m_lastBatteryVoltagesBeforeChange.push(msg->voltage);
     } else {
         double difference = msg->voltage - m_lastBatteryVoltagesBeforeChange.back();
-        if (abs(difference) > 0.9) {
+        if (abs(difference) > 0.45) {
             // detected a change in the battery voltage
             m_changeDetected = true;
             RCLCPP_INFO(m_node->get_logger(), "Detected a change in the battery voltage");
@@ -72,10 +72,10 @@ void BatteryChargingComponent::BatteryStateSubscriptionCallback(const sensor_msg
                 averageVoltageAfterChange /= 5;
                 RCLCPP_INFO_STREAM(m_node->get_logger(), "averageVoltageBeforeChange: " <<  averageVoltageBeforeChange << " averageVoltageAfterChange: " << averageVoltageAfterChange);
                 double differenceAveraged = averageVoltageAfterChange - averageVoltageBeforeChange;
-                if (differenceAveraged > 0.9) {
+                if (differenceAveraged > 0.45) {
                     // detected a change in the battery voltage
                     m_batteryCharging.store(true);
-                } else if (differenceAveraged < -0.9) {
+                } else if (differenceAveraged < -0.45) {
                     // detected a change in the battery voltage
                     m_batteryCharging.store(false);
                 }
