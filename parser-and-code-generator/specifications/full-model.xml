@@ -55,7 +55,7 @@
       <componentDeclaration id="NotifyUserComponent" interface="notify_user_interfaces">
         <componentDefinition />
       </componentDeclaration>
-      <componentDeclaration id="WaitWakeUpComponent" interface="allowed_to_move_interfaces">
+      <componentDeclaration id="AllowedToMoveComponent" interface="allowed_to_move_interfaces">
         <componentDefinition />
       </componentDeclaration>
     </componentList>

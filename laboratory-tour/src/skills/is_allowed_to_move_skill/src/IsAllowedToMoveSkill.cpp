@@ -70,9 +70,9 @@ bool IsAllowedToMoveSkill::start(int argc, char*argv[])
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
 
-    m_stateMachine.connectToEvent("WaitWakeUpComponent.IsAllowedToMove.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
+    m_stateMachine.connectToEvent("AllowedToMoveComponent.IsAllowedToMove.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
         std::shared_ptr<rclcpp::Node> nodeIsAllowedToMove = rclcpp::Node::make_shared(m_name + "SkillNodeIsAllowedToMove");
-        std::shared_ptr<rclcpp::Client<allowed_to_move_interfaces::srv::IsAllowedToMove>> clientIsAllowedToMove = nodeIsAllowedToMove->create_client<allowed_to_move_interfaces::srv::IsAllowedToMove>("/WaitWakeUpComponent/IsAllowedToMove");
+        std::shared_ptr<rclcpp::Client<allowed_to_move_interfaces::srv::IsAllowedToMove>> clientIsAllowedToMove = nodeIsAllowedToMove->create_client<allowed_to_move_interfaces::srv::IsAllowedToMove>("/AllowedToMoveComponent/IsAllowedToMove");
         auto request = std::make_shared<allowed_to_move_interfaces::srv::IsAllowedToMove::Request>();
         bool wait_succeded{true};
         int retries = 0;
@@ -101,8 +101,8 @@ bool IsAllowedToMoveSkill::start(int argc, char*argv[])
                    QVariantMap data;
                    data.insert("result", "SUCCESS");
                     data.insert("is_allowed_to_move", response->is_allowed_to_move);
-                   m_stateMachine.submitEvent("WaitWakeUpComponent.IsAllowedToMove.Return", data);
-                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "WaitWakeUpComponent.IsAllowedToMove.Return");
+                   m_stateMachine.submitEvent("AllowedToMoveComponent.IsAllowedToMove.Return", data);
+                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "AllowedToMoveComponent.IsAllowedToMove.Return");
                    return;
                }
            }
@@ -112,8 +112,8 @@ bool IsAllowedToMoveSkill::start(int argc, char*argv[])
         }
        QVariantMap data;
        data.insert("result", "FAILURE");
-       m_stateMachine.submitEvent("WaitWakeUpComponent.IsAllowedToMove.Return", data);
-       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "WaitWakeUpComponent.IsAllowedToMove.Return");
+       m_stateMachine.submitEvent("AllowedToMoveComponent.IsAllowedToMove.Return", data);
+       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "AllowedToMoveComponent.IsAllowedToMove.Return");
     });
 
 	m_stateMachine.connectToEvent("TICK_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){
