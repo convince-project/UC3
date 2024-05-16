@@ -32,7 +32,7 @@ public:
 
 private:
    std::vector<float> m_batteryLevelVector;
-   bool m_returnValue = false;
+   bool m_returnValue = true;
    rclcpp::Subscription<sensor_msgs::msg::BatteryState>::SharedPtr m_subscription;
    std::shared_ptr<std::thread> m_threadSpin;
    std::shared_ptr<rclcpp::Node> m_node;
