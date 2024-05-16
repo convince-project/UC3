@@ -16,10 +16,10 @@
 
   <state id="getStatus">
       <onentry>
-          <send event="WaitWakeUpComponent.IsAllowedToMove.Call">
+          <send event="AllowedToMoveComponent.IsAllowedToMove.Call">
           </send>
       </onentry>
-      <transition event="WaitWakeUpComponent.IsAllowedToMove.Return" target="getStatusResult">
+      <transition event="AllowedToMoveComponent.IsAllowedToMove.Return" target="getStatusResult">
         <assign expr="_event.data.result" location="m_result"/>
         <assign expr="_event.data.is_allowed_to_move" location="m_is_allowed_to_move"/>
       </transition>
