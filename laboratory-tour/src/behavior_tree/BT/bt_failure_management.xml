@@ -22,7 +22,7 @@
                 </ReactiveFallback>
             </ReactiveFallback>
             <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="NotifyCharged"/>
-            <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="WaitWakeUp"/>
+            <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="IsAllowedToMove"/>
         </ReactiveSequence>
     </BehaviorTree>
     <!-- ////////// -->
