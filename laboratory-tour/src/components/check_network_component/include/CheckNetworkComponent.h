@@ -39,11 +39,14 @@ public:
     bool start() ;
     bool setup(int argc, char* argv[]);
     void StatusChangedPublisher();
+    void threadConnected();
 
 private: 
     std::string m_name = "CheckNetworkComponent";
     int m_msg_count = 0;
     bool m_is_connected = true;
+    bool m_threadActive{true};
+    bool m_changed{false};
     std::shared_ptr<std::thread> m_thread;
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr m_publisherStatus;
@@ -57,6 +60,7 @@ private:
     std::string exec(const char* cmd);
     bool m_previousStatusConnected = true;
     std::vector<bool> m_lastStatus;
+    std::shared_ptr<std::thread> m_threadStatus;
 
     // Calculating the Check Sum
     // TODO: understand what is this
