@@ -48,26 +48,32 @@ void CheckNetworkComponent::threadConnected() {
     while(m_threadActive) {
         bool networkIsCurrentlyUp=true;
         m_is_connected = isNetworkConnected(m_address_name);
+	std::cout << "m_is_connected " << m_is_connected << " m_lastStatus.size() "  <<  m_lastStatus.size() << std::endl;
         if (m_lastStatus.size() < 5) {
+            m_changed = false;
             m_lastStatus.push_back(m_is_connected);
         } else {
             int countFalse = 0;
             for (auto status : m_lastStatus) {
+		std::cout << status << " ";
                 if (status == false) {
                     countFalse++;
                 }
             }
+	    std::cout << std::endl;
             if (countFalse > 3) {
                 networkIsCurrentlyUp = false;
             }
             m_lastStatus.clear();
+	    std::cout << "m_previousStatusConnected " << m_previousStatusConnected << " networkIsCurrentlyUp " <<  networkIsCurrentlyUp << std::endl; 
+            if (m_previousStatusConnected != networkIsCurrentlyUp) {
+                m_changed = true;
+            } else {
+	        m_changed=false;
+	    }
+            m_previousStatusConnected = networkIsCurrentlyUp;
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
         }
-        m_changed = false;
-        if (m_previousStatusConnected != networkIsCurrentlyUp) {
-            m_changed = true;
-        }
-        m_previousStatusConnected = networkIsCurrentlyUp;
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
 }
 
@@ -95,9 +101,6 @@ bool CheckNetworkComponent::start() {
 }
 
 void CheckNetworkComponent::StatusChangedPublisher() {
-
-    // check if has 5 messages in the buffer
-
     auto msg = std_msgs::msg::Bool();
     msg.data = m_changed;
     m_publisherNetworkChanged->publish(msg);
@@ -114,7 +117,7 @@ bool CheckNetworkComponent::isNetworkConnected(const std::string& host) {
     bool is_connected = false;
     const std::string ping_command = "ping -c 4 -w 1 -q " + host + " 2>&1";  // Ping 4 times
     std::string ping_output = exec(ping_command.c_str());
-    std::cout << "ping_output\n" << ping_output << std::endl;
+    //std::cout << "ping_output\n" << ping_output << std::endl;
 
     if(ping_output.find("Temporary failure in name resolution") != std::string::npos  || 
         ping_output.find("Name or service not known") != std::string::npos ){
