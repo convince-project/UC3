@@ -13,7 +13,11 @@
                         <Parallel failure_threshold="1" success_threshold="2">
                             <ReactiveFallback>
                                 <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsAtChargingStation"/>
-                                <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="GoToChargingStation"/>
+                                <Sequence name="">
+                                    <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SayBye"/>
+                                    <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="ResetTour"/>
+                                    <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="GoToChargingStation"/>
+                                </Sequence>
                             </ReactiveFallback>
                             <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="AlarmBatteryLow"/>
                         </Parallel>
