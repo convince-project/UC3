@@ -29,6 +29,13 @@
         <name>convince_bt</name>
         <prefix></prefix>
     </application>
+
+        
+    <application>
+        <name>convince_bt_narrate_only</name>
+        <prefix></prefix>
+    </application>
+ 
  
 <!-- 
 

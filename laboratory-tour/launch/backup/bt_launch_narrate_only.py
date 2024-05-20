@@ -7,7 +7,7 @@ def generate_launch_description():
         Node(
             package='bt_executable',
             executable='bt_executable',
-            arguments=[ './src/behavior_tree/BT/bt_narrate.xml']
+            arguments=[ './src/behavior_tree/BT/bt_narrate_only.xml']
         ), 
     ])
 
