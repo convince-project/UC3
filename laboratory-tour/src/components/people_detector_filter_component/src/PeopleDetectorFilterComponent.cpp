@@ -30,7 +30,7 @@ bool PeopleDetectorFilterComponent::start(int argc, char*argv[])
 
     RCLCPP_DEBUG(m_node->get_logger(), "PeopleDetectorFilterComponent::start");
     m_subscriptionPeopleDetector = m_node->create_subscription<std_msgs::msg::Bool>(
-		"is_followed", 10, std::bind(&PeopleDetectorFilterComponent::topic_callback_people_detector, this, std::placeholders::_1));
+		"is_followed_timeout", 10, std::bind(&PeopleDetectorFilterComponent::topic_callback_people_detector, this, std::placeholders::_1));
     m_subscriptionOdometry = m_node->create_subscription<nav_msgs::msg::Odometry>(
 		"odometry", 10, std::bind(&PeopleDetectorFilterComponent::topic_callback_odometry, this, std::placeholders::_1));
     m_publisher = m_node->create_publisher<people_detector_filter_interfaces::msg::FilterStatus>("/PeopleDetectorFilterComponent/filtered_detection", 10);

@@ -22,9 +22,9 @@
 
 enum OutputStatus
 {
-    TRUE_STATUS = 1,
-    FALSE_STATUS = 0,
-    NEUTRAL_STATUS = -1
+    TRUE_STATUS = people_detector_filter_interfaces::msg::FilterStatus::FILTER_STATUS_TRUE,
+    FALSE_STATUS = people_detector_filter_interfaces::msg::FilterStatus::FILTER_STATUS_FALSE,
+    NEUTRAL_STATUS = people_detector_filter_interfaces::msg::FilterStatus::FILTER_STATUS_NEUTRAL,
 };
 
 class PeopleDetectorFilterComponent 
