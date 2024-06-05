@@ -13,6 +13,7 @@
       <data id="NAVIGATION_STATUS_MOVING" expr="2"/>
       <data id="NAVIGATION_STATUS_GOAL_REACHED" expr="4"/>
       <data id="distance" expr='0.5'/>
+      <data id="angle" expr='30'/>
       <data id="m_name" expr='"isCheckingForPeople"'/>
   </datamodel>
 
@@ -32,6 +33,25 @@
   </state>
 
   <state id="getCurrentPoiResult">
+    <transition cond="m_result == 'SUCCESS'" target="setBBStatus" />
+    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+  </state>
+
+  <state id="setBBStatus">
+    <onentry>
+      <log expr="'State setBBStatus'"/>
+      <send event="BlackboardComponent.SetInt.Call">
+        <param name="field_name" expr="m_name"/>
+        <param name="value" expr="0"/>
+      </send>
+    </onentry>
+    <transition event="BlackboardComponent.SetInt.Return" target="setBBStatusResult"> 
+      <assign expr="_event.data.value" location="m_value"/>
+      <assign expr="_event.data.result" location="m_result"/>
+  </transition>
+  </state>
+
+  <state id="setBBStatusResult">
     <transition cond="m_result == 'SUCCESS'" target="goToPoI" />
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
   </state>
@@ -69,7 +89,7 @@
   </state>
 
   <state id="checkStatus">
-    <transition cond="m_status == NAVIGATION_STATUS_MOVING" target="sendRunning" />
+    <transition cond="m_status == NAVIGATION_STATUS_MOVING" target="getPosition" />
     <!--cond="m_status == NAVIGATION_STATUS_GOAL_REACHED"/-->
     <transition target="getPosition" />
   </state> 
@@ -79,7 +99,7 @@
       <send event="NavigationComponent.CheckNearToPoi.Call">
           <param name="poi_name" expr="m_poi_name"/>  
           <param name="distance" expr="distance"/>
-          
+          <param name="angle" expr="angle"/>
       </send>
     </onentry>
     <transition event="NavigationComponent.CheckNearToPoi.Return" target="CheckNearToPoiResult" > 
@@ -89,31 +109,40 @@
   </state>
 
   <state id="CheckNearToPoiResult">
+    <onentry>
+      <log expr="'State checkNearToPoiResult'"/>
+    </onentry>
     <transition cond="m_result == 'SUCCESS'" target="checkPosition" />
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
   </state>
 
   <state id="checkPosition">
-    <transition cond="m_is_near" target="setBBStatus" />
+    <onentry>
+      <log expr="'State checkPosition'"/>
+    </onentry>
+    <transition cond="m_is_near" target="endNavigation" />
     <transition target="sendRunning" /> 
   </state> 
 
-  <state id="setBBStatus">
+
+  <state id="endNavigation">
     <onentry>
-      <send event="BlackboardComponent.SetInt.Call">
-        <param name="field_name" expr="m_name"/>
-        <param name="value" expr="0"/>
+      <log expr="'State endNavigation'"/>
+      <send event="NavigationComponent.StopNavigation.Call">
       </send>
     </onentry>
-    <transition event="BlackboardComponent.SetInt.Return" target="setBBStatusResult"> 
-      <assign expr="_event.data.value" location="m_value"/>
-      <assign expr="_event.data.result" location="m_result"/>
-  </transition>
+    <transition event="NavigationComponent.StopNavigation.Return" target="endNavigationResult"> 
+      <assign location="m_result" expr="_event.data.result" />
+    </transition>
   </state>
 
-  <state id="setBBStatusResult">
-    <transition cond="m_result == 'SUCCESS'" target="sendSuccess" />
-    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+  <state id="endNavigationResult">
+    <transition cond="m_result == 'SUCCESS'" target="sendSuccess" >
+      <log expr='"endNavigation SUCCESS"'/>
+    </transition>
+    <transition cond="m_result == 'FAILURE'" target="sendSuccess" >
+      <log expr='"endNavigation SUCCESS"'/>
+    </transition>
   </state>
 
   <state id="stopNavigation">
