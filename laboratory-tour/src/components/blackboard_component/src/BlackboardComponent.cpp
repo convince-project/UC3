@@ -47,7 +47,7 @@ bool BlackboardComponent::start(int argc, char*argv[])
                                                                                 std::placeholders::_1,
                                                                                 std::placeholders::_2));
     RCLCPP_DEBUG(m_node->get_logger(), "BlackboardComponent::start");
-    std::cout << "BlackboardComponent::start";        
+    std::cout << "BlackboardComponent::start" << std::endl;        
     return true;
 
 }
@@ -76,6 +76,7 @@ void BlackboardComponent::GetDouble( const std::shared_ptr<blackboard_interfaces
             response->error_msg = "field not found";
         } else {
             response->value = m_doubleBlacboard.find(request->field_name)->second;  
+            std::cout << "GetDouble: " << request->field_name << " " << response->value << std::endl; 
             response->is_ok = true;
         }
     }
@@ -97,6 +98,7 @@ void BlackboardComponent::SetDouble( const std::shared_ptr<blackboard_interfaces
             response->error_msg = "field already present, overwriting";
         } 
         m_doubleBlacboard.insert_or_assign(request->field_name, request->value);  
+        std::cout << "SetDouble: " << request->field_name << " " << request->value << std::endl;
         response->is_ok = true;
     }
 }
@@ -114,6 +116,7 @@ void BlackboardComponent::GetString( const std::shared_ptr<blackboard_interfaces
         response->error_msg = "field not found";
     } else {
         response->value = m_stringBlacboard.find(request->field_name)->second;  
+        std::cout << "GetString: " << request->field_name << " " << response->value << std::endl; 
         response->is_ok = true;
     }
     
@@ -134,6 +137,7 @@ void BlackboardComponent::SetString(const std::shared_ptr<blackboard_interfaces:
             response->error_msg = "field already present, overwriting";
         } 
         m_stringBlacboard.insert_or_assign(request->field_name, request->value);  
+        std::cout << "SetString: " << request->field_name << " " << request->value << std::endl;
         response->is_ok = true;
     }
 }
@@ -151,7 +155,8 @@ void BlackboardComponent::GetInt( const std::shared_ptr<blackboard_interfaces::s
             response->is_ok = false;
             response->error_msg = "field not found";
         } else {
-            response->value = m_intBlacboard.find(request->field_name)->second;  
+            response->value = m_intBlacboard.find(request->field_name)->second; 
+            std::cout << "GetInt: " << request->field_name << " " << response->value << std::endl; 
             response->is_ok = true;
         }
     }
@@ -169,7 +174,8 @@ void BlackboardComponent::SetInt( const std::shared_ptr<blackboard_interfaces::s
         if (m_intBlacboard.contains(request->field_name)) {
             response->error_msg = "field already present, overwriting";
         } 
-        m_intBlacboard.insert_or_assign(request->field_name, request->value);  
+        m_intBlacboard.insert_or_assign(request->field_name, request->value); 
+        std::cout << "SetInt: " << request->field_name << " " << request->value << std::endl; 
         response->is_ok = true;
     }
 }
