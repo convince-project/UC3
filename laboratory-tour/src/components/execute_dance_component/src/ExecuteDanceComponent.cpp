@@ -9,8 +9,6 @@
 #include "ExecuteDanceComponent.h"
 
 
-
-
 bool ExecuteDanceComponent::start(int argc, char*argv[])
 {
     if(!rclcpp::ok())
@@ -21,7 +19,7 @@ bool ExecuteDanceComponent::start(int argc, char*argv[])
     // calls the GetPartNames service
     auto getPartNamesClientNode = rclcpp::Node::make_shared("ExecuteDanceComponentGetPartNamesNode");
     std::shared_ptr<rclcpp::Client<dance_interfaces::srv::GetPartNames>> getPartNamesClient =
-    getPartNamesClientNode->create_client<dance_interfaces::srv::GetPartNames>("/DanceComponent/GetPartNames");
+        getPartNamesClientNode->create_client<dance_interfaces::srv::GetPartNames>("/DanceComponent/GetPartNames");
     auto getPartNamesRequest = std::make_shared<dance_interfaces::srv::GetPartNames::Request>();
     while (!getPartNamesClient->wait_for_service(std::chrono::seconds(1))) {
         if (!rclcpp::ok()) {
@@ -51,8 +49,6 @@ bool ExecuteDanceComponent::start(int argc, char*argv[])
     {
         yWarning() << "Movement part names are empty. No movements will be executed!";
     }
-
-
     
     m_node = rclcpp::Node::make_shared("ExecuteDanceComponentNode");
     m_executeDanceService = m_node->create_service<execute_dance_interfaces::srv::ExecuteDance>("/ExecuteDanceComponent/ExecuteDance",  
@@ -66,8 +62,7 @@ bool ExecuteDanceComponent::start(int argc, char*argv[])
                                                                                 std::placeholders::_1,
                                                                                 std::placeholders::_2));
 
-    RCLCPP_DEBUG(m_node->get_logger(), "ExecuteDanceComponent::start");
-    std::cout << "ExecuteDanceComponent::start";        
+    RCLCPP_DEBUG(m_node->get_logger(), "ExecuteDanceComponent::start");      
     return true;
 
 }
@@ -90,6 +85,31 @@ void ExecuteDanceComponent::spin()
 void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Request> request)
 {
     bool done_with_getting_dance = false;
+    //call the GetDanceDuration service
+    auto getDanceDurationClientNode = rclcpp::Node::make_shared("ExecuteDanceComponentGetDanceDurationNode");
+    std::shared_ptr<rclcpp::Client<dance_interfaces::srv::GetDanceDuration>> getDanceDurationClient =
+        getDanceDurationClientNode->create_client<dance_interfaces::srv::GetDanceDuration>("/DanceComponent/GetDanceDuration");
+    auto getDanceDurationRequest = std::make_shared<dance_interfaces::srv::GetDanceDuration::Request>();
+    while (!getDanceDurationClient->wait_for_service(std::chrono::seconds(1))) {
+        if (!rclcpp::ok()) {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'getDanceDurationClient'. Exiting.");
+        }
+    }
+    auto getDanceDurationResult = getDanceDurationClient->async_send_request(getDanceDurationRequest);
+    auto futureGetDanceDurationResult = rclcpp::spin_until_future_complete(getDanceDurationClientNode, getDanceDurationResult);
+    auto danceDuration = getDanceDurationResult.get();
+    if (danceDuration->is_ok == false) {
+        RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "ExecuteDanceComponent::ExecuteDance. Dance duration not found");
+    }
+    else
+    {
+        RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::ExecuteDance Duration: " << danceDuration->duration);
+        if (m_threadTimer.joinable()) {
+            m_threadTimer.join();
+            RCLCPP_INFO_STREAM(m_node->get_logger(), "Timer task joined ");
+        }
+        m_threadTimer = std::thread([this, danceDuration]() { timerTask(danceDuration->duration); });
+    }
     do {
         //calls the GetMovement service
         auto getMovementClientNode = rclcpp::Node::make_shared("ExecuteDanceComponentGetMovementNode");
@@ -108,9 +128,10 @@ void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_inte
             RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "ExecuteDanceComponent::ExecuteDance. Movement not found, skipping...");
         } else {
             bool status;
-            if(m_danceName == "idleMove")
+            if(m_danceName == "idleMove" || m_danceName == "navigationPosition")
             {
                 status = SendMovementNow(movement->time, movement->offset, movement->joints, m_pCtpService.at(movement->part_name));
+
             }
             else{
                 status = SendMovementToQueue(movement->time, movement->offset, movement->joints, m_pCtpService.at(movement->part_name));
@@ -137,18 +158,31 @@ void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_inte
         if (updateMovementResponse->is_ok == false) {
             RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "ExecuteDanceComponent::ExecuteDance. Movement not found, skipping...");
         }
-        else
-        {
-            RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "ExecuteDanceComponent::ExecuteDance. Movement updated correctly");
-        }
+
         done_with_getting_dance = updateMovementResponse->done_with_dance;
-        std::cout << "done_with_getting_dance: " << done_with_getting_dance << std::endl;
     } while (!done_with_getting_dance);  
+    RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "Done getting Dance");
+}
+
+void ExecuteDanceComponent::timerTask(float time)
+{
+    m_timerMutex.lock();
+    m_timerTask = true;
+    m_timerMutex.unlock();
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "Start Timer seconds: " << static_cast<int>(time));
+    std::this_thread::sleep_for(std::chrono::seconds(static_cast<int>(time)));
+
+    m_timerMutex.lock();
+    m_timerTask = false;
+    m_timerMutex.unlock();
+    
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "End Timer ");
 }
 
 void ExecuteDanceComponent::ExecuteDance(const std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Request> request,
              std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Response>      response) 
 {
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::ExecuteDance " << request->dance_name);
     // calls the SetDance service
     auto setDanceClientNode = rclcpp::Node::make_shared("ExecuteDanceComponentSetDanceNode");
     std::shared_ptr<rclcpp::Client<dance_interfaces::srv::SetDance>> setDanceClient =
@@ -165,12 +199,11 @@ void ExecuteDanceComponent::ExecuteDance(const std::shared_ptr<execute_dance_int
     auto futureSetDanceResult = rclcpp::spin_until_future_complete(setDanceClientNode, setDanceResult);
     auto setDanceResponse = setDanceResult.get();
     if (setDanceResponse->is_ok != true) {
-        RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "ExecuteDanceComponent::ExecuteDance. Dance: " << request->dance_name);
+        RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::ExecuteDance name: " << request->dance_name);
         response->is_ok = false;
         response->error_msg = "Dance not found";
         return;
     }
-    RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "ExecuteDanceComponent::ExecuteDance. Dance set correctly: " << request->dance_name);
     if (m_threadExecute.joinable()) {
         m_threadExecute.join();
     }
@@ -178,36 +211,15 @@ void ExecuteDanceComponent::ExecuteDance(const std::shared_ptr<execute_dance_int
     response->is_ok = true;
 }
 
-
-// float TourManager::DoDance(const std::string danceName)
-// {
-//     bool status;
-//     for (Movement currentMove : currentDance.GetMovements())
-//     {
-//         if (!m_moveStorage->GetMovementsContainer().GetPartNames().count(currentMove.GetPartName()))
-//         {
-//             yWarning() << "Part" << currentMove.GetPartName() << "not supported. Skipping...";
-//             continue;
-//         }
-//         yarp::os::Port &port = m_pCtpService.at(currentMove.GetPartName());
-//         status = SendMovement(currentMove.GetTime(), currentMove.GetOffset(), currentMove.GetJoints(), port);
-//         if (!status)
-//         {
-//             yError() << "Movement failed to sent. Is ctpService for part" << currentMove.GetPartName() << "running?";
-//             continue;
-//         }
-//     }
-//     yDebug() << "I danced:" << danceName << "with duration:" << currentDance.GetDuration();
-//     return currentDance.GetDuration();
-// }
-
-
 void ExecuteDanceComponent::IsDancing(const std::shared_ptr<execute_dance_interfaces::srv::IsDancing::Request> request,
              std::shared_ptr<execute_dance_interfaces::srv::IsDancing::Response>      response) 
 {
-    response->is_dancing = true;
+    m_timerMutex.lock();
+    response->is_dancing = m_timerTask;
+    m_timerMutex.unlock();
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::IsDancing " << response->is_dancing);
+    response->is_ok = true;
 }
-
 
 bool ExecuteDanceComponent::SendMovementToQueue(float time, int offset, std::vector<float> joints, yarp::os::Port &port)
 {
