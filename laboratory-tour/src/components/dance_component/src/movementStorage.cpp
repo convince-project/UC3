@@ -14,6 +14,10 @@ bool MovementStorage::LoadMovements(const std::string &pathJSONMovements)
 {
     // Load movements
     nlohmann::ordered_json movements_json = ReadFileAsJSON(pathJSONMovements);
+    if(pathJSONMovements == "" || movements_json == nlohmann::ordered_json())
+    {
+        return false;
+    }
     MovementsContainer loadedMovements = movements_json.get<MovementsContainer>();
     m_movementsContainer = loadedMovements;
     // yCInfo(MOVEMENT_STORAGE) << "Loaded:" << m_movementsContainer.GetPartNames().size() << "robot parts.";
@@ -29,8 +33,18 @@ bool MovementStorage::LoadMovements(const std::string &pathJSONMovements)
 
 nlohmann::ordered_json MovementStorage::ReadFileAsJSON(const std::string &path)
 {
+    std::cout << "Reading file: " << path << std::endl;
     std::ifstream file(path);
+     if (!file.is_open()) {
+        std::cerr << "Failed to open file" << std::endl;
+        return nlohmann::ordered_json();
+    }
     std::string sentence = std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    if(sentence == "")
+    {
+        std::cerr << "File is empty" << std::endl;
+        return nlohmann::ordered_json();
+    }
     return nlohmann::ordered_json::parse(sentence);
 }
 
