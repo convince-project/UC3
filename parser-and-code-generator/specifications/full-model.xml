@@ -58,6 +58,9 @@
       <componentDeclaration id="AllowedToMoveComponent" interface="allowed_to_move_interfaces">
         <componentDefinition />
       </componentDeclaration>
+      <componentDeclaration id="ExecuteDanceComponent" interface="execute_dance_interfaces">
+        <componentDefinition />
+      </componentDeclaration>
     </componentList>
 
     <interfaces path="../interface-definition-IDL/interfaces.xml"/>
