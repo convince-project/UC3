@@ -114,6 +114,7 @@ void PeopleDetectorFilterComponent::spin()
 void PeopleDetectorFilterComponent::SetFilterTimeout(const std::shared_ptr<people_detector_filter_interfaces::srv::SetFilterTimeout::Request> request,
              std::shared_ptr<people_detector_filter_interfaces::srv::SetFilterTimeout::Response>      response) 
 {
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "PeopleDetectorFilterComponent::SetFilterTimeout value: " << request->timeout);
     m_filterTimeout = request->timeout;
     response->is_ok = true;
 
@@ -122,6 +123,7 @@ void PeopleDetectorFilterComponent::SetFilterTimeout(const std::shared_ptr<peopl
 void PeopleDetectorFilterComponent::GetFilterTimeout([[maybe_unused]]const std::shared_ptr<people_detector_filter_interfaces::srv::GetFilterTimeout::Request> request,
              std::shared_ptr<people_detector_filter_interfaces::srv::GetFilterTimeout::Response>      response) 
 {
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "PeopleDetectorFilterComponent::GetFilterTimeout value: " << m_filterTimeout);
     response->timeout = m_filterTimeout;
     response->is_ok = true;
 
@@ -167,13 +169,13 @@ void PeopleDetectorFilterComponent::stopComputeOutput()
         if (computeThread.joinable()) {
             computeThread.join();
         }
-        RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), "STOP_COMPUTE_THREAD");
+        RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "STOP_COMPUTE_THREAD");
     }
 }
 
 void PeopleDetectorFilterComponent::computeOutputTask()
 {
-    RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), "NEW_COMPUTE_THREAD");
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "NEW_COMPUTE_THREAD");
     bool l_stop;
     yarp::dev::Nav2D::NavigationStatusEnum status;
     do{
@@ -204,18 +206,19 @@ void PeopleDetectorFilterComponent::computeOutputTask()
         {
             if(m_oldStatus == OutputStatus::NEUTRAL_STATUS && m_filterCounter < m_filterTimeout)
             {
-                std::cout << "Forcing neutral state until timeout, counter " << m_filterCounter << std::endl;
+                RCLCPP_INFO_STREAM(m_node->get_logger(), "Forcing neutral state until timeout, counter: "<< m_filterCounter);
                 m_outputStatus = OutputStatus::NEUTRAL_STATUS;
             }
         }
         m_filterCounter++;
-        std::cout << "Output status " << m_outputStatus << std::endl;
+        RCLCPP_INFO_STREAM(m_node->get_logger(), "Output status: "<< m_outputStatus);
         m_oldStatus = m_outputStatus;
         m_taskMutex.lock();
         l_stop = m_stopTask;
         m_taskMutex.unlock();
         std::this_thread::sleep_for(std::chrono::seconds(1)); //delete
     }while(!l_stop);
+    RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "END_COMPUTE_THREAD");
     m_computeTask = false;
 }
 
@@ -227,7 +230,11 @@ bool PeopleDetectorFilterComponent::getNavigationStatus(yarp::dev::Nav2D::Naviga
     } 
     switch (status){
         case yarp::dev::Nav2D::navigation_status_idle:
-                std::cout << "Navigation status IDLE " << std::endl;
+            std::cout << "Navigation status IDLE " << std::endl;
+            std::cout << "Neutral set, status idle" << std::endl;
+            m_taskMutex.lock();
+            m_neutralDetected = true;
+            m_taskMutex.unlock();
             break;
         case yarp::dev::Nav2D::navigation_status_preparing_before_move:
             std::cout << "Navigation status Preparing_before_move " << std::endl;
