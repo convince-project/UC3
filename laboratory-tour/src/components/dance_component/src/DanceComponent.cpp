@@ -15,6 +15,7 @@ bool DanceComponent::start(int argc, char*argv[])
         m_movementStorage = std::make_shared<MovementStorage>(); // Loads the movements json from the file and saves a reference to the class.
         if( !m_movementStorage->LoadMovements(argv[1]))
         {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Error loading movements file");
             return false;
         }
     }
@@ -54,8 +55,7 @@ bool DanceComponent::start(int argc, char*argv[])
                                                                                 std::placeholders::_1,
                                                                                 std::placeholders::_2));
 
-    RCLCPP_DEBUG(m_node->get_logger(), "DanceComponent::start");
-    std::cout << "DanceComponent::start";        
+    RCLCPP_DEBUG(m_node->get_logger(), "DanceComponent::start"); 
     return true;
 
 }
@@ -74,6 +74,7 @@ void DanceComponent::spin()
 void DanceComponent::GetMovement([[maybe_unused]] const std::shared_ptr<dance_interfaces::srv::GetMovement::Request> request,
              std::shared_ptr<dance_interfaces::srv::GetMovement::Response>      response) 
 {
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "DanceComponent::GetMovement " );
     Dance dance;
     if(!m_movementStorage->GetMovementsContainer().GetDance(m_currentDance, dance))
     {
@@ -91,6 +92,7 @@ void DanceComponent::GetMovement([[maybe_unused]] const std::shared_ptr<dance_in
 void DanceComponent::UpdateMovement([[maybe_unused]] const std::shared_ptr<dance_interfaces::srv::UpdateMovement::Request> request,
              std::shared_ptr<dance_interfaces::srv::UpdateMovement::Response>      response) 
 {
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "DanceComponent::UpdateMovement " );
     Dance dance;
     if(!m_movementStorage->GetMovementsContainer().GetDance(m_currentDance, dance))
     {
@@ -112,6 +114,7 @@ void DanceComponent::UpdateMovement([[maybe_unused]] const std::shared_ptr<dance
 void DanceComponent::SetDance([[maybe_unused]] const std::shared_ptr<dance_interfaces::srv::SetDance::Request> request,
              std::shared_ptr<dance_interfaces::srv::SetDance::Response>      response) 
 {
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "DanceComponent::SetDance name: " << request->dance );
      if(request->dance.empty())
     {
         response->is_ok = false;
@@ -133,6 +136,7 @@ void DanceComponent::SetDance([[maybe_unused]] const std::shared_ptr<dance_inter
 void DanceComponent::GetDance([[maybe_unused]] const std::shared_ptr<dance_interfaces::srv::GetDance::Request> request,
              std::shared_ptr<dance_interfaces::srv::GetDance::Response>      response) 
 {
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "DanceComponent::GetDance name: " << m_currentDance );
     response->dance = m_currentDance;
     response->is_ok = true;
 }
@@ -140,6 +144,7 @@ void DanceComponent::GetDance([[maybe_unused]] const std::shared_ptr<dance_inter
 void DanceComponent::GetDanceDuration([[maybe_unused]] const std::shared_ptr<dance_interfaces::srv::GetDanceDuration::Request> request,
              std::shared_ptr<dance_interfaces::srv::GetDanceDuration::Response>      response) 
 {
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "DanceComponent::GetDanceDuration" );
     Dance dance;
     if(!m_movementStorage->GetMovementsContainer().GetDance(m_currentDance, dance))
     {
@@ -155,6 +160,7 @@ void DanceComponent::GetDanceDuration([[maybe_unused]] const std::shared_ptr<dan
 void DanceComponent::GetPartNames([[maybe_unused]] const std::shared_ptr<dance_interfaces::srv::GetPartNames::Request> request,
              std::shared_ptr<dance_interfaces::srv::GetPartNames::Response>      response) 
 {
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "DanceComponent::GetPartNames" );
     std::set<std::string> part_names = m_movementStorage->GetMovementsContainer().GetPartNames();
     for(auto part_name : part_names)
     {
