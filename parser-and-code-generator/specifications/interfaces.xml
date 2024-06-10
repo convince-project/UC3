@@ -449,5 +449,36 @@
             </protocol>
         </function>
     </interface>
+    <interface id="execute_dance_interfaces">
+        <function id="ExecuteDance">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol> 
+        </function>
+        <function id="IsDancing">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>bool</dataType>
+                <dataField>is_dancing</dataField>
+            </returnValue>
+        </function>
+        <function id="TimeLeft">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>float32</dataType>
+                <dataField>time_left</dataField>
+            </returnValue>
+        </function>
+    </interface>
 
 </interfaces>
