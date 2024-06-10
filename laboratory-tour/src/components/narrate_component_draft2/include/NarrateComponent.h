@@ -24,7 +24,7 @@
 #include <execute_dance_interfaces/srv/execute_dance.hpp>
 #include <execute_dance_interfaces/srv/is_dancing.hpp>
 
-
+#define SERVICE_TIMEOUT 8
 
 class NarrateComponent 
 {
@@ -68,5 +68,4 @@ private:
     bool m_danceTask{false};
     bool m_stopped = false;
     std::thread m_threadNarration;
-    std::thread m_threadStop;
 };
