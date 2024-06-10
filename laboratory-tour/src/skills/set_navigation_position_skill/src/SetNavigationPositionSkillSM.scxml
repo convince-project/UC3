@@ -32,6 +32,12 @@
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
   </state>
 
+
+  <state id="WaitForFinish">
+    <transition event="CMD_TICK" target="isDancing" />
+    <transition event="CMD_HALT" target="sendHalted" />
+  </state>
+
   <state id="isDancing">
     <onentry>
         <send event="ExecuteDanceComponent.IsDancing.Call">
@@ -68,7 +74,7 @@
           <param name="result" expr='"RUNNING"'/> 
         </send>
     </onentry>
-    <transition target="isDancing" />
+    <transition target="WaitForFinish" />
   </state>
 
   <state id="sendHalted">
