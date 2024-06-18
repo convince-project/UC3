@@ -67,6 +67,16 @@ bool ProvaSkill::start(int argc, char*argv[])
 		"/is_followed_timeout", 10, std::bind(&ProvaSkill::topic_callback, this, std::placeholders::_1));
     
     
+    m_stateMachine.connectToEvent("ProvaComponent.Topic.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
+        RCLCPP_INFO(m_node->get_logger(), "ProvaComponent.Topic.Call");
+        QVariantMap data;
+        m_statusMutex.lock();
+        data.insert("status", m_status);
+        m_statusMutex.unlock();
+        m_stateMachine.submitEvent("ProvaComponent.Topic.Return", data);
+        RCLCPP_INFO(m_node->get_logger(), "ProvaComponent.Topic.Return");
+    });
+    
 	m_stateMachine.connectToEvent("TICK_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){
 		RCLCPP_INFO(m_node->get_logger(), "ProvaSkill::tickReturn %s", event.data().toMap()["result"].toString().toStdString().c_str());
 		std::string result = event.data().toMap()["result"].toString().toStdString();
@@ -114,9 +124,9 @@ void ProvaSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv
 }
 
 void ProvaSkill::topic_callback(const std_msgs::msg::Bool::SharedPtr msg) {
-	bool status = msg->data;
-    QVariantMap data;
-    data.insert("status", status);
-    m_stateMachine.submitEvent("TOPIC", data);
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TOPIC %s", status ? "true" : "false");
+    m_statusMutex.lock();
+	m_status = msg->data;
+    // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TOPIC %s", m_status ? "true" : "false");
+    m_statusMutex.unlock();
+    
 }
