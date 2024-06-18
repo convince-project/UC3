@@ -34,11 +34,14 @@ private:
 	std::shared_ptr<std::thread> m_threadSpin;
 	std::shared_ptr<rclcpp::Node> m_node;
 	std::mutex m_requestMutex;
+	std::mutex m_statusMutex;
 	std::string m_name;
 	ProvaSkillCondition m_stateMachine;
 	std::atomic<Status> m_tickResult{Status::undefined};
 	rclcpp::Service<bt_interfaces::srv::TickCondition>::SharedPtr m_tickService;
 	rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr m_subscription;
+	bool m_status;
+	
 	
 	
 };
