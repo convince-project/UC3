@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<root main_tree_to_execute="BehaviorTree">
+    <!-- ////////// -->
+    <BehaviorTree ID="BehaviorTree">
+        <ReactiveSequence>
+            <SubTree ID="CheckArtworkAndExplain"/>
+        </ReactiveSequence>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <BehaviorTree ID="CheckArtworkAndExplain">
+        <Sequence>
+            <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="NarratePoi"/>
+            <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="Dialog"/>
+            <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="UpdatePoi"/>
+        </Sequence>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <TreeNodesModel>
+        <SubTree ID="CheckArtworkAndExplain"/>
+        <Action ID="ROS2Action">
+            <input_port default="ROS2SERVICE" name="interface"/>
+            <input_port default="false" name="isMonitored"/>
+        </Action>
+        <Condition ID="ROS2Condition">
+            <input_port default="ROS2SERVICE" name="interface"/>
+            <input_port default="false" name="isMonitored"/>
+        </Condition>
+    </TreeNodesModel>
+    <!-- ////////// -->
+</root>

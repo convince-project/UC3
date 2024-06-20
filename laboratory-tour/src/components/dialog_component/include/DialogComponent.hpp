@@ -25,14 +25,21 @@
 #include <dialog_interfaces/srv/enable_dialog.hpp>
 #include <dialog_interfaces/srv/set_poi.hpp>
 #include <dialog_interfaces/srv/get_state.hpp>
+#include <dialog_interfaces/srv/skip_explanation.hpp>
 //#include <dialog_interfaces/srv/is_speaking.hpp>
 #include <yarp/dev/AudioPlayerStatus.h>
+#include <yarp/dev/ISpeechTranscription.h>
 #include <text_to_speech_interfaces/srv/is_speaking.hpp>
 #include <text_to_speech_interfaces/srv/set_microphone.hpp>
 #include <text_to_speech_interfaces/srv/speak.hpp>
+#include <text_to_speech_interfaces/srv/set_language.hpp>
+#include <text_to_speech_interfaces/srv/set_voice.hpp>
 #include <scheduler_interfaces/srv/get_current_poi.hpp>
+#include <scheduler_interfaces/srv/end_tour.hpp>
+#include <scheduler_interfaces/srv/set_language.hpp>
 #include "nlohmann/json.hpp"
 #include <random>
+#include <map>
 
 #include "SpeechTranscriberCallback.hpp"
 #include "SpeakerStatusCallback.hpp"
@@ -58,6 +65,8 @@ public:
                         std::shared_ptr<dialog_interfaces::srv::SetPoi::Response> response);
     void GetState(const std::shared_ptr<dialog_interfaces::srv::GetState::Request> request,
                         std::shared_ptr<dialog_interfaces::srv::GetState::Response> response);
+    void SkipExplanation(const std::shared_ptr<dialog_interfaces::srv::SkipExplanation::Request> request,
+                        std::shared_ptr<dialog_interfaces::srv::SkipExplanation::Response> response);
     //void IsSpeaking(const std::shared_ptr<dialog_interfaces::srv::IsSpeaking::Request> request,
     //                    std::shared_ptr<dialog_interfaces::srv::IsSpeaking::Response> response);
 
@@ -67,13 +76,20 @@ private:
     //yarp::dev::PolyDriver m_speechSynthPoly;
     //yarp::dev::ISpeechSynthesizer *m_iSpeechSynth{nullptr};
     // ChatGPT
-    yarp::dev::PolyDriver m_chatGPTPoly;
+    yarp::dev::PolyDriver m_poiChatPoly;
     yarp::dev::PolyDriver m_genericChatPoly;
-    yarp::dev::ILLM *m_iChatGPT{nullptr};
+    yarp::dev::PolyDriver m_museumChatPoly;
+    yarp::dev::PolyDriver m_speechTranscriptionPoly;
+    yarp::dev::ILLM *m_iPoiChat{nullptr};
+    yarp::dev::ILLM *m_iMuseumChat{nullptr};
     yarp::dev::ILLM *m_iGenericChat{nullptr};
+    yarp::dev::ISpeechTranscription  *m_iSpeechTranscription{nullptr};
+    std::map<std::string,std::string> m_voicesMap;
+    std::string m_poiPrompt;
+    std::string m_startPrompt;
     // Microphone
-    //yarp::dev::PolyDriver m_audioRecorderPoly;
-    //yarp::dev::IAudioGrabberSound *m_iAudioGrabberSound{nullptr};
+    yarp::dev::PolyDriver m_audioRecorderPoly;
+    yarp::dev::IAudioGrabberSound *m_iAudioGrabberSound{nullptr};
 
     // Callback on SpeechTranscriber port
     SpeechTranscriberCallback m_speechTranscriberCallback;
@@ -93,6 +109,7 @@ private:
     rclcpp::Service<dialog_interfaces::srv::EnableDialog>::SharedPtr m_enableDialogService;
     rclcpp::Service<dialog_interfaces::srv::SetPoi>::SharedPtr m_setPoiService;
     rclcpp::Service<dialog_interfaces::srv::GetState>::SharedPtr m_GetStateService;
+    rclcpp::Service<dialog_interfaces::srv::SkipExplanation>::SharedPtr m_SkipExplanationService;
     //rclcpp::Service<dialog_interfaces::srv::IsSpeaking>::SharedPtr m_IsSpeakingService;
 
     rclcpp::Client<text_to_speech_interfaces::srv::IsSpeaking>::SharedPtr m_isSpeakingClient;
@@ -126,6 +143,7 @@ private:
     bool CommandManager(const std::string &command, PoI currentPoI, PoI genericPoI, std::string & phrase);
     bool InterpretCommand(const std::string &command, PoI currentPoI, PoI genericPoI, std::string & phrase);
     bool m_exit;
+    void WaitForSpeakEnd();
 
     /* Internal State Machine*/
     enum State {
@@ -136,6 +154,7 @@ private:
     };
 
     State m_state;
+    std::atomic<bool> m_skipSpeaking{false};
 };
 
 #endif

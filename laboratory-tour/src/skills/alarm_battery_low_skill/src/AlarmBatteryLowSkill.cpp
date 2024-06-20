@@ -51,7 +51,7 @@ bool AlarmBatteryLowSkill::start(int argc, char*argv[])
     m_stateMachine.connectToEvent("AlarmCmpInterface.StartAlarmCall", [this]([[maybe_unused]]const QScxmlEvent & event){
         std::shared_ptr<rclcpp::Node> nodeStartAlarm = rclcpp::Node::make_shared(m_name + "SkillNodeStartAlarm");
         // RCLCPP_INFO(nodeStartAlarm->get_logger(), "start alarm");
-        std::shared_ptr<rclcpp::Client<alarm_interfaces::srv::StartAlarm>> clientStartAlarm = nodeStartAlarm->create_client<alarm_interfaces::srv::StartAlarm>("/AlarmComponent/StartAlarm");
+        std::shared_ptr<rclcpp::Client<alarm_interfaces::srv::StartAlarm>> clientStartAlarm = nodeStartAlarm->create_client<alarm_interfaces::srv::StartAlarm>("/NotifyUserComponent/StartAlarm");
 
         auto request = std::make_shared<alarm_interfaces::srv::StartAlarm::Request>();
         bool wait_succeded{true};
@@ -90,7 +90,7 @@ bool AlarmBatteryLowSkill::start(int argc, char*argv[])
     m_stateMachine.connectToEvent("AlarmCmpInterface.stopAlarmCall", [this]([[maybe_unused]]const QScxmlEvent & event){
         std::shared_ptr<rclcpp::Node> nodeStopAlarm = rclcpp::Node::make_shared(m_name + "SkillNodeStopAlarm");
         // RCLCPP_INFO(nodeStopAlarm->get_logger(), "stop alarm");
-        std::shared_ptr<rclcpp::Client<alarm_interfaces::srv::StopAlarm>> clientStopAlarm = nodeStopAlarm->create_client<alarm_interfaces::srv::StopAlarm>("/AlarmComponent/StopAlarm");
+        std::shared_ptr<rclcpp::Client<alarm_interfaces::srv::StopAlarm>> clientStopAlarm = nodeStopAlarm->create_client<alarm_interfaces::srv::StopAlarm>("/NotifyUserComponent/StopAlarm");
 
         auto request = std::make_shared<alarm_interfaces::srv::StopAlarm::Request>();
         bool wait_succeded{true};

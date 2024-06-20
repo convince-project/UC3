@@ -14,7 +14,7 @@
 
     <state id="edgeDetected">
         <onentry>
-            <if cond="m_edge_detected == EDGE_DETECTED"> 
+            <if cond="m_edge_detected == true"> 
                 <send event="TICK_RESPONSE">
                     <param name="result" expr='"SUCCESS"'/>
                 </send>
@@ -26,5 +26,4 @@
         </onentry>
         <transition target="idle" />
     </state>
-
 </scxml>

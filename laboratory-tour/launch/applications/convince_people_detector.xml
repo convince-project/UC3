@@ -1,0 +1,44 @@
+<application>
+    <name>convince_people_detector</name>
+
+    <module>
+        <name>ros2</name>
+        <parameters>launch detectors_ros dr_spaam_ros_local.launch.py</parameters>
+        <workdir></workdir>
+        <node>console-peopledet</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>launch tracker_ros tracker_ros.launch.py</parameters>
+        <workdir></workdir>
+        <node>console-peopledet</node>
+    </module>
+
+
+    <module>
+        <name>ros2</name>
+        <parameters>launch crowd_management_ros detect_following.launch.py</parameters>
+        <workdir></workdir>
+        <node>console-peopledet</node>
+    </module>
+
+
+    <module>
+        <name>ros2</name>
+        <parameters>launch detectors_ros dr_spaam_ros_remote.launch.py</parameters>
+        <workdir></workdir>
+        <node>console-peopledet-remote</node>
+    </module>
+
+
+    <module>
+        <name>ros2</name>
+        <parameters>launch detectors_ros yolo.launch.py</parameters>
+        <workdir></workdir>
+        <node>console-peopledet-remote</node>
+    </module>
+
+
+
+</application>

@@ -31,9 +31,12 @@ bool CheckNetworkComponent::setup(int argc, char* argv[])
     }
     
     m_node = rclcpp::Node::make_shared(m_name);
-    m_address_name = "192.168.100.150";
+    m_address_name = "192.168.100.103";
     m_publisherStatus = m_node->create_publisher<std_msgs::msg::Bool>("/CheckNetworkComponent/NetworkStatus", 10);
-    timer_ = m_node->create_wall_timer(1000ms, std::bind(&CheckNetworkComponent::topic_callback, this));
+    // timer_ = m_node->create_wall_timer(1000ms, std::bind(&CheckNetworkComponent::topic_callback, this));
+    m_threadStatus = std::make_shared<std::thread>(&CheckNetworkComponent::threadConnected, this);
+    m_publisherNetworkChanged = m_node->create_publisher<std_msgs::msg::Bool>("/CheckNetworkComponent/NetworkChanged", 10);
+    timer_2 = m_node->create_wall_timer(1000ms, std::bind(&CheckNetworkComponent::StatusChangedPublisher, this));
 
     RCLCPP_DEBUG(m_node->get_logger(), "CheckNetworkComponent::start");
     // m_thread = std::make_shared<std::thread>([this]{ start();});
@@ -41,9 +44,46 @@ bool CheckNetworkComponent::setup(int argc, char* argv[])
 }
 
 
+void CheckNetworkComponent::threadConnected() {
+    while(m_threadActive) {
+        bool networkIsCurrentlyUp=true;
+        m_is_connected = isNetworkConnected(m_address_name);
+	std::cout << "m_is_connected " << m_is_connected << " m_lastStatus.size() "  <<  m_lastStatus.size() << std::endl;
+        if (m_lastStatus.size() < 5) {
+            m_changed = false;
+            m_lastStatus.push_back(m_is_connected);
+        } else {
+            int countFalse = 0;
+            for (auto status : m_lastStatus) {
+		std::cout << status << " ";
+                if (status == false) {
+                    countFalse++;
+                }
+            }
+	    std::cout << std::endl;
+            if (countFalse > 3) {
+                networkIsCurrentlyUp = false;
+            }
+            m_lastStatus.clear();
+	    std::cout << "m_previousStatusConnected " << m_previousStatusConnected << " networkIsCurrentlyUp " <<  networkIsCurrentlyUp << std::endl; 
+            if (m_previousStatusConnected != networkIsCurrentlyUp) {
+                m_changed = true;
+            } else {
+	        m_changed=false;
+	    }
+            m_previousStatusConnected = networkIsCurrentlyUp;
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        }
+    }
+}
+
 bool CheckNetworkComponent::close()
 {
     rclcpp::shutdown();
+    m_threadActive = false;
+    if (m_threadStatus != nullptr && m_threadStatus->joinable()) {
+        m_threadStatus->join();
+    }
     return true;
 }
 
@@ -60,13 +100,13 @@ bool CheckNetworkComponent::start() {
     return true;
 }
 
-void CheckNetworkComponent::topic_callback() {
-    std::cout << "CALLBACK" << std::endl;
-    m_is_connected = isNetworkConnected(m_address_name);
-    std::cout << "Our machine is connected? " << m_is_connected;
+void CheckNetworkComponent::StatusChangedPublisher() {
     auto msg = std_msgs::msg::Bool();
-    msg.data = m_is_connected;
-    m_publisherStatus->publish(msg);
+    msg.data = m_changed;
+    m_publisherNetworkChanged->publish(msg);
+    auto msgConnected  = std_msgs::msg::Bool();
+    msgConnected.data = m_is_connected;
+    m_publisherStatus->publish(msgConnected);
 }
 
 
@@ -75,9 +115,9 @@ bool CheckNetworkComponent::isNetworkConnected(const std::string& host) {
 
     double threshold = 3000.;
     bool is_connected = false;
-    const std::string ping_command = "ping -c 4 -w 4 -q " + host + " 2>&1";  // Ping 4 times
+    const std::string ping_command = "ping -c 4 -w 1 -q " + host + " 2>&1";  // Ping 4 times
     std::string ping_output = exec(ping_command.c_str());
-    std::cout << "ping_output\n" << ping_output << std::endl;
+    //std::cout << "ping_output\n" << ping_output << std::endl;
 
     if(ping_output.find("Temporary failure in name resolution") != std::string::npos  || 
         ping_output.find("Name or service not known") != std::string::npos ){
@@ -224,3 +264,4 @@ std::string CheckNetworkComponent::exec(const char* cmd) {
 
 //     return is_connected;
 // }
+

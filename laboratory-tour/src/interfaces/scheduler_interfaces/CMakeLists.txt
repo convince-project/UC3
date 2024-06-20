@@ -20,6 +20,7 @@ rosidl_generate_interfaces(scheduler_interfaces
 "srv/UpdatePoi.srv"
 "srv/GetCurrentPoi.srv"
 "srv/Reset.srv"
+"srv/EndTour.srv"
 "srv/UpdateAction.srv"
 "srv/GetCurrentAction.srv"
 "srv/SetLanguage.srv"

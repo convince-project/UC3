@@ -16,7 +16,6 @@
 ROS2Action::ROS2Action(const std::string name, const BT::NodeConfiguration& config) :
         ActionNodeBase(name, config)
 {
-    m_name = ActionNodeBase::name();
 
     BT::Optional<std::string> is_monitored = BT::TreeNode::getInput<std::string>("isMonitored");
     if (is_monitored.value() == "true")
@@ -28,7 +27,7 @@ ROS2Action::ROS2Action(const std::string name, const BT::NodeConfiguration& conf
 
     if(!ok)
     {
-       RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Something went wrong in the node init() of %s", name.c_str());
+       RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Something went wrong in the node init() of %s", ActionNodeBase::name().c_str());
     }
 }
 
@@ -78,8 +77,7 @@ BT::NodeStatus ROS2Action::tick()
 
 BT::PortsList ROS2Action::providedPorts()
 {
-    return { BT::InputPort<std::string>("nodeName"), 
-             BT::InputPort<std::string>("interface"),
+    return { BT::InputPort<std::string>("interface"),
              BT::InputPort<std::string>("isMonitored")  };
 }
 
@@ -116,10 +114,10 @@ bool ROS2Action::init()
         rclcpp::init(/*argc*/ 0, /*argv*/ nullptr);
     }
 
-    m_node = rclcpp::Node::make_shared(m_name+ "Leaf");
+    m_node = rclcpp::Node::make_shared(ActionNodeBase::name()+ "Leaf");
     m_clientTick = m_node->create_client<bt_interfaces::srv::TickAction>(ActionNodeBase::name() + "Skill/tick" + m_suffixMonitor);
     m_clientHalt = m_node->create_client<bt_interfaces::srv::HaltAction>(ActionNodeBase::name() + "Skill/halt" + m_suffixMonitor);
-    RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"),"name " << m_name << "suffixmonitor " << m_suffixMonitor);
+    RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"),"name " << ActionNodeBase::name() << "suffixmonitor " << m_suffixMonitor);
     
     return true;
 

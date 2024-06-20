@@ -176,9 +176,16 @@ bool TextToSpeechComponent::start(int argc, char*argv[])
                                                                                                 this,
                                                                                                 std::placeholders::_1,
                                                                                                 std::placeholders::_2));
+    m_setVoiceService = m_node->create_service<text_to_speech_interfaces::srv::SetVoice>("/TextToSpeechComponent/SetVoice",
+                                                                                        std::bind(&TextToSpeechComponent::SetVoice,
+                                                                                                this,
+                                                                                                std::placeholders::_1,
+                                                                                                std::placeholders::_2));
+
+
     m_speakerStatusPub = m_node->create_publisher<std_msgs::msg::Bool>("/TextToSpeechComponent/is_speaking", 10);
-    
-    m_timer = m_node->create_wall_timer(200ms, 
+
+    m_timer = m_node->create_wall_timer(200ms,
                     [this]()->void {
 			std::lock_guard<std::mutex> lock(m_mutex);
                         auto data = m_audioStatusPort.read();
@@ -214,13 +221,13 @@ bool TextToSpeechComponent::start(int argc, char*argv[])
 
 bool TextToSpeechComponent::close()
 {
-    rclcpp::shutdown();  
+    rclcpp::shutdown();
     return true;
 }
 
 void TextToSpeechComponent::spin()
 {
-    rclcpp::spin(m_node);  
+    rclcpp::spin(m_node);
 }
 
 void TextToSpeechComponent::Speak(const std::shared_ptr<text_to_speech_interfaces::srv::Speak::Request> request,
@@ -233,6 +240,7 @@ void TextToSpeechComponent::Speak(const std::shared_ptr<text_to_speech_interface
     if (isRecording)
     {
         m_iAudioGrabberSound->stopRecording();
+                                            RCLCPP_ERROR_STREAM(m_node->get_logger(), "TextToSpeechComponent stopping micorphone" << __LINE__ );
     }
     yInfo() << "[TextToSpeechComponent::Speak] passed mic";
     yarp::sig::Sound sound = m_audioPort.prepare();
@@ -242,8 +250,11 @@ void TextToSpeechComponent::Speak(const std::shared_ptr<text_to_speech_interface
         yError() << "[TextToSpeechComponent::Speak] Error in synthesize";
         response->is_ok=false;
         response->error_msg="Unable to synthesize text";
-        m_iAudioGrabberSound->startRecording();
+        if (isRecording)
+        {
+            m_iAudioGrabberSound->startRecording();
                                             RCLCPP_ERROR_STREAM(m_node->get_logger(), "TextToSpeechComponent " << __LINE__ );
+    	}
     }
     else
     {
@@ -258,8 +269,6 @@ void TextToSpeechComponent::Speak(const std::shared_ptr<text_to_speech_interface
 		isSpeaking = true;
 	}
     }
-
-                 
 }
 
 void TextToSpeechComponent::SetLanguage(const std::shared_ptr<text_to_speech_interfaces::srv::SetLanguage::Request> request,
@@ -274,6 +283,25 @@ void TextToSpeechComponent::SetLanguage(const std::shared_ptr<text_to_speech_int
     {
         response->is_ok=false;
         response->error_msg="Unable to set new language";
+    }
+    else
+    {
+        response->is_ok=true;
+    }
+}
+
+void TextToSpeechComponent::SetVoice(const std::shared_ptr<text_to_speech_interfaces::srv::SetVoice::Request> request,
+                        std::shared_ptr<text_to_speech_interfaces::srv::SetVoice::Response> response)
+{
+    if (request->new_voice=="")
+    {
+        response->is_ok=false;
+        response->error_msg="Empty string passed to setting voice";
+    }
+    else if (!m_iSpeechSynth->setVoice(request->new_voice))
+    {
+        response->is_ok=false;
+        response->error_msg="Unable to set new voice";
     }
     else
     {
@@ -350,7 +378,7 @@ void TextToSpeechComponent::SetMicrophone(const std::shared_ptr<text_to_speech_i
         response->error_msg = "The robot is already Speaking";
         return;
     }
-    
+
     if (request->enabled)
     {
         m_manualMicDisabled = false;

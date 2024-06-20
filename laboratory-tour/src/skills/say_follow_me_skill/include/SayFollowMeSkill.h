@@ -12,6 +12,8 @@
 #include <rclcpp/rclcpp.hpp>
 #include "SayFollowMeSkillSM.h"
 #include <bt_interfaces/msg/action_response.hpp>
+#include <scheduler_interfaces/srv/set_command.hpp>
+#include <scheduler_interfaces/srv/get_current_action.hpp>
 #include <text_to_speech_interfaces/srv/speak.hpp>
 #include <text_to_speech_interfaces/srv/is_speaking.hpp>
 #include <bt_interfaces/srv/tick_action.hpp>

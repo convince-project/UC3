@@ -44,7 +44,6 @@ bool PoI::getActions(const std::string &command, std::vector<Action> &actions)
     }
 
     actions = m_availableActions[command];
-
     return true;
 }
 
