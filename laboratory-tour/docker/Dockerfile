@@ -34,19 +34,19 @@ RUN /bin/bash -c "git clone --recurse-submodules https://github.com/BehaviorTree
     cmake --build build"
 
 ENV Qt6_DIR=/home/user1/Qt6.6.3/lib/cmake
-ARG UC3_BRANCH=dev/people_not_following
+ARG UC3_BRANCH=main
 
 RUN /bin/bash -c "echo 'updated on 202401261057' && \
     source /opt/ros/iron/setup.bash && \
     cd /home/user1 && git clone https://github.com/convince-project/UC3.git -b ${UC3_BRANCH}"
-# RUN /bin/bash -c "source /opt/ros/iron/setup.bash && \
-# 	cd /home/user1/UC3/laboratory-tour && \
-#     colcon build"
+RUN /bin/bash -c "source /opt/ros/iron/setup.bash && \
+	cd /home/user1/UC3/laboratory-tour && \
+    colcon build"
 
-# RUN /bin/bash -c "cd /home/user1/ROSMonitoring/generator/ros2_devel && \
-#     source /opt/ros/iron/setup.bash && \
-#     python3 generator --config_file /home/user1/convince_bts/simple_example/monitoring/monitor.yaml && \
-#     cd /home/user1/convince_bts/simple_example/monitor_ws/src/ && \
-#     colcon build"
+RUN /bin/bash -c "cd /home/user1/ROSMonitoring/generator/ros2_devel && \
+    source /opt/ros/iron/setup.bash && \
+    python3 generator --config_file /home/user1/convince_bts/simple_example/monitoring/monitor.yaml && \
+    cd /home/user1/convince_bts/simple_example/monitor_ws/src/ && \
+    colcon build"
 
 RUN echo "source /home/user1/UC3/laboratory-tour/install/setup.bash" >> ~/.bashrc
