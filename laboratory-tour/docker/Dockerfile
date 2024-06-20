@@ -1,4 +1,6 @@
-FROM elandini84/r1images:tourCore2_ubuntu22.04_iron_devel
+ARG base_img
+FROM $base_img
+LABEL maintainer="Stefano Bernagozzi"
 
 USER root
 
@@ -32,13 +34,14 @@ RUN /bin/bash -c "git clone --recurse-submodules https://github.com/BehaviorTree
     cmake --build build"
 
 ENV Qt6_DIR=/home/user1/Qt6.6.3/lib/cmake
+ARG UC3_BRANCH=dev/people_not_following
 
 RUN /bin/bash -c "echo 'updated on 202401261057' && \
     source /opt/ros/iron/setup.bash && \
-    cd /home/user1 && git clone https://github.com/convince-project/UC3.git -b laboratory_tour_cpp_datamodel"
-RUN /bin/bash -c "source /opt/ros/iron/setup.bash && \
-	cd /home/user1/UC3/laboratory-tour && \
-    colcon build"
+    cd /home/user1 && git clone https://github.com/convince-project/UC3.git -b ${UC3_BRANCH}"
+# RUN /bin/bash -c "source /opt/ros/iron/setup.bash && \
+# 	cd /home/user1/UC3/laboratory-tour && \
+#     colcon build"
 
 # RUN /bin/bash -c "cd /home/user1/ROSMonitoring/generator/ros2_devel && \
 #     source /opt/ros/iron/setup.bash && \
