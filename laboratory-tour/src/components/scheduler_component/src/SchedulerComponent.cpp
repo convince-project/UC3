@@ -99,7 +99,7 @@ void SchedulerComponent::spin()
 void SchedulerComponent::Reset([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::Reset::Request> request,
              std::shared_ptr<scheduler_interfaces::srv::Reset::Response>      response)
 {
-    RCLCPP_INFO_STREAM(m_node->get_logger(), "SchedulerComponent::Reset " );
+    RCLCPP_INFO(m_node->get_logger(), "SchedulerComponent::Reset " );
     m_currentPoi = 0;
     m_currentAction = 0;
     response->is_ok = true;
@@ -109,7 +109,7 @@ void SchedulerComponent::Reset([[maybe_unused]] const std::shared_ptr<scheduler_
 void SchedulerComponent::EndTour([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::EndTour::Request> request,
              std::shared_ptr<scheduler_interfaces::srv::EndTour::Response>      response)
 {
-    RCLCPP_INFO_STREAM(m_node->get_logger(), "SchedulerComponent::EndTour " );
+    RCLCPP_INFO(m_node->get_logger(), "SchedulerComponent::EndTour " );
     m_currentPoi = m_tourStorage->GetTour().getPoIsList().size() - 1;
     m_currentAction = 0;
     response->is_ok = true;
@@ -118,7 +118,7 @@ void SchedulerComponent::EndTour([[maybe_unused]] const std::shared_ptr<schedule
 void SchedulerComponent::UpdatePoi([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::UpdatePoi::Request> request,
              std::shared_ptr<scheduler_interfaces::srv::UpdatePoi::Response>      response)
 {
-    RCLCPP_INFO_STREAM(m_node->get_logger(), "SchedulerComponent::UpdatePoi " );
+    RCLCPP_INFO(m_node->get_logger(), "SchedulerComponent::UpdatePoi " );
     m_currentPoi = (m_currentPoi + 1) % m_tourStorage->GetTour().getPoIsList().size();
     m_currentAction = 0;
     response->is_ok = true;
@@ -129,7 +129,7 @@ void SchedulerComponent::GetCurrentPoi([[maybe_unused]] const std::shared_ptr<sc
              std::shared_ptr<scheduler_interfaces::srv::GetCurrentPoi::Response>      response)
 {
     response->poi_name = m_tourStorage->GetTour().getPoIsList()[m_currentPoi];
-    RCLCPP_INFO_STREAM(m_node->get_logger(), "SchedulerComponent::GetCurrentPoi name: " << response->poi_name);
+    RCLCPP_INFO(m_node->get_logger(), "SchedulerComponent::GetCurrentPoi name: %s", response->poi_name.c_str());
     response->poi_number = m_currentPoi;
     response->is_ok = true;
 }
@@ -137,12 +137,12 @@ void SchedulerComponent::GetCurrentPoi([[maybe_unused]] const std::shared_ptr<sc
 void SchedulerComponent::UpdateAction([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::UpdateAction::Request> request,
              std::shared_ptr<scheduler_interfaces::srv::UpdateAction::Response>      response)
 {
-    RCLCPP_INFO_STREAM(m_node->get_logger(), "SchedulerComponent::UpdateAction  " );
+    RCLCPP_INFO(m_node->get_logger(), "SchedulerComponent::UpdateAction  " );
     std::string poi_name = m_tourStorage->GetTour().getPoIsList()[m_currentPoi];
     std::vector<Action> actions_vec;
     if(!getActionsVector(poi_name, actions_vec))
     {
-        RCLCPP_ERROR(m_node->get_logger(), "Error getting actions,  poi: " << poi_name << " , command: " << m_currentCommand);
+        RCLCPP_ERROR(m_node->get_logger(), "Error getting actions,  poi: %s, command: %s", poi_name.c_str(), m_currentCommand.c_str());
         response->error_msg = "Error getting actions";
         response->is_ok = false;
         return;
@@ -160,18 +160,18 @@ void SchedulerComponent::UpdateAction([[maybe_unused]] const std::shared_ptr<sch
 void SchedulerComponent::GetCurrentAction([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::GetCurrentAction::Request> request,
              std::shared_ptr<scheduler_interfaces::srv::GetCurrentAction::Response>      response)
 {
-    RCLCPP_INFO_STREAM(m_node->get_logger(), "SchedulerComponent::GetCurrentAction  " );
+    RCLCPP_INFO(m_node->get_logger(), "SchedulerComponent::GetCurrentAction  " );
     std::string poi_name = m_tourStorage->GetTour().getPoIsList()[m_currentPoi];
     std::vector<Action> actions_vec;
     if(!getActionsVector(poi_name, actions_vec))
     {
-        RCLCPP_ERROR(m_node->get_logger(), "Error getting actions,  poi: " << poi_name << " , command: " << m_currentCommand);
+        RCLCPP_ERROR(m_node->get_logger(), "Error getting actions,  poi: %s command: %s", poi_name.c_str(), m_currentCommand.c_str());
         response->error_msg = "Error getting actions";
         response->is_ok = false;
         return;
     }
 
-    RCLCPP_INFO_STREAM(m_node->get_logger(), "SchedulerComponent::GetCurrentAction  " << poi_name << " " << m_currentAction << " " << actions_vec.size());
+    RCLCPP_INFO(m_node->get_logger(), "SchedulerComponent::GetCurrentAction poi: %s act: %d of: %d", poi_name.c_str(), m_currentAction, actions_vec.size());
     auto curact = actions_vec[m_currentAction];
     auto actionType = curact.getType();
     json j = actionType;
@@ -185,7 +185,7 @@ void SchedulerComponent::GetCurrentAction([[maybe_unused]] const std::shared_ptr
 void SchedulerComponent::GetCurrentLanguage([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::GetCurrentLanguage::Request> request,
              std::shared_ptr<scheduler_interfaces::srv::GetCurrentLanguage::Response>      response)
 {
-    RCLCPP_INFO_STREAM(m_node->get_logger(), "SchedulerComponent::GetCurrentLanguage  " );
+    RCLCPP_INFO(m_node->get_logger(), "SchedulerComponent::GetCurrentLanguage  " );
 
     std::string language = m_tourStorage->GetTour().getCurrentLanguage();
     response->language = language;
@@ -195,17 +195,17 @@ void SchedulerComponent::GetCurrentLanguage([[maybe_unused]] const std::shared_p
 void SchedulerComponent::SetLanguage([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::SetLanguage::Request> request,
              std::shared_ptr<scheduler_interfaces::srv::SetLanguage::Response>      response)
 {
-    RCLCPP_INFO_STREAM(m_node->get_logger(), "SchedulerComponent::SetLanguage " );
+    RCLCPP_INFO(m_node->get_logger(), "SchedulerComponent::SetLanguage %s", request->language.c_str() );
     if(request->language.empty())
     {
-        RCLCPP_ERROR(m_node->get_logger(), "Error setting language, empty language field" < <request->language );
+        RCLCPP_ERROR(m_node->get_logger(), "Error setting language, empty language field ");
         response->is_ok = false;
         response->error_msg = "Empty language field";
         return;
     }
     if(!m_tourStorage->GetTour().setCurrentLanguage(request->language))
     {
-        RCLCPP_ERROR(m_node->get_logger(), "Error setting language, language not available: " << request->language );
+        RCLCPP_ERROR(m_node->get_logger(), "Error setting language, language not available: %s", request->language.c_str() );
         response->is_ok = false;
         response->error_msg = "Language not available";
         return;
@@ -216,7 +216,7 @@ void SchedulerComponent::SetLanguage([[maybe_unused]] const std::shared_ptr<sche
 void SchedulerComponent::GetCurrentCommand([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::GetCurrentCommand::Request> request,
              std::shared_ptr<scheduler_interfaces::srv::GetCurrentCommand::Response>      response)
 {
-    RCLCPP_INFO_STREAM(m_node->get_logger(), "SchedulerComponent::GetCurrentCommand " );
+    RCLCPP_INFO(m_node->get_logger(), "SchedulerComponent::GetCurrentCommand " );
     response->command = m_currentCommand;
     response->is_ok = true;
 }
@@ -224,18 +224,18 @@ void SchedulerComponent::GetCurrentCommand([[maybe_unused]] const std::shared_pt
 void SchedulerComponent::SetCommand([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::SetCommand::Request> request,
              std::shared_ptr<scheduler_interfaces::srv::SetCommand::Response>      response)
 {
-    RCLCPP_INFO_STREAM(m_node->get_logger(), "SchedulerComponent::SetCommand " << request->command );
+    RCLCPP_INFO(m_node->get_logger(), "SchedulerComponent::SetCommand %s", request->command.c_str() );
     std::string poi_name = m_tourStorage->GetTour().getPoIsList()[m_currentPoi];
     if(request->command.empty())
     {
-        RCLCPP_ERROR(m_node->get_logger(), "Error setting command, empty command field" < <request->command );
+        RCLCPP_ERROR(m_node->get_logger(), "Error setting command, empty command field");
         response->is_ok = false;
         response->error_msg = "Empty command field";
         return;
     }
     if(!checkIfCommandValid(poi_name, request->command))
     {
-        RCLCPP_ERROR(m_node->get_logger(), "Error setting command, command not available: " << request->command );
+        RCLCPP_ERROR(m_node->get_logger(), "Error setting command, command not available: %s",  request->command.c_str());
         response->is_ok = false;
         response->error_msg = "Command not available";
         return;
@@ -303,7 +303,7 @@ bool SchedulerComponent::getActionsVector(const std::string &poiName, std::vecto
 void SchedulerComponent::GetAvailableCommands([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::GetAvailableCommands::Request> request,
              std::shared_ptr<scheduler_interfaces::srv::GetAvailableCommands::Response>      response)
 {
-    RCLCPP_INFO_STREAM(m_node->get_logger(), "SchedulerComponent::GetAvailableCommands " );
+    RCLCPP_INFO(m_node->get_logger(), "SchedulerComponent::GetAvailableCommands " );
     std::vector<std::string> commands, commands_generic;
     PoI currentPoi;
     if(!m_tourStorage->GetTour().getPoI(m_tourStorage->GetTour().getPoIsList()[m_currentPoi], currentPoi))
