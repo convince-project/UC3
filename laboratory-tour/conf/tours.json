@@ -40,6 +40,13 @@
                 "m_type": "speak"
               }
             ],
+            "sayPeopleLeft": [
+              {
+                "m_isBlocking": false,
+                "m_param": "I'm sorry, I can't continue the tour, there are no more people around me.",
+                "m_type": "speak"
+              }
+            ],
             "goalNotAvailableError": [
               {
                 "m_isBlocking": true,
@@ -718,6 +725,13 @@
               {
                 "m_isBlocking": false,
                 "m_param": "Mi scuso, la mia batteria è troppo scarica, devo andare, arrivederci!",
+                "m_type": "speak"
+              }
+            ],
+            "sayPeopleLeft": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Mi scuso, non posso continuare il tour, non ci sono persone presenti.",
                 "m_type": "speak"
               }
             ],
@@ -1408,6 +1422,13 @@
                 "m_param": "Je suis désolé, ma batterie est trop faible, je dois y aller, au revoir",
                 "m_type": "speak"
               }
+            ],
+            "sayPeopleLeft": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Je suis désolé, je ne peux pas continuer la tournée, il n'y a plus personne autour de moi.",
+                "m_type": "speak"
+              }
             ]
           },
           "m_name": "___generic___"
@@ -1937,6 +1958,13 @@
                 "m_param": "Lo siento, mi batería está muy baja, me tengo que ir, adiós.",
                 "m_type": "speak"
               }
+            ],
+            "sayPeopleLeft": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Lo siento, no puedo continuar la visita, no hay gente.",
+                "m_type": "speak"
+              }
             ]
           },
           "m_name": "___generic___"
@@ -2461,7 +2489,14 @@
                 "m_param": "Es tut mir leid, mein Akku ist zu schwach, ich muss gehen, auf Wiedersehen.",
                 "m_type": "speak"
               }
-            ]
+            ],
+            "sayPeopleLeft": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Es tut mir leid, ich kann die Tour nicht fortsetzen, es sind keine Leute mehr da",
+                "m_type": "speak"
+              }
+            ]            
           },
           "m_name": "___generic___"
         },
@@ -2988,6 +3023,13 @@
               {
                 "m_isBlocking": false,
                 "m_param": "Gomen'nasai, batterī ga hiku sugimasu, ikanakereba narimasen, sayōnara.",
+                "m_type": "speak"
+              }
+            ],
+            "sayPeopleLeft": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Gomen'nasai, mō hito ga inainode tsuā o tsudzukeru koto wa dekimasen.",
                 "m_type": "speak"
               }
             ]
