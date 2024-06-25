@@ -1,17 +1,17 @@
 <application>
     <name>convince_bt_skills</name>
 
+    <!-- ======= CheckArtworkAndExplain SubTree ======= -->
     <module>
         <name>ros2</name>
-        <parameters>run dialog_skill dialog_skill</parameters>
+        <parameters>run narrate_poi_skill narrate_poi_skill</parameters>
         <workdir></workdir>
         <node>bt</node>
     </module>
 
-
     <module>
         <name>ros2</name>
-        <parameters>run narrate_poi_skill narrate_poi_skill</parameters>
+        <parameters>run dialog_skill dialog_skill</parameters>
         <workdir></workdir>
         <node>bt</node>
     </module>
@@ -23,25 +23,38 @@
         <node>bt</node>
     </module>
 
-
     <module>
         <name>ros2</name>
-        <parameters>run is_at_current_poi_skill is_at_current_poi_skill</parameters>
+        <parameters>run reset_counters_skill reset_counters_skill</parameters>
         <workdir></workdir>
         <node>bt</node>
     </module>
 
     <module>
         <name>ros2</name>
-        <parameters>run say_follow_me_skill say_follow_me_skill</parameters>
+        <parameters>run set_navigation_position_skill set_navigation_position_skill</parameters>
         <workdir></workdir>
         <node>bt</node>
     </module>
 
-    <!-- ==================================== -->
+    <!-- ======= BatteryManagement SubTree ======= -->
     <module>
         <name>ros2</name>
         <parameters>run battery_level_skill battery_level_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run battery_charging_skill battery_charging_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run wait_skill wait_skill</parameters>
         <workdir></workdir>
         <node>bt</node>
     </module>
@@ -55,11 +68,24 @@
 
     <module>
         <name>ros2</name>
-        <parameters>run go_to_charging_station_skill go_to_charging_station_skill</parameters>
+        <parameters>run say_bye_skill say_bye_skill</parameters>
         <workdir></workdir>
         <node>bt</node>
     </module>
 
+    <module>
+        <name>ros2</name>
+        <parameters>run reset_tour_skill reset_tour_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run go_to_charging_station_skill go_to_charging_station_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
 
     <module>
         <name>ros2</name>
@@ -68,7 +94,21 @@
         <node>bt</node>
     </module>
 
-    <!-- =============================== -->
+    <module>
+        <name>ros2</name>
+        <parameters>run is_allowed_to_move_skill is_allowed_to_move_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run notify_charged_skill notify_charged_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
+
+    <!-- ======= NetworkManagement SubTree ======= -->
     <module>
         <name>ros2</name>
         <parameters>run network_up_skill network_up_skill</parameters>
@@ -96,12 +136,24 @@
         <node>bt</node>
     </module>
 
+    <!-- ======= GoToPoi SubTree ======= -->
+    <module>
+        <name>ros2</name>
+        <parameters>run is_at_current_poi_skill is_at_current_poi_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
 
-
-    <!-- ============================= -->
     <module>
         <name>ros2</name>
         <parameters>run check_if_start_skill check_if_start_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run visitors_following_robot_skill visitors_following_robot_skill</parameters>
         <workdir></workdir>
         <node>bt</node>
     </module>
@@ -118,11 +170,18 @@
         <parameters>run stop_and_turn_back_skill stop_and_turn_back_skill</parameters>
         <workdir></workdir>
         <node>bt</node>
+    </module>   
+
+    <module>
+        <name>ros2</name>
+        <parameters>run run_timer_skill run_timer_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
     </module>
 
     <module>
         <name>ros2</name>
-        <parameters>run visitors_following_robot_skill visitors_following_robot_skill</parameters>
+        <parameters>run say_follow_me_skill say_follow_me_skill</parameters>
         <workdir></workdir>
         <node>bt</node>
     </module>
@@ -140,13 +199,59 @@
         <workdir></workdir>
         <node>bt</node>
     </module>
+    
+    <module>
+        <name>ros2</name>
+        <parameters>run set_turning_skill set_turning_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
 
-     <module>
+    <module>
+        <name>ros2</name>
+        <parameters>run set_turned_skill set_turned_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run set_not_turning_skill set_not_turning_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
+
+    <!-- ======= PeopleLeaving SubTree ======= -->
+
+    <module>
+        <name>ros2</name>
+        <parameters>run are_people_present_skill are_people_present_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run say_people_left_skill say_people_left_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run people_left_skill people_left_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
+
+    <!-- ============================= -->
+
+    <module>
          <name>ros2</name>
          <parameters>run dummy_condition dummy_condition --skill_name VisitorsFollowingRobot --default_status SUCCESS</parameters>
          <workdir></workdir>
          <node>opt</node>
-     </module>
+    </module>
 
 
 </application>
