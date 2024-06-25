@@ -31,7 +31,7 @@ bool VisitorsFollowingRobotSkillDataModel::setup(const QVariantMap& initialDataV
 	m_node = rclcpp::Node::make_shared("VisitorsFollowingRobotSkillDataModelNode");
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
 	m_subscription = m_node->create_subscription<std_msgs::msg::Bool>(
-		"is_followed_timeout", 10, std::bind(&VisitorsFollowingRobotSkillDataModel::topic_callback, this, std::placeholders::_1));
+		"/PeopleDetectorFilterComponent/filtered_detection", 10, std::bind(&VisitorsFollowingRobotSkillDataModel::topic_callback, this, std::placeholders::_1));
 
 	return true;
 }

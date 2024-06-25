@@ -1,0 +1,57 @@
+<scxml 
+  initial="idle" 
+  version="1.0" 
+  name="ResetCountersSkillAction"
+  datamodel="ecmascript"
+  xmlns="http://www.w3.org/2005/07/scxml">
+
+  <datamodel>
+    <data id="m_result"/>
+  </datamodel>
+
+  <state id="idle">
+    <transition event="CMD_TICK" target="resetCounters" />
+    <transition event="CMD_HALT" target="sendHalted" /> 
+  </state>
+
+  <state id="resetCounters">
+    <onentry>
+        <send event="TurnBackManagerComponent.ResetCounters.Call"/>
+    </onentry>
+    <transition event="TurnBackManagerComponent.ResetCounters.Return" target="resetCountersResult"> 
+        <assign expr="_event.data.result" location="m_result"/>
+    </transition>
+  </state>
+
+  <state id="resetCountersResult">
+    <transition cond="m_result == 'SUCCESS'" target="sendSuccess" />
+    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+  </state>
+
+  <state id="sendFailure">
+    <onentry>
+      <send event="TICK_RESPONSE">
+        <param name="result" expr='"FAILURE"'/>
+      </send>
+    </onentry>
+    <transition target="idle" />
+  </state>
+
+  <state id="sendSuccess">
+      <onentry>
+        <send event="TICK_RESPONSE">
+          <param name="result" expr='"SUCCESS"'/>
+        </send>
+      </onentry>
+      <transition target="idle" />
+  </state>
+
+  <state id="sendHalted">
+      <onentry>
+          <send event="HALT_RESPONSE">
+          </send>
+      </onentry>
+      <transition target="idle" />
+  </state>
+
+</scxml>
