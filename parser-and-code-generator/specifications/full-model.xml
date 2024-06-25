@@ -61,6 +61,9 @@
       <componentDeclaration id="ExecuteDanceComponent" interface="execute_dance_interfaces">
         <componentDefinition />
       </componentDeclaration>
+      <componentDeclaration id="TurnBackManagerComponent" interface="turn_back_manager_interfaces">
+        <componentDefinition />
+      </componentDeclaration>
     </componentList>
 
     <interfaces path="../interface-definition-IDL/interfaces.xml"/>
