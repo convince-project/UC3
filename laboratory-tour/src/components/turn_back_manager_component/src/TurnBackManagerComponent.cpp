@@ -47,14 +47,14 @@ bool TurnBackManagerComponent::start(int argc, char*argv[])
                                                                                 this,
                                                                                 std::placeholders::_1,
                                                                                 std::placeholders::_2));
-    m_isAllowedToTurnBackService = m_node->create_service<turn_back_manager_interfaces::srv::IsAllowedToTurnBack>("/TurnBackManagerComponent/IsAllowedToTurnBack",  
-                                                                                std::bind(&TurnBackManagerComponent::IsAllowedToTurnBack,
+    m_isAllowedToContinueService = m_node->create_service<turn_back_manager_interfaces::srv::IsAllowedToContinue>("/TurnBackManagerComponent/IsAllowedToContinue",  
+                                                                                std::bind(&TurnBackManagerComponent::IsAllowedToContinue,
                                                                                 this,
                                                                                 std::placeholders::_1,
                                                                                 std::placeholders::_2));
 
     RCLCPP_DEBUG(m_node->get_logger(), "TurnBackManagerComponent::start");
-    m_subscriptionPeopleDetector = m_node->create_subscription<people_detector_filter_interfaces::msg::FilterStatus>(
+    m_subscriptionPeopleDetector = m_node->create_subscription<std_msgs::msg::Bool>(
 		"/PeopleDetectorFilterComponent/filtered_detection", 10, std::bind(&TurnBackManagerComponent::topic_callback_people_detector, this, std::placeholders::_1));
     std::cout << "TurnBackManagerComponent::start";        
     return true;
@@ -132,23 +132,65 @@ void TurnBackManagerComponent::IncreaseTurnBacksCounter([[maybe_unused]]const st
     RCLCPP_INFO_STREAM(m_node->get_logger(), "TurnBackManagerComponent::IncreaseTurnBacksCounter value:" << m_countNumberTurnBacks);
     m_mutex.unlock();
     response->is_ok = true;
+    if (!m_counterTask) {
+        m_counterTask = true;
+        if (m_threadCounter.joinable()) {
+            m_threadCounter.join();
+        }
+        m_threadCounter = std::thread(&TurnBackManagerComponent::counterTask, this);
+        // threadSpeak.detach();
+        std::cout << "Counter Task started." << std::endl;
+    } else {
+        std::cout << "Counter Task is already running." << std::endl;
+    }
 }
 
-void TurnBackManagerComponent::IsAllowedToTurnBack([[maybe_unused]]const std::shared_ptr<turn_back_manager_interfaces::srv::IsAllowedToTurnBack::Request> request,
-             std::shared_ptr<turn_back_manager_interfaces::srv::IsAllowedToTurnBack::Response>      response) 
+void TurnBackManagerComponent::IsAllowedToContinue([[maybe_unused]]const std::shared_ptr<turn_back_manager_interfaces::srv::IsAllowedToContinue::Request> request,
+             std::shared_ptr<turn_back_manager_interfaces::srv::IsAllowedToContinue::Response>      response) 
 {
     m_mutex.lock();
-    response->is_allowed = m_countNumberTurnBacks < m_maxNumberTurnBacks;
+    // response->is_allowed = (m_countNumberTurnBacks <= m_maxNumberTurnBacks) && (m_countNumberConsecutiveFalse < m_maxNumberConsecutiveFalse);
+    response->is_allowed = (m_countNumberConsecutiveFalse < m_maxNumberConsecutiveFalse);
     m_mutex.unlock();
-    RCLCPP_INFO_STREAM(m_node->get_logger(), "TurnBackManagerComponent::IsAllowedToTurnBack value:" << response->is_allowed);
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "TurnBackManagerComponent::IsAllowedToContinue value:" << response->is_allowed);
     response->is_ok = true;
 }
 
-void TurnBackManagerComponent::topic_callback_people_detector(const people_detector_filter_interfaces::msg::FilterStatus::SharedPtr msg) {
+void TurnBackManagerComponent::topic_callback_people_detector(const std_msgs::msg::Bool::SharedPtr msg) {
 	// people_detector_filter_interfaces::msg::FilterStatus filterStatus = *msg;
     if (msg == nullptr) {
         std::cerr << "Received null message people detector topic" << std::endl;
         return;
     }
-    // std::cout << "Topic " << static_cast<int>(msg->status) << std::endl;
+    m_mutex.lock();
+    m_lastDetection = msg->data;
+    m_mutex.unlock();
+    // std::cout << "Topic people detector int: " << static_cast<int>(msg->data) << std::endl;
+}
+
+void TurnBackManagerComponent::counterTask() {
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "Counter Task started");
+    int countFalses = 0;
+    m_mutex.lock();
+    int maxConsecutiveFalses = m_maxNumberConsecutiveFalse;
+    m_mutex.unlock();
+    while(countFalses < maxConsecutiveFalses)
+    {
+        m_mutex.lock();
+        int l_lastDetection = m_lastDetection;
+        m_mutex.unlock();
+        if(l_lastDetection == 1) //True detected
+        {
+            break;
+        }
+        countFalses++;
+        std::cout << "Counter value: " << countFalses << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    }
+    m_mutex.lock();
+    m_countNumberConsecutiveFalse = countFalses;
+    m_mutex.unlock();
+    std::cout << "Done, Counter value: " << countFalses << std::endl;
+    // If the counter is equal to maxConsecutiveFalses 
+    m_counterTask = false;
 }

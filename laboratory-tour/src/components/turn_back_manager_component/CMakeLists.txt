@@ -20,6 +20,7 @@ find_package(rclcpp REQUIRED)
 find_package(people_detector_filter_interfaces REQUIRED)
 find_package(turn_back_manager_interfaces REQUIRED)
 find_package(nav_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
 find_package(YCM REQUIRED)
 find_package(YARP 3.7 REQUIRED COMPONENTS dev os)
 
@@ -32,6 +33,7 @@ add_executable(${PROJECT_NAME} )
 
 ament_target_dependencies(${PROJECT_NAME} people_detector_filter_interfaces 
 turn_back_manager_interfaces
+std_msgs
 nav_msgs rclcpp )
 target_link_libraries(${PROJECT_NAME} ${YARP_LIBRARIES})
 
