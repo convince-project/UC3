@@ -33,8 +33,10 @@ bool PeopleDetectorFilterComponent::start(int argc, char*argv[])
 		"is_followed_timeout", 10, std::bind(&PeopleDetectorFilterComponent::topic_callback_people_detector, this, std::placeholders::_1));
     m_subscriptionOdometry = m_node->create_subscription<nav_msgs::msg::Odometry>(
 		"odometry", 10, std::bind(&PeopleDetectorFilterComponent::topic_callback_odometry, this, std::placeholders::_1));
-    m_publisher = m_node->create_publisher<people_detector_filter_interfaces::msg::FilterStatus>("/PeopleDetectorFilterComponent/filtered_detection", 10);
+    m_publisher = m_node->create_publisher<people_detector_filter_interfaces::msg::FilterStatus>("/PeopleDetectorFilterComponent/detection", 10);
+    m_filteredPublisher = m_node->create_publisher<std_msgs::msg::Bool>("/PeopleDetectorFilterComponent/filtered_detection", 10);
     m_timer = m_node->create_wall_timer(std::chrono::seconds(1), std::bind(&PeopleDetectorFilterComponent::publisher, this));
+    m_timer_filtered = m_node->create_wall_timer(std::chrono::seconds(1), std::bind(&PeopleDetectorFilterComponent::publisher_filtered, this));
     std::cout << "PeopleDetectorFilterComponent::start";        
     return true;
 
@@ -143,11 +145,103 @@ void PeopleDetectorFilterComponent::topic_callback_odometry(const nav_msgs::msg:
     }
     if(m_turningStepCount > 2)
     {
-        std::cout << "Neutral set, turning " << std::endl;
+        // std::cout << "Neutral set, turning " << std::endl;
         m_taskMutex.lock();
-        m_neutralDetected = true;
+        m_neutralTurningDetected = true;
         m_taskMutex.unlock();
     }
+}
+
+bool PeopleDetectorFilterComponent::getNavigationStatus(yarp::dev::Nav2D::NavigationStatusEnum& status)
+{
+    if(!m_iNav2D->getNavigationStatus(status))
+    {
+        return false;
+    } 
+    switch (status){
+        case yarp::dev::Nav2D::navigation_status_idle:
+            std::cout << "Navigation status IDLE " << std::endl;
+            std::cout << "Neutral set, status idle" << std::endl;
+            m_taskMutex.lock();
+            m_neutralStatusDetected = true;
+            m_taskMutex.unlock();
+            break;
+        case yarp::dev::Nav2D::navigation_status_preparing_before_move:
+            std::cout << "Navigation status Preparing_before_move " << std::endl;
+            break;
+        case yarp::dev::Nav2D::navigation_status_moving:
+            std::cout << "Navigation status moving " << std::endl;
+            break;
+        case yarp::dev::Nav2D::navigation_status_waiting_obstacle:
+            std::cout << "Navigation status waiting_obstacle " << std::endl;
+            break;
+        case yarp::dev::Nav2D::navigation_status_goal_reached:
+            std::cout << "Navigation status goal reached " << std::endl;
+            std::cout << "Neutral set, goal reached" << std::endl;
+            m_taskMutex.lock();
+            m_neutralStatusDetected = true;
+            m_taskMutex.unlock();
+            break;
+        case yarp::dev::Nav2D::navigation_status_aborted:
+            std::cout << "Navigation status aborted " << std::endl;
+            std::cout << "Neutral set, status aborted" << std::endl;
+            m_taskMutex.lock();
+            m_neutralStatusDetected = true;
+            m_taskMutex.unlock();
+            break;
+        case yarp::dev::Nav2D::navigation_status_failing:
+            std::cout << "Navigation status failing " << std::endl;
+            break;
+        case yarp::dev::Nav2D::navigation_status_paused:
+            std::cout << "Navigation status paused " << std::endl;
+            break;
+        case yarp::dev::Nav2D::navigation_status_thinking:
+            std::cout << "Navigation status thinking " << std::endl;
+            break;
+        case yarp::dev::Nav2D::navigation_status_error:
+            std::cout << "Navigation status error " << std::endl;
+            break;
+        default:
+            std::cout << "Navigation status default error " << std::endl;
+            break;
+    }
+    return true;
+}
+
+bool PeopleDetectorFilterComponent::getTurningBackStatus(std::string& turning_back_status)
+{
+    //calls the GetString service 
+    auto getStringClientNode = rclcpp::Node::make_shared("BlackboardComponentGetStringNode");
+    std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::GetStringBlackboard>> getStringClient = 
+    getStringClientNode->create_client<blackboard_interfaces::srv::GetStringBlackboard>("/BlackboardComponent/GetString");
+    auto getStringRequest = std::make_shared<blackboard_interfaces::srv::GetStringBlackboard::Request>();
+    getStringRequest->field_name = TURNING_BACK_BB_STR;
+    bool wait_succeded{true};
+    int retries = 0;
+    while (!getStringClient->wait_for_service(std::chrono::seconds(1))) {
+        if (!rclcpp::ok()) {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service '/BlackboardComponent/GetString'. Exiting.");
+            wait_succeded = false;
+            return false;
+        }
+        retries++;
+        if(retries == SERVICE_TIMEOUT) {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while waiting for the service '/BlackboardComponent/GetString'.");
+            wait_succeded = false;
+            return false;
+        }
+    }
+    if (!wait_succeded) {
+        return false;
+    }
+    auto getStringResult = getStringClient->async_send_request(getStringRequest);
+    auto futureGetStringResult = rclcpp::spin_until_future_complete(getStringClientNode, getStringResult);
+    auto getStringFutureResult = getStringResult.get();
+    if (getStringFutureResult->is_ok == true) { // 0 is getString
+        turning_back_status = getStringFutureResult->value;
+        return true;
+    }
+    return false;
 }
 
 bool PeopleDetectorFilterComponent::startComputeOutput()
@@ -178,105 +272,118 @@ void PeopleDetectorFilterComponent::computeOutputTask()
     RCLCPP_INFO_STREAM(m_node->get_logger(), "NEW_COMPUTE_THREAD");
     bool l_stop;
     yarp::dev::Nav2D::NavigationStatusEnum status;
+    OutputStatus l_outputStatus;
+    OutputStatus l_oldStatus;
+    int32_t l_filterCounter{0};
     do{
         bool l_neutralDetected = false;
         getNavigationStatus(status);
         m_taskMutex.lock();
-        if (m_neutralDetected){
-            l_neutralDetected = m_neutralDetected;
-            m_neutralDetected = false;
-            std::cout << "Neutral detected " << std::endl;
+        l_filterCounter = m_filterCounter;
+        l_oldStatus = m_oldStatus;
+        if (m_neutralStatusDetected){
+            l_neutralDetected = true;
+            m_neutralStatusDetected = false;
+            l_outputStatus = OutputStatus::NEUTRAL_STATUS_NEUTRAL_NAV_STATUS;
+            std::cout << "Neutral detected from navigation status" << std::endl;
+        }
+        if (m_neutralTurningDetected){
+            l_neutralDetected = true;
+            m_neutralTurningDetected = false;
+            l_outputStatus = OutputStatus::NEUTRAL_STATUS_TURNING;
+            std::cout << "Neutral detected, robot is turning" << std::endl;
         }
         m_taskMutex.unlock();
 
-        if(l_neutralDetected)
+        std::string turning_back_status;
+        getTurningBackStatus(turning_back_status);
+
+        if(turning_back_status == TURNING_BACK_STATUS_TURNING)
         {
-            m_filterCounter = 0;
-            m_outputStatus = OutputStatus::NEUTRAL_STATUS;
+            std::cout << "Neutral detected, robot is turing back" << std::endl;
+            l_outputStatus = OutputStatus::NEUTRAL_STATUS_TURNING_BACK;
+        }
+        else if(turning_back_status == TURNING_BACK_STATUS_TURNED)
+        {
+            std::cout << "Neutral detected, robot is turned back" << std::endl;
+            l_outputStatus = OutputStatus::NEUTRAL_STATUS_TURN_BACK_REACHED;
+        }
+        else if(l_neutralDetected)
+        {
+            // If neutral state detected (robot is turning or navigation status is goal reached or idle)
+            // Check if it was turning back to check for people
+            l_filterCounter = 0;
         }
         else if(m_peopleDetectorStatus)
         {
-            m_outputStatus = OutputStatus::TRUE_STATUS;
+            l_outputStatus = OutputStatus::TRUE_STATUS;
         }
         else
         {
-            m_outputStatus = OutputStatus::FALSE_STATUS;
+            l_outputStatus = OutputStatus::FALSE_STATUS;
         }
-        if(m_oldStatus != m_outputStatus)
+
+        if(l_oldStatus != l_outputStatus)
         {
-            if(m_oldStatus == OutputStatus::NEUTRAL_STATUS && m_filterCounter < m_filterTimeout)
+            if((l_oldStatus == OutputStatus::NEUTRAL_STATUS_TURNING || l_oldStatus == OutputStatus::NEUTRAL_STATUS_NEUTRAL_NAV_STATUS ))
             {
-                RCLCPP_INFO_STREAM(m_node->get_logger(), "Forcing neutral state until timeout, counter: "<< m_filterCounter);
-                m_outputStatus = OutputStatus::NEUTRAL_STATUS;
+                if(l_outputStatus != OutputStatus::NEUTRAL_STATUS_TURNING_BACK && l_outputStatus != OutputStatus::NEUTRAL_STATUS_TURN_BACK_REACHED)
+                {  
+                    if(l_filterCounter < m_filterTimeout)
+                    {
+                        RCLCPP_INFO_STREAM(m_node->get_logger(), "Forcing neutral state until timeout, counter: "<< l_filterCounter);
+                        l_outputStatus = l_oldStatus;
+                    }
+                }
             }
         }
-        m_filterCounter++;
-        RCLCPP_INFO_STREAM(m_node->get_logger(), "Output status: "<< m_outputStatus);
-        m_oldStatus = m_outputStatus;
+        l_filterCounter++;
+        RCLCPP_INFO_STREAM(m_node->get_logger(), "Output status: "<< l_outputStatus);
+
         m_taskMutex.lock();
+        m_filterCounter = l_filterCounter;
+        m_outputStatus = l_outputStatus;
+        m_oldStatus = l_outputStatus;
         l_stop = m_stopTask;
         m_taskMutex.unlock();
+
         std::this_thread::sleep_for(std::chrono::seconds(1)); //delete
     }while(!l_stop);
     RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "END_COMPUTE_THREAD");
     m_computeTask = false;
 }
 
-bool PeopleDetectorFilterComponent::getNavigationStatus(yarp::dev::Nav2D::NavigationStatusEnum status)
-{
-    if(!m_iNav2D->getNavigationStatus(status))
-    {
-        return false;
-    } 
-    switch (status){
-        case yarp::dev::Nav2D::navigation_status_idle:
-            std::cout << "Navigation status IDLE " << std::endl;
-            std::cout << "Neutral set, status idle" << std::endl;
-            m_taskMutex.lock();
-            m_neutralDetected = true;
-            m_taskMutex.unlock();
-            break;
-        case yarp::dev::Nav2D::navigation_status_preparing_before_move:
-            std::cout << "Navigation status Preparing_before_move " << std::endl;
-            break;
-        case yarp::dev::Nav2D::navigation_status_moving:
-            std::cout << "Navigation status moving " << std::endl;
-            break;
-        case yarp::dev::Nav2D::navigation_status_waiting_obstacle:
-            std::cout << "Navigation status waiting_obstacle " << std::endl;
-            break;
-        case yarp::dev::Nav2D::navigation_status_goal_reached:
-            std::cout << "Navigation status goal reached " << std::endl;
-            std::cout << "Neutral set, goal reached" << std::endl;
-            m_taskMutex.lock();
-            m_neutralDetected = true;
-            m_taskMutex.unlock();
-            break;
-        case yarp::dev::Nav2D::navigation_status_aborted:
-            std::cout << "Navigation status aborted " << std::endl;
-            break;
-        case yarp::dev::Nav2D::navigation_status_failing:
-            std::cout << "Navigation status failing " << std::endl;
-            break;
-        case yarp::dev::Nav2D::navigation_status_paused:
-            std::cout << "Navigation status paused " << std::endl;
-            break;
-        case yarp::dev::Nav2D::navigation_status_thinking:
-            std::cout << "Navigation status thinking " << std::endl;
-            break;
-        case yarp::dev::Nav2D::navigation_status_error:
-            std::cout << "Navigation status error " << std::endl;
-            break;
-        default:
-            std::cout << "Navigation status default error " << std::endl;
-            break;
-    }
-    return true;
-}
 
 void PeopleDetectorFilterComponent::publisher()
 {
     people_detector_filter_interfaces::msg::FilterStatus msg;
     msg.status = m_outputStatus;
     m_publisher->publish(msg);
+}
+
+void PeopleDetectorFilterComponent::publisher_filtered()
+{
+    OutputStatus l_filteredStatus = m_outputStatus;
+    std_msgs::msg::Bool msg;
+
+    if(m_outputStatus == NEUTRAL_STATUS_TURNING || m_outputStatus == NEUTRAL_STATUS_NEUTRAL_NAV_STATUS)
+    {
+        l_filteredStatus = OutputStatus::TRUE_STATUS;
+    }
+    else if(m_outputStatus == NEUTRAL_STATUS_TURNING_BACK)
+    {
+        l_filteredStatus = OutputStatus::FALSE_STATUS;
+    }
+    else if(m_outputStatus == NEUTRAL_STATUS_TURN_BACK_REACHED)
+    {
+        if(m_peopleDetectorStatus)
+            l_filteredStatus = OutputStatus::TRUE_STATUS;
+        else
+            l_filteredStatus = OutputStatus::FALSE_STATUS;
+    }
+    if( l_filteredStatus == OutputStatus::TRUE_STATUS)
+        msg.data = true;
+    else
+        msg.data = false;
+    m_filteredPublisher->publish(msg);
 }

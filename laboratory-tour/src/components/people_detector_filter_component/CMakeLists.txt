@@ -18,6 +18,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(people_detector_filter_interfaces REQUIRED)
+find_package(blackboard_interfaces REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(YCM REQUIRED)
 find_package(YARP 3.7 REQUIRED COMPONENTS dev os)
@@ -29,7 +30,7 @@ add_executable(${PROJECT_NAME} )
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-ament_target_dependencies(${PROJECT_NAME} people_detector_filter_interfaces nav_msgs rclcpp )
+ament_target_dependencies(${PROJECT_NAME} people_detector_filter_interfaces blackboard_interfaces nav_msgs rclcpp )
 target_link_libraries(${PROJECT_NAME} ${YARP_LIBRARIES})
 
 target_include_directories(${PROJECT_NAME}
