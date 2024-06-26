@@ -47,6 +47,11 @@ bool TurnBackManagerComponent::start(int argc, char*argv[])
                                                                                 this,
                                                                                 std::placeholders::_1,
                                                                                 std::placeholders::_2));
+    m_getTurnBacksCounterService = m_node->create_service<turn_back_manager_interfaces::srv::GetTurnBacksCounter>("/TurnBackManagerComponent/GetTurnBacksCounter",  
+                                                                                std::bind(&TurnBackManagerComponent::GetTurnBacksCounter,
+                                                                                this,
+                                                                                std::placeholders::_1,
+                                                                                std::placeholders::_2));
     m_isAllowedToContinueService = m_node->create_service<turn_back_manager_interfaces::srv::IsAllowedToContinue>("/TurnBackManagerComponent/IsAllowedToContinue",  
                                                                                 std::bind(&TurnBackManagerComponent::IsAllowedToContinue,
                                                                                 this,
@@ -143,6 +148,16 @@ void TurnBackManagerComponent::IncreaseTurnBacksCounter([[maybe_unused]]const st
     } else {
         std::cout << "Counter Task is already running." << std::endl;
     }
+}
+
+void TurnBackManagerComponent::GetTurnBacksCounter([[maybe_unused]]const std::shared_ptr<turn_back_manager_interfaces::srv::GetTurnBacksCounter::Request> request,
+             std::shared_ptr<turn_back_manager_interfaces::srv::GetTurnBacksCounter::Response>      response) 
+{
+    m_mutex.lock();
+    response->counter = m_countNumberTurnBacks;
+    m_mutex.unlock();
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "TurnBackManagerComponent::GetTurnBacksCounter value:" << response->counter);
+    response->is_ok = true;
 }
 
 void TurnBackManagerComponent::IsAllowedToContinue([[maybe_unused]]const std::shared_ptr<turn_back_manager_interfaces::srv::IsAllowedToContinue::Request> request,

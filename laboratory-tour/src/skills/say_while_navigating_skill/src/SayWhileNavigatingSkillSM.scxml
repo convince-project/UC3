@@ -8,13 +8,37 @@
   <datamodel>
     <data id="m_is_done"/>
     <data id="m_result"/>
+    <data id="m_counter"/>
     <data id="m_command" expr="'sayWhileNavigating'"/>
   </datamodel>
 
   <state id="idle">
-      <transition event="CMD_TICK" target="talk" />
+      <transition event="CMD_TICK" target="allowedToTalk" />
       <transition event="CMD_HALT" target="stop" /> 
   </state>
+
+  <state id="allowedToTalk">
+      <onentry>
+          <send event="TurnBackManagerComponent.GetTurnBacksCounter.Call"/>
+      </onentry>
+      <transition event="TurnBackManagerComponent.GetTurnBacksCounter.Return" target="allowedToTalkResult">
+        <assign expr="_event.data.result" location="m_result"/>
+        <assign expr="_event.data.counter" location="m_counter"/>
+      </transition>
+  </state>
+
+  <state id="allowedToTalkResult">
+    <transition cond="m_result == 'SUCCESS'" target="check" />
+    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+  </state>
+
+  <state id="check">
+    <onentry>
+      <log expr="m_counter"/>
+    </onentry>
+    <transition cond="m_counter == 0" target="talk" /> 
+    <transition target="sendSuccess" /> 
+  </state> 
 
   <state id="talk">
       <onentry>
@@ -78,11 +102,11 @@
   </state>  
 
   <state id="checkIfDone"> 
-    <transition cond="m_is_done" target="sendDone" />
+    <transition cond="m_is_done" target="sendSuccess" />
     <transition target="sendRunning"/>
   </state>
 
-  <state id="sendDone">
+  <state id="sendSuccess">
     <onentry>
         <send event="TICK_RESPONSE">
           <param name="result" expr='"SUCCESS"'/> 
