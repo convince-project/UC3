@@ -462,6 +462,17 @@
                 <dataField>is_allowed</dataField>
             </returnValue>
         </function>
+        <function id="GetTurnBacksCounter">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol> 
+            <returnValue>
+                <dataType>int32</dataType>
+                <dataField>counter</dataField>
+            </returnValue>
+        </function>
         
     </interface>
 
