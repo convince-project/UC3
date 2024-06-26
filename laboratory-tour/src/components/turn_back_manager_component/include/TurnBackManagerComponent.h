@@ -17,6 +17,7 @@
 #include <turn_back_manager_interfaces/srv/set_max_consecutive_falses.hpp>
 #include <turn_back_manager_interfaces/srv/get_max_consecutive_falses.hpp>
 #include <turn_back_manager_interfaces/srv/increase_turn_backs_counter.hpp>
+#include <turn_back_manager_interfaces/srv/get_turn_backs_counter.hpp>
 #include <turn_back_manager_interfaces/srv/is_allowed_to_continue.hpp>
 
 
@@ -42,6 +43,8 @@ public:
                 std::shared_ptr<turn_back_manager_interfaces::srv::ResetCounters::Response>      response);
     void IncreaseTurnBacksCounter([[maybe_unused]] const std::shared_ptr<turn_back_manager_interfaces::srv::IncreaseTurnBacksCounter::Request> request,
                 std::shared_ptr<turn_back_manager_interfaces::srv::IncreaseTurnBacksCounter::Response>      response);
+    void GetTurnBacksCounter([[maybe_unused]] const std::shared_ptr<turn_back_manager_interfaces::srv::GetTurnBacksCounter::Request> request,
+                std::shared_ptr<turn_back_manager_interfaces::srv::GetTurnBacksCounter::Response>      response);
     void IsAllowedToContinue([[maybe_unused]] const std::shared_ptr<turn_back_manager_interfaces::srv::IsAllowedToContinue::Request> request,
                 std::shared_ptr<turn_back_manager_interfaces::srv::IsAllowedToContinue::Response>      response);
 
@@ -56,6 +59,7 @@ private:
     rclcpp::Service<turn_back_manager_interfaces::srv::SetMaxConsecutiveFalses>::SharedPtr m_setMaxConsecutiveFalsesService;
     rclcpp::Service<turn_back_manager_interfaces::srv::GetMaxConsecutiveFalses>::SharedPtr m_getMaxConsecutiveFalsesService;
     rclcpp::Service<turn_back_manager_interfaces::srv::IncreaseTurnBacksCounter>::SharedPtr m_increaseTurnBacksCounterService;
+    rclcpp::Service<turn_back_manager_interfaces::srv::GetTurnBacksCounter>::SharedPtr m_getTurnBacksCounterService;
     rclcpp::Service<turn_back_manager_interfaces::srv::IsAllowedToContinue>::SharedPtr m_isAllowedToContinueService;
     rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr m_subscriptionPeopleDetector;
     
