@@ -11,7 +11,7 @@
   <depend>bt_interfaces</depend>
   <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
-
+  <depend>blackboard_interfaces</depend>
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
   <member_of_group>rosidl_interface_packages</member_of_group>
