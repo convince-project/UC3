@@ -11,23 +11,36 @@
 
 bool LogComponent::start(int argc, char*argv[])
 {
-    // if(!rclcpp::ok())
-    // {
-    //     rclcpp::init(/*argc*/ argc, /*argv*/ argv);
-    // }
-    // m_node = rclcpp::Node::make_shared("LogComponentNode");
-    // m_addToLogService = m_node->create_service<log_interfaces::srv::AddToLog>("/LogComponent/AddToLog",  
-    //                                                                             std::bind(&LogComponent::AddToLog,
-    //                                                                             this,
-    //                                                                             std::placeholders::_1,
-    //                                                                             std::placeholders::_2));
+    if (argc >= 2)
+    {
+        if(!openFile(std::string(argv[1])))
+        {
+            return false;
+        }
+    }
+    else
+    {
+        std::cerr << "Error: output path is missing" << std::endl;
+        return false;
+    }
+    if(!rclcpp::ok())
+    {
+        rclcpp::init(/*argc*/ argc, /*argv*/ argv);
+    }
+    m_node = rclcpp::Node::make_shared("LogComponentNode");
+    m_addToLogService = m_node->create_service<log_interfaces::srv::AddToLog>("/LogComponent/AddToLog",  
+                                                                                std::bind(&LogComponent::AddToLog,
+                                                                                this,
+                                                                                std::placeholders::_1,
+                                                                                std::placeholders::_2));
 
-    // RCLCPP_DEBUG(m_node->get_logger(), "LogComponent::start");
-    // m_subscription = m_node->create_subscription<std_msgs::msg::String>(
-	// 	"/LogComponent/add_to_log", 10, std::bind(&LogComponent::topic_callback, this, std::placeholders::_1));
-    // m_publisher = m_node->create_publisher<std_msgs::msg::String>("/LogComponent/read_log", 10);
-    // std::cout << "LogComponent::start\n";        
-    // return true;
+    RCLCPP_DEBUG(m_node->get_logger(), "LogComponent::start");
+    m_subscription = m_node->create_subscription<std_msgs::msg::String>(
+		"/LogComponent/add_to_log", 10, std::bind(&LogComponent::topic_callback, this, std::placeholders::_1));
+    m_publisher = m_node->create_publisher<std_msgs::msg::String>("/LogComponent/read_log", 10);
+
+    std::cout << "LogComponent::start\n";        
+    return true;
 
 }
 
