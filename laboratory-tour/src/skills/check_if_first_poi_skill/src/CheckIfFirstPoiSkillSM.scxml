@@ -1,7 +1,7 @@
 <scxml 
   initial="idle" 
   version="1.0" 
-  name="CheckIfStartSkillCondition"
+  name="CheckIfFirstPoiSkillCondition"
   datamodel="ecmascript"
   xmlns="http://www.w3.org/2005/07/scxml">
 
@@ -9,7 +9,7 @@
     <data id="m_result"/>
     <data id="m_poi_name"/>
     <data id="m_poi_number"/>
-    <data id="START_POI" expr="0"/>
+    <data id="FIRST_POI" expr="1"/>
   </datamodel>
 
   <state id="idle">
@@ -33,7 +33,7 @@
   </state>
 
   <state id="checkPoi">
-    <transition cond="m_poi_number == START_POI" target="sendSuccess" /> 
+    <transition cond="m_poi_number == FIRST_POI" target="sendSuccess" /> 
     <transition target="sendFailure" /> 
   </state> 
 

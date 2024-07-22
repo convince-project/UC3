@@ -247,6 +247,28 @@
     <!-- ============================= -->
 
     <module>
+        <name>ros2</name>
+        <parameters>run check_if_first_poi_skill check_if_first_poi_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run start_tour_timer_skill start_tour_timer_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run stop_tour_timer_skill stop_tour_timer_skill</parameters>
+        <workdir></workdir>
+        <node>bt</node>
+    </module>
+
+    <!-- ============================= -->
+    <module>
          <name>ros2</name>
          <parameters>run dummy_condition dummy_condition --skill_name VisitorsFollowingRobot --default_status SUCCESS</parameters>
          <workdir></workdir>

@@ -106,7 +106,7 @@
 
     <module>
         <name>ros2</name>
-        <parameters>run scheduler_component scheduler_component  conf/tours.json TOUR_MADAMA_3</parameters>
+        <parameters>run scheduler_component scheduler_component conf/tours.json TOUR_MADAMA_3</parameters>
         <workdir>/home/user1/UC3/laboratory-tour</workdir>
         <node>bt</node>
     </module>
@@ -133,10 +133,18 @@
         <node>bt</node>
     </module>
 
+    <module>
+        <name>ros2</name>
+        <parameters>run log_component log_component </parameters>
+        <workdir>/home/user1/</workdir>
+        <node>bt</node>
+    </module>
 
-
-
-
-
+    <module>
+        <name>ros2</name>
+        <parameters>run time_component time_component config/config.ini</parameters>
+        <workdir>/home/user1/UC3/laboratory-tour/src/components/time_component/</workdir>
+        <node>bt</node>
+    </module>
 
 </application>

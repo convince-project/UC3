@@ -1,0 +1,143 @@
+<?xml version="1.0"?>
+<root main_tree_to_execute="BehaviorTree">
+    <!-- ////////// -->
+    <BehaviorTree ID="BatteryManagement">
+        <ReactiveSequence>
+            <ReactiveFallback>
+                <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="BatteryLevel"/>
+                <ReactiveFallback name="">
+                    <ReactiveSequence>
+                        <Inverter name="">
+                            <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="BatteryCharging"/>
+                        </Inverter>
+                        <Parallel failure_threshold="1" success_threshold="2">
+                            <ReactiveFallback>
+                                <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsAtChargingStation"/>
+                                <Sequence name="">
+                                    <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SayBye"/>
+                                    <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="ResetTour"/>
+                                    <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="GoToChargingStation"/>
+                                </Sequence>
+                            </ReactiveFallback>
+                            <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="AlarmBatteryLow"/>
+                        </Parallel>
+                    </ReactiveSequence>
+                    <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="Wait"/>
+                </ReactiveFallback>
+            </ReactiveFallback>
+            <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="NotifyCharged"/>
+            <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsAllowedToMove"/>
+        </ReactiveSequence>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <BehaviorTree ID="BehaviorTree">
+        <ReactiveSequence>
+            <Sequence>
+                <ReactiveSequence>
+                    <SubTree ID="PeopleLeaving"/>
+                    <SubTree ID="GoToPoi"/>
+                </ReactiveSequence>
+                <SubTree ID="CheckArtworkAndExplain"/>
+                <SubTree ID="TourDuration"/>
+            </Sequence>
+        </ReactiveSequence>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <BehaviorTree ID="CheckArtworkAndExplain">
+        <Sequence>
+            <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="NarratePoi"/>
+            <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="Dialog"/>
+            <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="UpdatePoi"/>
+            <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="ResetCounters"/>
+            <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SetNavigationPosition"/>
+        </Sequence>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <BehaviorTree ID="GoToPoi">
+        <ReactiveFallback>
+            <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsAtCurrentPoi"/>
+            <ReactiveSequence>
+                <ReactiveFallback name="">
+                    <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="CheckIfStart"/>
+                    <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="VisitorsFollowingRobot"/>
+                    <ReactiveSequence>
+                        <ReactiveFallback name="">
+                            <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsCheckingForPeople"/>
+                            <ReactiveSequence name="">
+                                <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SetTurning"/>
+                                <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="StopAndTurnBack"/>
+                                <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SetTurned"/>
+                            </ReactiveSequence>
+                        </ReactiveFallback>
+                        <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="RunTimer"/>
+                        <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SayFollowMe"/>
+                        <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="Wait"/>
+                    </ReactiveSequence>
+                </ReactiveFallback>
+                <ReactiveSequence>
+                    <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SetNotTurning"/>
+                    <Parallel failure_threshold="1" success_threshold="2">
+                        <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="GoToCurrentPoi"/>
+                        <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SayWhileNavigating"/>
+                    </Parallel>
+                </ReactiveSequence>
+            </ReactiveSequence>
+        </ReactiveFallback>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <BehaviorTree ID="NetworkManagement">
+        <ReactiveFallback>
+            <Inverter>
+                <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="NetworkStatusChanged"/>
+            </Inverter>
+            <ReactiveFallback>
+                <ReactiveSequence>
+                    <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="NetworkUp"/>
+                    <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="StopService"/>
+                </ReactiveSequence>
+                <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="StartService"/>
+            </ReactiveFallback>
+        </ReactiveFallback>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <BehaviorTree ID="PeopleLeaving">
+        <ReactiveFallback>
+            <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="ArePeoplePresent"/>
+            <ReactiveSequence name="">
+                <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SayPeopleLeft"/>
+                <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="PeopleLeft"/>
+            </ReactiveSequence>
+        </ReactiveFallback>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <BehaviorTree ID="TourDuration">
+        <ReactiveFallback>
+            <ReactiveSequence>
+                <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="CheckIfStart"/>
+                <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="StopTourTimer"/>
+            </ReactiveSequence>
+            <ReactiveSequence name="">
+                <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="CheckIfFirstPoi"/>
+                <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="StartTourTimer"/>
+            </ReactiveSequence>
+        </ReactiveFallback>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <TreeNodesModel>
+        <SubTree ID="BatteryManagement"/>
+        <SubTree ID="CheckArtworkAndExplain"/>
+        <SubTree ID="GoToPoi"/>
+        <SubTree ID="NetworkManagement"/>
+        <SubTree ID="PeopleLeaving"/>
+        <SubTree ID="TourDuration"/>
+        <Action ID="ROS2Action">
+            <input_port name="interface" type="std::string"/>
+            <input_port name="isMonitored" type="std::string"/>
+        </Action>
+        <Condition ID="ROS2Condition">
+            <input_port name="interface" type="std::string"/>
+            <input_port name="isMonitored" type="std::string"/>
+        </Condition>
+    </TreeNodesModel>
+    <!-- ////////// -->
+</root>
