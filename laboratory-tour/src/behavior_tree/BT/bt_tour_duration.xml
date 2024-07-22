@@ -33,9 +33,10 @@
     <BehaviorTree ID="BehaviorTree">
         <ReactiveSequence>
             <Sequence>
+                <SubTree ID="MuseumHours"/>
                 <ReactiveSequence>
-                    <SubTree ID="PeopleLeaving"/>
-                    <SubTree ID="GoToPoi"/>
+                    <!-- <SubTree ID="PeopleLeaving"/> -->
+                    <!-- <SubTree ID="GoToPoi"/> -->
                 </ReactiveSequence>
                 <SubTree ID="CheckArtworkAndExplain"/>
                 <SubTree ID="TourDuration"/>
@@ -123,6 +124,17 @@
         </ReactiveFallback>
     </BehaviorTree>
     <!-- ////////// -->
+    <BehaviorTree ID="MuseumHours">
+        <Fallback>
+            <Inverter name="">
+                <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="CheckIfStart"/>
+            </Inverter>
+            <Inverter name="">
+                <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsMuseumClosing"/>
+            </Inverter>
+        </Fallback>
+    </BehaviorTree>
+    <!-- ////////// -->
     <TreeNodesModel>
         <SubTree ID="BatteryManagement"/>
         <SubTree ID="CheckArtworkAndExplain"/>
@@ -130,6 +142,7 @@
         <SubTree ID="NetworkManagement"/>
         <SubTree ID="PeopleLeaving"/>
         <SubTree ID="TourDuration"/>
+        <SubTree ID="MuseumHours"/>
         <Action ID="ROS2Action">
             <input_port name="interface" type="std::string"/>
             <input_port name="isMonitored" type="std::string"/>
