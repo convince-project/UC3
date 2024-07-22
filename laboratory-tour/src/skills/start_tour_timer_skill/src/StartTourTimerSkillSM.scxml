@@ -1,41 +1,32 @@
 <scxml 
   initial="idle" 
   version="1.0" 
-  name="CheckIfStartSkillCondition"
+  name="StartTourTimerSkillAction"
   datamodel="ecmascript"
   xmlns="http://www.w3.org/2005/07/scxml">
 
   <datamodel>
     <data id="m_result"/>
-    <data id="m_poi_name"/>
-    <data id="m_poi_number"/>
-    <data id="START_POI" expr="0"/>
   </datamodel>
 
   <state id="idle">
-      <transition event="CMD_TICK" target="getCurrentPoi" />
+      <transition event="CMD_TICK" target="startTimer" />
+      <transition event="CMD_HALT" target="sendHalted" /> 
   </state>
 
-  <state id="getCurrentPoi">
+  <state id="startTimer">
     <onentry>
-        <send event="SchedulerComponent.GetCurrentPoi.Call"/>
+        <send event="TimeComponent.StartTourTimer.Call"/>
     </onentry>
-    <transition event="SchedulerComponent.GetCurrentPoi.Return" target="getCurrentPoiResult"> 
+    <transition event="TimeComponent.StartTourTimer.Return" target="startTimerResult"> 
         <assign expr="_event.data.result" location="m_result"/>
-        <assign expr="_event.data.poi_name" location="m_poi_name"/>
-        <assign expr="_event.data.poi_number" location="m_poi_number"/>
     </transition>
   </state>
 
-  <state id="getCurrentPoiResult">
-    <transition cond="m_result == 'SUCCESS'" target="checkPoi" />
+  <state id="startTimerResult">
+    <transition cond="m_result == 'SUCCESS'" target="sendSuccess" />
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
   </state>
-
-  <state id="checkPoi">
-    <transition cond="m_poi_number == START_POI" target="sendSuccess" /> 
-    <transition target="sendFailure" /> 
-  </state> 
 
   <state id="sendFailure">
     <onentry>
@@ -55,5 +46,12 @@
       <transition target="idle" />
   </state>
 
+  <state id="sendHalted">
+      <onentry>
+          <send event="HALT_RESPONSE">
+          </send>
+      </onentry>
+      <transition target="idle" />
+  </state>
 
 </scxml>
