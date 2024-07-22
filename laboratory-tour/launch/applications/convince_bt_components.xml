@@ -135,8 +135,8 @@
 
     <module>
         <name>ros2</name>
-        <parameters>run log_component log_component </parameters>
-        <workdir>/home/user1/</workdir>
+        <parameters>run log_component log_component /home/user1/</parameters>
+        <workdir></workdir>
         <node>bt</node>
     </module>
 
