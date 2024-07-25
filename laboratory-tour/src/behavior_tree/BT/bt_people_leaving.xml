@@ -58,6 +58,9 @@
             <ReactiveSequence>
                 <ReactiveFallback name="">
                     <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="CheckIfStart"/>
+                    <Inverter name="">
+                        <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsAllowedToTurnBack"/>
+                    </Inverter>
                     <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="VisitorsFollowingRobot"/>
                     <ReactiveSequence>
                         <ReactiveFallback name="">
