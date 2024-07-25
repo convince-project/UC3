@@ -39,6 +39,20 @@
   </state>
 
   <state id="resetCountersResult">
+    <transition cond="m_result == 'SUCCESS'" target="stopTimer" />
+    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+  </state>
+
+  <state id="stopTimer">
+    <onentry>
+        <send event="TimeComponent.StopTourTimer.Call"/>
+    </onentry>
+    <transition event="TimeComponent.StopTourTimer.Return" target="stopTimerResult"> 
+        <assign expr="_event.data.result" location="m_result"/>
+    </transition>
+  </state>
+
+  <state id="stopTimerResult">
     <transition cond="m_result == 'SUCCESS'" target="sendSuccess" />
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
   </state>
