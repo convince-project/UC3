@@ -11,6 +11,7 @@
   <depend>bt_interfaces</depend>
   
   <depend>turn_back_manager_interfaces</depend>
+  <depend>time_interfaces</depend>
   <depend>scheduler_interfaces</depend>
 
   <test_depend>ament_lint_auto</test_depend>

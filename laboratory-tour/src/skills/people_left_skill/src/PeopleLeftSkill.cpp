@@ -115,6 +115,51 @@ bool PeopleLeftSkill::start(int argc, char*argv[])
        m_stateMachine.submitEvent("TurnBackManagerComponent.ResetCounters.Return", data);
        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TurnBackManagerComponent.ResetCounters.Return");
     });
+    m_stateMachine.connectToEvent("TimeComponent.StopTourTimer.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
+        std::shared_ptr<rclcpp::Node> nodeStopTourTimer = rclcpp::Node::make_shared(m_name + "SkillNodeStopTourTimer");
+        std::shared_ptr<rclcpp::Client<time_interfaces::srv::StopTourTimer>> clientStopTourTimer = nodeStopTourTimer->create_client<time_interfaces::srv::StopTourTimer>("/TimeComponent/StopTourTimer");
+        auto request = std::make_shared<time_interfaces::srv::StopTourTimer::Request>();
+        auto eventParams = event.data().toMap();
+        
+        bool wait_succeded{true};
+        int retries = 0;
+        while (!clientStopTourTimer->wait_for_service(std::chrono::seconds(1))) {
+            if (!rclcpp::ok()) {
+                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'StopTourTimer'. Exiting.");
+                wait_succeded = false;
+                break;
+            } 
+            retries++;
+            if(retries == SERVICE_TIMEOUT) {
+               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while waiting for the service 'StopTourTimer'.");
+               wait_succeded = false;
+               break;
+            }
+        }
+        if (wait_succeded) {                                                                   
+            auto result = clientStopTourTimer->async_send_request(request);
+            const std::chrono::seconds timeout_duration(SERVICE_TIMEOUT);
+            auto futureResult = rclcpp::spin_until_future_complete(nodeStopTourTimer, result, timeout_duration);
+            if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
+            {
+               auto response = result.get();
+               if( response->is_ok ==true) {
+                   QVariantMap data;
+                   data.insert("result", "SUCCESS");
+                   m_stateMachine.submitEvent("TimeComponent.StopTourTimer.Return", data);
+                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TimeComponent.StopTourTimer.Return");
+                   return;
+               }
+           }
+           else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
+               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'StopTourTimer'.");
+           }
+        }
+       QVariantMap data;
+       data.insert("result", "FAILURE");
+       m_stateMachine.submitEvent("TimeComponent.StopTourTimer.Return", data);
+       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TimeComponent.StopTourTimer.Return");
+    });
     m_stateMachine.connectToEvent("SchedulerComponent.Reset.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
         std::shared_ptr<rclcpp::Node> nodeReset = rclcpp::Node::make_shared(m_name + "SkillNodeReset");
         std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::Reset>> clientReset = nodeReset->create_client<scheduler_interfaces::srv::Reset>("/SchedulerComponent/Reset");

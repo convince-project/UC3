@@ -12,6 +12,7 @@ find_package(rclcpp REQUIRED)
 find_package(bt_interfaces REQUIRED)
 
 find_package(turn_back_manager_interfaces REQUIRED)
+find_package(time_interfaces REQUIRED)
 find_package(scheduler_interfaces REQUIRED)
 find_package(Qt6 COMPONENTS Core Scxml StateMachine  REQUIRED)
 
@@ -30,6 +31,7 @@ ament_target_dependencies(${PROJECT_NAME}
   bt_interfaces 
   rclcpp 
   turn_back_manager_interfaces 
+  time_interfaces 
   scheduler_interfaces 
   
   )
