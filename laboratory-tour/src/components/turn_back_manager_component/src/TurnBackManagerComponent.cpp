@@ -57,6 +57,11 @@ bool TurnBackManagerComponent::start(int argc, char*argv[])
                                                                                 this,
                                                                                 std::placeholders::_1,
                                                                                 std::placeholders::_2));
+    m_isAllowedToTurnBackService = m_node->create_service<turn_back_manager_interfaces::srv::IsAllowedToTurnBack>("/TurnBackManagerComponent/IsAllowedToTurnBack",  
+                                                                                std::bind(&TurnBackManagerComponent::IsAllowedToTurnBack,
+                                                                                this,
+                                                                                std::placeholders::_1,
+                                                                                std::placeholders::_2));
 
     RCLCPP_DEBUG(m_node->get_logger(), "TurnBackManagerComponent::start");
     m_subscriptionPeopleDetector = m_node->create_subscription<std_msgs::msg::Bool>(
@@ -98,6 +103,7 @@ void TurnBackManagerComponent::GetMaxTurnBacks([[maybe_unused]]const std::shared
     RCLCPP_INFO_STREAM(m_node->get_logger(), "TurnBackManagerComponent::GetMaxTurnBacks value:" << response->max);
     response->is_ok = true;
 }
+
 void TurnBackManagerComponent::SetMaxConsecutiveFalses(const std::shared_ptr<turn_back_manager_interfaces::srv::SetMaxConsecutiveFalses::Request> request,
              std::shared_ptr<turn_back_manager_interfaces::srv::SetMaxConsecutiveFalses::Response>      response) 
 {
@@ -168,6 +174,17 @@ void TurnBackManagerComponent::IsAllowedToContinue([[maybe_unused]]const std::sh
     response->is_allowed = (m_countNumberConsecutiveFalse < m_maxNumberConsecutiveFalse);
     m_mutex.unlock();
     RCLCPP_INFO_STREAM(m_node->get_logger(), "TurnBackManagerComponent::IsAllowedToContinue value:" << response->is_allowed);
+    response->is_ok = true;
+}
+
+void TurnBackManagerComponent::IsAllowedToTurnBack([[maybe_unused]]const std::shared_ptr<turn_back_manager_interfaces::srv::IsAllowedToTurnBack::Request> request,
+             std::shared_ptr<turn_back_manager_interfaces::srv::IsAllowedToTurnBack::Response>      response) 
+{
+    m_mutex.lock();
+    // response->is_allowed = (m_countNumberTurnBacks <= m_maxNumberTurnBacks) && (m_countNumberConsecutiveFalse < m_maxNumberConsecutiveFalse);
+    response->is_allowed = (m_countNumberTurnBacks < m_maxNumberTurnBacks);
+    m_mutex.unlock();
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "TurnBackManagerComponent::IsAllowedToTurnBack value:" << response->is_allowed);
     response->is_ok = true;
 }
 

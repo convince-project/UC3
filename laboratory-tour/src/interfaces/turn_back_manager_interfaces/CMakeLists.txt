@@ -24,6 +24,7 @@ rosidl_generate_interfaces(turn_back_manager_interfaces
 "srv/GetMaxConsecutiveFalses.srv"
 "srv/IncreaseTurnBacksCounter.srv"
 "srv/GetTurnBacksCounter.srv"
+"srv/IsAllowedToTurnBack.srv"
 "srv/IsAllowedToContinue.srv"
 DEPENDENCIES sensor_msgs
 LIBRARY_NAME turn_back_manager_interfaces 

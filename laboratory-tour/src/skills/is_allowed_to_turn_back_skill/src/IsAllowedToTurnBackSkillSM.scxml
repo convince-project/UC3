@@ -1,0 +1,88 @@
+<!-- To prevent from skipping the rest of the TurnBack SubTree -->
+<!-- It is allowed to turn back (and execute the rest of the TurnBack SubTree) only when  -->
+<!-- (A) the maximum number of turn backs is not reached or (B) it is turning back at the moment  -->
+<!-- If A is true, B is not checked. If A is false, B is checked  -->
+
+<scxml 
+  initial="idle" 
+  version="1.0" 
+  name="IsAllowedToTurnBackSkillCondition"
+  datamodel="ecmascript"
+  xmlns="http://www.w3.org/2005/07/scxml">
+
+  <datamodel>
+    <data id="m_result"/>
+    <data id="m_value"/>
+    <data id="m_is_allowed"/>
+    <data id="m_is_allowed"/>
+    <data id="m_name" expr='"turnBackState"'/>
+  </datamodel>
+
+  <state id="idle">
+      <transition event="CMD_TICK" target="getIsAllowed" />
+  </state>
+
+  <state id="getIsAllowed">
+    <onentry>
+        <send event="TurnBackManagerComponent.IsAllowedToTurnBack.Call"/>
+    </onentry>
+    <transition event="TurnBackManagerComponent.IsAllowedToTurnBack.Return" target="getIsAllowedResult"> 
+        <assign expr="_event.data.result" location="m_result"/>
+        <assign expr="_event.data.is_allowed" location="m_is_allowed"/>
+    </transition>
+  </state>
+
+  <state id="getIsAllowedResult">
+    <transition cond="m_result == 'SUCCESS'" target="checkIsAllowed" />
+    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+  </state>
+
+  <state id="checkIsAllowed">
+    <transition cond="m_is_allowed" target="sendSuccess" />
+    <transition target="getTurning" />
+  </state>
+
+  <state id="getTurning">
+    <onentry>
+      <send event="BlackboardComponent.GetString.Call">
+        <param name="field_name" expr="m_name"/>
+      </send>
+    </onentry>
+    <transition event="BlackboardComponent.GetString.Return" target="getIsNotTurningResult"> 
+        <assign expr="_event.data.result" location="m_result"/>
+        <assign expr="_event.data.value" location="m_value"/>
+    </transition>
+  </state>
+
+  <state id="getIsNotTurningResult">
+    <transition cond="m_result == 'SUCCESS'" target="checkIsNotTurning" />
+    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+  </state>
+
+  <state id="checkIsNotTurning">
+    <onentry>
+      <log expr="m_value"/>
+    </onentry>
+    <transition cond="m_value == 'not_turning'" target="sendFailure" />
+    <transition target="sendSuccess" />
+  </state>
+
+  <state id="sendFailure">
+    <onentry>
+      <send event="TICK_RESPONSE">
+        <param name="result" expr='"FAILURE"'/>
+      </send>
+    </onentry>
+    <transition target="idle" />
+  </state>
+
+  <state id="sendSuccess">
+      <onentry>
+        <send event="TICK_RESPONSE">
+          <param name="result" expr='"SUCCESS"'/>
+        </send>
+      </onentry>
+      <transition target="idle" />
+  </state>
+
+</scxml>
