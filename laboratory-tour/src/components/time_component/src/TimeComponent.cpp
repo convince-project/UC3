@@ -82,6 +82,7 @@ void TimeComponent::StartTourTimer([[maybe_unused]]const std::shared_ptr<time_in
         return;
     }
     m_timerMutex.unlock();
+    m_saidDurationWarning = false;
     m_threadTimer = std::thread([this]() { timerTask(); });
     response->is_ok = true;
 }
@@ -190,6 +191,9 @@ void TimeComponent::timerTask()
     int l_warningTime = m_warningTime;
     m_mutex.unlock();
     int l_secondsPassed = 0;
+    writeInBB(WARNING_BB_STRING, 0);
+    writeInBB(MAX_BB_STRING, 0);
+    writeInBB(DURATION_BB_STRING, 0);
     publisher("Tour started!");
     while(!l_stopped){
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -197,11 +201,13 @@ void TimeComponent::timerTask()
         if(l_secondsPassed == l_maxTime*60)
         {
             std::cout << "Time exceeded" << std::endl;
+            writeInBB(MAX_BB_STRING, 1);
             publisher("Tour maximum time exceeded!");
         }
         else if(l_secondsPassed == l_warningTime*60)
         {
             std::cout << "Time warning" << std::endl;
+            writeInBB(WARNING_BB_STRING, 1);
             publisher("Tour warning time exceeded!");
         }
         m_timerMutex.lock();
@@ -210,12 +216,17 @@ void TimeComponent::timerTask()
         if(l_secondsPassed % 60 == 0)
         {
             RCLCPP_INFO_STREAM(m_node->get_logger(), "Time passed: " << l_secondsPassed / 60 << " minutes");
+            writeInBB(DURATION_BB_STRING, l_secondsPassed / 60);
         }
+        
     }
     m_timerMutex.lock();
     m_timerTask = false;
     m_stopped = false;
     m_timerMutex.unlock();
+    writeInBB(WARNING_BB_STRING, 0);
+    writeInBB(MAX_BB_STRING, 0);
+    writeInBB(DURATION_BB_STRING, 0);
     publisher("Tour ended!");
     RCLCPP_INFO_STREAM(m_node->get_logger(), "End Timer ");
 }
@@ -326,4 +337,40 @@ int TimeComponent::getTimeInterval(const std::string timeStamp1, const std::stri
     std::time_t time1 = std::mktime(&tm1);
     std::time_t time2 = std::mktime(&tm2);
     return std::difftime(time2, time1) / 60; // in minutes
+}
+
+bool TimeComponent::writeInBB(std::string key, int value)
+{
+    //calls the SetInt service 
+    auto setIntClientNode = rclcpp::Node::make_shared("BlackboardComponentSetIntNode");
+    std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::SetIntBlackboard>> setIntClient = 
+    setIntClientNode->create_client<blackboard_interfaces::srv::SetIntBlackboard>("/BlackboardComponent/SetInt"); 
+    auto setIntRequest = std::make_shared<blackboard_interfaces::srv::SetIntBlackboard::Request>();
+    setIntRequest->field_name = key;
+    setIntRequest->value = value;
+    bool wait_succeded{true};
+    int retries = 0;
+    while (!setIntClient->wait_for_service(std::chrono::seconds(1))) {
+        if (!rclcpp::ok()) {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service '/BlackboardComponent/SetInt'. Exiting.");
+            wait_succeded = false;
+            return false;
+        }
+        retries++;
+        if(retries == SERVICE_TIMEOUT) {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while waiting for the service '/BlackboardComponent/SetInt'.");
+            wait_succeded = false;
+            return false;
+        }
+    }
+    if (!wait_succeded) {
+        return false;
+    }
+    auto setIntResult = setIntClient->async_send_request(setIntRequest);
+    auto futureSetIntResult = rclcpp::spin_until_future_complete(setIntClientNode, setIntResult);
+    auto setIntFutureResult = setIntResult.get();
+    if (setIntFutureResult->is_ok == true) {
+        return true;
+    }
+    return false;
 }
