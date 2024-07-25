@@ -29,7 +29,7 @@ public:
    static void spin(std::shared_ptr<rclcpp::Node> node);
 
 private:
-   uint m_status;
+   uint m_status{true};
    rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr m_subscription;
    std::shared_ptr<std::thread> m_threadSpin;
    std::shared_ptr<rclcpp::Node> m_node;
