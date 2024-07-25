@@ -12,13 +12,17 @@
     </application>
     
     <module>
-        <name>ros2</name>
-        <parameters>launch launch/bt_launch_people_leaving.py</parameters>
-        <workdir>/home/user1/UC3/laboratory-tour</workdir>
+        <name>python3</name>
+        <parameters>create_symlinks.py ../applications/convince_bt.xml</parameters>
+        <workdir>/home/user1/UC3/laboratory-tour/launch/symbolic_links/</workdir>
         <node>bt</node>
     </module>
 
-
-
+    <module>
+        <name>ros2_bt</name>
+        <parameters>launch launch/bt_tour_duration.py</parameters>
+        <workdir>/home/user1/UC3/laboratory-tour</workdir>
+        <node>bt</node>
+    </module>
 
 </application>

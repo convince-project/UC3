@@ -1,286 +1,311 @@
 <application>
     <name>convince_bt_skills</name>
 
-    <!-- ======= CheckArtworkAndExplain SubTree ======= -->
     <module>
-        <name>ros2</name>
+        <name>python3</name>
+        <parameters>create_symlinks.py ../applications/convince_bt_skills.xml</parameters>
+        <workdir>/home/user1/ros2_iron/src/UC3/laboratory-tour/launch/symbolic_links/</workdir>
+        <node>bt</node>
+    </module>
+
+
+    <module>
+        <name>ros2_narrate_poi_skill</name>
         <parameters>run narrate_poi_skill narrate_poi_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2</name>
+        <name>ros2_dialog_skill</name>
         <parameters>run dialog_skill dialog_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2</name>
+        <name>ros2_update_poi_skill</name>
         <parameters>run update_poi_skill update_poi_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2</name>
+        <name>ros2_reset_counters_skill</name>
         <parameters>run reset_counters_skill reset_counters_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2</name>
+        <name>ros2_set_navigation_position_skill</name>
         <parameters>run set_navigation_position_skill set_navigation_position_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
-    <!-- ======= BatteryManagement SubTree ======= -->
+    
     <module>
-        <name>ros2</name>
+        <name>ros2_battery_level_skill</name>
         <parameters>run battery_level_skill battery_level_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2</name>
+        <name>ros2_battery_charging_skill</name>
         <parameters>run battery_charging_skill battery_charging_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2</name>
+        <name>ros2_wait_skill</name>
         <parameters>run wait_skill wait_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2</name>
+        <name>ros2_is_at_charging_station_skill</name>
         <parameters>run is_at_charging_station_skill is_at_charging_station_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2</name>
+        <name>ros2_say_bye_skill</name>
         <parameters>run say_bye_skill say_bye_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2</name>
+        <name>ros2_reset_tour_skill</name>
         <parameters>run reset_tour_skill reset_tour_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2</name>
+        <name>ros2_go_to_charging_station_skill</name>
         <parameters>run go_to_charging_station_skill go_to_charging_station_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2</name>
+        <name>ros2_alarm_battery_low_skill</name>
         <parameters>run alarm_battery_low_skill alarm_battery_low_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2</name>
+        <name>ros2_is_allowed_to_move_skill</name>
         <parameters>run is_allowed_to_move_skill is_allowed_to_move_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2</name>
+        <name>ros2_notify_charged_skill</name>
         <parameters>run notify_charged_skill notify_charged_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
-    <!-- ======= NetworkManagement SubTree ======= -->
+    
     <module>
-        <name>ros2</name>
+        <name>ros2_network_up_skill</name>
         <parameters>run network_up_skill network_up_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
     <module>
-        <name>ros2</name>
+        <name>ros2_start_service_skill</name>
         <parameters>run start_service_skill start_service_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2</name>
+        <name>ros2_stop_service_skill</name>
         <parameters>run stop_service_skill stop_service_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2</name>
+        <name>ros2_network_status_changed_skill</name>
         <parameters>run network_status_changed_skill network_status_changed_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
-    <!-- ======= GoToPoi SubTree ======= -->
+    
     <module>
-        <name>ros2</name>
+        <name>ros2_is_at_current_poi_skill</name>
         <parameters>run is_at_current_poi_skill is_at_current_poi_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2</name>
+        <name>ros2_check_if_start_skill</name>
         <parameters>run check_if_start_skill check_if_start_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2</name>
+        <name>ros2_visitors_following_robot_skill</name>
         <parameters>run visitors_following_robot_skill visitors_following_robot_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2</name>
+        <name>ros2_is_checking_for_people_skill</name>
         <parameters>run is_checking_for_people_skill is_checking_for_people_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2</name>
+        <name>ros2_stop_and_turn_back_skill</name>
         <parameters>run stop_and_turn_back_skill stop_and_turn_back_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>   
 
     <module>
-        <name>ros2</name>
+        <name>ros2_run_timer_skill</name>
         <parameters>run run_timer_skill run_timer_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2</name>
+        <name>ros2_say_follow_me_skill</name>
         <parameters>run say_follow_me_skill say_follow_me_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2</name>
+        <name>ros2_say_while_navigating_skill</name>
         <parameters>run say_while_navigating_skill say_while_navigating_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2</name>
+        <name>ros2_go_to_current_poi_skill</name>
         <parameters>run go_to_current_poi_skill go_to_current_poi_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
     
     <module>
-        <name>ros2</name>
+        <name>ros2_set_turning_skill</name>
         <parameters>run set_turning_skill set_turning_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2</name>
+        <name>ros2_set_turned_skill</name>
         <parameters>run set_turned_skill set_turned_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2</name>
+        <name>ros2_set_not_turning_skill</name>
         <parameters>run set_not_turning_skill set_not_turning_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
-    <!-- ======= PeopleLeaving SubTree ======= -->
+    
 
     <module>
-        <name>ros2</name>
+        <name>ros2_are_people_present_skill</name>
         <parameters>run are_people_present_skill are_people_present_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2</name>
+        <name>ros2_say_people_left_skill</name>
         <parameters>run say_people_left_skill say_people_left_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2</name>
+        <name>ros2_people_left_skill</name>
         <parameters>run people_left_skill people_left_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
-    <!-- ======= TourDuration SubTree ======= -->
+    <module>
+        <name>ros2_is_allowed_to_turn_back_skill</name>
+        <parameters>run is_allowed_to_turn_back_skill is_allowed_to_turn_back_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+    
 
     <module>
-        <name>ros2</name>
+        <name>ros2_check_if_first_poi_skill</name>
         <parameters>run check_if_first_poi_skill check_if_first_poi_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2</name>
+        <name>ros2_start_tour_timer_skill</name>
         <parameters>run start_tour_timer_skill start_tour_timer_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2</name>
+        <name>ros2_stop_tour_timer_skill</name>
         <parameters>run stop_tour_timer_skill stop_tour_timer_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
-    <!-- ======= MuseumHours SubTree ======= -->
+    <module>
+        <name>ros2_is_warning_duration_skill</name>
+        <parameters>run is_warning_duration_skill is_warning_duration_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
 
     <module>
-        <name>ros2</name>
+        <name>ros2_say_duration_warning_skill</name>
+        <parameters>run say_duration_warning_skill say_duration_warning_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2_is_museum_closing_skill</name>
         <parameters>run is_museum_closing_skill is_museum_closing_skill</parameters>
-        <workdir></workdir>
+        <workdir />
         <node>bt</node>
     </module>
 
-    <!-- ============================= -->
+    
     <module>
-         <name>ros2</name>
+         <name>ros2_dummy_condition</name>
          <parameters>run dummy_condition dummy_condition --skill_name VisitorsFollowingRobot --default_status SUCCESS</parameters>
-         <workdir></workdir>
+         <workdir />
          <node>opt</node>
     </module>
 
