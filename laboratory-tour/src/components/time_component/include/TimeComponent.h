@@ -18,6 +18,13 @@
 #include <time_interfaces/srv/stop_tour_timer.hpp>
 #include <time_interfaces/srv/reload_config_file.hpp>
 #include <time_interfaces/srv/is_museum_closing.hpp>
+#include <blackboard_interfaces/srv/set_int_blackboard.hpp>
+
+#define WARNING_BB_STRING   "TourDurationWarningFlag"
+#define MAX_BB_STRING       "TourDurationExceededFlag"
+#define DURATION_BB_STRING  "TimePassedMinutes"
+#define SAID_WARNING_BB_STRING  "SaidWarningFlag"
+#define SERVICE_TIMEOUT     2
 
 class TimeComponent 
 {
@@ -46,6 +53,7 @@ private:
     bool getValue(std::unordered_map<std::string, std::unordered_map<std::string, std::string>> config, const std::string section, const std::string key, std::string& value);
     int getTimeInterval(const std::string timeStamp1, const std::string timeStamp2);
     void timerTask();
+    bool writeInBB(std::string key, int value);
     rclcpp::Node::SharedPtr m_node;
     rclcpp::Service<time_interfaces::srv::StartTourTimer>::SharedPtr m_startTourTimerService;
     rclcpp::Service<time_interfaces::srv::StopTourTimer>::SharedPtr m_stopTourTimerService;
@@ -63,4 +71,5 @@ private:
     int m_warningTime{2};
     int m_maxTime{4};
     bool m_timerTask{false};
+    bool m_saidDurationWarning{false};
 };
