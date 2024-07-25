@@ -35,8 +35,8 @@
             <Sequence>
                 <SubTree ID="MuseumHours"/>
                 <ReactiveSequence>
-                    <!-- <SubTree ID="PeopleLeaving"/> -->
-                    <!-- <SubTree ID="GoToPoi"/> -->
+                    <SubTree ID="PeopleLeaving"/>
+                    <SubTree ID="GoToPoi"/>
                 </ReactiveSequence>
                 <SubTree ID="CheckArtworkAndExplain"/>
                 <SubTree ID="TourDuration"/>
@@ -60,6 +60,9 @@
             <ReactiveSequence>
                 <ReactiveFallback name="">
                     <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="CheckIfStart"/>
+                    <Inverter name="">
+                        <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsAllowedToTurnBack"/>
+                    </Inverter>
                     <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="VisitorsFollowingRobot"/>
                     <ReactiveSequence>
                         <ReactiveFallback name="">
@@ -112,7 +115,7 @@
     </BehaviorTree>
     <!-- ////////// -->
     <BehaviorTree ID="TourDuration">
-        <ReactiveFallback>
+        <Fallback>
             <ReactiveSequence>
                 <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="CheckIfStart"/>
                 <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="StopTourTimer"/>
@@ -121,7 +124,11 @@
                 <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="CheckIfFirstPoi"/>
                 <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="StartTourTimer"/>
             </ReactiveSequence>
-        </ReactiveFallback>
+            <Inverter>
+                <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsWarningDuration"/>
+            </Inverter>
+            <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SayDurationWarning"/>
+        </Fallback>
     </BehaviorTree>
     <!-- ////////// -->
     <BehaviorTree ID="MuseumHours">
