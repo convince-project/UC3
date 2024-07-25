@@ -19,6 +19,11 @@ bool SchedulerComponent::start(int argc, char*argv[])
             return false;
         }
     }
+    else
+    {
+        std::cerr << "Error: file path is missing" << std::endl;
+        return false;
+    }
     if(!rclcpp::ok())
     {
         rclcpp::init(/*argc*/ argc, /*argv*/ argv);
@@ -149,7 +154,7 @@ void SchedulerComponent::UpdateAction([[maybe_unused]] const std::shared_ptr<sch
     }
 
     m_currentAction = (m_currentAction + 1);
-    if(m_currentAction >= actions_vec.size())
+    if(m_currentAction >= static_cast<int>(actions_vec.size()))
     {
         response->done_with_poi = true;
         m_currentAction = m_currentAction % actions_vec.size();
@@ -171,7 +176,7 @@ void SchedulerComponent::GetCurrentAction([[maybe_unused]] const std::shared_ptr
         return;
     }
 
-    RCLCPP_INFO(m_node->get_logger(), "SchedulerComponent::GetCurrentAction poi: %s act: %d of: %d", poi_name.c_str(), m_currentAction, actions_vec.size());
+    RCLCPP_INFO(m_node->get_logger(), "SchedulerComponent::GetCurrentAction poi: %s act: %d of: %d", poi_name.c_str(), m_currentAction, static_cast<int>(actions_vec.size()));
     auto curact = actions_vec[m_currentAction];
     auto actionType = curact.getType();
     json j = actionType;
