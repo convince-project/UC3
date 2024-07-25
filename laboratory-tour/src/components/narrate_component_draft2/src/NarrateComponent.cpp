@@ -194,18 +194,37 @@ void NarrateComponent::danceTask() {
         danceClientNode->create_client<execute_dance_interfaces::srv::ExecuteDance>("/ExecuteDanceComponent/ExecuteDance");
         auto danceRequest = std::make_shared<execute_dance_interfaces::srv::ExecuteDance::Request>();
         danceRequest->dance_name = text;
+        bool wait_succeded{true};
+        int retries = 0;
         while (!danceClient->wait_for_service(std::chrono::seconds(1))) {
             if (!rclcpp::ok()) {
-                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'danceClient'. Exiting.");
+                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'ExecuteDance'. Exiting.");
+                wait_succeded = false;
+                break;
+            }
+            retries++;
+            if(retries == SERVICE_TIMEOUT) {
+               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while waiting for the service 'ExecuteDance'.");
+               wait_succeded = false;
+               break;
             }
         }
-        auto danceResult = danceClient->async_send_request(danceRequest);
-        auto futureDanceResult = rclcpp::spin_until_future_complete(danceClientNode, danceResult);
-        auto danceFutureResult = danceResult.get();
-        if (danceFutureResult->is_ok == true) { // 0 is dance
-            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        if (wait_succeded) {
+            auto danceResult = danceClient->async_send_request(danceRequest);
+            const std::chrono::seconds timeout_duration(SERVICE_TIMEOUT);
+            auto futureDanceResult = rclcpp::spin_until_future_complete(danceClientNode, danceResult, timeout_duration);
+            if(futureDanceResult == rclcpp::FutureReturnCode::SUCCESS)
+            {
+                auto danceFutureResult = danceResult.get();
+                if (danceFutureResult->is_ok == true) { // 0 is dance
+                    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                }
+                std::this_thread::sleep_for(std::chrono::seconds(3));
+            }
+            else if(futureDanceResult == rclcpp::FutureReturnCode::TIMEOUT){
+               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'ExecuteDance'.");
+           }
         }
-        std::this_thread::sleep_for(std::chrono::seconds(3));
         if(m_stopped)
         {
             RCLCPP_INFO_STREAM(m_node->get_logger(), "Stop Recieved Dance Task" ); 
