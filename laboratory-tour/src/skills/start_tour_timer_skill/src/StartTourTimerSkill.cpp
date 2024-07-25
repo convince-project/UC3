@@ -115,6 +115,53 @@ bool StartTourTimerSkill::start(int argc, char*argv[])
        m_stateMachine.submitEvent("TimeComponent.StartTourTimer.Return", data);
        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TimeComponent.StartTourTimer.Return");
     });
+    m_stateMachine.connectToEvent("BlackboardComponent.SetInt.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
+        std::shared_ptr<rclcpp::Node> nodeSetInt = rclcpp::Node::make_shared(m_name + "SkillNodeSetInt");
+        std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::SetIntBlackboard>> clientSetInt = nodeSetInt->create_client<blackboard_interfaces::srv::SetIntBlackboard>("/BlackboardComponent/SetInt");
+        auto request = std::make_shared<blackboard_interfaces::srv::SetIntBlackboard::Request>();
+        auto eventParams = event.data().toMap();
+        
+        request->value = convert<decltype(request->value)>(eventParams["value"].toString().toStdString());
+        request->field_name = convert<decltype(request->field_name)>(eventParams["field_name"].toString().toStdString());
+        bool wait_succeded{true};
+        int retries = 0;
+        while (!clientSetInt->wait_for_service(std::chrono::seconds(1))) {
+            if (!rclcpp::ok()) {
+                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'SetInt'. Exiting.");
+                wait_succeded = false;
+                break;
+            } 
+            retries++;
+            if(retries == SERVICE_TIMEOUT) {
+               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while waiting for the service 'SetInt'.");
+               wait_succeded = false;
+               break;
+            }
+        }
+        if (wait_succeded) {                                                                   
+            auto result = clientSetInt->async_send_request(request);
+            const std::chrono::seconds timeout_duration(SERVICE_TIMEOUT);
+            auto futureResult = rclcpp::spin_until_future_complete(nodeSetInt, result, timeout_duration);
+            if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
+            {
+               auto response = result.get();
+               if( response->is_ok ==true) {
+                   QVariantMap data;
+                   data.insert("result", "SUCCESS");
+                   m_stateMachine.submitEvent("BlackboardComponent.SetInt.Return", data);
+                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.SetInt.Return");
+                   return;
+               }
+           }
+           else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
+               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'SetInt'.");
+           }
+        }
+       QVariantMap data;
+       data.insert("result", "FAILURE");
+       m_stateMachine.submitEvent("BlackboardComponent.SetInt.Return", data);
+       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.SetInt.Return");
+    });
     
 	m_stateMachine.connectToEvent("TICK_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){
 		RCLCPP_INFO(m_node->get_logger(), "StartTourTimerSkill::tickReturn %s", event.data().toMap()["result"].toString().toStdString().c_str());

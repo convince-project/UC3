@@ -12,6 +12,7 @@ find_package(rclcpp REQUIRED)
 find_package(bt_interfaces REQUIRED)
 
 find_package(time_interfaces REQUIRED)
+find_package(blackboard_interfaces REQUIRED)
 find_package(Qt6 COMPONENTS Core Scxml StateMachine  REQUIRED)
 
 add_executable(${PROJECT_NAME} )
@@ -29,6 +30,7 @@ ament_target_dependencies(${PROJECT_NAME}
   bt_interfaces 
   rclcpp 
   time_interfaces 
+  blackboard_interfaces 
   
   )
 target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Scxml Qt6::StateMachine)
