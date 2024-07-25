@@ -19,6 +19,7 @@
 #include <turn_back_manager_interfaces/srv/increase_turn_backs_counter.hpp>
 #include <turn_back_manager_interfaces/srv/get_turn_backs_counter.hpp>
 #include <turn_back_manager_interfaces/srv/is_allowed_to_continue.hpp>
+#include <turn_back_manager_interfaces/srv/is_allowed_to_turn_back.hpp>
 
 
 class TurnBackManagerComponent 
@@ -47,6 +48,8 @@ public:
                 std::shared_ptr<turn_back_manager_interfaces::srv::GetTurnBacksCounter::Response>      response);
     void IsAllowedToContinue([[maybe_unused]] const std::shared_ptr<turn_back_manager_interfaces::srv::IsAllowedToContinue::Request> request,
                 std::shared_ptr<turn_back_manager_interfaces::srv::IsAllowedToContinue::Response>      response);
+    void IsAllowedToTurnBack([[maybe_unused]] const std::shared_ptr<turn_back_manager_interfaces::srv::IsAllowedToTurnBack::Request> request,
+                std::shared_ptr<turn_back_manager_interfaces::srv::IsAllowedToTurnBack::Response>      response);
 
 private:
 
@@ -61,11 +64,12 @@ private:
     rclcpp::Service<turn_back_manager_interfaces::srv::IncreaseTurnBacksCounter>::SharedPtr m_increaseTurnBacksCounterService;
     rclcpp::Service<turn_back_manager_interfaces::srv::GetTurnBacksCounter>::SharedPtr m_getTurnBacksCounterService;
     rclcpp::Service<turn_back_manager_interfaces::srv::IsAllowedToContinue>::SharedPtr m_isAllowedToContinueService;
+    rclcpp::Service<turn_back_manager_interfaces::srv::IsAllowedToTurnBack>::SharedPtr m_isAllowedToTurnBackService;
     rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr m_subscriptionPeopleDetector;
     
     std::mutex m_mutex;
     std::mutex m_taskMutex;
-    int32_t m_maxNumberTurnBacks{2};            //Max number of turn backs between two PoIs
+    int32_t m_maxNumberTurnBacks{1};            //Max number of turn backs between two PoIs
     int32_t m_countNumberTurnBacks{0};          //Count number of turn backs between two PoIs
     int32_t m_maxNumberConsecutiveFalse{30};    //Max number of consecutive falses after turning back
     int32_t m_countNumberConsecutiveFalse{0};   //Count number of consecutive falses after turning back
