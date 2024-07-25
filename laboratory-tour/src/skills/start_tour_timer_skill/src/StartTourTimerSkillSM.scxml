@@ -7,6 +7,7 @@
 
   <datamodel>
     <data id="m_result"/>
+    <data id="m_name" expr='"SaidWarningFlag"'/>
   </datamodel>
 
   <state id="idle">
@@ -24,9 +25,26 @@
   </state>
 
   <state id="startTimerResult">
-    <transition cond="m_result == 'SUCCESS'" target="sendSuccess" />
+    <transition cond="m_result == 'SUCCESS'" target="setStatus" />
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
   </state>
+
+  <state id="setStatus">
+    <onentry>
+        <send event="BlackboardComponent.SetInt.Call">
+            <param name="field_name" expr="m_name"/>
+            <param name="value" expr="0"/>
+        </send>
+    </onentry>
+    <transition event="BlackboardComponent.SetInt.Return" target="setStatusResult"> 
+        <assign expr="_event.data.result" location="m_result"/>
+    </transition>
+</state>
+
+<state id="setStatusResult">
+    <transition cond="m_result == 'SUCCESS'" target="sendSuccess" />
+    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+</state>
 
   <state id="sendFailure">
     <onentry>

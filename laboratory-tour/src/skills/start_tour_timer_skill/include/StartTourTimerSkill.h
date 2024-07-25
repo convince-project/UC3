@@ -6,6 +6,7 @@
 #include "StartTourTimerSkillSM.h"
 #include <bt_interfaces/msg/action_response.hpp>
 #include <time_interfaces/srv/start_tour_timer.hpp> 
+#include <blackboard_interfaces/srv/set_int_blackboard.hpp> 
 
 
 #include <bt_interfaces/srv/tick_action.hpp>
