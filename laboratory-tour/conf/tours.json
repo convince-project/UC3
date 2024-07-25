@@ -40,6 +40,13 @@
                 "m_type": "speak"
               }
             ],
+            "sayDurationWarning": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Oops, we're having so much fun that the tour is taking a bit too long. I kindly ask you to reduce the number of questions!",
+                "m_type": "speak"
+              }
+            ],
             "sayPeopleLeft": [
               {
                 "m_isBlocking": false,
@@ -725,6 +732,13 @@
               {
                 "m_isBlocking": false,
                 "m_param": "Mi scuso, la mia batteria è troppo scarica, devo andare, arrivederci!",
+                "m_type": "speak"
+              }
+            ],
+            "sayDurationWarning": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Ops, ci stiamo divertendo così tanto che il tour sta durando un po' troppo, vi chiedo gentilmente di ridurre il numero di domande!",
                 "m_type": "speak"
               }
             ],
@@ -1423,6 +1437,13 @@
                 "m_type": "speak"
               }
             ],
+            "sayDurationWarning": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Oups, nous nous amusons tellement que la visite dure un peu trop longtemps. Je vous demande gentiment de réduire le nombre de questions!",
+                "m_type": "speak"
+              }
+            ],
             "sayPeopleLeft": [
               {
                 "m_isBlocking": false,
@@ -1959,6 +1980,13 @@
                 "m_type": "speak"
               }
             ],
+            "sayDurationWarning": [
+              {
+                "m_isBlocking": false,
+                "m_param": "¡Ups, nos estamos divirtiendo tanto que el tour está durando demasiado. Les pido amablemente que reduzcan el número de preguntas!",
+                "m_type": "speak"
+              }
+            ],
             "sayPeopleLeft": [
               {
                 "m_isBlocking": false,
@@ -2487,6 +2515,13 @@
               {
                 "m_isBlocking": false,
                 "m_param": "Es tut mir leid, mein Akku ist zu schwach, ich muss gehen, auf Wiedersehen.",
+                "m_type": "speak"
+              }
+            ],
+            "sayDurationWarning": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Ups, wir haben so viel Spaß, dass die Tour etwas zu lange dauert. Ich bitte euch, die Anzahl der Fragen zu reduzieren!",
                 "m_type": "speak"
               }
             ],
@@ -3023,6 +3058,13 @@
               {
                 "m_isBlocking": false,
                 "m_param": "Gomen'nasai, batterī ga hiku sugimasu, ikanakereba narimasen, sayōnara.",
+                "m_type": "speak"
+              }
+            ],
+            "sayDurationWarning": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Otto, tanoshisugite tsuaa ga chotto nagabite shimaimasu. Shitsumon no kazu wo herashite itadakemasu ka?",
                 "m_type": "speak"
               }
             ],
