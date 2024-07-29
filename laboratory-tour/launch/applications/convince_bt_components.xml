@@ -3,7 +3,7 @@
 
     <module>
         <name>python3</name>
-        <parameters>create_symlinks.py ../applications/convince_bt_components_SIM.xml</parameters>
+        <parameters>create_symlinks.py ../applications/convince_bt_components.xml</parameters>
         <workdir>/home/user1/UC3/laboratory-tour/launch/symbolic_links/</workdir>
         <node>bt</node>
     </module>
