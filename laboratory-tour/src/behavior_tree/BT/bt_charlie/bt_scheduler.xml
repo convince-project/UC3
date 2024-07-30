@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="3">
+  <BehaviorTree ID="PoiScheduler">
+    <Sequence>
+      <ROS2Action name="SetPOI1"
+                  interface="ROS2SERVICE"
+                  isMonitored="false"
+                  nodeName=""/>
+      <ROS2Condition name="POI1Done"
+                     interface="ROS2SERVICE"
+                     isMonitored="false"
+                     nodeName=""/>
+      <ROS2Action name="SetPOI2"
+                  interface="ROS2SERVICE"
+                  isMonitored="false"
+                  nodeName=""/>
+      <ROS2Condition name="POI2Done"
+                     interface="ROS2SERVICE"
+                     isMonitored="false"
+                     nodeName=""/>
+    </Sequence>
+  </BehaviorTree>
+
+  <!-- Description of Node Models (used by Groot) -->
+  <TreeNodesModel>
+    <Action ID="ROS2Action">
+      <input_port name="interface"
+                  default="ROS2SERVICE"/>
+      <input_port name="isMonitored"
+                  default="false"/>
+      <input_port name="nodeName"/>
+    </Action>
+    <Condition ID="ROS2Condition">
+      <input_port name="interface"
+                  default="ROS2SERVICE"/>
+      <input_port name="isMonitored"
+                  default="false"/>
+      <input_port name="nodeName"/>
+    </Condition>
+  </TreeNodesModel>
+
+</root>

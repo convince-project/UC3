@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="3"
+      main_tree_to_execute="BehaviorTree">
+  <include path="bt_scheduler.xml"/>
+
+  <BehaviorTree ID="BatteryManagement">
+    <ReactiveSequence>
+      <ReactiveFallback>
+        <ROS2Condition name="BatteryLevel"
+                       interface="ROS2SERVICE"
+                       isMonitored="false"
+                       nodeName=""/>
+        <ReactiveFallback>
+          <ReactiveSequence>
+            <Inverter>
+              <ROS2Condition name="BatteryCharging"
+                             interface="ROS2SERVICE"
+                             isMonitored="false"
+                             nodeName=""/>
+            </Inverter>
+            <Parallel failure_threshold="1"
+                      success_threshold="2">
+              <ReactiveFallback>
+                <ROS2Condition name="IsAtChargingStation"
+                               interface="ROS2SERVICE"
+                               isMonitored="false"
+                               nodeName=""/>
+                <Sequence>
+                  <ROS2Action name="SayBye"
+                              interface="ROS2SERVICE"
+                              isMonitored="false"
+                              nodeName=""/>
+                  <ROS2Action name="ResetTour"
+                              interface="ROS2SERVICE"
+                              isMonitored="false"
+                              nodeName=""/>
+                  <ROS2Action name="GoToChargingStation"
+                              interface="ROS2SERVICE"
+                              isMonitored="false"
+                              nodeName=""/>
+                </Sequence>
+              </ReactiveFallback>
+              <ROS2Action name="AlarmBatteryLow"
+                          interface="ROS2SERVICE"
+                          isMonitored="false"
+                          nodeName=""/>
+            </Parallel>
+          </ReactiveSequence>
+          <ROS2Action name="Wait"
+                      interface="ROS2SERVICE"
+                      isMonitored="false"
+                      nodeName=""/>
+        </ReactiveFallback>
+      </ReactiveFallback>
+      <ROS2Action name="NotifyCharged"
+                  interface="ROS2SERVICE"
+                  isMonitored="false"
+                  nodeName=""/>
+      <ROS2Condition name="IsAllowedToMove"
+                     interface="ROS2SERVICE"
+                     isMonitored="false"
+                     nodeName=""/>
+    </ReactiveSequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="BehaviorTree">
+    <ReactiveSequence>
+      <SubTree ID="NetworkManagement"/>
+      <SubTree ID="BatteryManagement"/>
+      <Sequence>
+        <ReactiveFallback>
+          <SubTree ID="PoiScheduler"/>
+          <SubTree ID="DoStuff"/>
+        </ReactiveFallback>
+        <ROS2Action name="ResetTour"
+                    interface="ROS2SERVICE"
+                    isMonitored="false"
+                    nodeName=""/>
+      </Sequence>
+    </ReactiveSequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="CheckArtwork">
+    <Sequence>
+      <ROS2Condition interface="ROS2SERVICE"
+                     isMonitored="false"
+                     nodeName=""/>
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="DoStuff">
+    <Sequence>
+      <SubTree ID="GoToPoi"/>
+      <SubTree ID="CheckArtwork"/>
+      <SubTree ID="ExplainAndInteract"/>
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="ExplainAndInteract">
+    <Sequence>
+      <ROS2Action name="NarratePoi"
+                  interface="ROS2SERVICE"
+                  isMonitored="false"
+                  nodeName=""/>
+      <ROS2Action name="Dialog"
+                  interface="ROS2SERVICE"
+                  isMonitored="false"
+                  nodeName=""/>
+      <ROS2Action interface="ROS2SERVICE"
+                  isMonitored="false"
+                  nodeName=""/>
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="GoToPoi">
+    <ReactiveFallback>
+      <ROS2Condition name="PoiOccupied"
+                     interface="ROS2SERVICE"
+                     isMonitored="false"
+                     nodeName=""/>
+      <ROS2Condition name="IsAtCurrentPoi"
+                     interface="ROS2SERVICE"
+                     isMonitored="false"
+                     nodeName=""/>
+      <ReactiveSequence>
+        <ReactiveFallback>
+          <ROS2Condition name="CheckIfStart"
+                         interface="ROS2SERVICE"
+                         isMonitored="false"
+                         nodeName=""/>
+          <ROS2Condition name="VisitorsFollowingRobot"
+                         interface="ROS2SERVICE"
+                         isMonitored="false"
+                         nodeName=""/>
+          <Inverter>
+            <ROS2Condition name="IsTimerDone"
+                           interface="ROS2SERVICE"
+                           isMonitored="false"
+                           nodeName=""/>
+          </Inverter>
+          <ReactiveSequence>
+            <ReactiveFallback>
+              <ROS2Condition name="IsCheckingForPeople"
+                             interface="ROS2SERVICE"
+                             isMonitored="false"
+                             nodeName=""/>
+              <ROS2Action name="StopAndTurnBack"
+                          interface="ROS2SERVICE"
+                          isMonitored="false"
+                          nodeName=""/>
+            </ReactiveFallback>
+            <ROS2Action name="SayFollowMe"
+                        interface="ROS2SERVICE"
+                        isMonitored="false"
+                        nodeName=""/>
+            <ROS2Action name="StartTimer"
+                        interface="ROS2SERVICE"
+                        isMonitored="false"
+                        nodeName=""/>
+          </ReactiveSequence>
+        </ReactiveFallback>
+        <Parallel failure_threshold="1"
+                  success_threshold="2">
+          <ROS2Action name="GoToCurrentPoi"
+                      interface="ROS2SERVICE"
+                      isMonitored="false"
+                      nodeName=""/>
+          <ROS2Action name="SayWhileNavigating"
+                      interface="ROS2SERVICE"
+                      isMonitored="false"
+                      nodeName=""/>
+        </Parallel>
+      </ReactiveSequence>
+    </ReactiveFallback>
+  </BehaviorTree>
+
+  <BehaviorTree ID="NetworkManagement">
+    <ReactiveFallback>
+      <Inverter>
+        <ROS2Condition name="NetworkStatusChanged"
+                       interface="ROS2SERVICE"
+                       isMonitored="false"
+                       nodeName=""/>
+      </Inverter>
+      <ReactiveFallback>
+        <ReactiveSequence>
+          <ROS2Condition name="NetworkUp"
+                         interface="ROS2SERVICE"
+                         isMonitored="false"
+                         nodeName=""/>
+          <ROS2Action name="StopService"
+                      interface="ROS2SERVICE"
+                      isMonitored="false"
+                      nodeName=""/>
+        </ReactiveSequence>
+        <ROS2Action name="StartService"
+                    interface="ROS2SERVICE"
+                    isMonitored="false"
+                    nodeName=""/>
+      </ReactiveFallback>
+    </ReactiveFallback>
+  </BehaviorTree>
+
+  <!-- Description of Node Models (used by Groot) -->
+  <TreeNodesModel>
+    <Action ID="ROS2Action">
+      <input_port name="interface"
+                  default="ROS2SERVICE"/>
+      <input_port name="isMonitored"
+                  default="false"/>
+      <input_port name="nodeName"/>
+    </Action>
+    <Condition ID="ROS2Condition">
+      <input_port name="interface"
+                  default="ROS2SERVICE"/>
+      <input_port name="isMonitored"
+                  default="false"/>
+      <input_port name="nodeName"/>
+    </Condition>
+  </TreeNodesModel>
+
+</root>

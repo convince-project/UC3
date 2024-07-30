@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="3" project_name="Project">
+    <include path="bt_failure_management_charlie.xml"/>
+    <include path="bt_scheduler.xml"/>
+    <!-- Description of Node Models (used by Groot) -->
+    <TreeNodesModel>
+        <Action ID="ROS2Action">
+            <input_port name="interface" default="ROS2SERVICE"/>
+            <input_port name="isMonitored" default="false"/>
+            <input_port name="nodeName"/>
+        </Action>
+        <Condition ID="ROS2Condition">
+            <input_port name="interface" default="ROS2SERVICE"/>
+            <input_port name="isMonitored" default="false"/>
+            <input_port name="nodeName"/>
+        </Condition>
+    </TreeNodesModel>
+</root>
