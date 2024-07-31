@@ -69,7 +69,7 @@
       <SubTree ID="BatteryManagement"/>
       <Sequence>
         <ReactiveFallback>
-          <SubTree ID="PoiScheduler"/>
+          <SubTree ID="PoiScheduler_ite"/>
           <SubTree ID="DoStuff"/>
         </ReactiveFallback>
         <ROS2Action name="ResetTour"

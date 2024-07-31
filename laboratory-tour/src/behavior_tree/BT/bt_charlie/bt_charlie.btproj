@@ -2,6 +2,7 @@
 <root BTCPP_format="3" project_name="Project">
     <include path="bt_failure_management_charlie.xml"/>
     <include path="bt_scheduler.xml"/>
+    <include path="bt_scheduler_ifthenelse.xml"/>
     <!-- Description of Node Models (used by Groot) -->
     <TreeNodesModel>
         <Action ID="ROS2Action">
