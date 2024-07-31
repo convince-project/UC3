@@ -83,6 +83,12 @@ void TurnBackManagerComponent::spin()
     rclcpp::spin(m_node);  
 }
 
+void SchedulerComponent::publisher(std::string text)
+{
+    std_msgs::msg::String msg;
+    msg.data = text;
+    m_publisher->publish(msg);
+}
 
 void TurnBackManagerComponent::SetMaxTurnBacks(const std::shared_ptr<turn_back_manager_interfaces::srv::SetMaxTurnBacks::Request> request,
              std::shared_ptr<turn_back_manager_interfaces::srv::SetMaxTurnBacks::Response>      response) 
@@ -154,6 +160,8 @@ void TurnBackManagerComponent::IncreaseTurnBacksCounter([[maybe_unused]]const st
     } else {
         std::cout << "Counter Task is already running." << std::endl;
     }
+    std::string text = "Turned Back ";
+    publisher(text);
 }
 
 void TurnBackManagerComponent::GetTurnBacksCounter([[maybe_unused]]const std::shared_ptr<turn_back_manager_interfaces::srv::GetTurnBacksCounter::Request> request,
