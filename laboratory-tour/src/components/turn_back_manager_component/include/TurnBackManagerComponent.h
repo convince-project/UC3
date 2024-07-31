@@ -10,6 +10,7 @@
 #include <thread>
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/bool.hpp>
+#include <std_msgs/msg/string.hpp>
 #include <people_detector_filter_interfaces/msg/filter_status.hpp>
 #include <turn_back_manager_interfaces/srv/reset_counters.hpp>
 #include <turn_back_manager_interfaces/srv/set_max_turn_backs.hpp>
@@ -54,7 +55,7 @@ public:
 private:
 
     void counterTask();
-
+    void publisher(std::string text);
     rclcpp::Node::SharedPtr m_node;
     rclcpp::Service<turn_back_manager_interfaces::srv::ResetCounters>::SharedPtr m_resetCountersService;
     rclcpp::Service<turn_back_manager_interfaces::srv::SetMaxTurnBacks>::SharedPtr m_setMaxTurnBacksService;
@@ -66,6 +67,7 @@ private:
     rclcpp::Service<turn_back_manager_interfaces::srv::IsAllowedToContinue>::SharedPtr m_isAllowedToContinueService;
     rclcpp::Service<turn_back_manager_interfaces::srv::IsAllowedToTurnBack>::SharedPtr m_isAllowedToTurnBackService;
     rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr m_subscriptionPeopleDetector;
+    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr m_publisher;
     
     std::mutex m_mutex;
     std::mutex m_taskMutex;

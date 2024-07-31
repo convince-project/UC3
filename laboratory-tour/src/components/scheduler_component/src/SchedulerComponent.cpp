@@ -86,6 +86,7 @@ bool SchedulerComponent::start(int argc, char*argv[])
                                                                                 std::placeholders::_2));
 
     RCLCPP_DEBUG(m_node->get_logger(), "SchedulerComponent::start");
+    m_publisher = m_node->create_publisher<std_msgs::msg::String>("/LogComponent/add_to_log", 10);
     return true;
 
 }
@@ -99,6 +100,13 @@ bool SchedulerComponent::close()
 void SchedulerComponent::spin()
 {
     rclcpp::spin(m_node);
+}
+
+void SchedulerComponent::publisher(std::string text)
+{
+    std_msgs::msg::String msg;
+    msg.data = text;
+    m_publisher->publish(msg);
 }
 
 void SchedulerComponent::Reset([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::Reset::Request> request,
@@ -127,6 +135,8 @@ void SchedulerComponent::UpdatePoi([[maybe_unused]] const std::shared_ptr<schedu
     m_currentPoi = (m_currentPoi + 1) % m_tourStorage->GetTour().getPoIsList().size();
     m_currentAction = 0;
     response->is_ok = true;
+    std::string text = "Update Poi to: " + std::to_string(m_currentPoi) + " - " + m_tourStorage->GetTour().getPoIsList()[m_currentPoi];
+    publisher(text);
 }
 
 
@@ -216,6 +226,8 @@ void SchedulerComponent::SetLanguage([[maybe_unused]] const std::shared_ptr<sche
         return;
     }
     response->is_ok = true;
+    std::string text = "Set Language to: " + request->language;
+    publisher(text);
 }
 
 void SchedulerComponent::GetCurrentCommand([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::GetCurrentCommand::Request> request,
@@ -248,6 +260,8 @@ void SchedulerComponent::SetCommand([[maybe_unused]] const std::shared_ptr<sched
     m_currentAction = 0;
     m_currentCommand = request->command;
     response->is_ok = true;
+    std::string text = "Set Command to: " + request->command;
+    publisher(text);
 }
 
 bool SchedulerComponent::checkIfCommandValid(const std::string &poiName, const std::string command)

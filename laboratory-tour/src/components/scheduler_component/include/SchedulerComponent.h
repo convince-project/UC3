@@ -7,6 +7,7 @@
 
 #include <mutex>
 #include <rclcpp/rclcpp.hpp>
+#include <std_msgs/msg/string.hpp>
 #include <scheduler_interfaces/srv/update_poi.hpp>
 #include <scheduler_interfaces/srv/reset.hpp>
 #include <scheduler_interfaces/srv/end_tour.hpp>
@@ -18,6 +19,7 @@
 #include <scheduler_interfaces/srv/set_command.hpp>
 #include <scheduler_interfaces/srv/get_current_command.hpp>
 #include <scheduler_interfaces/srv/get_available_commands.hpp>
+
 #include <map>
 #include "TourStorage.h"
 
@@ -32,6 +34,7 @@ public:
 
     bool close();
     void spin();
+    void publisher(std::string text);
     void UpdatePoi([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::UpdatePoi::Request> request,
                 std::shared_ptr<scheduler_interfaces::srv::UpdatePoi::Response>      response);
     void GetCurrentPoi([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::GetCurrentPoi::Request> request,
@@ -68,6 +71,7 @@ private:
     rclcpp::Service<scheduler_interfaces::srv::GetCurrentCommand>::SharedPtr m_getCurrentCommandService;
     rclcpp::Service<scheduler_interfaces::srv::SetCommand>::SharedPtr m_setCommandService;
     rclcpp::Service<scheduler_interfaces::srv::GetAvailableCommands>::SharedPtr m_getAvailableCommandsService;
+    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr m_publisher;
 
 
     bool checkIfCommandValid(const std::string &poiName, const std::string command);
