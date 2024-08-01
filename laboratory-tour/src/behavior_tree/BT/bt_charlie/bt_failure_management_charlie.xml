@@ -67,16 +67,16 @@
     <ReactiveSequence>
       <SubTree ID="NetworkManagement"/>
       <SubTree ID="BatteryManagement"/>
-      <Sequence>
-        <ReactiveFallback>
-          <SubTree ID="PoiScheduler_ite"/>
+      <ReactiveFallback>
+        <ReactiveSequence>
+          <SubTree ID="PoiScheduler_Charlie"/>
           <SubTree ID="DoStuff"/>
-        </ReactiveFallback>
+        </ReactiveSequence>
         <ROS2Action name="ResetTour"
                     interface="ROS2SERVICE"
                     isMonitored="false"
                     nodeName=""/>
-      </Sequence>
+      </ReactiveFallback>
     </ReactiveSequence>
   </BehaviorTree>
 

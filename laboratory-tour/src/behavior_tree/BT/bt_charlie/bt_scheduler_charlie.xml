@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="3">
+  <BehaviorTree ID="PoiScheduler_Charlie">
+    <Fallback>
+      <Sequence>
+        <Inverter>
+          <ROS2Condition name="Poi1Done"
+                         interface="ROS2SERVICE"
+                         isMonitored="false"
+                         nodeName=""/>
+        </Inverter>
+        <ROS2Action name="SetPoi1"
+                    interface="ROS2SERVICE"
+                    isMonitored="false"
+                    nodeName=""/>
+      </Sequence>
+      <Sequence>
+        <Inverter>
+          <ROS2Condition name="Poi2Done"
+                         interface="ROS2SERVICE"
+                         isMonitored="false"
+                         nodeName=""/>
+        </Inverter>
+        <ROS2Action name="SetPoi2"
+                    interface="ROS2SERVICE"
+                    isMonitored="false"
+                    nodeName=""/>
+      </Sequence>
+    </Fallback>
+  </BehaviorTree>
+
+  <!-- Description of Node Models (used by Groot) -->
+  <TreeNodesModel>
+    <Action ID="ROS2Action">
+      <input_port name="interface"
+                  default="ROS2SERVICE"/>
+      <input_port name="isMonitored"
+                  default="false"/>
+      <input_port name="nodeName"/>
+    </Action>
+    <Condition ID="ROS2Condition">
+      <input_port name="interface"
+                  default="ROS2SERVICE"/>
+      <input_port name="isMonitored"
+                  default="false"/>
+      <input_port name="nodeName"/>
+    </Condition>
+  </TreeNodesModel>
+
+</root>
