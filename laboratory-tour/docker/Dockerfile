@@ -1,4 +1,4 @@
-ARG base_img
+ARG base_img=ste93/convince:laboratory_tour_qt_6.6.3_ubuntu22.04_iron_stable
 FROM $base_img
 LABEL maintainer="Stefano Bernagozzi"
 USER root

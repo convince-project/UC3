@@ -1,4 +1,4 @@
-ARG base_img
+ARG base_img=elandini84/r1images:tourCore2_ubuntu22.04_iron_stable
 FROM $base_img
 LABEL maintainer="Stefano Bernagozzi"
 
