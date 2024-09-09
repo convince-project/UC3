@@ -17,11 +17,11 @@ jobs:
             base_image: "ste93/convince:qt_6.6.3_ubuntu22.04_iron_stable",
             base_image_label: "ubuntu22.04",
          }
-         - {
-            ros2_distro: "iron",
-            base_image: "ste93/convince:qt_6.6.3_ubuntu22.04_iron_stable_cuda.11.7.1-cudnn8",
-            base_image_label: "cuda.11.7.1-cudnn8",
-         }
+         # - {
+         #    ros2_distro: "iron",
+         #    base_image: "ste93/convince:qt_6.6.3_ubuntu22.04_iron_stable_cuda.11.7.1-cudnn8",
+         #    base_image_label: "cuda.11.7.1-cudnn8",
+         # }
     steps:
     - name: Info
       run: |
