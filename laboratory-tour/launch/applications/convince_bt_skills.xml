@@ -295,6 +295,20 @@
     </module>
 
     <module>
+        <name>ros2_is_maximum_duration_skill</name>
+        <parameters>run is_maximum_duration_skill is_maximum_duration_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2_say_duration_exceeded_skill</name>
+        <parameters>run say_duration_exceeded_skill say_duration_exceeded_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
         <name>ros2_is_museum_closing_skill</name>
         <parameters>run is_museum_closing_skill is_museum_closing_skill</parameters>
         <workdir />

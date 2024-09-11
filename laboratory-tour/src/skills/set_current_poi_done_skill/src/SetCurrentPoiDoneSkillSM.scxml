@@ -1,0 +1,85 @@
+<scxml 
+  initial="idle" 
+  version="1.0" 
+  name="SetCurrentPoiDoneSkillAction"
+  datamodel="ecmascript"
+  xmlns="http://www.w3.org/2005/07/scxml">
+
+    <datamodel>
+        <data id="m_result"/>
+        <data id="m_value" expr='1'/>
+        <data id="m_field_name_init" expr='"PoiDone"'/>
+        <data id="m_field_name" expr='"PoiDone"'/>
+        <data id="m_poi_number"/>
+        <data id="m_poi_number"/>
+    </datamodel>
+
+    <state id="idle">
+        <transition event="CMD_TICK" target="getCurrentPoi"/>
+        <transition event="CMD_HALT" target="sendHalted"/>
+    </state>
+
+    <state id="getCurrentPoi">
+        <onentry>
+            <send event="SchedulerComponent.GetCurrentPoi.Call"/>
+        </onentry>
+        <transition event="SchedulerComponent.GetCurrentPoi.Return" target="getCurrentPoiResult"> 
+            <assign expr="_event.data.poi_number" location="m_poi_number"/>
+            <assign expr="_event.data.result" location="m_result"/>
+        </transition>
+    </state>
+
+    <state id="getCurrentPoiResult">
+    <transition cond="m_result == 'SUCCESS'" target="setDone" />
+    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+    </state>
+    
+
+    <state id="setDone">
+        <onentry>
+            <script>
+                m_field_name = m_field_name_init + m_poi_number;
+            </script>
+            <log expr='m_field_name'/>
+            <send event="BlackboardComponent.SetInt.Call">
+                <param name="field_name" expr="m_field_name"/>
+                <param name="value" expr="m_value"/>
+            </send>
+        </onentry>
+        <transition event="BlackboardComponent.SetInt.Return" target="setDoneResult"> 
+            <assign expr="_event.data.result" location="m_result"/>
+        </transition>
+    </state>
+
+    <state id="setDoneResult">
+        <transition cond="m_result == 'SUCCESS'" target="sendSuccess" />
+        <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+    </state>
+
+    <state id="sendFailure">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="result" expr='"FAILURE"'/>
+            </send>
+        </onentry>
+        <transition target="idle" />
+    </state>
+
+    <state id="sendSuccess">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="result" expr='"SUCCESS"'/>
+            </send>
+        </onentry>
+        <transition target="idle" />
+    </state>
+
+    <state id="sendHalted">
+        <onentry>
+            <send event="HALT_RESPONSE">
+            </send>
+        </onentry>
+        <transition target="idle" />
+    </state>
+
+</scxml>

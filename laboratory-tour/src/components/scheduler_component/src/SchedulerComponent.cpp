@@ -84,6 +84,11 @@ bool SchedulerComponent::start(int argc, char*argv[])
                                                                                 this,
                                                                                 std::placeholders::_1,
                                                                                 std::placeholders::_2));
+    m_setPoiService = m_node->create_service<scheduler_interfaces::srv::SetPoi>("/SchedulerComponent/SetPoi",
+                                                                                std::bind(&SchedulerComponent::SetPoi,
+                                                                                this,
+                                                                                std::placeholders::_1,
+                                                                                std::placeholders::_2));
 
     RCLCPP_DEBUG(m_node->get_logger(), "SchedulerComponent::start");
     m_publisher = m_node->create_publisher<std_msgs::msg::String>("/LogComponent/add_to_log", 10);
@@ -134,6 +139,16 @@ void SchedulerComponent::UpdatePoi([[maybe_unused]] const std::shared_ptr<schedu
     RCLCPP_INFO(m_node->get_logger(), "SchedulerComponent::UpdatePoi " );
     m_currentPoi = (m_currentPoi + 1) % m_tourStorage->GetTour().getPoIsList().size();
     m_currentAction = 0;
+    response->is_ok = true;
+    std::string text = "Update Poi to: " + std::to_string(m_currentPoi) + " - " + m_tourStorage->GetTour().getPoIsList()[m_currentPoi];
+    publisher(text);
+}
+
+void SchedulerComponent::SetPoi([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::SetPoi::Request> request,
+             std::shared_ptr<scheduler_interfaces::srv::SetPoi::Response>      response)
+{
+    RCLCPP_INFO(m_node->get_logger(), "SchedulerComponent::SetPoi %d",  request->poi_number);
+    m_currentPoi = (request->poi_number) % m_tourStorage->GetTour().getPoIsList().size();
     response->is_ok = true;
     std::string text = "Update Poi to: " + std::to_string(m_currentPoi) + " - " + m_tourStorage->GetTour().getPoIsList()[m_currentPoi];
     publisher(text);

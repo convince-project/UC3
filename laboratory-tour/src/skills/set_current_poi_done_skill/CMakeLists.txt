@@ -1,16 +1,20 @@
 cmake_minimum_required(VERSION 3.16)
-project(start_timer_skill)
+project(set_current_poi_done_skill)
 # set(CMAKE_CXX_STANDARD 20)
 # set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
+
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(bt_interfaces REQUIRED)
-find_package(timer_check_for_people_interfaces REQUIRED)
+
+find_package(scheduler_interfaces REQUIRED)
+find_package(blackboard_interfaces REQUIRED)
 find_package(Qt6 COMPONENTS Core Scxml StateMachine  REQUIRED)
+
 add_executable(${PROJECT_NAME} )
 
 if (NOT Qt6_FOUND)
@@ -22,7 +26,13 @@ endif()
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-ament_target_dependencies(${PROJECT_NAME} bt_interfaces rclcpp timer_check_for_people_interfaces)
+ament_target_dependencies(${PROJECT_NAME} 
+  bt_interfaces 
+  rclcpp 
+  scheduler_interfaces 
+  blackboard_interfaces 
+  
+  )
 target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Scxml Qt6::StateMachine)
 target_include_directories(${PROJECT_NAME}
   PUBLIC
@@ -30,10 +40,8 @@ target_include_directories(${PROJECT_NAME}
     $<INSTALL_INTERFACE:include>)
 target_sources( ${PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp 
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/StartTimerSkill.cpp 
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/StartTimerSkill.h
-  #${CMAKE_CURRENT_SOURCE_DIR}/src/StartTimerDataModel.cpp 
-  #${CMAKE_CURRENT_SOURCE_DIR}/include/StartTimerDataModel.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/SetCurrentPoiDoneSkill.cpp 
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/SetCurrentPoiDoneSkill.h
   )
 
 
@@ -50,6 +58,6 @@ if(BUILD_TESTING)
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
-qt6_add_statecharts(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/src/StartTimerSkillSM.scxml)
+qt6_add_statecharts(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/src/SetCurrentPoiDoneSkillSM.scxml)
 
 ament_package()

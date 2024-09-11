@@ -14,6 +14,7 @@
 #include <blackboard_interfaces/srv/set_int_blackboard.hpp>
 #include <blackboard_interfaces/srv/set_string_blackboard.hpp>
 #include <blackboard_interfaces/srv/get_string_blackboard.hpp>
+#include <blackboard_interfaces/srv/set_all_ints_with_prefix_blackboard.hpp>
 #include <map>
 
 class BlackboardComponent
@@ -37,6 +38,8 @@ public:
                 std::shared_ptr<blackboard_interfaces::srv::GetStringBlackboard::Response>      response);
     void SetString( const std::shared_ptr<blackboard_interfaces::srv::SetStringBlackboard::Request> request,
                 std::shared_ptr<blackboard_interfaces::srv::SetStringBlackboard::Response>      response);
+    void SetAllIntsWithPrefix( const std::shared_ptr<blackboard_interfaces::srv::SetAllIntsWithPrefixBlackboard::Request> request,
+                std::shared_ptr<blackboard_interfaces::srv::SetAllIntsWithPrefixBlackboard::Response>      response);
 
 private:
     rclcpp::Node::SharedPtr m_node;
@@ -46,11 +49,12 @@ private:
     rclcpp::Service<blackboard_interfaces::srv::GetIntBlackboard>::SharedPtr m_getIntService;
     rclcpp::Service<blackboard_interfaces::srv::SetStringBlackboard>::SharedPtr m_setStringService;
     rclcpp::Service<blackboard_interfaces::srv::GetStringBlackboard>::SharedPtr m_getStringService;
+    rclcpp::Service<blackboard_interfaces::srv::SetAllIntsWithPrefixBlackboard>::SharedPtr m_setAllIntsWithPrefixService;
     std::mutex m_mutexDouble;
     std::mutex m_mutexInt;
     std::mutex m_mutexString;
-    std::map<std::string, std::string> m_stringBlacboard;
-    std::map<std::string, double> m_doubleBlacboard;
-    std::map<std::string, int32_t> m_intBlacboard;
+    std::map<std::string, std::string> m_stringBlackboard;
+    std::map<std::string, double> m_doubleBlackboard;
+    std::map<std::string, int32_t> m_intBlackboard;
 
 };
