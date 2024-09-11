@@ -58,26 +58,7 @@
         <ReactiveFallback>
             <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsAtCurrentPoi"/>
             <ReactiveSequence>
-                <ReactiveFallback name="">
-                    <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="CheckIfStart"/>
-                    <Inverter name="">
-                        <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsAllowedToTurnBack"/>
-                    </Inverter>
-                    <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="VisitorsFollowingRobot"/>
-                    <ReactiveSequence>
-                        <ReactiveFallback name="">
-                            <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsCheckingForPeople"/>
-                            <ReactiveSequence name="">
-                                <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SetTurning"/>
-                                <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="StopAndTurnBack"/>
-                                <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SetTurned"/>
-                            </ReactiveSequence>
-                        </ReactiveFallback>
-                        <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="RunTimer"/>
-                        <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SayFollowMe"/>
-                        <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="Wait"/>
-                    </ReactiveSequence>
-                </ReactiveFallback>
+                <SubTree ID="PeopleFollowing" name=""/>
                 <ReactiveSequence>
                     <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SetNotTurning"/>
                     <Parallel failure_threshold="1" success_threshold="2">
@@ -87,6 +68,17 @@
                 </ReactiveSequence>
             </ReactiveSequence>
         </ReactiveFallback>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <BehaviorTree ID="MuseumHours">
+        <Fallback>
+            <Inverter name="">
+                <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="CheckIfStart"/>
+            </Inverter>
+            <Inverter name="">
+                <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsMuseumClosing"/>
+            </Inverter>
+        </Fallback>
     </BehaviorTree>
     <!-- ////////// -->
     <BehaviorTree ID="NetworkManagement">
@@ -101,6 +93,29 @@
                 </ReactiveSequence>
                 <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="StartService"/>
             </ReactiveFallback>
+        </ReactiveFallback>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <BehaviorTree ID="PeopleFollowing">
+        <ReactiveFallback name="">
+            <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="CheckIfStart"/>
+            <Inverter name="">
+                <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsAllowedToTurnBack"/>
+            </Inverter>
+            <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="VisitorsFollowingRobot"/>
+            <ReactiveSequence>
+                <ReactiveFallback name="">
+                    <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsCheckingForPeople"/>
+                    <ReactiveSequence name="">
+                        <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SetTurning"/>
+                        <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="StopAndTurnBack"/>
+                        <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SetTurned"/>
+                    </ReactiveSequence>
+                </ReactiveFallback>
+                <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="RunTimer"/>
+                <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SayFollowMe"/>
+                <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="Wait"/>
+            </ReactiveSequence>
         </ReactiveFallback>
     </BehaviorTree>
     <!-- ////////// -->
@@ -127,18 +142,11 @@
             <Inverter>
                 <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsWarningDuration"/>
             </Inverter>
-            <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SayDurationWarning"/>
-        </Fallback>
-    </BehaviorTree>
-    <!-- ////////// -->
-    <BehaviorTree ID="MuseumHours">
-        <Fallback>
-            <Inverter name="">
-                <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="CheckIfStart"/>
-            </Inverter>
-            <Inverter name="">
-                <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsMuseumClosing"/>
-            </Inverter>
+            <Sequence>
+                <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SayDurationWarning"/>
+                <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsMaximumDuration"/>
+                <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SayDurationExceeded"/>
+            </Sequence>
         </Fallback>
     </BehaviorTree>
     <!-- ////////// -->
@@ -146,10 +154,10 @@
         <SubTree ID="BatteryManagement"/>
         <SubTree ID="CheckArtworkAndExplain"/>
         <SubTree ID="GoToPoi"/>
-        <SubTree ID="NetworkManagement"/>
-        <SubTree ID="PeopleLeaving"/>
-        <SubTree ID="TourDuration"/>
         <SubTree ID="MuseumHours"/>
+        <SubTree ID="NetworkManagement"/>
+        <SubTree ID="PeopleFollowing"/>
+        <SubTree ID="PeopleLeaving"/>
         <Action ID="ROS2Action">
             <input_port name="interface" type="std::string"/>
             <input_port name="isMonitored" type="std::string"/>
@@ -158,6 +166,7 @@
             <input_port name="interface" type="std::string"/>
             <input_port name="isMonitored" type="std::string"/>
         </Condition>
+        <SubTree ID="TourDuration"/>
     </TreeNodesModel>
     <!-- ////////// -->
 </root>
