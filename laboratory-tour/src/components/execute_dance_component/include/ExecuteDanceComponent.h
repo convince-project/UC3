@@ -44,7 +44,6 @@ private:
     void executeTask(const std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Request> request);
     void timerTask(float time);
     std::string m_danceName;
-    std::string m_timerStat;
     rclcpp::Node::SharedPtr m_node;
     rclcpp::Service<execute_dance_interfaces::srv::ExecuteDance>::SharedPtr m_executeDanceService;
     rclcpp::Service<execute_dance_interfaces::srv::IsDancing>::SharedPtr m_isDancingService;

@@ -37,6 +37,7 @@ bool VisitorsFollowingRobotSkillDataModel::setup(const QVariantMap& initialDataV
 }
 
 void VisitorsFollowingRobotSkillDataModel::topic_callback(const std_msgs::msg::Bool::SharedPtr msg) {
+	std::cout << "Received message: " << msg->data << std::endl;
 	m_status = msg->data;
 }
 
