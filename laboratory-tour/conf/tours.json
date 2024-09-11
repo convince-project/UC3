@@ -47,6 +47,13 @@
                 "m_type": "speak"
               }
             ],
+            "sayDurationExceeded": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Oops, we have exceeded the maximum tour duration. I kindly ask you to reduce the number of questions!",
+                "m_type": "speak"
+              }
+            ],
             "sayPeopleLeft": [
               {
                 "m_isBlocking": false,
@@ -739,6 +746,13 @@
               {
                 "m_isBlocking": false,
                 "m_param": "Ops, ci stiamo divertendo così tanto che il tour sta durando un po' troppo, vi chiedo gentilmente di ridurre il numero di domande!",
+                "m_type": "speak"
+              }
+            ],
+            "sayDurationExceeded": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Ops, abbiamo superato la durata massima del tour, vi chiedo gentilmente di ridurre il numero di domande!",
                 "m_type": "speak"
               }
             ],
@@ -1444,6 +1458,13 @@
                 "m_type": "speak"
               }
             ],
+            "sayDurationExceeded": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Oups, nous avons dépassé la durée maximale de la visite, je vous demande de bien vouloir réduire le nombre de questions!",
+                "m_type": "speak"
+              }
+            ],
             "sayPeopleLeft": [
               {
                 "m_isBlocking": false,
@@ -1987,6 +2008,13 @@
                 "m_type": "speak"
               }
             ],
+            "sayDurationExceeded": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Ups, hemos excedido la duración máxima del tour, les pido amablemente que reduzcan el número de preguntas!",
+                "m_type": "speak"
+              }
+            ],
             "sayPeopleLeft": [
               {
                 "m_isBlocking": false,
@@ -2522,6 +2550,13 @@
               {
                 "m_isBlocking": false,
                 "m_param": "Ups, wir haben so viel Spaß, dass die Tour etwas zu lange dauert. Ich bitte euch, die Anzahl der Fragen zu reduzieren!",
+                "m_type": "speak"
+              }
+            ],
+            "sayDurationExceeded": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Ups, wir haben die maximale Dauer der Tour überschritten, ich bitte Sie, die Anzahl der Fragen zu reduzieren!",
                 "m_type": "speak"
               }
             ],
@@ -3065,6 +3100,13 @@
               {
                 "m_isBlocking": false,
                 "m_param": "Otto, tanoshisugite tsuaa ga chotto nagabite shimaimasu. Shitsumon no kazu wo herashite itadakemasu ka?",
+                "m_type": "speak"
+              }
+            ],
+            "sayDurationExceeded": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Tsuā no saidai jikan o koemashita. Shitsumon no kazu o herashite kudasai.",
                 "m_type": "speak"
               }
             ],
