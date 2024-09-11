@@ -64,6 +64,9 @@
       <componentDeclaration id="TurnBackManagerComponent" interface="turn_back_manager_interfaces">
         <componentDefinition />
       </componentDeclaration>
+      <componentDeclaration id="TimeComponent" interface="time_interfaces">
+        <componentDefinition />
+      </componentDeclaration>
     </componentList>
 
     <interfaces path="../interface-definition-IDL/interfaces.xml"/>

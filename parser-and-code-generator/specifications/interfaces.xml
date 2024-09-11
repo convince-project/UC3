@@ -220,6 +220,13 @@
                 </ROS2data>
             </protocol>
         </function>
+        <function id="SetPoi">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+        </function>
         <function id="GetCurrentAction">
             <protocol>
                 <ROS2data>
@@ -308,6 +315,13 @@
             </returnValue>
         </function>
         <function id="SetInt">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+        </function>
+        <function id="SetAllIntsWithPrefix">
             <protocol>
                 <ROS2data>
                     <interface type="async-service" />
@@ -405,6 +419,34 @@
             </protocol>
         </function>
     </interface>
+    <interface id="time_interfaces">
+        <function id="StartTourTimer">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+        </function>
+        <function id="StopTourTimer">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+        </function>
+        <function id="IsMuseumClosing">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>bool</dataType>
+                <dataField>is_closing</dataField>
+            </returnValue>
+        </function>
+    </interface>
+
     <interface id="execute_dance_interfaces">
         <function id="ExecuteDance">
             <protocol>
@@ -452,6 +494,17 @@
             </protocol> 
         </function>
         <function id="IsAllowedToContinue">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol> 
+            <returnValue>
+                <dataType>bool</dataType>
+                <dataField>is_allowed</dataField>
+            </returnValue>
+        </function>
+        <function id="IsAllowedToTurnBack">
             <protocol>
                 <ROS2data>
                     <interface type="async-service" />
