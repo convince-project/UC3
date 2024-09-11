@@ -19,6 +19,7 @@
 #include <scheduler_interfaces/srv/set_command.hpp>
 #include <scheduler_interfaces/srv/get_current_command.hpp>
 #include <scheduler_interfaces/srv/get_available_commands.hpp>
+#include <scheduler_interfaces/srv/set_poi.hpp>
 
 #include <map>
 #include "TourStorage.h"
@@ -57,6 +58,8 @@ public:
                 std::shared_ptr<scheduler_interfaces::srv::SetCommand::Response>      response);
     void GetAvailableCommands([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::GetAvailableCommands::Request> request,
                 std::shared_ptr<scheduler_interfaces::srv::GetAvailableCommands::Response>      response);
+    void SetPoi([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::SetPoi::Request> request,
+                std::shared_ptr<scheduler_interfaces::srv::SetPoi::Response>      response);
 
 private:
     rclcpp::Node::SharedPtr m_node;
@@ -71,6 +74,7 @@ private:
     rclcpp::Service<scheduler_interfaces::srv::GetCurrentCommand>::SharedPtr m_getCurrentCommandService;
     rclcpp::Service<scheduler_interfaces::srv::SetCommand>::SharedPtr m_setCommandService;
     rclcpp::Service<scheduler_interfaces::srv::GetAvailableCommands>::SharedPtr m_getAvailableCommandsService;
+    rclcpp::Service<scheduler_interfaces::srv::SetPoi>::SharedPtr m_setPoiService;
     rclcpp::Publisher<std_msgs::msg::String>::SharedPtr m_publisher;
 
 

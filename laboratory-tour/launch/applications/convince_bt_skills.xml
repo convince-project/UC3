@@ -295,9 +295,30 @@
     </module>
 
     <module>
+        <name>ros2_is_maximum_duration_skill</name>
+        <parameters>run is_maximum_duration_skill is_maximum_duration_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2_say_duration_exceeded_skill</name>
+        <parameters>run say_duration_exceeded_skill say_duration_exceeded_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
         <name>ros2_is_museum_closing_skill</name>
         <parameters>run is_museum_closing_skill is_museum_closing_skill</parameters>
         <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>launch bt_launch_poi_skills.py json_file:=/home/sofia/ros2_iron/src/UC3/laboratory-tour/conf/sim_tour.json tour_name:=TOUR_SIM_GAM</parameters>
+        <workdir>/home/user1/ros2_iron/src/UC3/laboratory-tour/launch/</workdir>
         <node>bt</node>
     </module>
 
