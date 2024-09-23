@@ -17,18 +17,8 @@ find_package(sensor_msgs REQUIRED)
 # find_package(<dependency> REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(scheduler_interfaces
-"srv/UpdatePoi.srv"
-"srv/GetCurrentPoi.srv"
-"srv/Reset.srv"
-"srv/EndTour.srv"
-"srv/UpdateAction.srv"
-"srv/GetCurrentAction.srv"
-"srv/SetLanguage.srv"
-"srv/GetCurrentLanguage.srv"
-"srv/SetCommand.srv"
-"srv/GetCurrentCommand.srv"
-"srv/GetAvailableCommands.srv"
 "srv/SetPoi.srv"
+"srv/GetCurrentPoi.srv"
 DEPENDENCIES sensor_msgs
 LIBRARY_NAME scheduler_interfaces 
 )

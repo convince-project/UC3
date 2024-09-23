@@ -9,6 +9,7 @@
 #include <timer_check_for_people_interfaces/srv/is_timer_active.hpp> 
 
 
+
 #include <bt_interfaces/srv/tick_action.hpp>
 #include <bt_interfaces/srv/halt_action.hpp>
 
@@ -34,6 +35,8 @@ public:
 	
 	void halt( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::HaltAction::Request> request,
 			   [[maybe_unused]] std::shared_ptr<bt_interfaces::srv::HaltAction::Response> response);
+	
+	
 
 private:
 	std::shared_ptr<std::thread> m_threadSpin;
@@ -45,6 +48,8 @@ private:
 	rclcpp::Service<bt_interfaces::srv::TickAction>::SharedPtr m_tickService;
 	std::atomic<bool> m_haltResult{false};
 	rclcpp::Service<bt_interfaces::srv::HaltAction>::SharedPtr m_haltService;
+	
+	
 	
 };
 

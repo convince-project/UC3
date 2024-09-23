@@ -1,0 +1,45 @@
+<application>
+    <name>Navigation_ROS2_R1_fake</name>
+    <dependencies>
+    </dependencies>
+ 
+    <!-- modules -->
+ 
+    <module>
+       <name>yarpdev</name>
+       <parameters>--device fakeNavigation --name /port2</parameters>
+       <node>console</node>
+    </module>
+    <module>
+       <name>yarpdev</name>
+       <parameters>--device fakeLocalizer --name /port3</parameters>
+       <node>console</node>
+    </module>
+    <module>
+       <name>yarprobotinterface</name>
+       <parameters>--context navigation2 --from mapServer.ini</parameters>
+       <node>console</node>
+    </module>
+ 
+    <module>
+       <name>yarprobotinterface</name>
+       <parameters>--context navigation2 --from localizationROS2.ini --init_map madama3</parameters>
+       <node>console</node>
+    </module>
+ 
+    <module>
+       <name>yarprobotinterface</name>
+       <parameters>--context navigation2 --from navigator2D.ini</parameters>
+       <node>console</node>
+    </module>
+
+    <module>
+      <name>yarpdev</name>
+      <parameters>--device fakeBattery</parameters>
+      <node>console</node>
+   </module>
+ 
+    <!-- connections -->
+ 
+ </application>
+ 

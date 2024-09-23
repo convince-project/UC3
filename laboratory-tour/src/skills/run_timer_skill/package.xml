@@ -4,7 +4,7 @@
   <name>run_timer_skill</name>
   <version>0.0.0</version>
   <description>Package description</description>
-  <maintainer email="sofia.faraci@iit.it"></maintainer>
+  <maintainer email="your@email.it"></maintainer>
   <license>License declaration</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>

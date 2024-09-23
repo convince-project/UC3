@@ -1,30 +1,27 @@
-<!--This skill checks from the battery component if it is charging or not, 
-    it return success if it is charging, failure otherwise-->
-<scxml 
-  initial="idle" 
-  version="1.0" 
-  name="BatteryLevelSkillCondition"
-  datamodel="cplusplus:BatteryLevelSkillDataModel:BatteryLevelSkillDataModel.h"
-  xmlns="http://www.w3.org/2005/07/scxml">
-
-
+<scxml initial="idle" version="1.0" name="BatteryLevelSkillCondition" datamodel="ecmascript" xmlns="http://www.w3.org/2005/07/scxml">
+    <datamodel>
+        <data id="percentage" expr="100"/>
+    </datamodel>
+    <!-- BatteryLevelSkill is a server for tick from the ROS2Condition plugin-->
+    <!-- BatteryLevelSkill is a subscriber for the /battery_status topic from the BatteryComponent-->
     <state id="idle">
-        <transition event="CMD_TICK" target="checkLevel" />
+        <transition target="areFollowing" event="CMD_TICK"/>
+        <transition target="idle" event="BatteryComponent.battery_status.Sub">
+            <assign location="percentage" expr="_event.data.percentage"/>
+        </transition>
     </state>
-
-    <state id="checkLevel">
+    <state id="areFollowing">
         <onentry>
-            <if cond="m_returnValue"> 
+            <if cond="percentage &gt; 30">
                 <send event="TICK_RESPONSE">
-                    <param name="result" expr='"SUCCESS"'/>
+                    <param name="result" expr="&quot;SUCCESS&quot;"/>
                 </send>
-            <else/>
+                <else/>
                 <send event="TICK_RESPONSE">
-                    <param name="result" expr='"FAILURE"'/>
+                    <param name="result" expr="&quot;FAILURE&quot;"/>
                 </send>
             </if>
         </onentry>
-        <transition target="idle" />
+        <transition target="idle"/>
     </state>
-
 </scxml>

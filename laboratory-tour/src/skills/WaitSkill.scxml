@@ -1,0 +1,28 @@
+<scxml
+    version="1.0"
+    xmlns="..."
+    datamodel="ecmascript"
+    name="WaitSkill"
+    initial="idle"> 
+
+    <datamodel>
+    </datamodel>
+
+    <!-- WaitSkill is a server for tick from the ROS2Action plugin-->
+    <ros_service_server service="/WaitSkill/tick" type ="bt_interface/TickAction"/>
+    <!-- WaitSkill is a server for halt from the ROS2Action plugin-->
+    <ros_service_server service="/WaitSkill/halt" type ="bt_interface/HaltAction"/>
+
+    <state id="idle">
+        <ros_service_handle_request id="/WaitSkill/tick" target="idle">
+            <ros_service_send_response id="/WaitSkill/tick">
+                <param name="result" expr='"RUNNING"'/>
+            </ros_service_send_response>
+        </ros_service_handle_request>
+        <ros_service_handle_request id="/WaitSkill/halt" target="idle">
+            <ros_service_send_response id="/WaitSkill/halt"/>
+        </ros_service_handle_request>
+    </state>
+
+</scxml>
+

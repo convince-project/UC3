@@ -1,0 +1,39 @@
+<scxml 
+  initial="idle" 
+  version="1.0" 
+  name="BatteryLevelSkill"
+  datamodel="ecmascript"
+  xmlns="http://www.w3.org/2005/07/scxml">
+
+    <datamodel>
+        <data id="percentage" type="int32" expr="100" />
+    </datamodel>
+
+    <!-- BatteryLevelSkill is a server for tick from the ROS2Condition plugin-->
+    <ros_service_server service="/BatteryLevelSkill/tick" type ="bt_interfaces/TickCondition"/>
+    <!-- BatteryLevelSkill is a subscriber for the /battery_status topic from the BatteryComponent-->
+    <ros_topic_subscriber topic="/BatteryComponent/battery_status" type="std_msgs/Int32" />
+
+    <state id="idle">
+        <ros_service_handle_request service="/BatteryLevelSkill/tick" target="areFollowing"/>
+        <ros_topic_callback topic="/BatteryComponent/battery_status" target="idle">
+            <assign location="percentage" expr="_msg.data" />
+        </ros_topic_callback>
+    </state>
+
+    <state id="areFollowing">
+        <onentry>
+            <if cond="percentage &gt; 30"> 
+                <ros_service_send_response service="/BatteryLevelSkill/tick">
+                    <param name="result" expr='"SUCCESS"'/>
+                </ros_service_send_response>
+            <else/>
+                <ros_service_send_response service="/BatteryLevelSkill/tick">
+                    <param name="result" expr='"FAILURE"'/>
+                </ros_service_send_response>
+            </if>
+        </onentry>
+        <transition target="idle" />
+    </state>
+
+</scxml>

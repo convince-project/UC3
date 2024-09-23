@@ -1,10 +1,3 @@
-/******************************************************************************
- *                                                                            *
- * Copyright (C) 2020 Fondazione Istituto Italiano di Tecnologia (IIT)        *
- * All Rights Reserved.                                                       *
- *                                                                            *
- ******************************************************************************/
-
 #include "BatteryLevelSkill.h"
 #include <future>
 #include <QTimer>
@@ -37,7 +30,6 @@ T convert(const std::string& str) {
         return str;
     }
     else {
-        // Handle unsupported types
         throw std::invalid_argument("Unsupported type conversion");
     }
 }
@@ -45,7 +37,7 @@ T convert(const std::string& str) {
 BatteryLevelSkill::BatteryLevelSkill(std::string name ) :
 		m_name(std::move(name))
 {
-	m_stateMachine.setDataModel(&m_dataModel);
+    
 }
 
 void BatteryLevelSkill::spin(std::shared_ptr<rclcpp::Node> node)
@@ -65,12 +57,21 @@ bool BatteryLevelSkill::start(int argc, char*argv[])
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "BatteryLevelSkill::start");
 	std::cout << "BatteryLevelSkill::start";
 
+    
 	m_tickService = m_node->create_service<bt_interfaces::srv::TickCondition>(m_name + "Skill/tick",
                                                                            	std::bind(&BatteryLevelSkill::tick,
                                                                            	this,
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
+    
 
+    
+    m_subscription_battery_status = m_node->create_subscription<std_msgs::msg::Int32>(
+		"/battery_status", 10, std::bind(&BatteryLevelSkill::topic_callback_battery_status, this, std::placeholders::_1));
+    
+
+    
+    
 	m_stateMachine.connectToEvent("TICK_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){
 		RCLCPP_INFO(m_node->get_logger(), "BatteryLevelSkill::tickReturn %s", event.data().toMap()["result"].toString().toStdString().c_str());
 		std::string result = event.data().toMap()["result"].toString().toStdString();
@@ -83,6 +84,7 @@ bool BatteryLevelSkill::start(int argc, char*argv[])
 			m_tickResult.store(Status::failure);
 		}
 	});
+    
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
@@ -96,16 +98,15 @@ void BatteryLevelSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfac
     std::lock_guard<std::mutex> lock(m_requestMutex);
     RCLCPP_INFO(m_node->get_logger(), "BatteryLevelSkill::tick");
     auto message = bt_interfaces::msg::ConditionResponse();
-    m_tickResult.store(Status::undefined); //here we can put a struct
+    m_tickResult.store(Status::undefined);
     m_stateMachine.submitEvent("CMD_TICK");
    
-    while(m_tickResult.load()== Status::undefined) 
-    {
+    while(m_tickResult.load()== Status::undefined) {
         std::this_thread::sleep_for (std::chrono::milliseconds(100));
-        // qInfo() <<  "active names" << m_stateMachine.activeStateNames();
     }
     switch(m_tickResult.load()) 
     {
+        
         case Status::failure:
             response->status.status = message.SKILL_FAILURE;
             break;
@@ -114,7 +115,17 @@ void BatteryLevelSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfac
             break;            
     }
     RCLCPP_INFO(m_node->get_logger(), "BatteryLevelSkill::tickDone");
-   
     response->is_ok = true;
 }
 
+
+
+
+void BatteryLevelSkill::topic_callback_battery_status(const std_msgs::msg::Int32::SharedPtr msg) {
+    std::cout << "callback" << std::endl;
+    QVariantMap data;
+    data.insert("percentage", msg->data);
+
+    m_stateMachine.submitEvent("BatteryComponent.battery_status.Sub", data);
+    RCLCPP_INFO(m_node->get_logger(), "BatteryComponent.battery_status.Sub");
+}

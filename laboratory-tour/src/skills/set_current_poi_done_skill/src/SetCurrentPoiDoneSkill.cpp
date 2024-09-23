@@ -69,6 +69,9 @@ bool SetCurrentPoiDoneSkill::start(int argc, char*argv[])
                                                                             	this,
                                                                             	std::placeholders::_1,
                                                                             	std::placeholders::_2));
+
+    
+
     
     m_stateMachine.connectToEvent("SchedulerComponent.GetCurrentPoi.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
         std::shared_ptr<rclcpp::Node> nodeGetCurrentPoi = rclcpp::Node::make_shared(m_name + "SkillNodeGetCurrentPoi");
@@ -234,3 +237,6 @@ void SetCurrentPoiDoneSkill::halt( [[maybe_unused]] const std::shared_ptr<bt_int
     RCLCPP_INFO(m_node->get_logger(), "SetCurrentPoiDoneSkill::haltDone");
     response->is_ok = true;
 }
+
+
+

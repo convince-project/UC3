@@ -3,15 +3,15 @@
 <package format="3">
   <name>visitors_following_robot_skill</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="stefano.bernagozzi@iit.it">Stefano Bernagozzi</maintainer>
-  <license>TODO: License declaration</license>
+  <description>Package description</description>
+  <maintainer email="your@email.it"></maintainer>
+  <license>License declaration</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   <depend>bt_interfaces</depend>
-  <depend>sensor_msgs</depend>
-  <depend>std_msgs</depend>
-  <depend>blackboard_interfaces</depend>
+  
+  <depend>people_detector_filter_interfaces</depend>
+
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
   <member_of_group>rosidl_interface_packages</member_of_group>

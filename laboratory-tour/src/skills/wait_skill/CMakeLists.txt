@@ -6,10 +6,13 @@ project(wait_skill)
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
+
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(bt_interfaces REQUIRED)
+
 find_package(Qt6 COMPONENTS Core Scxml StateMachine  REQUIRED)
+
 add_executable(${PROJECT_NAME} )
 
 if (NOT Qt6_FOUND)
@@ -21,7 +24,11 @@ endif()
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-ament_target_dependencies(${PROJECT_NAME} bt_interfaces rclcpp)
+ament_target_dependencies(${PROJECT_NAME} 
+  bt_interfaces 
+  rclcpp 
+  
+  )
 target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Scxml Qt6::StateMachine)
 target_include_directories(${PROJECT_NAME}
   PUBLIC
@@ -31,8 +38,6 @@ target_sources( ${PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp 
   ${CMAKE_CURRENT_SOURCE_DIR}/src/WaitSkill.cpp 
   ${CMAKE_CURRENT_SOURCE_DIR}/include/WaitSkill.h
-  #${CMAKE_CURRENT_SOURCE_DIR}/src/WaitDataModel.cpp 
-  #${CMAKE_CURRENT_SOURCE_DIR}/include/WaitDataModel.h
   )
 
 

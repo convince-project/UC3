@@ -1,31 +1,15 @@
-<scxml 
-  initial="idle" 
-  version="1.0" 
-  name="WaitSkillAction"
-  datamodel="ecmascript"
-  xmlns="http://www.w3.org/2005/07/scxml">
-
+<scxml version="1.0" xmlns="http://www.w3.org/2005/07/scxml" datamodel="ecmascript" name="WaitSkillAction" initial="idle">
+    <datamodel/>
+    <!-- WaitSkill is a server for tick from the ROS2Action plugin-->
+    <!-- WaitSkill is a server for halt from the ROS2Action plugin-->
     <state id="idle">
-        <transition event="CMD_TICK" target="sendRunning" />
-        <transition event="CMD_HALT" target="sendHalted" /> 
-    </state>
-
-    <state id="sendRunning">
-        <onentry>
-          <send event="TICK_RESPONSE">
-            <param name="result" expr='"RUNNING"'/>
-          </send>
-        </onentry>
-        <transition target="idle" />
-    </state>
-
-    <state id="sendHalted">
-        <onentry>
-            <send event="HALT_RESPONSE">
+        <transition target="idle" event="CMD_TICK">
+            <send event="TICK_RESPONSE">
+                <param name="result" expr="&quot;RUNNING&quot;"/>
             </send>
-        </onentry>
-        <transition target="idle" />
+        </transition>
+        <transition target="idle" event="CMD_HALT">
+            <send event="HALT_RESPONSE"/>
+        </transition>
     </state>
-
-
 </scxml>

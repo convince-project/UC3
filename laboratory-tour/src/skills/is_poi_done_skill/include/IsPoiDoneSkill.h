@@ -8,6 +8,7 @@
 #include <blackboard_interfaces/srv/get_int_blackboard.hpp> 
 
 
+
 #include <bt_interfaces/srv/tick_condition.hpp>
 
 
@@ -30,6 +31,8 @@ public:
 	void tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::TickCondition::Request> request,
 			   std::shared_ptr<bt_interfaces::srv::TickCondition::Response>      response);
 	
+	
+	
 
 private:
 	std::shared_ptr<std::thread> m_threadSpin;
@@ -39,7 +42,9 @@ private:
 	IsPoiDoneSkillCondition m_stateMachine;
 	std::atomic<Status> m_tickResult{Status::undefined};
 	rclcpp::Service<bt_interfaces::srv::TickCondition>::SharedPtr m_tickService;
-	int m_poiNumber;
+	
+	
+	
 	
 	
 };

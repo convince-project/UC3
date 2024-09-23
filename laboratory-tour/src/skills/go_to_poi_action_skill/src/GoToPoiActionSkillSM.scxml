@@ -1,0 +1,59 @@
+<scxml version="1.0" xmlns="http://www.w3.org/2005/07/scxml" datamodel="ecmascript" name="GoToPoiActionSkillCondition" initial="idle">
+    <datamodel>
+        <data id="poi_name" expr=""/>
+        <data id="status" expr=""/>
+        <data id="result" expr="true"/>
+    </datamodel>
+    <!-- GoToPoiActionSkill is a server for tick from the ROS2Action plugin-->
+    <!-- GoToPoiActionSkill is a server for halt from the ROS2Action plugin-->
+    <!-- GoToPoiActionSkill is a client for GetCurrentPoi from the SchedulerComponent -->
+    <!-- GoToPoiActionSkill is a client for GoToPoi action from the Navigation Component -->
+    <state id="idle">
+        <transition target="getPoi" event="CMD_TICK">
+            <send event="SchedulerComponent.GetCurrentPoi.Call"/>
+        </transition>
+        <transition target="halt" event="CMD_HALT">
+            <send event="TICK_RESPONSE">
+                <param name="result" expr="&quot;RUNNING&quot;"/>
+            </send>
+        </transition>
+    </state>
+    <state id="getPoi">
+        <transition event="SchedulerComponent.GetCurrentPoi.Return">
+            <assign location="poi_name" expr="_service.response.poi_name.poi_name"/>
+            <ros_action_send_goal name="go_to_poi_action">
+                <field name="poi_name" expr="poi_name"/>
+            </ros_action_send_goal>
+        </transition>
+        <ros_action_handle_goal_response name="go_to_poi_action" accept="wait_result" reject="send_failure"/>
+        <transition target="wait_result" event="CMD_TICK">
+            <send event="TICK_RESPONSE">
+                <param name="result" expr="&quot;RUNNING&quot;"/>
+            </send>
+        </transition>
+        <!-- halt -->
+    </state>
+    <state id="wait_result">
+        <transition target="wait_result" event="CMD_TICK">
+            <send event="TICK_RESPONSE">
+                <param name="result" expr="&quot;RUNNING&quot;"/>
+            </send>
+        </transition>
+        <ros_action_handle_feedback name="go_to_poi_action" target="wait_result">
+            <assign location="status" expr="_action.feedback.status.status"/>
+            <!-- -->
+        </ros_action_handle_feedback>
+        <ros_action_handle_success_result name="go_to_poi_action" target="idle">
+            <assign location="result" expr="_wrapped_result.result.is_ok.result"/>
+        </ros_action_handle_success_result>
+        <!-- halt -->
+    </state>
+    <state id="send_failure">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="result" expr="&quot;FAILURE&quot;"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+</scxml>

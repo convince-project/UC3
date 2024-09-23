@@ -1,0 +1,40 @@
+<scxml version="1.0" xmlns="http://www.w3.org/2005/07/scxml" datamodel="ecmascript" name="AlarmSkillAction" initial="idle">
+    <!-- AlarmSkill is a server for tick from the ROS2Action plugin-->
+    <!-- AlarmSkill is a server for halt from the ROS2Action plugin-->
+    <!-- AlarmSkill is a client for StartAlarm from the NotifyUserComponent -->
+    <!-- AlarmSkill is a client for StopAlarm from the NotifyUserComponent -->
+    <state id="idle">
+        <transition target="startAlarm" event="CMD_TICK">
+            <send event="NotifyUserComponent.StartAlarm.Call"/>
+        </transition>
+        <transition target="stopAlarm" event="CMD_HALT">
+            <send event="NotifyUserComponent.StopAlarm.Call"/>
+        </transition>
+    </state>
+    <state id="startAlarm">
+        <transition cond="_event.data.is_ok" target="idle" event="NotifyUserComponent.StartAlarm.Return">
+            <send event="TICK_RESPONSE">
+                <param name="result" expr="&quot;RUNNING&quot;"/>
+            </send>
+        </transition>
+        <transition cond="!(_event.data.is_ok)" target="idle" event="NotifyUserComponent.StartAlarm.Return">
+            <send event="TICK_RESPONSE">
+                <param name="result" expr="&quot;FAILURE&quot;"/>
+            </send>
+        </transition>
+        <transition target="stopAlarm" event="CMD_HALT">
+            <send event="NotifyUserComponent.StopAlarm.Call"/>
+        </transition>
+        <transition target="startAlarm" event="CMD_TICK">
+            <send event="TICK_RESPONSE">
+                <param name="result" expr="&quot;RUNNING&quot;"/>
+            </send>
+        </transition>
+    </state>
+    <state id="stopAlarm">
+        <transition target="idle" event="NotifyUserComponent.StopAlarm.Return">
+            <send event="HALT_RESPONSE"/>
+        </transition>
+        <transition target="stopAlarm" event="CMD_HALT"/>
+    </state>
+</scxml>

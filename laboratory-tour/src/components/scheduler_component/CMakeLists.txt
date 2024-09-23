@@ -18,7 +18,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(scheduler_interfaces REQUIRED)
-find_package(log_library REQUIRED)
+# find_package(log_library REQUIRED)
 # find_package(nlohmann_json 3.10.5 REQUIRED)
 add_executable(${PROJECT_NAME} )
 
@@ -29,14 +29,16 @@ include(FetchContent)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
-find_library(LOG_LIBRARY NAMES log_library PATHS ${CMAKE_INSTALL_PREFIX}/lib)
-find_path(LOG_LIBRARY_INCLUDE_DIRS LogLibrary.h PATHS ${CMAKE_INSTALL_PREFIX}/include)
-include_directories(
-  include
-  ${log_library_INCLUDE_DIRS}  # Ensure this line is added
-)
+# find_library(LOG_LIBRARY NAMES log_library PATHS ${CMAKE_INSTALL_PREFIX}/lib)
+# find_path(LOG_LIBRARY_INCLUDE_DIRS LogLibrary.h PATHS ${CMAKE_INSTALL_PREFIX}/include)
+# include_directories(
+#   include
+#   ${log_library_INCLUDE_DIRS}  # Ensure this line is added
+# )
 
-ament_target_dependencies(${PROJECT_NAME} scheduler_interfaces rclcpp log_library)
+ament_target_dependencies(${PROJECT_NAME} scheduler_interfaces rclcpp 
+# log_library
+)
 
 target_include_directories(${PROJECT_NAME}
   PUBLIC

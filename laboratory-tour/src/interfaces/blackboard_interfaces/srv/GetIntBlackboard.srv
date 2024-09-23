@@ -1,4 +1,4 @@
-string field_name
+int32 field_name
 ---
 int32 value 
 bool is_ok

@@ -48,23 +48,10 @@ void SetPoiSkill::spin(std::shared_ptr<rclcpp::Node> node)
 
 bool SetPoiSkill::start(int argc, char*argv[])
 {
-    if (argc >= 2)
-    {
-        m_poiNumber = convert<int>(argv[1]);
-        std::cout << "Poi number: " << m_poiNumber << std::endl;
-    }
-    else
-    {
-        std::cerr << "Error: parameter poiNumber is missing" << std::endl;
-        return false;
-    }
-
 	if(!rclcpp::ok())
 	{
 		rclcpp::init(/*argc*/ argc, /*argv*/ argv);
 	}
-    m_name = m_name + std::to_string(m_poiNumber);
-    std::cout << "name " << m_name << std::endl; 
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "SetPoiSkill::start");
@@ -82,13 +69,17 @@ bool SetPoiSkill::start(int argc, char*argv[])
                                                                             	this,
                                                                             	std::placeholders::_1,
                                                                             	std::placeholders::_2));
+
+    
+
     
     m_stateMachine.connectToEvent("SchedulerComponent.SetPoi.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
         std::shared_ptr<rclcpp::Node> nodeSetPoi = rclcpp::Node::make_shared(m_name + "SkillNodeSetPoi");
         std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::SetPoi>> clientSetPoi = nodeSetPoi->create_client<scheduler_interfaces::srv::SetPoi>("/SchedulerComponent/SetPoi");
         auto request = std::make_shared<scheduler_interfaces::srv::SetPoi::Request>();
         auto eventParams = event.data().toMap();
-        request->poi_number = m_poiNumber;
+        
+        request->poi_number = convert<decltype(request->poi_number)>(eventParams["poi_number"].toString().toStdString());
         bool wait_succeded{true};
         int retries = 0;
         while (!clientSetPoi->wait_for_service(std::chrono::seconds(1))) {
@@ -198,3 +189,6 @@ void SetPoiSkill::halt( [[maybe_unused]] const std::shared_ptr<bt_interfaces::sr
     RCLCPP_INFO(m_node->get_logger(), "SetPoiSkill::haltDone");
     response->is_ok = true;
 }
+
+
+

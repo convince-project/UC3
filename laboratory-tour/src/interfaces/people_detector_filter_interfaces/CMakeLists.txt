@@ -17,9 +17,7 @@ find_package(sensor_msgs REQUIRED)
 # find_package(<dependency> REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(people_detector_filter_interfaces
-"msg/FilterStatus.msg"
-"srv/SetFilterTimeout.srv"
-"srv/GetFilterTimeout.srv"
+"msg/IsFollowed.msg"
 DEPENDENCIES sensor_msgs
 LIBRARY_NAME people_detector_filter_interfaces 
 )

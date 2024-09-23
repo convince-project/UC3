@@ -48,23 +48,10 @@ void IsPoiDoneSkill::spin(std::shared_ptr<rclcpp::Node> node)
 
 bool IsPoiDoneSkill::start(int argc, char*argv[])
 {
-    if (argc >= 2)
-    {
-        m_poiNumber = convert<int>(argv[1]);
-        std::cout << "Poi number: " << m_poiNumber << std::endl;
-    }
-    else
-    {
-        std::cerr << "Error: parameter poiNumber is missing" << std::endl;
-        return false;
-    }
-
 	if(!rclcpp::ok())
 	{
 		rclcpp::init(/*argc*/ argc, /*argv*/ argv);
 	}
-    m_name = m_name + std::to_string(m_poiNumber);
-    std::cout << "name " << m_name << std::endl; 
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "IsPoiDoneSkill::start");
@@ -77,13 +64,17 @@ bool IsPoiDoneSkill::start(int argc, char*argv[])
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
     
+
+    
+
     
     m_stateMachine.connectToEvent("BlackboardComponent.GetInt.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
         std::shared_ptr<rclcpp::Node> nodeGetInt = rclcpp::Node::make_shared(m_name + "SkillNodeGetInt");
         std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::GetIntBlackboard>> clientGetInt = nodeGetInt->create_client<blackboard_interfaces::srv::GetIntBlackboard>("/BlackboardComponent/GetInt");
         auto request = std::make_shared<blackboard_interfaces::srv::GetIntBlackboard::Request>();
         auto eventParams = event.data().toMap();
-        request->field_name = convert<decltype(request->field_name)>(eventParams["field_name"].toString().toStdString()) + std::to_string(m_poiNumber);
+        
+        request->field_name = convert<decltype(request->field_name)>(eventParams["field_name"].toString().toStdString());
         bool wait_succeded{true};
         int retries = 0;
         while (!clientGetInt->wait_for_service(std::chrono::seconds(1))) {
@@ -170,3 +161,6 @@ void IsPoiDoneSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces:
     RCLCPP_INFO(m_node->get_logger(), "IsPoiDoneSkill::tickDone");
     response->is_ok = true;
 }
+
+
+

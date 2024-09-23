@@ -1,0 +1,54 @@
+<scxml
+    version="1.0"
+    xmlns="..."
+    datamodel="ecmascript"
+    name="AlarmSkill"
+    initial="idle"> 
+
+    <!-- AlarmSkill is a server for tick from the ROS2Action plugin-->
+    <ros_service_server service="/AlarmSkill/tick" type ="bt_interface/TickAction"/>
+    <!-- AlarmSkill is a server for halt from the ROS2Action plugin-->
+    <ros_service_server service="/AlarmSkill/halt" type ="bt_interface/HaltAction"/>
+    <!-- AlarmSkill is a client for StartAlarm from the NotifyUserComponent -->
+    <ros_service_client service="/NotifyUserComponent/StartAlarm" type ="alarm_interfaces/StartAlarm"/>
+    <!-- AlarmSkill is a client for StopAlarm from the NotifyUserComponent -->
+    <ros_service_client service="/NotifyUserComponent/StopAlarm" type ="alarm_interfaces/StopAlarm"/>
+
+    <state id="idle">
+        <ros_service_handle_request id="/AlarmSkill/tick" target="startAlarm">
+            <ros_service_send_request id="/NotifyUserComponent/StartAlarm"/>
+        </ros_service_handle_request>
+        <ros_service_handle_request id="/AlarmSkill/halt" target="stopAlarm">
+            <ros_service_send_request id="/NotifyUserComponent/StopAlarm"/>
+        </ros_service_handle_request>
+
+    </state>
+
+    <state id="startAlarm">
+        <ros_service_handle_response service="/NotifyUserComponent/StartAlarm" cond="_service.response.is_ok" target="idle">
+            <ros_service_send_response id="/AlarmSkill/tick">
+                <param name="result" expr='"RUNNING"'/>
+            </ros_service_send_response>
+        </ros_service_handle_response>
+        <ros_service_handle_response service="/NotifyUserComponent/StartAlarm" cond="!(_service.response.is_ok)" target="idle">
+            <ros_service_send_response id="/AlarmSkill/tick">
+                <param name="result" expr='"FAILURE"'/>
+            </ros_service_send_response>
+        </ros_service_handle_response>
+        <ros_service_handle_request id="/AlarmSkill/halt" target="stopAlarm">
+            <ros_service_send_request id="/NotifyUserComponent/StopAlarm"/>
+        </ros_service_handle_request>
+        <ros_service_handle_request id="/AlarmSkill/tick" target="startAlarm">
+            <ros_service_send_response id="/AlarmSkill/tick">
+                <param name="result" expr='"RUNNING"'/>
+            </ros_service_send_response>
+        </ros_service_handle_request>
+    </state>
+
+    <state id="stopAlarm">
+        <ros_service_handle_response service="/NotifyUserComponent/StopAlarm" target="idle">
+            <ros_service_send_response id="/AlarmSkill/halt"/>
+        </ros_service_handle_response>
+        <ros_service_handle_request id="/AlarmSkill/halt" target="stopAlarm"/>
+    </state>
+</scxml>

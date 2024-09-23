@@ -1,4 +1,0 @@
----
-int16 state
-bool is_ok
-string error_msg

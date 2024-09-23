@@ -1,0 +1,60 @@
+<root main_tree_to_execute="BehaviorTree">
+    <BehaviorTree ID="BehaviorTree">
+        <ReactiveSequence>
+            <SubTree ID="BatteryManagment"/>
+            <SubTree ID="PoiScheduler"/>
+            <SubTree ID="GoToPoi"/>
+        </ReactiveSequence>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <BehaviorTree ID="GoToPoi">
+        <ReactiveSequence>
+            <SubTree ID="PeopleFollowing" name="PeopleFollowing"/>
+            <Action ID="ROS2Action" name="GoToPoiAction"/>
+            <Action ID="ROS2Action" name="SetCurrentPoiDone"/>
+        </ReactiveSequence>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <BehaviorTree ID="BatteryManagment">
+        <ReactiveFallback>
+            <Condition ID="ROS2Condition" name="BatteryLevel"/>
+            <Action ID="ROS2Action" name="Alarm"/>
+        </ReactiveFallback>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <BehaviorTree ID="PoiScheduler">
+        <Fallback>
+            <Sequence>
+                <Inverter>
+                    <Condition ID="ROS2Condition" name="IsPoiDone1"/>
+                </Inverter>
+                <Action ID="ROS2Action" name="SetPoi1"/>
+            </Sequence>
+            <Sequence>
+                <Inverter>
+                    <Condition ID="ROS2Condition" name="IsPoiDone2"/>
+                </Inverter>
+                <Action ID="ROS2Action" name="SetPoi2"/>
+            </Sequence>
+        </Fallback>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <BehaviorTree ID="PeopleFollowing">
+        <ReactiveFallback name="">
+            <Condition ID="ROS2Condition" name="VisitorsFollowingRobot"/>
+            <ReactiveSequence>
+                <Action ID="ROS2Action" name="RunTimer"/>
+                <Action ID="ROS2Action" name="Wait"/>
+            </ReactiveSequence>
+        </ReactiveFallback>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <TreeNodesModel>
+        <SubTree ID="GoToPoi"/>
+        <SubTree ID="BatteryManagment"/>
+        <SubTree ID="PoiScheduler"/>
+        <SubTree ID="PeopleFollowing"/>
+    </TreeNodesModel>
+    <!-- ////////// -->
+</root>
+

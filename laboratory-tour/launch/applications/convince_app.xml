@@ -4,24 +4,7 @@
     <dependencies>
     </dependencies>
    <application>
-        <name>Navigation_Madama_ROS2_R1SN003</name>
-        <prefix></prefix>
-    </application>
-    <application>
-        <name>convince_audio</name>
-        <prefix></prefix>
-    </application>
-    <application>
-        <name>convince_llm</name>
-        <prefix></prefix>
-    </application>
-    <application>
-        <name>convince_people_detector</name>
-        <prefix></prefix>
-    </application>
-
-    <application>
-        <name>convince_ctp_service</name>
+        <name>Navigation_Madama_ROS2_R1_fake</name>
         <prefix></prefix>
     </application>
     
@@ -30,22 +13,5 @@
         <prefix></prefix>
     </application>
  
-<!-- 
-
-    <application>
-        <name>LLM_Test_commands</name>
-        <prefix></prefix>
-    </application>
-    <application>
-        <name>Google_speech_test_bench</name>
-        <prefix></prefix>
-    </application> -->
-
-
-
-
-
-
-
 
 </application>

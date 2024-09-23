@@ -1,0 +1,46 @@
+<scxml
+    version="1.0"
+    xmlns="..."
+    datamodel="ecmascript"
+    name="SetPoiSkill"
+    initial="idle"> 
+
+    <datamodel>
+        <data id="poi_number" type="int32" expr="0"/>
+    </datamodel>
+
+    <!-- SetPoiSkill is a server for tick from the ROS2Action plugin-->
+    <ros_service_server service="/SetPoiSkill/tick" type ="bt_interface/TickAction"/>
+    <!-- SetPoiSkill is a server for halt from the ROS2Action plugin-->
+    <ros_service_server service="/SetPoiSkill/halt" type ="bt_interface/HaltAction"/>
+    <!-- SetPoiSkill is a client for SetPoi from the SchedulerComponent -->
+    <ros_service_client service="/SchedulerComponent/SetPoi" type ="scheduler_interfaces/SetPoi"/>
+
+    <state id="idle">
+        <ros_service_handle_request id="/SetPoiSkill/tick" target="setPoi">
+            <ros_service_send_request id="/SchedulerComponent/SetPoi">
+                <param name="poi_number" expr="poi_number"/>
+            </ros_service_send_request>
+        </ros_service_handle_request>
+        <ros_service_handle_request id="/SetPoiSkill/halt" target="idle">
+            <ros_service_send_response id="/SetPoiSkill/halt"/>
+        </ros_service_handle_request>
+
+    </state>
+
+    <state id="setPoi">
+        <ros_service_handle_response service="/SchedulerComponent/SetPoi" cond="_service.response.is_ok" target="idle">
+            <ros_service_send_response id="/SetPoiSkill/tick">
+                <param name="result" expr='"SUCCESS"'/>
+            </ros_service_send_response>
+        </ros_service_handle_response>
+        <ros_service_handle_response service="/SchedulerComponent/SetPoi" cond="!(_service.response.is_ok)" target="idle">
+            <ros_service_send_response id="/SetPoiSkill/tick">
+                <param name="result" expr='"FAILURE"'/>
+            </ros_service_send_response>
+        </ros_service_handle_response>
+        <ros_service_handle_request id="/SetPoiSkill/halt" target="idle">
+            <ros_service_send_response id="/SetPoiSkill/halt"/>
+        </ros_service_handle_request>
+    </state>
+</scxml>

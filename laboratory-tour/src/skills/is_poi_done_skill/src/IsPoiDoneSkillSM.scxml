@@ -1,65 +1,32 @@
-<scxml 
-  initial="idle" 
-  version="1.0" 
-  name="IsPoiDoneSkillCondition"
-  datamodel="ecmascript"
-  xmlns="http://www.w3.org/2005/07/scxml">
-
-  <datamodel>
-    <data id="m_result"/>
-    <data id="m_value"/>
-    <data id="m_field_name" expr='"PoiDone"'/>
-  </datamodel>
-
-  <state id="idle">
-      <transition event="CMD_TICK" target="getCurrentPoi" />
-  </state>
-
-  <state id="getCurrentPoi">
-    <onentry>
-        <send event="BlackboardComponent.GetInt.Call">
-          <param name="field_name" expr="m_field_name"/>
-        </send>
-    </onentry>
-    <transition event="BlackboardComponent.GetInt.Return" target="getCurrentPoiResult"> 
-        <assign expr="_event.data.result" location="m_result"/>
-        <assign expr="_event.data.value" location="m_value"/>
-    </transition>
-  </state>
-
-  <state id="getCurrentPoiResult">
-    <onentry>
-      <log expr="'State getCurrentPoiResult'"/>
-    </onentry>
-    <transition cond="m_result == 'SUCCESS'" target="checkPoi" />
-    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
-  </state>
-
-  <state id="checkPoi">
-    <onentry>
-      <log expr="'State checkPoi'"/>
-    </onentry>
-    <transition cond="m_value" target="sendSuccess" /> 
-    <transition target="sendFailure" /> 
-  </state> 
-
-  <state id="sendFailure">
-    <onentry>
-      <send event="TICK_RESPONSE">
-        <param name="result" expr='"FAILURE"'/>
-      </send>
-    </onentry>
-    <transition target="idle" />
-  </state>
-
-  <state id="sendSuccess">
-      <onentry>
-        <send event="TICK_RESPONSE">
-          <param name="result" expr='"SUCCESS"'/>
-        </send>
-      </onentry>
-      <transition target="idle" />
-  </state>
-
-
+<scxml version="1.0" xmlns="http://www.w3.org/2005/07/scxml" datamodel="ecmascript" name="IsPoiDoneSkillCondition" initial="idle">
+    <datamodel>
+        <data id="key" expr="&quot;PoiDone&quot;"/>
+        <data id="value" expr="0"/>
+    </datamodel>
+    <!-- IsPoiDoneSkill is a server for tick from the ROS2Condition plugin-->
+    <!-- IsPoiDoneSkill is a client for GetInt from the BlackboardComponent -->
+    <state id="idle">
+        <transition target="checkInt" event="CMD_TICK">
+            <send event="BlackboardComponent.GetInt.Call">
+                <param name="field_name" expr="key"/>
+            </send>
+        </transition>
+    </state>
+    <state id="checkInt">
+        <transition cond="!(_event.data.is_ok)" target="idle" event="BlackboardComponent.GetInt.Return">
+            <send event="TICK_RESPONSE">
+                <param name="result" expr="&quot;FAILURE&quot;"/>
+            </send>
+        </transition>
+        <transition cond="_event.data.value" target="idle" event="BlackboardComponent.GetInt.Return">
+            <send event="TICK_RESPONSE">
+                <param name="result" expr="&quot;SUCCESS&quot;"/>
+            </send>
+        </transition>
+        <transition cond="!(_event.data.value)" target="idle" event="BlackboardComponent.GetInt.Return">
+            <send event="TICK_RESPONSE">
+                <param name="result" expr="&quot;FAILURE&quot;"/>
+            </send>
+        </transition>
+    </state>
 </scxml>
