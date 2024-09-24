@@ -2,27 +2,20 @@
     <name>convince_bt_skills</name>
 
     <module>
-        <name>python3</name>
-        <parameters>create_symlinks.py ../applications/convince_bt_skills.xml</parameters>
-        <workdir>/home/user1/UC3/laboratory-tour/launch/symbolic_links/</workdir>
-        <node>bt</node>
-    </module>
-    
-    <module>
-        <name>ros2_alarm_skill</name>
+        <name>ros2</name>
         <parameters>run alarm_skill alarm_skill</parameters>
         <workdir />
         <node>bt</node>
     </module>
     <module>
-        <name>ros2_battery_level_skill</name>
+        <name>ros2</name>
         <parameters>run battery_level_skill battery_level_skill</parameters>
         <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2_wait_skill</name>
+        <name>ros2</name>
         <parameters>run wait_skill wait_skill</parameters>
         <workdir />
         <node>bt</node>
@@ -30,42 +23,42 @@
     
 
     <module>
-        <name>ros2_run_timer_skill</name>
+        <name>ros2</name>
         <parameters>run run_timer_skill run_timer_skill</parameters>
         <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2_is_poi_done_skill1</name>
+        <name>ros2</name>
         <parameters>run is_poi_done_skill is_poi_done_skill 1</parameters>
         <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2_is_poi_done_skill2</name>
+        <name>ros2</name>
         <parameters>run is_poi_done_skill is_poi_done_skill 2</parameters>
         <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2_set_poi_skill1</name>
+        <name>ros2</name>
         <parameters>run set_poi_skill set_poi_skill 1</parameters>
         <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2_set_poi_skill2</name>
+        <name>ros2</name>
         <parameters>run set_poi_skill set_poi_skill 2</parameters>
         <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2_set_current_poi_done_skill</name>
+        <name>ros2</name>
         <parameters>run set_current_poi_done_skill set_current_poi_done_skill</parameters>
         <workdir />
         <node>bt</node>

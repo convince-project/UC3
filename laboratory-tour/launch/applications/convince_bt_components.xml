@@ -1,30 +1,24 @@
 <application>
     <name>convince_bt_components</name>
 
-    <module>
-        <name>python3</name>
-        <parameters>create_symlinks.py ../applications/convince_bt_components.xml</parameters>
-        <workdir>/home/user1/UC3/laboratory-tour/launch/symbolic_links/</workdir>
-        <node>bt</node>
-    </module>
 
 
     <module>
-        <name>ros2_blackboard_component</name>
+        <name>ros2</name>
         <parameters>run blackboard_component blackboard_component</parameters>
         <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2_notify_user_component</name>
+        <name>ros2</name>
         <parameters>run notify_user_component notify_user_component</parameters>
         <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2_timer_component</name>
+        <name>ros2</name>
         <parameters>run timer_component timer_component</parameters>
         <workdir />
         <node>bt</node>
@@ -32,14 +26,14 @@
 
 
     <module>
-        <name>ros2_battery_component</name>
+        <name>ros2</name>
         <parameters>run battery_component battery_component</parameters>
         <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2_scheduler_component</name>
+        <name>ros2</name>
         <parameters>run scheduler_component scheduler_component conf/sim_tour.json TOUR_SIM_GAM</parameters>
         <workdir>/home/user1/UC3/laboratory-tour</workdir>
         <node>bt</node>
