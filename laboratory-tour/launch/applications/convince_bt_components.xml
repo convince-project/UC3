@@ -8,12 +8,6 @@
         <node>bt</node>
     </module>
 
-    <module>
-        <name>ros2_navigation_component</name>
-        <parameters>run navigation_component navigation_component</parameters>
-        <workdir />
-        <node>bt</node>
-    </module>
 
     <module>
         <name>ros2_blackboard_component</name>
@@ -51,11 +45,5 @@
         <node>bt</node>
     </module>
 
-    <module>
-        <name>ros2_people_detector_filter_component</name>
-        <parameters>run people_detector_filter_component people_detector_filter_component</parameters>
-        <workdir />
-        <node>bt</node>
-    </module>
 
 </application>

@@ -28,23 +28,10 @@
         <node>bt</node>
     </module>
     
-    <module>
-        <name>ros2_visitors_following_robot_skill</name>
-        <parameters>run visitors_following_robot_skill visitors_following_robot_skill</parameters>
-        <workdir />
-        <node>bt</node>
-    </module>
 
     <module>
         <name>ros2_run_timer_skill</name>
         <parameters>run run_timer_skill run_timer_skill</parameters>
-        <workdir />
-        <node>bt</node>
-    </module>
-
-    <module>
-        <name>ros2_go_to_poi_action_skill</name>
-        <parameters>run go_to_poi_action_skill go_to_poi_action_skill</parameters>
         <workdir />
         <node>bt</node>
     </module>
@@ -78,8 +65,8 @@
     </module>
 
     <module>
-        <name>ros2_set_current_poi_skill</name>
-        <parameters>run set_current_poi_skill set_current_poi_skill</parameters>
+        <name>ros2_set_current_poi_done_skill</name>
+        <parameters>run set_current_poi_done_skill set_current_poi_done_skill</parameters>
         <workdir />
         <node>bt</node>
     </module>
