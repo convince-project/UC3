@@ -50,8 +50,7 @@ void BlackboardComponent::GetInt( const std::shared_ptr<blackboard_interfaces::s
              std::shared_ptr<blackboard_interfaces::srv::GetIntBlackboard::Response>      response) 
 {
     std::lock_guard<std::mutex> lock(m_mutexInt);
-    int32_t value = request->field_name;
-    std::string field_name = std::to_string(value);
+    std::string field_name = request->field_name;
     std::cout << "Request: " << request->field_name << "translation " << field_name << std::endl; 
     if (field_name == "") {
         response->is_ok = false;
@@ -74,7 +73,7 @@ void BlackboardComponent::SetInt( const std::shared_ptr<blackboard_interfaces::s
 {
     std::lock_guard<std::mutex> lock(m_mutexInt);
     std::cout << "SetInt: " << std::endl;
-    std::string field_name = std::to_string(request->field_name);
+    std::string field_name = request->field_name;
     std::cout << "Request: " << request->field_name << "translation " << field_name << std::endl; 
     if (field_name == "") {
         response->is_ok = false;
