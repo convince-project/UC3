@@ -1,4 +1,13 @@
+<?xml version="1.0"?>
 <root main_tree_to_execute="BehaviorTree">
+    <!-- ////////// -->
+    <BehaviorTree ID="BatteryManagment">
+        <ReactiveFallback>
+            <Condition ID="ROS2Condition" name="BatteryLevel"/>
+            <Action ID="ROS2Action" name="Alarm"/>
+        </ReactiveFallback>
+    </BehaviorTree>
+    <!-- ////////// -->
     <BehaviorTree ID="BehaviorTree">
         <ReactiveSequence>
             <SubTree ID="BatteryManagment"/>
@@ -8,17 +17,16 @@
     </BehaviorTree>
     <!-- ////////// -->
     <BehaviorTree ID="GoToPoi">
-        <ReactiveSequence>
-            <SubTree ID="PeopleFollowing" name="PeopleFollowing"/>
-            <Action ID="ROS2Action" name="GoToPoiAction"/>
-            <Action ID="ROS2Action" name="SetCurrentPoiDone"/>
-        </ReactiveSequence>
+        <Action ID="ROS2Action" name="SetCurrentPoiDone"/>
     </BehaviorTree>
     <!-- ////////// -->
-    <BehaviorTree ID="BatteryManagment">
-        <ReactiveFallback>
-            <Condition ID="ROS2Condition" name="BatteryLevel"/>
-            <Action ID="ROS2Action" name="Alarm"/>
+    <BehaviorTree ID="PeopleFollowing">
+        <ReactiveFallback name="">
+            <Condition ID="ROS2Condition" name="VisitorsFollowingRobot"/>
+            <ReactiveSequence>
+                <Action ID="ROS2Action" name="RunTimer"/>
+                <Action ID="ROS2Action" name="Wait"/>
+            </ReactiveSequence>
         </ReactiveFallback>
     </BehaviorTree>
     <!-- ////////// -->
@@ -39,21 +47,13 @@
         </Fallback>
     </BehaviorTree>
     <!-- ////////// -->
-    <BehaviorTree ID="PeopleFollowing">
-        <ReactiveFallback name="">
-            <Condition ID="ROS2Condition" name="VisitorsFollowingRobot"/>
-            <ReactiveSequence>
-                <Action ID="ROS2Action" name="RunTimer"/>
-                <Action ID="ROS2Action" name="Wait"/>
-            </ReactiveSequence>
-        </ReactiveFallback>
-    </BehaviorTree>
-    <!-- ////////// -->
     <TreeNodesModel>
-        <SubTree ID="GoToPoi"/>
         <SubTree ID="BatteryManagment"/>
-        <SubTree ID="PoiScheduler"/>
+        <SubTree ID="GoToPoi"/>
         <SubTree ID="PeopleFollowing"/>
+        <SubTree ID="PoiScheduler"/>
+        <Action ID="ROS2Action"/>
+        <Condition ID="ROS2Condition"/>
     </TreeNodesModel>
     <!-- ////////// -->
 </root>
