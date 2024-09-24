@@ -74,19 +74,19 @@ void BlackboardComponent::SetInt( const std::shared_ptr<blackboard_interfaces::s
 {
     std::lock_guard<std::mutex> lock(m_mutexInt);
     std::cout << "SetInt: " << std::endl;
-    // std::string field_name = std::to_string(request->field_name);
-    // std::cout << "Request: " << request->field_name << "translation " << field_name << std::endl; 
-    // if (field_name == "") {
-    //     response->is_ok = false;
-    //     response->error_msg = "missing required field name";
-    // } else {
-    //     if (m_intBlacboard.contains(field_name)) {
-    //         response->error_msg = "field already present, overwriting";
-    //     } 
-    //     m_intBlacboard.insert_or_assign(field_name, request->value); 
-    //     std::cout << "SetInt: " << field_name << " " << request->value << std::endl; 
-    //     response->is_ok = true;
-    // }
+    std::string field_name = std::to_string(request->field_name);
+    std::cout << "Request: " << request->field_name << "translation " << field_name << std::endl; 
+    if (field_name == "") {
+        response->is_ok = false;
+        response->error_msg = "missing required field name";
+    } else {
+        if (m_intBlacboard.contains(field_name)) {
+            response->error_msg = "field already present, overwriting";
+        } 
+        m_intBlacboard.insert_or_assign(field_name, request->value); 
+        std::cout << "SetInt: " << field_name << " " << request->value << std::endl; 
+        response->is_ok = true;
+    }
     response->is_ok = true;
 
 }

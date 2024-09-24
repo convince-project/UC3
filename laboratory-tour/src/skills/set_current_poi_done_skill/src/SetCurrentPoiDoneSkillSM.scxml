@@ -1,9 +1,9 @@
 <scxml version="1.0" xmlns="http://www.w3.org/2005/07/scxml" datamodel="ecmascript" name="SetCurrentPoiDoneSkillAction" initial="idle">
     <datamodel>
         <data id="poi_number" expr="0"/>
-        <data id="poi_name" expr=""/>
-        <data id="field_name" expr="&quot;PoiDone&quot;"/>
-        <data id="field_name_init" expr="&quot;PoiDone&quot;"/>
+        <!-- <data id="poi_name" type="string" expr=""/> -->
+        <!-- <data id="field_name" type="string" expr='"PoiDone"'/>
+        <data id="field_name_init" type="string" expr='"PoiDone"'/> -->
         <data id="value" expr="1"/>
     </datamodel>
     <!-- SetCurrentPoiDoneSkill is a server for tick from the ROS2Action plugin-->
@@ -20,13 +20,14 @@
     </state>
     <state id="getCurrentPoi">
         <transition cond="_event.data.is_ok" target="setInt" event="SchedulerComponent.GetCurrentPoi.Return">
-            <assign location="poi_number" expr="_service.response.poi_number.poi_number"/>
-            <assign location="poi_name" expr="_service.response.poi_name.poi_name"/>
-            <script>
+            <assign location="poi_number" expr="event.data.poi_number"/>
+            <!-- <assign location="poi_name" expr="_service.response.poi_name"/> -->
+            <!-- <script>
                 field_name = field_name_init + poi_number;
-            </script>
+            </script> -->
             <send event="BlackboardComponent.SetInt.Call">
-                <param name="field_name" expr="field_name"/>
+                <!-- <param name="field_name" expr="field_name"/> -->
+                <param name="field_name" expr="poi_number"/>
                 <param name="value" expr="value"/>
             </send>
         </transition>

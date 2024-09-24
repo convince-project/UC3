@@ -43,7 +43,7 @@ private:
 	std::atomic<Status> m_tickResult{Status::undefined};
 	rclcpp::Service<bt_interfaces::srv::TickCondition>::SharedPtr m_tickService;
 	
-	
+	int m_poiNumber;
 	
 	
 	

@@ -1,10 +1,15 @@
 #include <QCoreApplication>
 #include <QScxmlStateMachine>
 #include <QDebug>
+
+
 #include <iostream>
+#include "GoToPoiActionSkill.h"
+
 #include <thread>
 #include <chrono>
-#include "GoToPoiActionSkill.h"
+
+
 
 int main(int argc, char *argv[])
 {
@@ -15,5 +20,6 @@ int main(int argc, char *argv[])
   int ret=app.exec();
   
   return ret;
+  
 }
 

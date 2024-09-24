@@ -1,9 +1,4 @@
-<scxml
-    version="1.0"
-    xmlns="..."
-    datamodel="ecmascript"
-    name="SetCurrentPoiDoneSkill"
-    initial="idle"> 
+<scxml version="1.0" xmlns="..." datamodel="ecmascript" name="SetCurrentPoiDoneSkill" initial="idle"> 
 
     <datamodel>
         <data id="poi_number" type="int32" expr="0"/>
@@ -72,3 +67,4 @@
     </state>
 
 </scxml>
+

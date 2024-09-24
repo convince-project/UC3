@@ -1,12 +1,8 @@
-<scxml
-    version="1.0"
-    xmlns="..."
-    datamodel="ecmascript"
-    name="GoToPoiActionSkill"
-    initial="idle"> 
+<scxml version="1.0" xmlns="..." datamodel="ecmascript" name="GoToPoiActionSkill" initial="idle"> 
 
     <datamodel>
-        <data id="poi_name" type="string" expr=""/>
+        <!-- <data id="poi_name" type="string" expr=""/> -->
+        <data id="poi_number" type="int32" expr="0"/>
         <data id="status" type="string" expr=""/>
         <data id="result" type="Bool" expr="true"/>
     </datamodel>
@@ -25,26 +21,28 @@
             <ros_service_send_request id="/SchedulerComponent/GetCurrentPoi"/>
         </ros_service_handle_request>
         <ros_service_handle_request id="/GoToPoiActionSkill/halt" target="halt">
-            <ros_service_send_response service="/GoToPoiActionSkill/tick">
-                <param name="result" expr='"RUNNING"'/>
-            </ros_service_send_response>
+            <ros_service_send_response id="/GoToPoiActionSkill/halt"/>
         </ros_service_handle_request>
     </state>
 
     <state id="getPoi">
         <ros_service_handle_response service="/SchedulerComponent/GetCurrentPoi"> 
-            <assign location="poi_name" expr="_service.response.poi_name" />
+            <!-- <assign location="poi_name" expr="_service.response.poi_name" /> -->
+            <assign location="poi_number" expr="_service.response.poi_number" />
             <ros_action_send_goal name="go_to_poi_action">
-                <field name="poi_name" expr="poi_name"/>
+                <!-- <field name="poi_name" expr="poi_name"/> -->
+                <field name="poi_number" expr="poi_number"/>
             </ros_action_send_goal>
         </ros_service_handle_response>
         <ros_action_handle_goal_response name="go_to_poi_action" accept="wait_result" reject="send_failure" />
-        <ros_service_handle_request service="/GoToPoiActionSkill/tick" target="wait_result">
+        <ros_service_handle_request service="/GoToPoiActionSkill/tick" target="getPoi">
             <ros_service_send_response service="/GoToPoiActionSkill/tick">
                 <param name="result" expr='"RUNNING"'/>
             </ros_service_send_response>
         </ros_service_handle_request>
-        <!-- halt -->
+        <ros_service_handle_request service="/GoToPoiActionSkill/halt" target="wait_cancel_response">
+            <ros_action_send_cancel name="go_to_poi_action"/>
+        </ros_service_handle_request>
     </state>
 
     <state id="wait_result">
@@ -53,13 +51,15 @@
                 <param name="result" expr='"RUNNING"'/>
             </ros_service_send_response>
         </ros_service_handle_request>
+        <ros_service_handle_request service="/GoToPoiActionSkill/halt" target="wait_cancel_response">
+            <ros_action_send_cancel name="go_to_poi_action"/>
+        </ros_service_handle_request>
         <ros_action_handle_feedback name="go_to_poi_action" target="wait_result">
-            <assign location="status" expr="_action.feedback.status" /> <!-- -->
+            <assign location="status" expr="_action.feedback.status" />
         </ros_action_handle_feedback>
         <ros_action_handle_success_result name="go_to_poi_action" target="idle">
             <assign location="result" expr="_wrapped_result.result.is_ok" />
         </ros_action_handle_success_result>
-        <!-- halt -->
     </state>
 
     <state id="send_failure">
@@ -70,7 +70,12 @@
         </onentry>
         <transition target="idle" />
     </state>
+
+    <state id="wait_cancel_response">
+        <ros_action_handle_cancel_result name="go_to_poi_action" target="idle">
+            <ros_service_send_response id="/GoToPoiActionSkill/halt"/>
+        </ros_action_handle_cancel_result>
+    </state>
     
 </scxml>
-
 

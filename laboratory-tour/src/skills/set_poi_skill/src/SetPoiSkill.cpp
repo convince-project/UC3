@@ -48,11 +48,24 @@ void SetPoiSkill::spin(std::shared_ptr<rclcpp::Node> node)
 
 bool SetPoiSkill::start(int argc, char*argv[])
 {
+    if (argc >= 2){
+
+        m_poiNumber = convert<int>(argv[1]);
+        std::cout << "Poi number: " << m_poiNumber << std::endl;
+    }
+    else{
+        std::cerr << "Error: parameter poiNumber is missing" << std::endl;
+        return false;
+    }
+
 	if(!rclcpp::ok())
 	{
 		rclcpp::init(/*argc*/ argc, /*argv*/ argv);
 	}
 
+    m_name = m_name + std::to_string(m_poiNumber);
+
+    std::cout << "name " << m_name << std::endl; 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "SetPoiSkill::start");
 	std::cout << "SetPoiSkill::start";
@@ -79,7 +92,7 @@ bool SetPoiSkill::start(int argc, char*argv[])
         auto request = std::make_shared<scheduler_interfaces::srv::SetPoi::Request>();
         auto eventParams = event.data().toMap();
         
-        request->poi_number = convert<decltype(request->poi_number)>(eventParams["poi_number"].toString().toStdString());
+        request->poi_number = m_poiNumber;
         bool wait_succeded{true};
         int retries = 0;
         while (!clientSetPoi->wait_for_service(std::chrono::seconds(1))) {

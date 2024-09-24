@@ -1,6 +1,6 @@
 <scxml version="1.0" xmlns="http://www.w3.org/2005/07/scxml" datamodel="ecmascript" name="IsPoiDoneSkillCondition" initial="idle">
     <datamodel>
-        <data id="key" expr="&quot;PoiDone&quot;"/>
+        <!-- <data id="key" type="string" expr='"PoiDone"'/> -->
         <data id="value" expr="0"/>
     </datamodel>
     <!-- IsPoiDoneSkill is a server for tick from the ROS2Condition plugin-->
@@ -8,7 +8,7 @@
     <state id="idle">
         <transition target="checkInt" event="CMD_TICK">
             <send event="BlackboardComponent.GetInt.Call">
-                <param name="field_name" expr="key"/>
+                <!-- <param name="field_name" expr="key"/> -->
             </send>
         </transition>
     </state>

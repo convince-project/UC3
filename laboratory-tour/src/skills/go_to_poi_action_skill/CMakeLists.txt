@@ -6,14 +6,14 @@ project(go_to_poi_action_skill)
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
-
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclcpp_action REQUIRED)
 find_package(bt_interfaces REQUIRED)
-
+find_package(navigation_interfaces REQUIRED)
 find_package(scheduler_interfaces REQUIRED)
+find_package(blackboard_interfaces REQUIRED)
 find_package(Qt6 COMPONENTS Core Scxml StateMachine  REQUIRED)
-
 add_executable(${PROJECT_NAME} )
 
 if (NOT Qt6_FOUND)
@@ -25,12 +25,7 @@ endif()
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-ament_target_dependencies(${PROJECT_NAME} 
-  bt_interfaces 
-  rclcpp 
-  scheduler_interfaces 
-  
-  )
+ament_target_dependencies(${PROJECT_NAME} bt_interfaces rclcpp rclcpp_action navigation_interfaces scheduler_interfaces blackboard_interfaces)
 target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Scxml Qt6::StateMachine)
 target_include_directories(${PROJECT_NAME}
   PUBLIC

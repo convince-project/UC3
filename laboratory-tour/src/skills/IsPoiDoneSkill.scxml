@@ -6,7 +6,7 @@
     initial="idle"> 
 
     <datamodel>
-        <data id="key" type="string" expr='"PoiDone"'/>
+        <!-- <data id="key" type="string" expr='"PoiDone"'/> -->
         <data id="value" type="int32" expr="0"/>
     </datamodel>
 
@@ -18,7 +18,7 @@
     <state id="idle">
         <ros_service_handle_request id="/IsPoiDoneSkill/tick" target="checkInt">
             <ros_service_send_request id="/BlackboardComponent/GetInt">
-                <param name="field_name" expr="key"/>
+                <!-- <param name="field_name" expr="key"/> -->
             </ros_service_send_request>
         </ros_service_handle_request>
     </state>

@@ -47,7 +47,7 @@ private:
 	rclcpp::Service<bt_interfaces::srv::TickAction>::SharedPtr m_tickService;
 	std::atomic<bool> m_haltResult{false};
 	rclcpp::Service<bt_interfaces::srv::HaltAction>::SharedPtr m_haltService;
-	
+	int m_poiNumber;
 	
 	
 };

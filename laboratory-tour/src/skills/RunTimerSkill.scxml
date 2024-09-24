@@ -29,17 +29,17 @@
     </state>
 
     <state id="isTimerActive">
-        <ros_service_handle_response service="/TimerComponent/IsTimerActive" cond="!(_service.response.is_ok) " target="idle">
+        <ros_service_handle_response service="/TimerComponent/isTimerActive" cond="!(_service.response.is_ok) " target="idle">
             <ros_service_send_response id="/RunTimerSkill/tick">
                 <param name="result" expr='"FAILURE"'/>
             </ros_service_send_response>
         </ros_service_handle_response>
-        <ros_service_handle_response service="/TimerComponent/IsTimerActive" cond="_service.response.is_active " target="idle">
+        <ros_service_handle_response service="/TimerComponent/isTimerActive" cond="_service.response.is_active " target="idle">
             <ros_service_send_response id="/RunTimerSkill/tick">
                 <param name="result" expr='"RUNNING"'/>
             </ros_service_send_response>
         </ros_service_handle_response>
-        <ros_service_handle_response service="/TimerComponent/IsTimerActive" cond="!(_service.response.is_active)" target="startTimer">
+        <ros_service_handle_response service="/TimerComponent/isTimerActive" cond="!(_service.response.is_active)" target="startTimer">
             <ros_service_send_request id="/TimerComponent/StartTimer"/>
         </ros_service_handle_response>
         <ros_service_handle_request id="/RunTimerSkill/halt" target="idle">
@@ -67,3 +67,4 @@
         </ros_service_handle_request>
     </state>
 </scxml>
+
