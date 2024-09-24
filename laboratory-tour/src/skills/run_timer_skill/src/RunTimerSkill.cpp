@@ -75,8 +75,8 @@ bool RunTimerSkill::start(int argc, char*argv[])
     
     m_stateMachine.connectToEvent("TimerComponent.StartTimer.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
         std::shared_ptr<rclcpp::Node> nodeStartTimer = rclcpp::Node::make_shared(m_name + "SkillNodeStartTimer");
-        std::shared_ptr<rclcpp::Client<timer_check_for_people_interfaces::srv::StartTimer>> clientStartTimer = nodeStartTimer->create_client<timer_check_for_people_interfaces::srv::StartTimer>("/TimerComponent/StartTimer");
-        auto request = std::make_shared<timer_check_for_people_interfaces::srv::StartTimer::Request>();
+        std::shared_ptr<rclcpp::Client<timer_interfaces::srv::StartTimer>> clientStartTimer = nodeStartTimer->create_client<timer_interfaces::srv::StartTimer>("/TimerComponent/StartTimer");
+        auto request = std::make_shared<timer_interfaces::srv::StartTimer::Request>();
         auto eventParams = event.data().toMap();
         
         bool wait_succeded{true};
@@ -120,8 +120,8 @@ bool RunTimerSkill::start(int argc, char*argv[])
     });
     m_stateMachine.connectToEvent("TimerComponent.IsTimerActive.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
         std::shared_ptr<rclcpp::Node> nodeIsTimerActive = rclcpp::Node::make_shared(m_name + "SkillNodeIsTimerActive");
-        std::shared_ptr<rclcpp::Client<timer_check_for_people_interfaces::srv::IsTimerActive>> clientIsTimerActive = nodeIsTimerActive->create_client<timer_check_for_people_interfaces::srv::IsTimerActive>("/TimerComponent/IsTimerActive");
-        auto request = std::make_shared<timer_check_for_people_interfaces::srv::IsTimerActive::Request>();
+        std::shared_ptr<rclcpp::Client<timer_interfaces::srv::IsTimerActive>> clientIsTimerActive = nodeIsTimerActive->create_client<timer_interfaces::srv::IsTimerActive>("/TimerComponent/IsTimerActive");
+        auto request = std::make_shared<timer_interfaces::srv::IsTimerActive::Request>();
         auto eventParams = event.data().toMap();
         
         bool wait_succeded{true};

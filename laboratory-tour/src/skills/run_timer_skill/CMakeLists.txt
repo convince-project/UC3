@@ -11,7 +11,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(bt_interfaces REQUIRED)
 
-find_package(timer_check_for_people_interfaces REQUIRED)
+find_package(timer_interfaces REQUIRED)
 find_package(Qt6 COMPONENTS Core Scxml StateMachine  REQUIRED)
 
 add_executable(${PROJECT_NAME} )
@@ -28,7 +28,7 @@ endif()
 ament_target_dependencies(${PROJECT_NAME} 
   bt_interfaces 
   rclcpp 
-  timer_check_for_people_interfaces 
+  timer_interfaces 
   
   )
 target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Scxml Qt6::StateMachine)

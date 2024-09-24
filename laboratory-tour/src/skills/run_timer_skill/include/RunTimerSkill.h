@@ -5,8 +5,8 @@
 #include <rclcpp/rclcpp.hpp>
 #include "RunTimerSkillSM.h"
 #include <bt_interfaces/msg/action_response.hpp>
-#include <timer_check_for_people_interfaces/srv/start_timer.hpp> 
-#include <timer_check_for_people_interfaces/srv/is_timer_active.hpp> 
+#include <timer_interfaces/srv/start_timer.hpp> 
+#include <timer_interfaces/srv/is_timer_active.hpp> 
 
 
 
