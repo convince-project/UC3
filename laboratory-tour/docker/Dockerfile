@@ -14,9 +14,9 @@ USER user1
 ENV Qt6_DIR=/home/user1/Qt6.6.3/lib/cmake
 # ARG UC3_BRANCH=dev/integ-meeting
 
-RUN /bin/bash -c "echo 'updated on 202401261057' && \
+RUN /bin/bash -c "echo 'updated on 202409241057' && \
     source /opt/ros/iron/setup.bash && \
-    cd /home/user1 && git clone https://github.com/convince-project/UC3.git -b dev/integ-meeting"
+    cd /home/user1 && git clone https://github.com/convince-project/UC3.git -b dev/docker-compose"
 RUN /bin/bash -c "source /opt/ros/iron/setup.bash && \
 cd /home/user1/UC3/laboratory-tour && \
 colcon build --packages-ignore BT face_expressions_wrapper"
