@@ -11,7 +11,7 @@ x-base: &base
     # - YARP_CLOCK=/clock
     - YARP_NAMESPACE=/root
     - ROS_DOMAIN_ID=47
-    - CYCLONEDDS_URI=/home/user1/convince_bts/simple_example/docker/cyclone_dds_settings.xml
+    - CYCLONEDDS_URI=/home/user1/UC3/laboratory-tour/docker/cyclone_dds_settings.xml
   volumes:
     - "/tmp/.X11-unix:/tmp/.X11-unix:rw"
     - "/etc/hosts:/etc/hosts"
@@ -28,44 +28,45 @@ services:
 
 # Images
   ros2:
-    image: ste93/convince:core
+    image: ste93/convince:laboratory_tour_ubuntu22.04_iron_devel
     build:
       dockerfile: Dockerfile
       context: .
 
 # containers
   terminator:
-    image: ste93/convince:core
+    image: ste93/convince:laboratory_tour_ubuntu22.04_iron_devel
     <<: *base
     container_name: terminator
     command: sh -c "yarp conf 172.17.0.1 10000; terminator --no-dbus"
 
   yarpserver:
-    image: ste93/convince:core
+    image: ste93/convince:laboratory_tour_ubuntu22.04_iron_devel
     <<: *base
     container_name: yarpserver
     command: sh -c "yarp conf 172.17.0.1 10000; yarpserver"
 
   fakeBattery:
-    image: ste93/convince:core
+    image: ste93/convince:laboratory_tour_ubuntu22.04_iron_devel
     <<: *base
     container_name: fakeBattery
     command: bash -c "source /opt/ros/iron/setup.bash && \
-              source /home/user1/robotology/yarp-devices-ros2/ros2_interfaces_ws/install/local_setup.bash && \
-              source /home/user1/convince_bts/simple_example/install/setup.bash && \
+              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
+              source /home/user1/UC3/laboratory-tour/install/setup.bash && \
+              echo "1" && \
               yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; \
-              yarprobotinterface --config /home/user1/convince_bts/simple_example/src/components/fake_battery_component/robotinterface.xml"
+              yarprobotinterface --config /home/user1/UC3/laboratory-tour/src/components/fake_battery_component/robotinterface.xml"
     depends_on:
       - yarpserver
 
   ros2launch:
-    image: ste93/convince:core
+    image: ste93/convince:laboratory_tour_ubuntu22.04_iron_devel
     <<: *base
     container_name: ros2launch
     command: bash -c "source /opt/ros/iron/setup.bash && \
-              source /home/user1/robotology/yarp-devices-ros2/ros2_interfaces_ws/install/local_setup.bash && \
-              source /home/user1/convince_bts/simple_example/install/setup.bash && \
-              cd  /home/user1/convince_bts/simple_example/ && \
+              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
+              source /home/user1/UC3/laboratory-tour/install/setup.bash && \
+              cd  /home/user1/UC3/laboratory-tour/ && \
               ros2 launch launch/bt_launch.py"
     # networks:
     #   frontapp:
@@ -74,31 +75,3 @@ services:
       - "1666:1666"
       - "1667:1667"
 
-
-  ros2oracle:
-    image: ste93/convince:core
-    <<: *base
-    container_name: ros2oracle
-    command: bash -c "source /opt/ros/iron/setup.bash && \
-              source /home/user1/robotology/yarp-devices-ros2/ros2_interfaces_ws/install/local_setup.bash && \
-              source /home/user1/convince_bts/simple_example/install/setup.bash && \
-              cd /home/user1/convince_bts/simple_example/monitoring && \
-              python3 /home/user1/ROSMonitoring/oracle/TLOracle/oracle.py --online --discrete --property battery"
-    # networks:
-    #   frontapp:
-    #     ipv4_address: 172.17.0.15
-
-
-  ros2monitor:
-    image: ste93/convince:core
-    <<: *base
-    container_name: ros2monitor
-    command: bash -c "source /opt/ros/iron/setup.bash && \
-              source /home/user1/robotology/yarp-devices-ros2/ros2_interfaces_ws/install/local_setup.bash && \
-              source /home/user1/convince_bts/simple_example/install/setup.bash && \
-              cd /home/user1/convince_bts/simple_example/monitor_ws/src/ && \
-              source install/setup.bash && \
-              ros2 launch monitor/launch/monitor.launch"
-    # networks:
-    #   frontapp:
-    #     ipv4_address: 172.17.0.15

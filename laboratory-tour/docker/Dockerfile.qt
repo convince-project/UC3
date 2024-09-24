@@ -1,0 +1,37 @@
+ARG base_img=elandini84/r1images:tourCore2_ubuntu22.04_iron_stable
+FROM $base_img
+LABEL maintainer="Stefano Bernagozzi"
+
+USER root
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt upgrade -y && apt-get install -y ninja-build libzmq3-dev build-essential libgl1-mesa-dev
+# libqt6scxml6 qt6-base-dev qt6-scxml-dev libqt6scxml6-bin
+
+USER user1
+
+RUN pip install reelay websocket-client jedi prompt_toolkit
+
+RUN /bin/bash -c "cd /home/user1 && wget https://download.qt.io/official_releases/qt/6.6/6.6.3/single/qt-everywhere-src-6.6.3.tar.xz && \
+                    tar -xvf qt-everywhere-src-6.6.3.tar.xz && \
+                    cd /home/user1/qt-everywhere-src-6.6.3 && \
+                        ./configure -list-features && \
+                        cd /home/user1/qt-everywhere-src-6.6.3 && \
+                    ./configure -prefix /home/user1/Qt6.6.3 -opensource -confirm-license -nomake examples -nomake tests -DBUILD_qt3d=OFF -DBUILD_qtquick3dphysics=OFF -DBUILD_qtquick3d=OFF  && \
+                    cmake --build . --parallel && \
+                    cd /home/user1/qt-everywhere-src-6.6.3 && \
+                    cmake --install . && \
+                    rm -rf /home/user1/qt-everywhere-src-6.6.3.tar.xz && \
+                    rm -rf cd /home/user1/qt-everywhere-src-6.6.3"
+
+RUN /bin/bash -c "git clone --recurse-submodules https://github.com/BehaviorTree/Groot.git && \
+    cd Groot && \
+    cmake -S . -B build && \
+    cmake --build build"
+
+
+RUN /bin/bash -c "source /opt/ros/iron/setup.bash && \
+    cd /home/user1 && git clone https://github.com/autonomy-and-verification-uol/ROSMonitoring.git -b ros2"
+
+RUN echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/user1/Qt6.6.3/lib" >> ~/.bashrc
