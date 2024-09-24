@@ -8,7 +8,6 @@
   <license>TODO: License declaration</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
-  <depend>alarm_interfaces</depend>
   <depend>notify_user_interfaces</depend>
 
   <test_depend>ament_lint_auto</test_depend>
