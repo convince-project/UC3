@@ -37,4 +37,35 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
+find_package(PkgConfig)
+## use pkg-config to get hints for 0mq locations
+pkg_check_modules(PC_ZeroMQ QUIET zmq)
+## use the hint from above to find where 'zmq.hpp' is located
+find_path(ZeroMQ_INCLUDE_DIR
+        NAMES zmq.hpp
+        PATHS ${PC_ZeroMQ_INCLUDE_DIRS}
+        )
+
+## use the hint from above to find the location of libzmq
+find_library(ZeroMQ_LIBRARY
+        NAMES zmq
+        PATHS ${PC_ZeroMQ_LIBRARY_DIRS}
+        )
+
+# Check if ZeroMQ was found
+if (ZeroMQ_INCLUDE_DIR AND ZeroMQ_LIBRARY)
+    # Add the include directory to our compile directives
+    target_include_directories(${PROJECT_NAME} PUBLIC ${ZeroMQ_INCLUDE_DIR})
+
+    # Link the ZeroMQ library to our project
+    target_link_libraries(${PROJECT_NAME} ${ZeroMQ_LIBRARY})
+
+    # Define the ZMQ_FOUND macro
+    add_definitions(-DZMQ_FOUND)
+else()
+    message(WARNING "ZeroMQ not found. The ZMQ-related functionality will be disabled.")
+endif()
+
+
+
 ament_package()
