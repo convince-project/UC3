@@ -25,11 +25,6 @@ RUN /bin/bash -c "cd /home/user1 && wget https://download.qt.io/official_release
                     rm -rf /home/user1/qt-everywhere-src-6.6.3.tar.xz && \
                     rm -rf cd /home/user1/qt-everywhere-src-6.6.3"
 
-RUN /bin/bash -c "git clone --recurse-submodules https://github.com/BehaviorTree/Groot.git && \
-    cd Groot && \
-    cmake -S . -B build && \
-    cmake --build build"
-
 
 RUN /bin/bash -c "source /opt/ros/iron/setup.bash && \
     cd /home/user1 && git clone https://github.com/autonomy-and-verification-uol/ROSMonitoring.git -b ros2"

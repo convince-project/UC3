@@ -1,4 +1,3 @@
-version: "3.7"
 
 x-base: &base
   environment:
@@ -53,25 +52,100 @@ services:
     command: bash -c "source /opt/ros/iron/setup.bash && \
               source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
               source /home/user1/UC3/laboratory-tour/install/setup.bash && \
-              echo "1" && \
               yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; \
               yarprobotinterface --config /home/user1/UC3/laboratory-tour/src/components/fake_battery_component/robotinterface.xml"
     depends_on:
       - yarpserver
 
-  ros2launch:
+  yarprun:
     image: ste93/convince:laboratory_tour_ubuntu22.04_iron_devel
     <<: *base
-    container_name: ros2launch
+    container_name: yarprun
+    command: bash -c "export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/src/robot/yarp/build/lib/:/home/user1/Qt6.6.3/lib/ && \
+              source /opt/ros/iron/setup.bash && \
+              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
+              source /home/user1/UC3/laboratory-tour/install/setup.bash && \
+              yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; \
+              yarp run --server /bt --log"
+    depends_on:
+      - yarpserver
+
+  yarplogger:
+    image: ste93/convince:laboratory_tour_ubuntu22.04_iron_devel
+    <<: *base
+    container_name: yarplogger
     command: bash -c "source /opt/ros/iron/setup.bash && \
               source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
               source /home/user1/UC3/laboratory-tour/install/setup.bash && \
-              cd  /home/user1/UC3/laboratory-tour/ && \
-              ros2 launch launch/bt_launch.py"
+              yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; \
+              yarplogger --start"
+    depends_on:
+      - yarpserver
     # networks:
     #   frontapp:
     #     ipv4_address: 172.17.0.14
-    ports:
-      - "1666:1666"
-      - "1667:1667"
 
+  run_components:
+    image: ste93/convince:laboratory_tour_ubuntu22.04_iron_devel
+    <<: *base
+    container_name: run_components
+    command: bash -c "sleep 2; source /opt/ros/iron/setup.bash && \
+              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
+              source /home/user1/UC3/laboratory-tour/install/setup.bash && \
+              yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; \
+              yarpmanager-console --application  /home/user1/UC3/laboratory-tour/launch/applications/convince_bt_components.xml --exit --run --connect"
+    depends_on:
+      - yarpserver
+      - yarprun
+      - yarplogger
+
+  run_skills:
+    image: ste93/convince:laboratory_tour_ubuntu22.04_iron_devel
+    <<: *base
+    container_name: run_skills
+    command: bash -c "sleep 2; source /opt/ros/iron/setup.bash && \
+              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
+              source /home/user1/UC3/laboratory-tour/install/setup.bash && \
+              yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; \
+              yarpmanager-console --application  /home/user1/UC3/laboratory-tour/launch/applications/convince_bt_skills.xml --exit --run --connect"
+    depends_on:
+      - yarpserver
+      - yarprun
+      - yarplogger
+
+
+  run_bt_executable:
+    image: ste93/convince:laboratory_tour_ubuntu22.04_iron_devel
+    <<: *base
+    container_name: run_bt_executable
+    command: bash -c "source /opt/ros/iron/setup.bash && \
+              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
+              source /home/user1/UC3/laboratory-tour/install/setup.bash && \
+              yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; \
+              ros2 run bt_executable bt_executable /home/user1/UC3/laboratory-tour/src/behavior_tree/BT/Policy.xml"
+    depends_on:
+      - yarpserver
+      - yarprun
+      - yarplogger
+      - run_components
+      - run_skills
+  
+  groot:
+    image: ste93/convince:laboratory_tour_ubuntu22.04_iron_devel
+    <<: *base
+    container_name: groot
+    command: bash -c "source /opt/ros/iron/setup.bash && \
+              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
+              source /home/user1/UC3/laboratory-tour/install/setup.bash && \
+              /home/user1/Groot/build/Groot --mode monitor --autoconnect"
+    depends_on:
+      - yarpserver
+      - yarprun
+      - yarplogger
+      - run_components
+      - run_skills
+      - run_bt_executable
+
+# yarpmanager-console --application  UC3/laboratory-tour/launch/applications/convince_bt_components.xml --exit --run --connect
+# yarpmanager-console --application  UC3/laboratory-tour/launch/applications/convince_bt_skills.xml --exit --run --connect
+# ros2 run bt_executable bt_executable UC3/laboratory-tour/src/behavior_tree/BT/Policy.xml
