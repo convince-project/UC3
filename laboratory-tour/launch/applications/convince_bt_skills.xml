@@ -31,28 +31,28 @@
 
     <module>
         <name>ros2</name>
-        <parameters>run is_poi_done_skill is_poi_done_skill 1</parameters>
+        <parameters>run is_poi_done_1_skill is_poi_done_1_skill</parameters>
         <workdir />
         <node>bt</node>
     </module>
 
     <module>
         <name>ros2</name>
-        <parameters>run is_poi_done_skill is_poi_done_skill 2</parameters>
+        <parameters>run is_poi_done_2_skill is_poi_done_2_skill</parameters>
         <workdir />
         <node>bt</node>
     </module>
 
     <module>
         <name>ros2</name>
-        <parameters>run set_poi_skill set_poi_skill 1</parameters>
+        <parameters>run set_poi_1_skill set_poi_1_skill</parameters>
         <workdir />
         <node>bt</node>
     </module>
 
     <module>
         <name>ros2</name>
-        <parameters>run set_poi_skill set_poi_skill 2</parameters>
+        <parameters>run set_poi_2_skill set_poi_2_skill</parameters>
         <workdir />
         <node>bt</node>
     </module>
