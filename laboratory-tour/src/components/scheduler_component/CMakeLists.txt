@@ -17,7 +17,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(scheduler_interfaces REQUIRED)
+find_package(scheduler_interfaces_dummy REQUIRED)
 # find_package(log_library REQUIRED)
 # find_package(nlohmann_json 3.10.5 REQUIRED)
 add_executable(${PROJECT_NAME} )
@@ -36,7 +36,7 @@ include(FetchContent)
 #   ${log_library_INCLUDE_DIRS}  # Ensure this line is added
 # )
 
-ament_target_dependencies(${PROJECT_NAME} scheduler_interfaces rclcpp 
+ament_target_dependencies(${PROJECT_NAME} scheduler_interfaces_dummy rclcpp 
 # log_library
 )
 

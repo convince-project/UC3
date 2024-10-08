@@ -18,7 +18,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
-find_package(navigation_interfaces REQUIRED)
+find_package(navigation_interfaces_dummy REQUIRED)
 find_package(YCM REQUIRED)
 find_package(YARP 3.7 REQUIRED COMPONENTS dev os)
 
@@ -29,7 +29,7 @@ add_executable(${PROJECT_NAME} )
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-ament_target_dependencies(${PROJECT_NAME} navigation_interfaces rclcpp rclcpp_action)
+ament_target_dependencies(${PROJECT_NAME} navigation_interfaces_dummy rclcpp rclcpp_action)
 target_link_libraries(${PROJECT_NAME} ${YARP_LIBRARIES})
 
 target_include_directories(${PROJECT_NAME}

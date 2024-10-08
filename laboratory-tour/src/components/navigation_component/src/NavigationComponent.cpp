@@ -8,7 +8,7 @@
 
 #include "NavigationComponent.h"
 
-#include <navigation_interfaces/msg/navigation_status.hpp>
+#include <navigation_interfaces_dummy/msg/navigation_status.hpp>
 
 
 bool NavigationComponent::start(int argc, char*argv[])
@@ -19,7 +19,7 @@ bool NavigationComponent::start(int argc, char*argv[])
         rclcpp::init(/*argc*/ argc, /*argv*/ argv);
     }
     m_node = rclcpp::Node::make_shared("NavigationComponentNode");
-    m_actionServer = rclcpp_action::create_server<navigation_interfaces::action::GoToPoi>(
+    m_actionServer = rclcpp_action::create_server<navigation_interfaces_dummy::action::GoToPoi>(
         m_node,
         "/NavigationComponent/GoToPoi",
         std::bind(&NavigationComponent::handle_goal, this, std::placeholders::_1, std::placeholders::_2),
@@ -102,9 +102,9 @@ void NavigationComponent::spin()
 }
 
 
-navigation_interfaces::msg::NavigationStatus NavigationComponent::convertStatus(yarp::dev::Nav2D::NavigationStatusEnum status){
-    auto msg = navigation_interfaces::msg::NavigationStatus();
-    navigation_interfaces::msg::NavigationStatus output;
+navigation_interfaces_dummy::msg::NavigationStatus NavigationComponent::convertStatus(yarp::dev::Nav2D::NavigationStatusEnum status){
+    auto msg = navigation_interfaces_dummy::msg::NavigationStatus();
+    navigation_interfaces_dummy::msg::NavigationStatus output;
     switch (status){
     case yarp::dev::Nav2D::navigation_status_idle:
         output.status = msg.NAVIGATION_STATUS_IDLE;
@@ -145,7 +145,7 @@ navigation_interfaces::msg::NavigationStatus NavigationComponent::convertStatus(
 
 rclcpp_action::GoalResponse NavigationComponent::handle_goal(
         const rclcpp_action::GoalUUID & uuid,
-        std::shared_ptr<const navigation_interfaces::action::GoToPoi::Goal> goal)
+        std::shared_ptr<const navigation_interfaces_dummy::action::GoToPoi::Goal> goal)
 {
     RCLCPP_INFO(m_node->get_logger(), "GoToPoi Action - Received goal request, poi_name: %s", goal->poi_name.c_str());
     (void)uuid;
@@ -159,20 +159,20 @@ rclcpp_action::GoalResponse NavigationComponent::handle_goal(
     }
 }
 
-rclcpp_action::CancelResponse NavigationComponent::handle_cancel(const std::shared_ptr<rclcpp_action::ServerGoalHandle<navigation_interfaces::action::GoToPoi>> goal_handle)
+rclcpp_action::CancelResponse NavigationComponent::handle_cancel(const std::shared_ptr<rclcpp_action::ServerGoalHandle<navigation_interfaces_dummy::action::GoToPoi>> goal_handle)
 {
     RCLCPP_INFO(m_node->get_logger(), "GoToPoi Action - Received request to cancel goal");
     (void)goal_handle;
     return rclcpp_action::CancelResponse::ACCEPT;
 }
 
-void NavigationComponent::handle_accepted(const std::shared_ptr<rclcpp_action::ServerGoalHandle<navigation_interfaces::action::GoToPoi>> goal_handle)
+void NavigationComponent::handle_accepted(const std::shared_ptr<rclcpp_action::ServerGoalHandle<navigation_interfaces_dummy::action::GoToPoi>> goal_handle)
 {
     std::lock_guard<std::mutex> lock(m_goalMutex);
 
     if (m_activeGoal && !m_activeGoal->is_canceling()) {
         RCLCPP_INFO(m_node->get_logger(), "Preempting the current goal");
-        auto result = std::make_shared<navigation_interfaces::action::GoToPoi::Result>();
+        auto result = std::make_shared<navigation_interfaces_dummy::action::GoToPoi::Result>();
         result->is_ok = false;
         result->error_msg = "Preempted by a new goal";
         m_activeGoal->abort(result);
@@ -182,13 +182,13 @@ void NavigationComponent::handle_accepted(const std::shared_ptr<rclcpp_action::S
     std::thread{std::bind(&NavigationComponent::execute, this, std::placeholders::_1), goal_handle}.detach();
 }
 
-void NavigationComponent::execute(const std::shared_ptr<rclcpp_action::ServerGoalHandle<navigation_interfaces::action::GoToPoi>> goal_handle)
+void NavigationComponent::execute(const std::shared_ptr<rclcpp_action::ServerGoalHandle<navigation_interfaces_dummy::action::GoToPoi>> goal_handle)
 {
     RCLCPP_INFO(m_node->get_logger(), "GoToPoi Action - Executing goal");
     rclcpp::Rate loop_rate(1);
     const auto goal = goal_handle->get_goal();
-    auto feedback = std::make_shared<navigation_interfaces::action::GoToPoi::Feedback>();
-    auto result = std::make_shared<navigation_interfaces::action::GoToPoi::Result>();
+    auto feedback = std::make_shared<navigation_interfaces_dummy::action::GoToPoi::Feedback>();
+    auto result = std::make_shared<navigation_interfaces_dummy::action::GoToPoi::Result>();
     yarp::dev::Nav2D::NavigationStatusEnum status;
     {
         std::lock_guard<std::mutex> lock(m_goalMutex);
@@ -232,8 +232,8 @@ void NavigationComponent::execute(const std::shared_ptr<rclcpp_action::ServerGoa
             return;
         }
         
-        if(convertStatus(status).status == navigation_interfaces::msg::NavigationStatus::NAVIGATION_STATUS_ABORTED || 
-            convertStatus(status).status == navigation_interfaces::msg::NavigationStatus::NAVIGATION_STATUS_IDLE)
+        if(convertStatus(status).status == navigation_interfaces_dummy::msg::NavigationStatus::NAVIGATION_STATUS_ABORTED || 
+            convertStatus(status).status == navigation_interfaces_dummy::msg::NavigationStatus::NAVIGATION_STATUS_IDLE)
         {
             if(!m_iNav2D->gotoTargetByLocationName(goal->poi_name))
             {
@@ -258,7 +258,7 @@ void NavigationComponent::execute(const std::shared_ptr<rclcpp_action::ServerGoa
         RCLCPP_INFO(m_node->get_logger(), "Publish feedback, poi= %s", goal->poi_name.c_str());
         loop_rate.sleep();
     }
-    while(rclcpp::ok() && convertStatus(status).status != navigation_interfaces::msg::NavigationStatus::NAVIGATION_STATUS_GOAL_REACHED);
+    while(rclcpp::ok() && convertStatus(status).status != navigation_interfaces_dummy::msg::NavigationStatus::NAVIGATION_STATUS_GOAL_REACHED);
     // Check if goal is done
 
     if (rclcpp::ok()) {

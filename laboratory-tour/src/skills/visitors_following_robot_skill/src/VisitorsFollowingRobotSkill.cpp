@@ -58,7 +58,7 @@ bool VisitorsFollowingRobotSkill::start(int argc, char*argv[])
 	std::cout << "VisitorsFollowingRobotSkill::start";
 
     
-	m_tickService = m_node->create_service<bt_interfaces::srv::TickCondition>(m_name + "Skill/tick",
+	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickCondition>(m_name + "Skill/tick",
                                                                            	std::bind(&VisitorsFollowingRobotSkill::tick,
                                                                            	this,
                                                                            	std::placeholders::_1,
@@ -92,12 +92,12 @@ bool VisitorsFollowingRobotSkill::start(int argc, char*argv[])
 	return true;
 }
 
-void VisitorsFollowingRobotSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::TickCondition::Request> request,
-                                std::shared_ptr<bt_interfaces::srv::TickCondition::Response>      response)
+void VisitorsFollowingRobotSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Request> request,
+                                std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Response>      response)
 {
     std::lock_guard<std::mutex> lock(m_requestMutex);
     RCLCPP_INFO(m_node->get_logger(), "VisitorsFollowingRobotSkill::tick");
-    auto message = bt_interfaces::msg::ConditionResponse();
+    auto message = bt_interfaces_dummy::msg::ConditionResponse();
     m_tickResult.store(Status::undefined);
     m_stateMachine.submitEvent("CMD_TICK");
    

@@ -12,9 +12,9 @@
 
 #pragma once
 
-#include <bt_interfaces/msg/condition_response.hpp>
+#include <bt_interfaces_dummy/msg/condition_response.hpp>
 #include <mutex>
-#include <bt_interfaces/srv/tick_condition.hpp>
+#include <bt_interfaces_dummy/srv/tick_condition.hpp>
 #include <string>
 #include<behaviortree_cpp_v3/condition_node.h>
 #include <rclcpp/rclcpp.hpp>
@@ -31,7 +31,7 @@ public:
 
 private:
     std::mutex m_requestMutex;
-    rclcpp::Client<bt_interfaces::srv::TickCondition>::SharedPtr m_clientTick;
+    rclcpp::Client<bt_interfaces_dummy::srv::TickCondition>::SharedPtr m_clientTick;
     std::shared_ptr<rclcpp::Node> m_node;
     std::string m_name;
     std::string m_suffixMonitor;

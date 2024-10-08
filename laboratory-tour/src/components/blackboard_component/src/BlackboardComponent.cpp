@@ -17,12 +17,12 @@ bool BlackboardComponent::start(int argc, char*argv[])
     }
     m_node = rclcpp::Node::make_shared("BlackboardComponentNode");
     
-    m_setIntService = m_node->create_service<blackboard_interfaces::srv::SetIntBlackboard>("/BlackboardComponent/SetInt",  
+    m_setIntService = m_node->create_service<blackboard_interfaces_dummy::srv::SetIntBlackboard>("/BlackboardComponent/SetInt",  
                                                                                 std::bind(&BlackboardComponent::SetInt,
                                                                                 this,
                                                                                 std::placeholders::_1,
                                                                                 std::placeholders::_2));
-    m_getIntService = m_node->create_service<blackboard_interfaces::srv::GetIntBlackboard>("/BlackboardComponent/GetInt",  
+    m_getIntService = m_node->create_service<blackboard_interfaces_dummy::srv::GetIntBlackboard>("/BlackboardComponent/GetInt",  
                                                                                 std::bind(&BlackboardComponent::GetInt,
                                                                                 this,
                                                                                 std::placeholders::_1,
@@ -46,8 +46,8 @@ void BlackboardComponent::spin()
 }
 
 
-void BlackboardComponent::GetInt( const std::shared_ptr<blackboard_interfaces::srv::GetIntBlackboard::Request> request,
-             std::shared_ptr<blackboard_interfaces::srv::GetIntBlackboard::Response>      response) 
+void BlackboardComponent::GetInt( const std::shared_ptr<blackboard_interfaces_dummy::srv::GetIntBlackboard::Request> request,
+             std::shared_ptr<blackboard_interfaces_dummy::srv::GetIntBlackboard::Response>      response) 
 {
     std::lock_guard<std::mutex> lock(m_mutexInt);
     std::string field_name = request->field_name;
@@ -68,8 +68,8 @@ void BlackboardComponent::GetInt( const std::shared_ptr<blackboard_interfaces::s
 }
 
 
-void BlackboardComponent::SetInt( const std::shared_ptr<blackboard_interfaces::srv::SetIntBlackboard::Request> request,
-             std::shared_ptr<blackboard_interfaces::srv::SetIntBlackboard::Response>      response) 
+void BlackboardComponent::SetInt( const std::shared_ptr<blackboard_interfaces_dummy::srv::SetIntBlackboard::Request> request,
+             std::shared_ptr<blackboard_interfaces_dummy::srv::SetIntBlackboard::Response>      response) 
 {
     std::lock_guard<std::mutex> lock(m_mutexInt);
     std::cout << "SetInt: " << std::endl;

@@ -9,10 +9,11 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(bt_interfaces REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(bt_interfaces_dummy REQUIRED)
 
-find_package(scheduler_interfaces REQUIRED)
-find_package(blackboard_interfaces REQUIRED)
+find_package(scheduler_interfaces_dummy REQUIRED)
+find_package(blackboard_interfaces_dummy REQUIRED)
 find_package(Qt6 COMPONENTS Core Scxml StateMachine  REQUIRED)
 
 add_executable(${PROJECT_NAME} )
@@ -27,10 +28,11 @@ endif()
 # find_package(<dependency> REQUIRED)
 
 ament_target_dependencies(${PROJECT_NAME} 
-  bt_interfaces 
+  std_msgs
+  bt_interfaces_dummy 
   rclcpp 
-  scheduler_interfaces 
-  blackboard_interfaces 
+  scheduler_interfaces_dummy 
+  blackboard_interfaces_dummy 
   
   )
 target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Scxml Qt6::StateMachine)

@@ -17,12 +17,12 @@ bool NotifyUserComponent::start(int argc, char*argv[])
     m_alarmActive = std::make_shared<std::atomic<bool>>();
     *m_alarmActive = false;
     m_node = rclcpp::Node::make_shared("NotifyUserComponentNode");
-    m_startAlarmService = m_node->create_service<notify_user_interfaces::srv::StartAlarm>("/NotifyUserComponent/StartAlarm",  
+    m_startAlarmService = m_node->create_service<notify_user_interfaces_dummy::srv::StartAlarm>("/NotifyUserComponent/StartAlarm",  
                                                                                 std::bind(&NotifyUserComponent::StartAlarm,
                                                                                 this,
                                                                                 std::placeholders::_1,
                                                                                 std::placeholders::_2));
-    m_stopAlarmService = m_node->create_service<notify_user_interfaces::srv::StopAlarm>("/NotifyUserComponent/StopAlarm",  
+    m_stopAlarmService = m_node->create_service<notify_user_interfaces_dummy::srv::StopAlarm>("/NotifyUserComponent/StopAlarm",  
                                                                                 std::bind(&NotifyUserComponent::StopAlarm,
                                                                                 this,
                                                                                 std::placeholders::_1,
@@ -43,8 +43,8 @@ void NotifyUserComponent::spin()
     rclcpp::spin(m_node);  
 }
 
-void NotifyUserComponent::StartAlarm([[maybe_unused]] const std::shared_ptr<notify_user_interfaces::srv::StartAlarm::Request> request,
-             std::shared_ptr<notify_user_interfaces::srv::StartAlarm::Response>      response) 
+void NotifyUserComponent::StartAlarm([[maybe_unused]] const std::shared_ptr<notify_user_interfaces_dummy::srv::StartAlarm::Request> request,
+             std::shared_ptr<notify_user_interfaces_dummy::srv::StartAlarm::Response>      response) 
 {
     std::lock_guard<std::mutex> lock(m_mutex);
     // Check if an alarm is already active
@@ -60,8 +60,8 @@ void NotifyUserComponent::StartAlarm([[maybe_unused]] const std::shared_ptr<noti
 }
 
 
-void NotifyUserComponent::StopAlarm([[maybe_unused]] const std::shared_ptr<notify_user_interfaces::srv::StopAlarm::Request> request,
-             std::shared_ptr<notify_user_interfaces::srv::StopAlarm::Response>      response) 
+void NotifyUserComponent::StopAlarm([[maybe_unused]] const std::shared_ptr<notify_user_interfaces_dummy::srv::StopAlarm::Request> request,
+             std::shared_ptr<notify_user_interfaces_dummy::srv::StopAlarm::Response>      response) 
 {
     if (*m_alarmActive == false) {
         RCLCPP_WARN(rclcpp::get_logger("rclcpp"), "No active alarm to stop.");

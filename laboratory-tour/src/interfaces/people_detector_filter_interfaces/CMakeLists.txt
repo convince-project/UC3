@@ -3,7 +3,7 @@ set (CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
  
-project(people_detector_filter_interfaces)
+project(people_detector_filter_interfaces_dummy)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -19,7 +19,7 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(people_detector_filter_interfaces
 "msg/IsFollowed.msg"
 DEPENDENCIES sensor_msgs
-LIBRARY_NAME people_detector_filter_interfaces 
+LIBRARY_NAME people_detector_filter_interfaces_dummy 
 )
 ament_export_dependencies( sensor_msgs)
 

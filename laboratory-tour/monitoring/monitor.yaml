@@ -25,11 +25,11 @@ monitors: # here we list the monitors we are going to generate
           action: log
       services:
         - name: AlarmBatteryLowSkill/RequestAck # name of the service
-          type: bt_interfaces.srv.RequestAck # type of the service
+          type: bt_interfaces_dummy.srv.RequestAck # type of the service
           action: log
         - name: AlarmBatteryLowSkill/SendStart # name of the service
-          type: bt_interfaces.srv.SendStart # type of the service
+          type: bt_interfaces_dummy.srv.SendStart # type of the service
           action: log
         - name: AlarmBatteryLowSkill/SendStop # name of the service
-          type: bt_interfaces.srv.SendStop # type of the service
+          type: bt_interfaces_dummy.srv.SendStop # type of the service
           action: log

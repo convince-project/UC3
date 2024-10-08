@@ -19,7 +19,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(rclcpp_components REQUIRED)
-find_package(timer_interfaces REQUIRED)
+find_package(timer_interfaces_dummy REQUIRED)
 # find_package(nlohmann_json 3.10.5 REQUIRED)
 add_executable(${PROJECT_NAME} )
 
@@ -31,7 +31,7 @@ include(FetchContent)
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-ament_target_dependencies(${PROJECT_NAME} timer_interfaces 
+ament_target_dependencies(${PROJECT_NAME} timer_interfaces_dummy 
 rclcpp
 rclcpp_action
 rclcpp_components

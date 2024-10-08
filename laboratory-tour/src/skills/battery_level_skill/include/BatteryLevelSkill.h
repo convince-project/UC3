@@ -4,13 +4,13 @@
 #include <thread>
 #include <rclcpp/rclcpp.hpp>
 #include "BatteryLevelSkillSM.h"
-#include <bt_interfaces/msg/condition_response.hpp>
+#include <bt_interfaces_dummy/msg/condition_response.hpp>
 #include <std_msgs/msg/int32.hpp>
 
 
 
 
-#include <bt_interfaces/srv/tick_condition.hpp>
+#include <bt_interfaces_dummy/srv/tick_condition.hpp>
 
 
 
@@ -29,8 +29,8 @@ public:
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	
-	void tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::TickCondition::Request> request,
-			   std::shared_ptr<bt_interfaces::srv::TickCondition::Response>      response);
+	void tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Request> request,
+			   std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Response>      response);
 	
 	void topic_callback_battery_status(const std_msgs::msg::Int32::SharedPtr msg);
 	
@@ -42,7 +42,7 @@ private:
 	std::string m_name;
 	BatteryLevelSkillCondition m_stateMachine;
 	std::atomic<Status> m_tickResult{Status::undefined};
-	rclcpp::Service<bt_interfaces::srv::TickCondition>::SharedPtr m_tickService;
+	rclcpp::Service<bt_interfaces_dummy::srv::TickCondition>::SharedPtr m_tickService;
 	
 	
 	
