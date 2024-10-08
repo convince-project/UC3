@@ -8,10 +8,10 @@
   <license>TODO: License declaration</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
-  <depend>navigation_interfaces</depend>
-  <depend>people_detector_filter_interfaces</depend>
+  <build_depend>navigation_interfaces</build_depend>
+  <build_depend>people_detector_filter_interfaces</build_depend>
   <depend>nav_msgs</depend>
-  <depend>blackboard_interfaces</depend>
+  <build_depend>blackboard_interfaces</build_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

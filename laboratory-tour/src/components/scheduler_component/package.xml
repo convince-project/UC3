@@ -8,7 +8,7 @@
   <license>TODO: License declaration</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
-  <depend>scheduler_interfaces</depend>
+  <build_depend>scheduler_interfaces</build_depend>
   <depend>nlohmann-json-dev</depend>
   <!-- <depend>log_library</depend> -->
 
