@@ -70,8 +70,8 @@ bool IsPoiDone1Skill::start(int argc, char*argv[])
     
     m_stateMachine.connectToEvent("BlackboardComponent.GetInt.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
         std::shared_ptr<rclcpp::Node> nodeGetInt = rclcpp::Node::make_shared(m_name + "SkillNodeGetInt");
-        std::shared_ptr<rclcpp::Client<blackboard_interfaces_dummy::srv::GetInt>> clientGetInt = nodeGetInt->create_client<blackboard_interfaces_dummy::srv::GetInt>("/BlackboardComponent/GetInt");
-        auto request = std::make_shared<blackboard_interfaces_dummy::srv::GetInt::Request>();
+        std::shared_ptr<rclcpp::Client<blackboard_interfaces_dummy::srv::GetIntBlackboard>> clientGetInt = nodeGetInt->create_client<blackboard_interfaces_dummy::srv::GetIntBlackboard>("/BlackboardComponent/GetInt");
+        auto request = std::make_shared<blackboard_interfaces_dummy::srv::GetIntBlackboard::Request>();
         auto eventParams = event.data().toMap();
         
         request->field_name = convert<decltype(request->field_name)>(eventParams["field_name"].toString().toStdString());

@@ -117,8 +117,8 @@ bool SetCurrentPoiDoneSkill::start(int argc, char*argv[])
     });
     m_stateMachine.connectToEvent("BlackboardComponent.SetInt.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
         std::shared_ptr<rclcpp::Node> nodeSetInt = rclcpp::Node::make_shared(m_name + "SkillNodeSetInt");
-        std::shared_ptr<rclcpp::Client<blackboard_interfaces_dummy::srv::SetInt>> clientSetInt = nodeSetInt->create_client<blackboard_interfaces_dummy::srv::SetInt>("/BlackboardComponent/SetInt");
-        auto request = std::make_shared<blackboard_interfaces_dummy::srv::SetInt::Request>();
+        std::shared_ptr<rclcpp::Client<blackboard_interfaces_dummy::srv::SetIntBlackboard>> clientSetInt = nodeSetInt->create_client<blackboard_interfaces_dummy::srv::SetIntBlackboard>("/BlackboardComponent/SetInt");
+        auto request = std::make_shared<blackboard_interfaces_dummy::srv::SetIntBlackboard::Request>();
         auto eventParams = event.data().toMap();
         
         request->value = convert<decltype(request->value)>(eventParams["value"].toString().toStdString());
