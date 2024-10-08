@@ -48,7 +48,7 @@ int ROS2Action::sendTickToSkill()
     std::this_thread::sleep_for (std::chrono::milliseconds(100));
     if (rclcpp::spin_until_future_complete(m_node, result) ==
         rclcpp::FutureReturnCode::SUCCESS) {
-        return result.get()->status.status;
+        return result.get()->status;
     }
     return msg.SKILL_FAILURE;
 }
