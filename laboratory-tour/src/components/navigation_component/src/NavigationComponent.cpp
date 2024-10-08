@@ -147,9 +147,9 @@ rclcpp_action::GoalResponse NavigationComponent::handle_goal(
         const rclcpp_action::GoalUUID & uuid,
         std::shared_ptr<const navigation_interfaces_dummy::action::GoToPoi::Goal> goal)
 {
-    RCLCPP_INFO(m_node->get_logger(), "GoToPoi Action - Received goal request, poi_name: %s", goal->poi_name.c_str());
+    RCLCPP_INFO(m_node->get_logger(), "GoToPoi Action - Received goal request, poi_name: %s", goal->poi_number));
     (void)uuid;
-    if(goal->poi_name != "")
+    if(goal->poi_number != "")
     {
         return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
     }
@@ -189,16 +189,17 @@ void NavigationComponent::execute(const std::shared_ptr<rclcpp_action::ServerGoa
     const auto goal = goal_handle->get_goal();
     auto feedback = std::make_shared<navigation_interfaces_dummy::action::GoToPoi::Feedback>();
     auto result = std::make_shared<navigation_interfaces_dummy::action::GoToPoi::Result>();
+    std::string poi_name = std::to_string(goal->poi_number);
     yarp::dev::Nav2D::NavigationStatusEnum status;
     {
         std::lock_guard<std::mutex> lock(m_goalMutex);
         if (goal_handle != m_activeGoal) {
-            RCLCPP_INFO(m_node->get_logger(), "This goal is preempted %s", goal->poi_name.c_str());
+            RCLCPP_INFO(m_node->get_logger(), "This goal is preempted %s", poi_name);
             return;
         }
     }
 
-    if(!m_iNav2D->gotoTargetByLocationName(goal->poi_name))
+    if(!m_iNav2D->gotoTargetByLocationName(poi_name))
     {
         result->is_ok = false;
         // result->error_msg = "failed to send goal";
@@ -210,7 +211,7 @@ void NavigationComponent::execute(const std::shared_ptr<rclcpp_action::ServerGoa
         {
             std::lock_guard<std::mutex> lock(m_goalMutex);
             if (goal_handle != m_activeGoal) {
-                RCLCPP_INFO(m_node->get_logger(), "This goal is preempted %s", goal->poi_name.c_str());
+                RCLCPP_INFO(m_node->get_logger(), "This goal is preempted %s", poi_name);
                 return;
             }
         }
@@ -235,7 +236,7 @@ void NavigationComponent::execute(const std::shared_ptr<rclcpp_action::ServerGoa
         if(convertStatus(status).status == navigation_interfaces_dummy::msg::NavigationStatus::NAVIGATION_STATUS_ABORTED || 
             convertStatus(status).status == navigation_interfaces_dummy::msg::NavigationStatus::NAVIGATION_STATUS_IDLE)
         {
-            if(!m_iNav2D->gotoTargetByLocationName(goal->poi_name))
+            if(!m_iNav2D->gotoTargetByLocationName(poi_name))
             {
                 result->is_ok = false;
                 // result->error_msg = "failed to send goal";
@@ -252,10 +253,11 @@ void NavigationComponent::execute(const std::shared_ptr<rclcpp_action::ServerGoa
         }
         else
         {
-            feedback->status.status = convertStatus(status).status;
+            // feedback->status.status = convertStatus(status).status;
+            feedback->status = convertStatus(status);
         }
         goal_handle->publish_feedback(feedback);
-        RCLCPP_INFO(m_node->get_logger(), "Publish feedback, poi= %s", goal->poi_name.c_str());
+        RCLCPP_INFO(m_node->get_logger(), "Publish feedback, poi= %s", poi_name);
         loop_rate.sleep();
     }
     while(rclcpp::ok() && convertStatus(status).status != navigation_interfaces_dummy::msg::NavigationStatus::NAVIGATION_STATUS_GOAL_REACHED);
