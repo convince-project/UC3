@@ -54,11 +54,11 @@ void BlackboardComponent::GetInt( const std::shared_ptr<blackboard_interfaces_du
     std::cout << "Request: " << request->field_name << "translation " << field_name << std::endl; 
     if (field_name == "") {
         response->is_ok = false;
-        response->error_msg = "missing required field name";
+        // response->error_msg = "missing required field name";
     } else {
         if (!m_intBlacboard.contains(field_name)) {
             response->is_ok = false;
-            response->error_msg = "field not found";
+            // response->error_msg = "field not found";
         } else {
             response->value = m_intBlacboard.find(field_name)->second; 
             std::cout << "GetInt: " << field_name << " " << response->value << std::endl; 
@@ -77,10 +77,10 @@ void BlackboardComponent::SetInt( const std::shared_ptr<blackboard_interfaces_du
     std::cout << "Request: " << request->field_name << "translation " << field_name << std::endl; 
     if (field_name == "") {
         response->is_ok = false;
-        response->error_msg = "missing required field name";
+        // response->error_msg = "missing required field name";
     } else {
         if (m_intBlacboard.contains(field_name)) {
-            response->error_msg = "field already present, overwriting";
+            // response->error_msg = "field already present, overwriting";
         } 
         m_intBlacboard.insert_or_assign(field_name, request->value); 
         std::cout << "SetInt: " << field_name << " " << request->value << std::endl; 

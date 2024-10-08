@@ -174,7 +174,7 @@ void NavigationComponent::handle_accepted(const std::shared_ptr<rclcpp_action::S
         RCLCPP_INFO(m_node->get_logger(), "Preempting the current goal");
         auto result = std::make_shared<navigation_interfaces_dummy::action::GoToPoi::Result>();
         result->is_ok = false;
-        result->error_msg = "Preempted by a new goal";
+        // result->error_msg = "Preempted by a new goal";
         m_activeGoal->abort(result);
     }
 
@@ -201,7 +201,7 @@ void NavigationComponent::execute(const std::shared_ptr<rclcpp_action::ServerGoa
     if(!m_iNav2D->gotoTargetByLocationName(goal->poi_name))
     {
         result->is_ok = false;
-        result->error_msg = "failed to send goal";
+        // result->error_msg = "failed to send goal";
         goal_handle->abort(result);
         RCLCPP_INFO(m_node->get_logger(), "Goal aborted");
         return;
@@ -217,7 +217,7 @@ void NavigationComponent::execute(const std::shared_ptr<rclcpp_action::ServerGoa
         // Check if there is a cancel request
         if (goal_handle->is_canceling()) {
             result->is_ok = false;
-            result->error_msg = "goal canceled";
+            // result->error_msg = "goal canceled";
             goal_handle->canceled(result);
             if(!m_iNav2D->stopNavigation())
             {
@@ -238,7 +238,7 @@ void NavigationComponent::execute(const std::shared_ptr<rclcpp_action::ServerGoa
             if(!m_iNav2D->gotoTargetByLocationName(goal->poi_name))
             {
                 result->is_ok = false;
-                result->error_msg = "failed to send goal";
+                // result->error_msg = "failed to send goal";
                 goal_handle->abort(result);
                 RCLCPP_INFO(m_node->get_logger(), "Goal aborted");
                 return;
@@ -247,7 +247,7 @@ void NavigationComponent::execute(const std::shared_ptr<rclcpp_action::ServerGoa
         if(!m_iNav2D->getNavigationStatus(status))
         {
             result->is_ok = false;
-            result->error_msg = "failed to get status";
+            // result->error_msg = "failed to get status";
             return;
         }
         else
