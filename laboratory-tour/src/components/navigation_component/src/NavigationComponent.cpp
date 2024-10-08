@@ -147,16 +147,16 @@ rclcpp_action::GoalResponse NavigationComponent::handle_goal(
         const rclcpp_action::GoalUUID & uuid,
         std::shared_ptr<const navigation_interfaces_dummy::action::GoToPoi::Goal> goal)
 {
-    RCLCPP_INFO(m_node->get_logger(), "GoToPoi Action - Received goal request, poi_name: %d", goal->poi_number));
+    RCLCPP_INFO(m_node->get_logger(), "GoToPoi Action - Received goal request, poi_name: %d", goal->poi_number);
     (void)uuid;
-    if(goal->poi_number != "")
-    {
+    // if(goal->poi_name != "")
+    // {
         return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
-    }
-    else
-    {
-        return rclcpp_action::GoalResponse::REJECT;
-    }
+    // }
+    // else
+    // {
+    //     return rclcpp_action::GoalResponse::REJECT;
+    // }
 }
 
 rclcpp_action::CancelResponse NavigationComponent::handle_cancel(const std::shared_ptr<rclcpp_action::ServerGoalHandle<navigation_interfaces_dummy::action::GoToPoi>> goal_handle)
