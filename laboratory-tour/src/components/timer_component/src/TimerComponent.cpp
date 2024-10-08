@@ -58,7 +58,7 @@ void TimerComponent::StartTimer([[maybe_unused]] const std::shared_ptr<timer_int
     std::lock_guard<std::mutex> lock(m_mutex);
     if (*m_timerActive) {
         response->is_ok = false;
-        response->error_msg = "Timer already active";
+        // response->error_msg = "Timer already active";
         return;
     }
     if(m_threadTimer != nullptr && m_threadTimer->joinable())
