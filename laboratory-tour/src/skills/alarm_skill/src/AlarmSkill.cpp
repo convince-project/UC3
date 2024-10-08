@@ -153,13 +153,13 @@ void AlarmSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dumm
     switch(m_tickResult.load()) 
     {
         case Status::running:
-            response->status.status = message.SKILL_RUNNING;
+            response->status= message.SKILL_RUNNING;
             break;
         case Status::failure:
-            response->status.status = message.SKILL_FAILURE;
+            response->status = message.SKILL_FAILURE;
             break;
         case Status::success:
-            response->status.status = message.SKILL_SUCCESS;
+            response->status = message.SKILL_SUCCESS;
             break;            
     }
     RCLCPP_INFO(m_node->get_logger(), "AlarmSkill::tickDone");

@@ -151,10 +151,10 @@ void SetPoi1Skill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_du
     {
         
         case Status::failure:
-            response->status.status = message.SKILL_FAILURE;
+            response->status = message.SKILL_FAILURE;
             break;
         case Status::success:
-            response->status.status = message.SKILL_SUCCESS;
+            response->status = message.SKILL_SUCCESS;
             break;            
     }
     RCLCPP_INFO(m_node->get_logger(), "SetPoi1Skill::tickDone");
