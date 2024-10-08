@@ -147,7 +147,7 @@ rclcpp_action::GoalResponse NavigationComponent::handle_goal(
         const rclcpp_action::GoalUUID & uuid,
         std::shared_ptr<const navigation_interfaces_dummy::action::GoToPoi::Goal> goal)
 {
-    RCLCPP_INFO(m_node->get_logger(), "GoToPoi Action - Received goal request, poi_name: %s", goal->poi_number));
+    RCLCPP_INFO(m_node->get_logger(), "GoToPoi Action - Received goal request, poi_name: %d", goal->poi_number));
     (void)uuid;
     if(goal->poi_number != "")
     {
@@ -194,7 +194,7 @@ void NavigationComponent::execute(const std::shared_ptr<rclcpp_action::ServerGoa
     {
         std::lock_guard<std::mutex> lock(m_goalMutex);
         if (goal_handle != m_activeGoal) {
-            RCLCPP_INFO(m_node->get_logger(), "This goal is preempted %s", poi_name);
+            RCLCPP_INFO(m_node->get_logger(), "This goal is preempted %s", poi_name.c_str());
             return;
         }
     }
@@ -211,7 +211,7 @@ void NavigationComponent::execute(const std::shared_ptr<rclcpp_action::ServerGoa
         {
             std::lock_guard<std::mutex> lock(m_goalMutex);
             if (goal_handle != m_activeGoal) {
-                RCLCPP_INFO(m_node->get_logger(), "This goal is preempted %s", poi_name);
+                RCLCPP_INFO(m_node->get_logger(), "This goal is preempted %s", poi_name.c_str());
                 return;
             }
         }
@@ -254,10 +254,10 @@ void NavigationComponent::execute(const std::shared_ptr<rclcpp_action::ServerGoa
         else
         {
             // feedback->status.status = convertStatus(status).status;
-            feedback->status = convertStatus(status);
+            feedback->status = convertStatus(status).status;
         }
         goal_handle->publish_feedback(feedback);
-        RCLCPP_INFO(m_node->get_logger(), "Publish feedback, poi= %s", poi_name);
+        RCLCPP_INFO(m_node->get_logger(), "Publish feedback, poi= %s", poi_name.c_str());
         loop_rate.sleep();
     }
     while(rclcpp::ok() && convertStatus(status).status != navigation_interfaces_dummy::msg::NavigationStatus::NAVIGATION_STATUS_GOAL_REACHED);
