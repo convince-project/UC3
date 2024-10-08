@@ -74,7 +74,7 @@ void SchedulerComponent::GetCurrentPoi([[maybe_unused]] const std::shared_ptr<sc
 {
     // response->poi_name = m_tourStorage->GetTour().getPoIsList()[m_currentPoi];
     response->poi_number = m_currentPoi;
-    RCLCPP_INFO(m_node->get_logger(), "SchedulerComponent::GetCurrentPoi number: %s", response->poi_number);
+    RCLCPP_INFO(m_node->get_logger(), "SchedulerComponent::GetCurrentPoi number: %d", response->poi_number);
     response->is_ok = true;
 }
 
