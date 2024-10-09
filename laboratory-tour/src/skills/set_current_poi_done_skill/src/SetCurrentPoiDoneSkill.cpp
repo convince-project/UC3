@@ -73,7 +73,7 @@ bool SetCurrentPoiDoneSkill::start(int argc, char*argv[])
         std::shared_ptr<rclcpp::Client<scheduler_interfaces_dummy::srv::GetCurrentPoi>> clientGetCurrentPoi = nodeGetCurrentPoi->create_client<scheduler_interfaces_dummy::srv::GetCurrentPoi>("/SchedulerComponent/GetCurrentPoi");
         auto request = std::make_shared<scheduler_interfaces_dummy::srv::GetCurrentPoi::Request>();
         auto eventParams = event.data().toMap();
-        auto message = bt_interfaces_dummy::msg::ConditionResponse();
+        auto message = bt_interfaces_dummy::msg::ActionResponse();
         
         bool wait_succeded{true};
         int retries = 0;
@@ -121,7 +121,7 @@ bool SetCurrentPoiDoneSkill::start(int argc, char*argv[])
         std::shared_ptr<rclcpp::Client<blackboard_interfaces_dummy::srv::SetIntBlackboard>> clientSetInt = nodeSetInt->create_client<blackboard_interfaces_dummy::srv::SetIntBlackboard>("/BlackboardComponent/SetInt");
         auto request = std::make_shared<blackboard_interfaces_dummy::srv::SetIntBlackboard::Request>();
         auto eventParams = event.data().toMap();
-        auto message = bt_interfaces_dummy::msg::ConditionResponse();
+        auto message = bt_interfaces_dummy::msg::ActionResponse();
         
         request->value = convert<decltype(request->value)>(eventParams["value"].toString().toStdString());
         request->field_name = convert<decltype(request->field_name)>(eventParams["field_name"].toString().toStdString());

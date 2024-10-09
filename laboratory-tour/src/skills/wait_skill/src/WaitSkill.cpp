@@ -58,7 +58,7 @@ bool WaitSkill::start(int argc, char*argv[])
 	std::cout << "WaitSkill::start";
 
     
-	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickCondition>(m_name + "Skill/tick",
+	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
                                                                            	std::bind(&WaitSkill::tick,
                                                                            	this,
                                                                            	std::placeholders::_1,
@@ -89,12 +89,12 @@ bool WaitSkill::start(int argc, char*argv[])
 	return true;
 }
 
-void WaitSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Request> request,
-                                std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Response>      response)
+void WaitSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Request> request,
+                                std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Response>      response)
 {
     std::lock_guard<std::mutex> lock(m_requestMutex);
     RCLCPP_INFO(m_node->get_logger(), "WaitSkill::tick");
-    auto message = bt_interfaces_dummy::msg::ConditionResponse();
+    auto message = bt_interfaces_dummy::msg::ActionResponse();
     m_tickResult.store(Status::undefined);
     m_stateMachine.submitEvent("CMD_TICK");
    

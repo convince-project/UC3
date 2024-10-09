@@ -73,7 +73,7 @@ bool RunTimerSkill::start(int argc, char*argv[])
         std::shared_ptr<rclcpp::Client<timer_interfaces_dummy::srv::StartTimer>> clientStartTimer = nodeStartTimer->create_client<timer_interfaces_dummy::srv::StartTimer>("/TimerComponent/StartTimer");
         auto request = std::make_shared<timer_interfaces_dummy::srv::StartTimer::Request>();
         auto eventParams = event.data().toMap();
-        auto message = bt_interfaces_dummy::msg::ConditionResponse();
+        auto message = bt_interfaces_dummy::msg::ActionResponse();
         
         bool wait_succeded{true};
         int retries = 0;
@@ -119,7 +119,7 @@ bool RunTimerSkill::start(int argc, char*argv[])
         std::shared_ptr<rclcpp::Client<timer_interfaces_dummy::srv::IsTimerActive>> clientIsTimerActive = nodeIsTimerActive->create_client<timer_interfaces_dummy::srv::IsTimerActive>("/TimerComponent/IsTimerActive");
         auto request = std::make_shared<timer_interfaces_dummy::srv::IsTimerActive::Request>();
         auto eventParams = event.data().toMap();
-        auto message = bt_interfaces_dummy::msg::ConditionResponse();
+        auto message = bt_interfaces_dummy::msg::ActionResponse();
         
         bool wait_succeded{true};
         int retries = 0;

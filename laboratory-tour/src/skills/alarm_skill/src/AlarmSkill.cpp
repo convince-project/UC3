@@ -73,7 +73,7 @@ bool AlarmSkill::start(int argc, char*argv[])
         std::shared_ptr<rclcpp::Client<notify_user_interfaces_dummy::srv::StartAlarm>> clientStartAlarm = nodeStartAlarm->create_client<notify_user_interfaces_dummy::srv::StartAlarm>("/NotifyUserComponent/StartAlarm");
         auto request = std::make_shared<notify_user_interfaces_dummy::srv::StartAlarm::Request>();
         auto eventParams = event.data().toMap();
-        auto message = bt_interfaces_dummy::msg::ConditionResponse();
+        auto message = bt_interfaces_dummy::msg::ActionResponse();
         
         bool wait_succeded{true};
         int retries = 0;

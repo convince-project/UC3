@@ -58,7 +58,7 @@ bool SetPoi2Skill::start(int argc, char*argv[])
 	std::cout << "SetPoi2Skill::start";
 
     
-	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickCondition>(m_name + "Skill/tick",
+	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
                                                                            	std::bind(&SetPoi2Skill::tick,
                                                                            	this,
                                                                            	std::placeholders::_1,
@@ -73,7 +73,7 @@ bool SetPoi2Skill::start(int argc, char*argv[])
         std::shared_ptr<rclcpp::Client<scheduler_interfaces_dummy::srv::SetPoi>> clientSetPoi = nodeSetPoi->create_client<scheduler_interfaces_dummy::srv::SetPoi>("/SchedulerComponent/SetPoi");
         auto request = std::make_shared<scheduler_interfaces_dummy::srv::SetPoi::Request>();
         auto eventParams = event.data().toMap();
-        auto message = bt_interfaces_dummy::msg::ConditionResponse();
+        auto message = bt_interfaces_dummy::msg::ActionResponse();
         
         request->poi_number = convert<decltype(request->poi_number)>(eventParams["poi_number"].toString().toStdString());
         bool wait_succeded{true};
@@ -136,12 +136,12 @@ bool SetPoi2Skill::start(int argc, char*argv[])
 	return true;
 }
 
-void SetPoi2Skill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Request> request,
-                                std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Response>      response)
+void SetPoi2Skill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Request> request,
+                                std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Response>      response)
 {
     std::lock_guard<std::mutex> lock(m_requestMutex);
     RCLCPP_INFO(m_node->get_logger(), "SetPoi2Skill::tick");
-    auto message = bt_interfaces_dummy::msg::ConditionResponse();
+    auto message = bt_interfaces_dummy::msg::ActionResponse();
     m_tickResult.store(Status::undefined);
     m_stateMachine.submitEvent("CMD_TICK");
    
