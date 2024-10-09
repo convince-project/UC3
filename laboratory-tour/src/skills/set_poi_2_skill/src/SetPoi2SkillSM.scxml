@@ -1,4 +1,4 @@
-<scxml version="1.0" xmlns="http://www.w3.org/2005/07/scxml" datamodel="ecmascript" name="SetPoi2SkillCondition" initial="idle">
+<scxml version="1.0" xmlns="http://www.w3.org/2005/07/scxml" datamodel="ecmascript" name="SetPoi2SkillAction" initial="idle">
     <datamodel>
         <data id="poi_number" expr="0"/>
         <data id="SKILL_SUCCESS" expr="0"/>
