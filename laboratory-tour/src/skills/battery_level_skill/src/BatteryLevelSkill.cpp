@@ -75,11 +75,11 @@ bool BatteryLevelSkill::start(int argc, char*argv[])
 	m_stateMachine.connectToEvent("TICK_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){
 		RCLCPP_INFO(m_node->get_logger(), "BatteryLevelSkill::tickReturn %s", event.data().toMap()["status"].toString().toStdString().c_str());
 		std::string result = event.data().toMap()["status"].toString().toStdString();
-		if (result == message.SKILL_SUCCESS )
+		if (result == std::to_string(SKILL_SUCCESS) )
 		{
 			m_tickResult.store(Status::success);
 		}
-		else if (result == message.SKILL_FAILURE )
+		else if (result == std::to_string(SKILL_FAILURE) )
 		{ 
 			m_tickResult.store(Status::failure);
 		}
@@ -97,7 +97,6 @@ void BatteryLevelSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfac
 {
     std::lock_guard<std::mutex> lock(m_requestMutex);
     RCLCPP_INFO(m_node->get_logger(), "BatteryLevelSkill::tick");
-    auto message = bt_interfaces_dummy::msg::ConditionResponse();
     m_tickResult.store(Status::undefined);
     m_stateMachine.submitEvent("CMD_TICK");
    
@@ -108,10 +107,10 @@ void BatteryLevelSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfac
     {
         
         case Status::failure:
-            response->status = message.SKILL_FAILURE;
+            response->status = SKILL_FAILURE;
             break;
         case Status::success:
-            response->status = message.SKILL_SUCCESS;
+            response->status = SKILL_SUCCESS;
             break;            
     }
     RCLCPP_INFO(m_node->get_logger(), "BatteryLevelSkill::tickDone");

@@ -73,7 +73,6 @@ bool IsPoiDone1Skill::start(int argc, char*argv[])
         std::shared_ptr<rclcpp::Client<blackboard_interfaces_dummy::srv::GetIntBlackboard>> clientGetInt = nodeGetInt->create_client<blackboard_interfaces_dummy::srv::GetIntBlackboard>("/BlackboardComponent/GetInt");
         auto request = std::make_shared<blackboard_interfaces_dummy::srv::GetIntBlackboard::Request>();
         auto eventParams = event.data().toMap();
-        auto message = bt_interfaces_dummy::msg::ConditionResponse();
         
         request->field_name = convert<decltype(request->field_name)>(eventParams["field_name"].toString().toStdString());
         bool wait_succeded{true};
@@ -100,7 +99,7 @@ bool IsPoiDone1Skill::start(int argc, char*argv[])
                auto response = result.get();
                if( response->is_ok ==true) {
                    QVariantMap data;
-                   data.insert("status", message.SKILL_SUCCESS);
+                   data.insert("status", SKILL_SUCCESS);
                    data.insert("value", response->value);
                    m_stateMachine.submitEvent("BlackboardComponent.GetInt.Return", data);
                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.GetInt.Return");
@@ -112,7 +111,7 @@ bool IsPoiDone1Skill::start(int argc, char*argv[])
            }
         }
        QVariantMap data;
-       data.insert("status", message.SKILL_FAILURE);
+       data.insert("status", SKILL_FAILURE);
        m_stateMachine.submitEvent("BlackboardComponent.GetInt.Return", data);
        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.GetInt.Return");
     });
@@ -120,11 +119,11 @@ bool IsPoiDone1Skill::start(int argc, char*argv[])
 	m_stateMachine.connectToEvent("TICK_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){
 		RCLCPP_INFO(m_node->get_logger(), "IsPoiDone1Skill::tickReturn %s", event.data().toMap()["status"].toString().toStdString().c_str());
 		std::string result = event.data().toMap()["status"].toString().toStdString();
-		if (result == message.SKILL_SUCCESS )
+		if (result == std::to_string(SKILL_SUCCESS) )
 		{
 			m_tickResult.store(Status::success);
 		}
-		else if (result == message.SKILL_FAILURE )
+		else if (result == std::to_string(SKILL_FAILURE) )
 		{ 
 			m_tickResult.store(Status::failure);
 		}
@@ -142,7 +141,6 @@ void IsPoiDone1Skill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces
 {
     std::lock_guard<std::mutex> lock(m_requestMutex);
     RCLCPP_INFO(m_node->get_logger(), "IsPoiDone1Skill::tick");
-    auto message = bt_interfaces_dummy::msg::ConditionResponse();
     m_tickResult.store(Status::undefined);
     m_stateMachine.submitEvent("CMD_TICK");
    
@@ -153,10 +151,10 @@ void IsPoiDone1Skill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces
     {
         
         case Status::failure:
-            response->status = message.SKILL_FAILURE;
+            response->status = SKILL_FAILURE;
             break;
         case Status::success:
-            response->status = message.SKILL_SUCCESS;
+            response->status = SKILL_SUCCESS;
             break;            
     }
     RCLCPP_INFO(m_node->get_logger(), "IsPoiDone1Skill::tickDone");

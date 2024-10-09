@@ -13,6 +13,9 @@
 
 
 #define SERVICE_TIMEOUT 8
+#define SKILL_SUCCESS 0
+#define SKILL_FAILURE 1
+#define SKILL_RUNNING 2
 
 enum class Status{
 	undefined,
