@@ -73,6 +73,7 @@ bool SetPoi2Skill::start(int argc, char*argv[])
         std::shared_ptr<rclcpp::Client<scheduler_interfaces_dummy::srv::SetPoi>> clientSetPoi = nodeSetPoi->create_client<scheduler_interfaces_dummy::srv::SetPoi>("/SchedulerComponent/SetPoi");
         auto request = std::make_shared<scheduler_interfaces_dummy::srv::SetPoi::Request>();
         auto eventParams = event.data().toMap();
+        auto message = bt_interfaces_dummy::msg::ConditionResponse();
         
         request->poi_number = convert<decltype(request->poi_number)>(eventParams["poi_number"].toString().toStdString());
         bool wait_succeded{true};
@@ -99,7 +100,7 @@ bool SetPoi2Skill::start(int argc, char*argv[])
                auto response = result.get();
                if( response->is_ok ==true) {
                    QVariantMap data;
-                   data.insert("result", "SUCCESS");
+                   data.insert("status", message.SKILL_SUCCESS);
                    m_stateMachine.submitEvent("SchedulerComponent.SetPoi.Return", data);
                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.SetPoi.Return");
                    return;
@@ -110,19 +111,19 @@ bool SetPoi2Skill::start(int argc, char*argv[])
            }
         }
        QVariantMap data;
-       data.insert("result", "FAILURE");
+       data.insert("status", message.SKILL_FAILURE);
        m_stateMachine.submitEvent("SchedulerComponent.SetPoi.Return", data);
        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.SetPoi.Return");
     });
     
 	m_stateMachine.connectToEvent("TICK_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){
-		RCLCPP_INFO(m_node->get_logger(), "SetPoi2Skill::tickReturn %s", event.data().toMap()["result"].toString().toStdString().c_str());
-		std::string result = event.data().toMap()["result"].toString().toStdString();
-		if (result == "SUCCESS" )
+		RCLCPP_INFO(m_node->get_logger(), "SetPoi2Skill::tickReturn %s", event.data().toMap()["status"].toString().toStdString().c_str());
+		std::string result = event.data().toMap()["status"].toString().toStdString();
+		if (result == message.SKILL_SUCCESS )
 		{
 			m_tickResult.store(Status::success);
 		}
-		else if (result == "FAILURE" )
+		else if (result == message.SKILL_FAILURE )
 		{ 
 			m_tickResult.store(Status::failure);
 		}

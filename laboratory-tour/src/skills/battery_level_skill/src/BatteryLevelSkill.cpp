@@ -73,13 +73,13 @@ bool BatteryLevelSkill::start(int argc, char*argv[])
     
     
 	m_stateMachine.connectToEvent("TICK_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){
-		RCLCPP_INFO(m_node->get_logger(), "BatteryLevelSkill::tickReturn %s", event.data().toMap()["result"].toString().toStdString().c_str());
-		std::string result = event.data().toMap()["result"].toString().toStdString();
-		if (result == "SUCCESS" )
+		RCLCPP_INFO(m_node->get_logger(), "BatteryLevelSkill::tickReturn %s", event.data().toMap()["status"].toString().toStdString().c_str());
+		std::string result = event.data().toMap()["status"].toString().toStdString();
+		if (result == message.SKILL_SUCCESS )
 		{
 			m_tickResult.store(Status::success);
 		}
-		else if (result == "FAILURE" )
+		else if (result == message.SKILL_FAILURE )
 		{ 
 			m_tickResult.store(Status::failure);
 		}

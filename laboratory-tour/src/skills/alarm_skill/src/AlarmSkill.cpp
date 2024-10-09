@@ -73,6 +73,7 @@ bool AlarmSkill::start(int argc, char*argv[])
         std::shared_ptr<rclcpp::Client<notify_user_interfaces_dummy::srv::StartAlarm>> clientStartAlarm = nodeStartAlarm->create_client<notify_user_interfaces_dummy::srv::StartAlarm>("/NotifyUserComponent/StartAlarm");
         auto request = std::make_shared<notify_user_interfaces_dummy::srv::StartAlarm::Request>();
         auto eventParams = event.data().toMap();
+        auto message = bt_interfaces_dummy::msg::ConditionResponse();
         
         bool wait_succeded{true};
         int retries = 0;
@@ -98,7 +99,7 @@ bool AlarmSkill::start(int argc, char*argv[])
                auto response = result.get();
                if( response->is_ok ==true) {
                    QVariantMap data;
-                   data.insert("result", "SUCCESS");
+                   data.insert("status", message.SKILL_SUCCESS);
                    m_stateMachine.submitEvent("NotifyUserComponent.StartAlarm.Return", data);
                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NotifyUserComponent.StartAlarm.Return");
                    return;
@@ -109,23 +110,23 @@ bool AlarmSkill::start(int argc, char*argv[])
            }
         }
        QVariantMap data;
-       data.insert("result", "FAILURE");
+       data.insert("status", message.SKILL_FAILURE);
        m_stateMachine.submitEvent("NotifyUserComponent.StartAlarm.Return", data);
        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NotifyUserComponent.StartAlarm.Return");
     });
     
 	m_stateMachine.connectToEvent("TICK_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){
-		RCLCPP_INFO(m_node->get_logger(), "AlarmSkill::tickReturn %s", event.data().toMap()["result"].toString().toStdString().c_str());
-		std::string result = event.data().toMap()["result"].toString().toStdString();
-		if (result == "SUCCESS" )
+		RCLCPP_INFO(m_node->get_logger(), "AlarmSkill::tickReturn %s", event.data().toMap()["status"].toString().toStdString().c_str());
+		std::string result = event.data().toMap()["status"].toString().toStdString();
+		if (result == message.SKILL_SUCCESS )
 		{
 			m_tickResult.store(Status::success);
 		}
-		else if (result == "RUNNING" )
+		else if (result == message.SKILL_RUNNING )
 		{
 			m_tickResult.store(Status::running);
 		}
-		else if (result == "FAILURE" )
+		else if (result == message.SKILL_FAILURE )
 		{ 
 			m_tickResult.store(Status::failure);
 		}
