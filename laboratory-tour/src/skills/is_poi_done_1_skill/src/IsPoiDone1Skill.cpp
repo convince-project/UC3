@@ -99,7 +99,7 @@ bool IsPoiDone1Skill::start(int argc, char*argv[])
                auto response = result.get();
                if( response->is_ok ==true) {
                    QVariantMap data;
-                   data.insert("status", SKILL_SUCCESS);
+                   data.insert("is_ok", true);
                    data.insert("value", response->value);
                    m_stateMachine.submitEvent("BlackboardComponent.GetInt.Return", data);
                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.GetInt.Return");
@@ -111,7 +111,7 @@ bool IsPoiDone1Skill::start(int argc, char*argv[])
            }
         }
        QVariantMap data;
-       data.insert("status", SKILL_FAILURE);
+       data.insert("is_ok", false);
        m_stateMachine.submitEvent("BlackboardComponent.GetInt.Return", data);
        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.GetInt.Return");
     });

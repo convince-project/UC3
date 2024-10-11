@@ -50,15 +50,18 @@ void BlackboardComponent::GetInt( const std::shared_ptr<blackboard_interfaces_du
              std::shared_ptr<blackboard_interfaces_dummy::srv::GetIntBlackboard::Response>      response) 
 {
     std::lock_guard<std::mutex> lock(m_mutexInt);
+    std::cout << "GetInt: " << std::endl;
     std::string field_name = "PoiDone" + std::to_string(request->field_name);
     std::cout << "Request: " << request->field_name << "translation " << field_name << std::endl; 
-    if (field_name == "") {
+    if (field_name == "PoiDone") {
         response->is_ok = false;
         // response->error_msg = "missing required field name";
+        std::cout << "GetInt: " << "missing required field name" << std::endl;
     } else {
         if (!m_intBlacboard.contains(field_name)) {
             response->is_ok = false;
             // response->error_msg = "field not found";
+            std::cout << "SetInt: " << "field not found" << std::endl;
         } else {
             response->value = m_intBlacboard.find(field_name)->second; 
             std::cout << "GetInt: " << field_name << " " << response->value << std::endl; 
@@ -74,13 +77,15 @@ void BlackboardComponent::SetInt( const std::shared_ptr<blackboard_interfaces_du
     std::lock_guard<std::mutex> lock(m_mutexInt);
     std::cout << "SetInt: " << std::endl;
     std::string field_name = "PoiDone" + std::to_string(request->field_name);
-    std::cout << "Request: " << request->field_name << "translation " << field_name << std::endl; 
-    if (field_name == "") {
+    std::cout << "Request: " << request->field_name << " translation " << field_name << std::endl; 
+    if (field_name == "PoiDone") {
         response->is_ok = false;
         // response->error_msg = "missing required field name";
+        std::cout << "SetInt: " << "missing required field name" << std::endl;
     } else {
         if (m_intBlacboard.contains(field_name)) {
             // response->error_msg = "field already present, overwriting";
+            std::cout << "SetInt: " << "field already present, overwriting" << std::endl;
         } 
         m_intBlacboard.insert_or_assign(field_name, request->value); 
         std::cout << "SetInt: " << field_name << " " << request->value << std::endl; 

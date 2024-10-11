@@ -98,7 +98,7 @@ bool SetCurrentPoiDoneSkill::start(int argc, char*argv[])
                auto response = result.get();
                if( response->is_ok ==true) {
                    QVariantMap data;
-                   data.insert("status", SKILL_SUCCESS);
+                   data.insert("is_ok", true);
                    data.insert("poi_number", response->poi_number);
                 //    data.insert("poi_name", response->poi_name);
                    m_stateMachine.submitEvent("SchedulerComponent.GetCurrentPoi.Return", data);
@@ -111,7 +111,7 @@ bool SetCurrentPoiDoneSkill::start(int argc, char*argv[])
            }
         }
        QVariantMap data;
-       data.insert("status", SKILL_FAILURE);
+       data.insert("is_ok", false);
        m_stateMachine.submitEvent("SchedulerComponent.GetCurrentPoi.Return", data);
        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.GetCurrentPoi.Return");
     });
@@ -147,7 +147,7 @@ bool SetCurrentPoiDoneSkill::start(int argc, char*argv[])
                auto response = result.get();
                if( response->is_ok ==true) {
                    QVariantMap data;
-                   data.insert("status", SKILL_SUCCESS);
+                   data.insert("is_ok", true);
                    m_stateMachine.submitEvent("BlackboardComponent.SetInt.Return", data);
                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.SetInt.Return");
                    return;
@@ -158,7 +158,7 @@ bool SetCurrentPoiDoneSkill::start(int argc, char*argv[])
            }
         }
        QVariantMap data;
-       data.insert("status", SKILL_FAILURE);
+       data.insert("is_ok", false);
        m_stateMachine.submitEvent("BlackboardComponent.SetInt.Return", data);
        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.SetInt.Return");
     });

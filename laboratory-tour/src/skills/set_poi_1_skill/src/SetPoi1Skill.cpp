@@ -98,7 +98,7 @@ bool SetPoi1Skill::start(int argc, char*argv[])
                auto response = result.get();
                if( response->is_ok ==true) {
                    QVariantMap data;
-                   data.insert("status", SKILL_SUCCESS);
+                   data.insert("is_ok", true);
                    m_stateMachine.submitEvent("SchedulerComponent.SetPoi.Return", data);
                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.SetPoi.Return");
                    return;
@@ -109,7 +109,7 @@ bool SetPoi1Skill::start(int argc, char*argv[])
            }
         }
        QVariantMap data;
-       data.insert("status", SKILL_FAILURE);
+       data.insert("is_ok", false);
        m_stateMachine.submitEvent("SchedulerComponent.SetPoi.Return", data);
        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.SetPoi.Return");
     });

@@ -98,7 +98,7 @@ bool AlarmSkill::start(int argc, char*argv[])
                auto response = result.get();
                if( response->is_ok ==true) {
                    QVariantMap data;
-                   data.insert("status", SKILL_SUCCESS);
+                   data.insert("is_ok", true);
                    m_stateMachine.submitEvent("NotifyUserComponent.StartAlarm.Return", data);
                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NotifyUserComponent.StartAlarm.Return");
                    return;
@@ -109,7 +109,7 @@ bool AlarmSkill::start(int argc, char*argv[])
            }
         }
        QVariantMap data;
-       data.insert("status", SKILL_FAILURE);
+       data.insert("is_ok", false);
        m_stateMachine.submitEvent("NotifyUserComponent.StartAlarm.Return", data);
        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NotifyUserComponent.StartAlarm.Return");
     });

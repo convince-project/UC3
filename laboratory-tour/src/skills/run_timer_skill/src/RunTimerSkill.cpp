@@ -98,7 +98,7 @@ bool RunTimerSkill::start(int argc, char*argv[])
                auto response = result.get();
                if( response->is_ok ==true) {
                    QVariantMap data;
-                   data.insert("status", SKILL_SUCCESS);
+                   data.insert("is_ok", true);
                    m_stateMachine.submitEvent("TimerComponent.StartTimer.Return", data);
                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TimerComponent.StartTimer.Return");
                    return;
@@ -109,7 +109,7 @@ bool RunTimerSkill::start(int argc, char*argv[])
            }
         }
        QVariantMap data;
-       data.insert("status", SKILL_FAILURE);
+       data.insert("is_ok", false);
        m_stateMachine.submitEvent("TimerComponent.StartTimer.Return", data);
        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TimerComponent.StartTimer.Return");
     });
@@ -143,7 +143,7 @@ bool RunTimerSkill::start(int argc, char*argv[])
                auto response = result.get();
                if( response->is_ok ==true) {
                    QVariantMap data;
-                   data.insert("status", SKILL_SUCCESS);
+                   data.insert("is_ok", true);
                    data.insert("is_active", response->is_active);
                    m_stateMachine.submitEvent("TimerComponent.IsTimerActive.Return", data);
                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TimerComponent.IsTimerActive.Return");
@@ -155,7 +155,7 @@ bool RunTimerSkill::start(int argc, char*argv[])
            }
         }
        QVariantMap data;
-       data.insert("status", SKILL_FAILURE);
+       data.insert("is_ok", false);
        m_stateMachine.submitEvent("TimerComponent.IsTimerActive.Return", data);
        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TimerComponent.IsTimerActive.Return");
     });
