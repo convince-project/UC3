@@ -1,7 +1,7 @@
 <scxml version="1.0" xmlns="http://www.w3.org/2005/07/scxml" datamodel="ecmascript" name="IsPoiDone2SkillCondition" initial="idle">
     <datamodel>
         <!-- <data id="key" type="string" expr='"PoiDone"'/> -->
-        <data id="key" expr="1"/>
+        <data id="key" expr="2"/>
         <data id="value" expr="0"/>
         <data id="SKILL_SUCCESS" expr="0"/>
         <data id="SKILL_FAILURE" expr="1"/>

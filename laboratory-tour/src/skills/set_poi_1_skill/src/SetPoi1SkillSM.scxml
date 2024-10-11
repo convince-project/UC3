@@ -1,6 +1,6 @@
 <scxml version="1.0" xmlns="http://www.w3.org/2005/07/scxml" datamodel="ecmascript" name="SetPoi1SkillAction" initial="idle">
     <datamodel>
-        <data id="poi_number" expr="0"/>
+        <data id="poi_number" expr="1"/>
         <data id="SKILL_SUCCESS" expr="0"/>
         <data id="SKILL_FAILURE" expr="1"/>
         <data id="SKILL_RUNNING" expr="2"/>
