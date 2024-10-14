@@ -1,6 +1,6 @@
 <scxml version="1.0" xmlns="http://www.w3.org/2005/07/scxml" datamodel="ecmascript" name="ResetSkillAction" initial="idle">
     <datamodel>
-        <data id="poi_number" expr="0"/>
+        <data id="poi_number" expr="1"/>
         <data id="poi_number_1" expr="1"/>
         <data id="poi_number_2" expr="2"/>
         <!-- <data id="poi_name" type="string" expr=""/> -->
