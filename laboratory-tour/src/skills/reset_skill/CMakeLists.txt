@@ -29,10 +29,10 @@ endif()
 
 ament_target_dependencies(${PROJECT_NAME} 
   std_msgs
-  bt_interfaces 
+  bt_interfaces_dummy
   rclcpp 
-  scheduler_interfaces 
-  blackboard_interfaces 
+  scheduler_interfaces_dummy
+  blackboard_interfaces_dummy
   
   )
 target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Scxml Qt6::StateMachine)
