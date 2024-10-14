@@ -20,6 +20,13 @@
         <workdir />
         <node>bt</node>
     </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run visitors_following_robot_skill visitors_following_robot_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
     
 
     <module>

@@ -17,9 +17,10 @@
     </BehaviorTree>
     <!-- ////////// -->
     <BehaviorTree ID="GoToPoi">
-        <Sequence>
-            <Action ID="ROS2Action" name="SetCurrentPoiDone" interface="ROS2SERVICE" isMonitored="false"/>
-        </Sequence>
+        <ReactiveSequence>
+            <SubTree ID="PeopleFollowing" name="PeopleFollowing" />
+            <Action ID="ROS2Action" name="SetCurrentPoiDone"  interface="ROS2SERVICE" isMonitored="false"/>
+        </ReactiveSequence>
     </BehaviorTree>
     <!-- ////////// -->
     <BehaviorTree ID="PoiScheduler">
@@ -38,6 +39,16 @@
             </Sequence>
             <Action ID="ROS2Action" name="Reset" interface="ROS2SERVICE" isMonitored="false"/>
         </Fallback>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <BehaviorTree ID="PeopleFollowing">
+        <ReactiveFallback name="">
+            <Condition ID="ROS2Condition" name="VisitorsFollowingRobot" interface="ROS2SERVICE" isMonitored="false"/>
+            <ReactiveSequence>
+                <!-- <Action ID="ROS2Action" name="RunTimer" interface="ROS2SERVICE" isMonitored="false"/> -->
+                <Action ID="ROS2Action" name="Wait" interface="ROS2SERVICE" isMonitored="false"/>
+            </ReactiveSequence>
+        </ReactiveFallback>
     </BehaviorTree>
     <!-- ////////// -->
     <TreeNodesModel>
