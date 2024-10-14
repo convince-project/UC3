@@ -19,6 +19,7 @@
 
 enum class Status{
 	undefined,
+	running, 
 	success,
 	failure
 };

@@ -76,6 +76,10 @@ bool WaitSkill::start(int argc, char*argv[])
 		{
 			m_tickResult.store(Status::success);
 		}
+        else if (result == std::to_string(SKILL_RUNNING) )
+		{
+			m_tickResult.store(Status::running);
+		}
 		else if (result == std::to_string(SKILL_FAILURE) )
 		{ 
 			m_tickResult.store(Status::failure);
@@ -102,7 +106,9 @@ void WaitSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy
     }
     switch(m_tickResult.load()) 
     {
-        
+        case Status::running:
+            response->status = SKILL_RUNNING;
+            break;
         case Status::failure:
             response->status = SKILL_FAILURE;
             break;
