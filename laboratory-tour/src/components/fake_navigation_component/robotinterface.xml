@@ -2,7 +2,7 @@
 <!DOCTYPE robot PUBLIC "-//YARP//DTD yarprobotinterface 3.0//EN" "http://www.yarp.it/DTD/yarprobotinterfaceV3.0.dtd">
 <robot name="navigation2DServer" build="2" portprefix="" xmlns:xi="http://www.w3.org/2001/XInclude">
 	<devices>
-		<device name="navigatorRos2" type="ros2Navigator">
+		<device name="navigatorRos2" type="fakeNavigation">
 		</device>
 
 		<device name="nav2DNwsYarp" type="navigation2D_nws_yarp">
