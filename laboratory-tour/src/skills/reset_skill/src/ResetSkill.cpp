@@ -58,7 +58,7 @@ bool ResetSkill::start(int argc, char*argv[])
 	std::cout << "ResetSkill::start";
 
     
-	m_tickService = m_node->create_service<bt_interfaces::srv::TickAction>(m_name + "Skill/tick",
+	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
                                                                            	std::bind(&ResetSkill::tick,
                                                                            	this,
                                                                            	std::placeholders::_1,
@@ -70,8 +70,8 @@ bool ResetSkill::start(int argc, char*argv[])
     
     m_stateMachine.connectToEvent("SchedulerComponent.SetPoi.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
         std::shared_ptr<rclcpp::Node> nodeSetPoi = rclcpp::Node::make_shared(m_name + "SkillNodeSetPoi");
-        std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::SetPoi>> clientSetPoi = nodeSetPoi->create_client<scheduler_interfaces::srv::SetPoi>("/SchedulerComponent/SetPoi");
-        auto request = std::make_shared<scheduler_interfaces::srv::SetPoi::Request>();
+        std::shared_ptr<rclcpp::Client<scheduler_interfaces_dummy::srv::SetPoi>> clientSetPoi = nodeSetPoi->create_client<scheduler_interfaces_dummy::srv::SetPoi>("/SchedulerComponent/SetPoi");
+        auto request = std::make_shared<scheduler_interfaces_dummy::srv::SetPoi::Request>();
         auto eventParams = event.data().toMap();
         
         request->poi_number = convert<decltype(request->poi_number)>(eventParams["poi_number"].toString().toStdString());
@@ -116,8 +116,8 @@ bool ResetSkill::start(int argc, char*argv[])
     });
     m_stateMachine.connectToEvent("BlackboardComponent.SetInt.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
         std::shared_ptr<rclcpp::Node> nodeSetInt = rclcpp::Node::make_shared(m_name + "SkillNodeSetInt");
-        std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::SetInt>> clientSetInt = nodeSetInt->create_client<blackboard_interfaces::srv::SetInt>("/BlackboardComponent/SetInt");
-        auto request = std::make_shared<blackboard_interfaces::srv::SetInt::Request>();
+        std::shared_ptr<rclcpp::Client<blackboard_interfaces_dummy::srv::SetInt>> clientSetInt = nodeSetInt->create_client<blackboard_interfaces_dummy::srv::SetInt>("/BlackboardComponent/SetInt");
+        auto request = std::make_shared<blackboard_interfaces_dummy::srv::SetInt::Request>();
         auto eventParams = event.data().toMap();
         
         request->value = convert<decltype(request->value)>(eventParams["value"].toString().toStdString());
@@ -186,12 +186,12 @@ bool ResetSkill::start(int argc, char*argv[])
 	return true;
 }
 
-void ResetSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::TickAction::Request> request,
-                                std::shared_ptr<bt_interfaces::srv::TickAction::Response>      response)
+void ResetSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Request> request,
+                                std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Response>      response)
 {
     std::lock_guard<std::mutex> lock(m_requestMutex);
     RCLCPP_INFO(m_node->get_logger(), "ResetSkill::tick");
-    auto message = bt_interfaces::msg::ActionResponse();
+    auto message = bt_interfaces_dummy::msg::ActionResponse();
     m_tickResult.store(Status::undefined);
     m_stateMachine.submitEvent("CMD_TICK");
    

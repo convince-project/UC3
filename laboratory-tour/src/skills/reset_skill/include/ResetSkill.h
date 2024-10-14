@@ -4,13 +4,13 @@
 #include <thread>
 #include <rclcpp/rclcpp.hpp>
 #include "ResetSkillSM.h"
-#include <bt_interfaces/msg/action_response.hpp>
-#include <scheduler_interfaces/srv/set_poi.hpp> 
-#include <blackboard_interfaces/srv/set_int_blackboard.hpp> 
+#include <bt_interfaces_dummy/msg/action_response.hpp>
+#include <scheduler_interfaces_dummy/srv/set_poi.hpp> 
+#include <blackboard_interfaces_dummy/srv/set_int_blackboard.hpp> 
 
 
 
-#include <bt_interfaces/srv/tick_action.hpp>
+#include <bt_interfaces_dummy/srv/tick_action.hpp>
 
 
 
@@ -30,8 +30,8 @@ public:
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	
-	void tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::TickAction::Request> request,
-			   std::shared_ptr<bt_interfaces::srv::TickAction::Response>      response);
+	void tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Request> request,
+			   std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Response>      response);
 	
 	
 	
@@ -43,7 +43,7 @@ private:
 	std::string m_name;
 	ResetSkillAction m_stateMachine;
 	std::atomic<Status> m_tickResult{Status::undefined};
-	rclcpp::Service<bt_interfaces::srv::TickAction>::SharedPtr m_tickService;
+	rclcpp::Service<bt_interfaces_dummy::srv::TickAction>::SharedPtr m_tickService;
 	
 	
 	
