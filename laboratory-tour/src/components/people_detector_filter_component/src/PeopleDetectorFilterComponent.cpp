@@ -47,6 +47,7 @@ void PeopleDetectorFilterComponent::publisher()
     // auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
     m_counter = m_counter + 1;
     msg.data = (m_counter % 2) == 0; 
+    std::cout << "Publishing: " << msg.data << std::endl;
     m_publisher->publish(msg);
 }
 
