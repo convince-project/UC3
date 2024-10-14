@@ -67,7 +67,7 @@ bool VisitorsFollowingRobotSkill::start(int argc, char*argv[])
 
     
     m_subscription_is_followed = m_node->create_subscription<std_msgs::msg::Bool>(
-		"/is_followed", 10, std::bind(&VisitorsFollowingRobotSkill::topic_callback_is_followed, this, std::placeholders::_1));
+		"/PeopleDetectorFilterComponent/is_followed", 10, std::bind(&VisitorsFollowingRobotSkill::topic_callback_is_followed, this, std::placeholders::_1));
     
 
     
