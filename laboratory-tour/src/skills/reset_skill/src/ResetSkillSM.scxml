@@ -27,7 +27,7 @@
         </ros_service_handle_request> -->
     </state>
     <state id="setCurrentPoi">
-        <transition cond="_event.data.is_ok" target="setInt" event="SchedulerComponent.SetPoi.Return">
+        <transition cond="_event.data.is_ok" target="setInt1" event="SchedulerComponent.SetPoi.Return">
             <send event="BlackboardComponent.SetInt.Call">
                 <param name="field_name" expr="poi_number_1"/>
                 <param name="value" expr="value"/>
