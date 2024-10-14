@@ -13,7 +13,7 @@
     </datamodel>
     <!-- ResetSkill is a server for tick from the ROS2Action plugin-->
     <!-- ResetSkill is a server for halt from the ROS2Action plugin-->
-    <ros_service_server service_name="/ResetSkill/halt" type ="bt_interfaces_dummy/HaltAction"/>
+    <!-- <ros_service_server service_name="/ResetSkill/halt" type ="bt_interfaces_dummy/HaltAction"/> -->
     <!-- ResetSkill is a client for SetPoi from the SchedulerComponent -->
     <!-- ResetSkill is a client for SetInt from the BlackboardComponent -->
     <state id="idle">
