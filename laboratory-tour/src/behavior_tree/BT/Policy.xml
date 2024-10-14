@@ -36,6 +36,7 @@
                 </Inverter>
                 <Action ID="ROS2Action" name="SetPoi2" interface="ROS2SERVICE" isMonitored="false"/>
             </Sequence>
+            <Action ID="ROS2Action" name="Reset" interface="ROS2SERVICE" isMonitored="false"/>
         </Fallback>
     </BehaviorTree>
     <!-- ////////// -->
