@@ -50,9 +50,8 @@ void BlackboardComponent::GetInt( const std::shared_ptr<blackboard_interfaces_du
              std::shared_ptr<blackboard_interfaces_dummy::srv::GetIntBlackboard::Response>      response) 
 {
     std::lock_guard<std::mutex> lock(m_mutexInt);
-    std::cout << "GetInt: " << std::endl;
     std::string field_name = "PoiDone" + std::to_string(request->field_name);
-    std::cout << "Request: " << request->field_name << "translation " << field_name << std::endl; 
+    std::cout << "GetInt Request: " << request->field_name << "translation " << field_name << std::endl; 
     if (field_name == "PoiDone") {
         response->is_ok = false;
         // response->error_msg = "missing required field name";
