@@ -14,8 +14,8 @@
                 <param name="is_ok" expr="true"/>
             </send>
         </transition>
-        <ros_service_handle_request name="/WaitSkill/halt" target="idle">
-            <ros_service_send_response name="/WaitSkill/halt"/>
-        </ros_service_handle_request>
+        <transition event="CMD_HALT" target="idle">
+            <send event="HALT_RESPONSE"/>
+        </transition>
     </state>
 </scxml>
