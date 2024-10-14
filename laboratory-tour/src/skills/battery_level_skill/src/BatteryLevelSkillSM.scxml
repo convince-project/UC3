@@ -10,7 +10,7 @@
     <state id="idle">
         <transition target="areFollowing" event="CMD_TICK"/>
         <transition target="idle" event="BatteryComponent.battery_status.Sub">
-            <assign location="percentage" expr="_event.data"/>
+            <assign location="percentage" expr="_event.data.percentage"/>
         </transition>
     </state>
     <state id="areFollowing">
