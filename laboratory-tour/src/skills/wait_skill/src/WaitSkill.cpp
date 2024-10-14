@@ -64,7 +64,11 @@ bool WaitSkill::start(int argc, char*argv[])
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
     
-
+    m_haltService = m_node->create_service<bt_interfaces_dummy::srv::HaltAction>(m_name + "Skill/halt",
+                                                                            	std::bind(&WaitSkill::halt,
+                                                                            	this,
+                                                                            	std::placeholders::_1,
+                                                                            	std::placeholders::_2));
     
 
     
@@ -86,6 +90,10 @@ bool WaitSkill::start(int argc, char*argv[])
 		}
 	});
     
+    m_stateMachine.connectToEvent("HALT_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){
+		RCLCPP_INFO(m_node->get_logger(), "WaitSkill::haltresponse");
+		m_haltResult.store(true);
+	});
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
@@ -122,3 +130,20 @@ void WaitSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy
 
 
 
+void WaitSkill::halt( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::HaltAction::Request> request,
+    [[maybe_unused]] std::shared_ptr<bt_interfaces_dummy::srv::HaltAction::Response> response)
+{
+    std::lock_guard<std::mutex> lock(m_requestMutex);
+    RCLCPP_INFO(m_node->get_logger(), "WaitSkill::halt");
+    m_haltResult.store(false); //here we can put a struct
+    m_stateMachine.submitEvent("CMD_HALT");
+   
+    while(!m_haltResult.load()) 
+    {
+        std::this_thread::sleep_for (std::chrono::milliseconds(100));
+        // qInfo() <<  "active names" << m_stateMachine.activeStateNames();
+    }
+    RCLCPP_INFO(m_node->get_logger(), "WaitSkill::haltDone");
+   
+    response->is_ok = true;
+}
