@@ -29,5 +29,5 @@ private:
     rclcpp::TimerBase::SharedPtr m_timer;
     std::mutex m_mutex;
     std::mutex m_taskMutex;
-    
+    int m_counter = 0;
 };

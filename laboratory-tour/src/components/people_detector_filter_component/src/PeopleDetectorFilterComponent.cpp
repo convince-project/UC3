@@ -43,9 +43,10 @@ void PeopleDetectorFilterComponent::publisher()
 {
     std_msgs::msg::Bool msg;
     // Generate a random boolean based on the current time
-    auto now = std::chrono::steady_clock::now();
-    auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
-    msg.data = (millis % 2) == 0; 
+    // auto now = std::chrono::steady_clock::now();
+    // auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+    m_counter = m_counter + 1;
+    msg.data = (m_counter % 2) == 0; 
     m_publisher->publish(msg);
 }
 
