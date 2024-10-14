@@ -9,8 +9,7 @@
     <state id="idle">
         <transition target="areFollowing" event="CMD_TICK"/>
         <transition target="idle" event="PeopleDetectorFilterComponent.is_followed.Sub">
-            <log expr="_event.data"/>
-            <assign location="is_followed" expr="_event.data"/>
+            <assign location="is_followed" expr="_event.data.is_followed"/>
         </transition>
     </state>
     <state id="areFollowing">
