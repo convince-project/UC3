@@ -17,13 +17,11 @@
         <onentry>
             <if cond="is_followed">
                 <send event="TICK_RESPONSE">
-                    <log expr="'Success'"/>
                     <param name="status" expr="SKILL_SUCCESS"/>
                     <param name="is_ok" expr="true"/>
                 </send>
                 <else/>
                 <send event="TICK_RESPONSE">
-                    <log expr="'Failure'"/>
                     <param name="status" expr="SKILL_FAILURE"/>
                     <param name="is_ok" expr="true"/>
                 </send>
