@@ -44,10 +44,10 @@
     <BehaviorTree ID="PeopleFollowing">
         <ReactiveFallback name="">
             <Condition ID="ROS2Condition" name="VisitorsFollowingRobot" interface="ROS2SERVICE" isMonitored="false"/>
-            <ReactiveSequence>
+            <!-- <ReactiveSequence> -->
                 <!-- <Action ID="ROS2Action" name="RunTimer" interface="ROS2SERVICE" isMonitored="false"/> -->
                 <Action ID="ROS2Action" name="Wait" interface="ROS2SERVICE" isMonitored="false"/>
-            </ReactiveSequence>
+            <!-- </ReactiveSequence> -->
         </ReactiveFallback>
     </BehaviorTree>
     <!-- ////////// -->
