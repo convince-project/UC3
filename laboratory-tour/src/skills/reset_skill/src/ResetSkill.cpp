@@ -165,15 +165,15 @@ bool ResetSkill::start(int argc, char*argv[])
 	m_stateMachine.connectToEvent("TICK_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){
 		RCLCPP_INFO(m_node->get_logger(), "ResetSkill::tickReturn %s", event.data().toMap()["status"].toString().toStdString().c_str());
 		std::string result = event.data().toMap()["status"].toString().toStdString();
-		if (result == "SUCCESS" )
+		if (result == std::to_string(SKILL_SUCCESS) )
 		{
 			m_tickResult.store(Status::success);
 		}
-		else if (result == "RUNNING" )
+		else if (result == std::to_string(SKILL_RUNNING) )
 		{
 			m_tickResult.store(Status::running);
 		}
-		else if (result == "FAILURE" )
+		else if (result == std::to_string(SKILL_FAILURE) )
 		{ 
 			m_tickResult.store(Status::failure);
 		}
