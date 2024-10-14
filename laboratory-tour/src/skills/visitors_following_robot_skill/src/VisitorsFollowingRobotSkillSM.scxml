@@ -10,17 +10,20 @@
         <transition target="areFollowing" event="CMD_TICK"/>
         <transition target="idle" event="PeopleDetectorFilterComponent.is_followed.Sub">
             <assign location="is_followed" expr="_event.data.is_followed"/>
+            <log expr="is_followed"/>
         </transition>
     </state>
     <state id="areFollowing">
         <onentry>
             <if cond="is_followed">
                 <send event="TICK_RESPONSE">
+                    <log expr="'Success'"/>
                     <param name="status" expr="SKILL_SUCCESS"/>
                     <param name="is_ok" expr="true"/>
                 </send>
                 <else/>
                 <send event="TICK_RESPONSE">
+                    <log expr="'Failure'"/>
                     <param name="status" expr="SKILL_FAILURE"/>
                     <param name="is_ok" expr="true"/>
                 </send>

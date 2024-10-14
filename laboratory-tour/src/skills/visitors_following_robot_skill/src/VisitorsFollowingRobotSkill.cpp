@@ -121,10 +121,10 @@ void VisitorsFollowingRobotSkill::tick( [[maybe_unused]] const std::shared_ptr<b
 
 
 void VisitorsFollowingRobotSkill::topic_callback_is_followed(const std_msgs::msg::Bool::SharedPtr msg) {
-    std::cout << "callback" << std::endl;
+    
     QVariantMap data;
     data.insert("is_followed", msg->data);
-
+    std::cout << "callback: " << msg->data << std::endl;
     m_stateMachine.submitEvent("PeopleDetectorFilterComponent.is_followed.Sub", data);
     RCLCPP_INFO(m_node->get_logger(), "PeopleDetectorFilterComponent.is_followed.Sub");
 }
