@@ -24,7 +24,7 @@
 </state>
 
 <state id="getPoi">
-    <transition name="SchedulerComponent.GetCurrentPoi.Return" target="goalResponse"> 
+    <transition event="SchedulerComponent.GetCurrentPoi.Return" target="goalResponse"> 
         <!-- <assign location="poi_name" expr="_res.poi_name" /> -->
         <assign location="poi_number" expr="_res.poi_number" />
         <send event="NavigationComponent.GoToPoi.SendGoal">
