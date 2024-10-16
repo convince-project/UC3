@@ -147,7 +147,7 @@ rclcpp_action::GoalResponse NavigationComponent::handle_goal(
         const rclcpp_action::GoalUUID & uuid,
         std::shared_ptr<const navigation_interfaces_dummy::action::GoToPoi::Goal> goal)
 {
-    RCLCPP_INFO(m_node->get_logger(), "GoToPoi Action - Received goal request, poi_name: %d", goal->poi_number);
+    RCLCPP_INFO(m_node->get_logger(), "GoToPoi Action - Received goal request, poi_number: %d", goal->poi_number);
     (void)uuid;
     // if(goal->poi_name != "")
     // {
