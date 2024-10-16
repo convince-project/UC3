@@ -325,7 +325,7 @@ void GoToPoiActionSkill::feedback_callback(
     rclcpp_action::ClientGoalHandle<navigation_interfaces_dummy::action::GoToPoi>::SharedPtr,
   const std::shared_ptr<const navigation_interfaces_dummy::action::GoToPoi::Feedback> feedback)
 {
-  m_status = feedback->status.status;
+  m_status = feedback->status;
   std::cout << "Status " << m_status << std::endl;
 }
 
