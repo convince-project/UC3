@@ -104,7 +104,7 @@ m_stateMachine.connectToEvent("SchedulerComponent.GetCurrentPoi.Call", [this]([[
                 if( response->is_ok ==true) {
                     QVariantMap data;
                     data.insert("is_ok", true);
-                    data.insert("poi_number", response->poi_number.c_str());
+                    data.insert("poi_number", response->poi_number);
                     m_stateMachine.submitEvent("SchedulerComponent.GetCurrentPoi.Return", data);
                     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.GetCurrentPoi.Return");
                 } else {
