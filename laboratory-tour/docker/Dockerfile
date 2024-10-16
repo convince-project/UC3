@@ -42,3 +42,41 @@ RUN /bin/bash -c "echo 'updated on 202409251159' && \
 
 RUN echo "source /home/user1/UC3/laboratory-tour/install/setup.bash" >> ~/.bashrc
 RUN echo "export PATH=\$PATH:/home/user1/Groot/build" >> ~/.bashrc
+
+#add fakeNavigation device
+WORKDIR ${robotology_install_folder}
+RUN cd yarp && cd build && \
+    cmake .. \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DYARP_COMPILE_libYARP_math=ON \
+    -DYARP_COMPILE_GUIS=ON \
+    -DYARP_COMPILE_DEVICE_PLUGINS=ON \
+    -DENABLE_yarpcar_mjpeg=ON \
+    -DENABLE_yarpcar_segmentationimage=ON \
+    -DENABLE_yarpcar_portmonitor=ON \
+    -DENABLE_yarpmod_portaudio=ON \
+    -DENABLE_yarpmod_portaudioPlayer=ON \
+    -DENABLE_yarpmod_portaudioRecorder=ON \
+    -DENABLE_yarpmod_fakeAnalogSensor=ON \
+    -DENABLE_yarpmod_fakeBattery=ON  \
+    -DENABLE_yarpmod_fakeDepthCamera=ON \
+    -DENABLE_yarpmod_fakeIMU=ON  \
+    -DENABLE_yarpmod_fakeLaser=ON  \
+    -DENABLE_yarpmod_fakeLocalizer=ON \
+    -DENABLE_yarpmod_fakeMicrophone=ON  \
+    -DENABLE_yarpmod_fakeMotionControl=ON  \
+    -DENABLE_yarpmod_fakeNavigation=ON  \
+    -DENABLE_yarpmod_fakeSpeaker=ON  \
+    -DENABLE_yarpmod_fakebot=ON \
+    -DENABLE_yarpmod_laserFromDepth=ON \
+    -DENABLE_yarpmod_laserFromExternalPort=ON \
+    -DENABLE_yarpmod_laserFromDepth=ON \
+    -DENABLE_yarpmod_laserFromPointCloud=ON \
+    -DENABLE_yarpmod_laserFromRosTopic=ON \
+    -DENABLE_yarppm_soundfilter_resample=ON \
+    -DENABLE_yarppm_bottle_compression_zlib=ON \
+    -DENABLE_yarppm_depthimage_compression_zlib=ON \
+    -DENABLE_yarppm_image_compression_ffmpeg=ON \
+    -DENABLE_yarppm_depthimage_to_mono=ON \
+    -DENABLE_yarppm_depthimage_to_rgb=ON && \
+    make -j11
