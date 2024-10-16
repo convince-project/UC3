@@ -124,7 +124,7 @@ m_stateMachine.connectToEvent("NavigationComponent.GoToPoi.SendGoal", [this]([[m
       std::shared_ptr<rclcpp::Node> nodeGoToPoi = rclcpp::Node::make_shared(m_name + "SkillNodeGoToPoi");
       rclcpp_action::Client<navigation_interfaces_dummy::action::GoToPoi>::SharedPtr clientGoToPoi  =
       rclcpp_action::create_client<navigation_interfaces_dummy::action::GoToPoi>(nodeGoToPoi, "/NavigationComponent/GoToPoi");
-      int poi_number = event.data().toMap()["poi_number"];
+      int poi_number = event.data().toMap()["poi_number"].toInt();
       // auto goal = std::make_shared<navigation_interfaces_dummy::action::GoToPoi::Goal>();
       // bool wait_succeded{true};
       // int retries = 0;
