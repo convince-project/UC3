@@ -1,4 +1,4 @@
-param<scxml 
+<scxml 
   initial="idle" 
   version="1.0" 
   name="GoToPoiActionSkillAction"
