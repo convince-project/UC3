@@ -26,7 +26,7 @@
 <state id="getPoi">
     <transition event="SchedulerComponent.GetCurrentPoi.Return" target="goalResponse"> 
         <!-- <assign location="poi_name" expr="_res.poi_name" /> -->
-        <assign location="poi_number" expr="_res.poi_number" />
+        <assign location="poi_number" expr="_event.data.poi_number" />
         <send event="NavigationComponent.GoToPoi.SendGoal">
             <!-- <param name="poi_name" expr="poi_name"/> -->
             <param name="poi_number" expr="poi_number"/>
