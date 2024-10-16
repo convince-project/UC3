@@ -62,7 +62,7 @@ private:
 	rclcpp_action::Client<navigation_interfaces_dummy::action::GoToPoi>::SharedPtr m_actionClient;
 	void goal_response_callback(const  rclcpp_action::ClientGoalHandle<navigation_interfaces_dummy::action::GoToPoi>::SharedPtr & goal_handle);
 	// void send_goal(std::shared_ptr<rclcpp::Node> nodeGoToPoi, rclcpp_action::Client<navigation_interfaces_dummy::action::GoToPoi>::SharedPtr clientGoToPoi);
-	void send_goal(std::string poi_name);
+	void send_goal(int poi_number);
 	void feedback_callback(
     	rclcpp_action::ClientGoalHandle<navigation_interfaces_dummy::action::GoToPoi>::SharedPtr,
     	const std::shared_ptr<const navigation_interfaces_dummy::action::GoToPoi::Feedback> feedback);

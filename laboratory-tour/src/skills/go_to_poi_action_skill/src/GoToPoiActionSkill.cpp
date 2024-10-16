@@ -104,7 +104,7 @@ m_stateMachine.connectToEvent("SchedulerComponent.GetCurrentPoi.Call", [this]([[
                 if( response->is_ok ==true) {
                     QVariantMap data;
                     data.insert("is_ok", true);
-                    data.insert("poi_name", response->poi_name.c_str());
+                    data.insert("poi_number", response->poi_number.c_str());
                     m_stateMachine.submitEvent("SchedulerComponent.GetCurrentPoi.Return", data);
                     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.GetCurrentPoi.Return");
                 } else {
@@ -124,12 +124,12 @@ m_stateMachine.connectToEvent("NavigationComponent.GoToPoi.SendGoal", [this]([[m
       std::shared_ptr<rclcpp::Node> nodeGoToPoi = rclcpp::Node::make_shared(m_name + "SkillNodeGoToPoi");
       rclcpp_action::Client<navigation_interfaces_dummy::action::GoToPoi>::SharedPtr clientGoToPoi  =
       rclcpp_action::create_client<navigation_interfaces_dummy::action::GoToPoi>(nodeGoToPoi, "/NavigationComponent/GoToPoi");
-      std::string poi_name = event.data().toMap()["poi_name"].toString().toStdString();
+      int poi_number = event.data().toMap()["poi_number"];
       // auto goal = std::make_shared<navigation_interfaces_dummy::action::GoToPoi::Goal>();
       // bool wait_succeded{true};
       // int retries = 0;
       RCLCPP_INFO(m_node->get_logger(), "calling send goal");
-      send_goal(poi_name);
+      send_goal(poi_number);
       RCLCPP_INFO(m_node->get_logger(), "done send goal");
   });
 
@@ -271,7 +271,7 @@ void GoToPoiActionSkill::halt( [[maybe_unused]] const std::shared_ptr<bt_interfa
     response->is_ok = true;
 }
 
-void GoToPoiActionSkill::send_goal(std::string poi_name)
+void GoToPoiActionSkill::send_goal(int poi_number)
   {
     using namespace std::placeholders;
     bool wait_succeded{true};
@@ -296,7 +296,7 @@ void GoToPoiActionSkill::send_goal(std::string poi_name)
   if (wait_succeded) {
       auto goal_msg = navigation_interfaces_dummy::action::GoToPoi::Goal();
       RCLCPP_INFO(m_node->get_logger(), "Sending goal");
-      goal_msg.poi_name = poi_name;
+      goal_msg.poi_number = poi_number;
       m_actionClient->async_send_goal(goal_msg, m_send_goal_options);
       QVariantMap data;
       data.insert("is_ok", true);
