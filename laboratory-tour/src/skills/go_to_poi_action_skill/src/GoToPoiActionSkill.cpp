@@ -128,7 +128,6 @@ m_stateMachine.connectToEvent("NavigationComponent.GoToPoi.SendGoal", [this]([[m
       // auto goal = std::make_shared<navigation_interfaces_dummy::action::GoToPoi::Goal>();
       // bool wait_succeded{true};
       // int retries = 0;
-      RCLCPP_INFO(m_node->get_logger(), "calling send goal");
       send_goal(poi_number);
       RCLCPP_INFO(m_node->get_logger(), "done send goal");
   });
@@ -258,8 +257,9 @@ void GoToPoiActionSkill::halt( [[maybe_unused]] const std::shared_ptr<bt_interfa
 {
     std::lock_guard<std::mutex> lock(m_requestMutex);
     RCLCPP_INFO(m_node->get_logger(), "GoToPoiActionSkill::halt");
-    m_haltResult.store(false); //here we can put a struct
-    m_stateMachine.submitEvent("CMD_HALT");
+    // m_haltResult.store(false); //here we can put a struct
+    m_haltResult.store(true);
+    // m_stateMachine.submitEvent("CMD_HALT");
    
     while(!m_haltResult.load()) 
     {
