@@ -150,7 +150,7 @@ rclcpp_action::GoalResponse NavigationComponent::handle_goal(
     RCLCPP_INFO(m_node->get_logger(), "GoToPoi Action - Received goal request, poi_number: %d", goal->poi_number);
     (void)uuid;
     std::string poi_name =  "sim_gam_" + std::to_string(goal->poi_number);
-    if(goal->poi_name != "")
+    if(poi_name != "")
     {
         return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
     }
