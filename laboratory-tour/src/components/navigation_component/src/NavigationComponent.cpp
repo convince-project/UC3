@@ -189,7 +189,7 @@ void NavigationComponent::execute(const std::shared_ptr<rclcpp_action::ServerGoa
     const auto goal = goal_handle->get_goal();
     auto feedback = std::make_shared<navigation_interfaces_dummy::action::GoToPoi::Feedback>();
     auto result = std::make_shared<navigation_interfaces_dummy::action::GoToPoi::Result>();
-    std::string poi_name = std::to_string(goal->poi_number);
+    std::string poi_name =  "sim_gam_" + std::to_string(goal->poi_number);
     yarp::dev::Nav2D::NavigationStatusEnum status;
     {
         std::lock_guard<std::mutex> lock(m_goalMutex);
