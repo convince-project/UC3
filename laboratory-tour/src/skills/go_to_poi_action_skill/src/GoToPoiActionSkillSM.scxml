@@ -71,10 +71,19 @@
     <transition  event="NavigationComponent.GoToPoi.FeedbackReturn" target="wait_result">
         <assign location="status" expr="_event.data.status" />
     </transition >
-    <transition event="NavigationComponent.GoToPoi.ResultResponse" target="idle">
+    <transition event="NavigationComponent.GoToPoi.ResultResponse" target="goal_done">
         <assign location="result" expr="_event.data.is_ok" />
     </transition>
 </state>
+
+<state id="goal_done">
+    <transition event="CMD_TICK" target="idle">
+        <send event="TICK_RESPONSE">
+            <param name="is_ok" expr="true"/>
+            <param name="status" expr="SKILL_SUCCESS"/>
+        </send>
+    </transition>
+</state>    
 
 <state id="send_failure">
     <onentry>
