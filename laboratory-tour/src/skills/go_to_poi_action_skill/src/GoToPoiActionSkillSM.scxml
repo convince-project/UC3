@@ -31,6 +31,10 @@
             <!-- <param name="poi_name" expr="poi_name"/> -->
             <param name="poi_number" expr="poi_number"/>
         </send>
+        <send event="TICK_RESPONSE">
+            <param name="is_ok" expr="true"/>
+            <param name="status" expr="SKILL_RUNNING"/>
+        </send>
     </transition>
     <!-- <ros_service_handle_request name="/GoToPoiActionSkill/halt" target="idle">
         <ros_service_send_response name="/GoToPoiActionSkill/halt"/>
@@ -52,6 +56,9 @@
 </state>
 
 <state id="wait_result">
+    <onentry>
+        <log expr="'Waiting for result'"/>
+    </onentry>
     <transition event="CMD_TICK" target="wait_result">
         <send event="TICK_RESPONSE">
             <param name="is_ok" expr="true"/>
