@@ -73,6 +73,13 @@
 
     <module>
         <name>ros2</name>
+        <parameters>run go_to_poi_action_skill go_to_poi_action_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
         <parameters>run reset_skill reset_skill</parameters>
         <workdir />
         <node>bt</node>

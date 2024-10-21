@@ -1,8 +1,6 @@
 <application>
     <name>convince_bt_components</name>
 
-
-
     <module>
         <name>ros2</name>
         <parameters>run blackboard_component blackboard_component</parameters>
@@ -35,6 +33,13 @@
     <module>
         <name>ros2</name>
         <parameters>run people_detector_filter_component people_detector_filter_component</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run navigation_component navigation_component</parameters>
         <workdir />
         <node>bt</node>
     </module>

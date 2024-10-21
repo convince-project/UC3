@@ -19,7 +19,8 @@
     <BehaviorTree ID="GoToPoi">
         <ReactiveSequence>
             <SubTree ID="PeopleFollowing" name="PeopleFollowing" />
-            <Action ID="ROS2Action" name="SetCurrentPoiDone"  interface="ROS2SERVICE" isMonitored="false"/>
+            <Action ID="ROS2Action" name="GoToPoiAction" interface="ROS2SERVICE" isMonitored="false"/>
+            <Action ID="ROS2Action" name="SetCurrentPoiDone" interface="ROS2SERVICE" isMonitored="false"/>
         </ReactiveSequence>
     </BehaviorTree>
     <!-- ////////// -->

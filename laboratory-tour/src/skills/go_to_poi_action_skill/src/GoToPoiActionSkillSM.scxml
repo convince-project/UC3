@@ -1,0 +1,105 @@
+<scxml 
+  initial="idle" 
+  version="1.0" 
+  name="GoToPoiActionSkillAction"
+  datamodel="ecmascript"
+  xmlns="http://www.w3.org/2005/07/scxml">
+
+  <datamodel>
+    <data id="poi_number" expr="0"/>
+    <data id="status" expr="0"/>
+    <data id="result" expr="true"/>
+    <data id="SKILL_SUCCESS" expr="0" />
+    <data id="SKILL_FAILURE" expr="1" />
+    <data id="SKILL_RUNNING" expr="2" />
+  </datamodel>
+
+  <state id="idle">
+    <transition event="CMD_TICK" target="getPoi">
+        <send event="SchedulerComponent.GetCurrentPoi.Call"/>
+    </transition>
+    <!-- <ros_service_handle_request name="/GoToPoiActionSkill/halt" target="idle">
+        <ros_service_send_response name="/GoToPoiActionSkill/halt"/>
+    </ros_service_handle_request> -->
+</state>
+
+<state id="getPoi">
+    <transition event="SchedulerComponent.GetCurrentPoi.Return" target="goalResponse"> 
+        <!-- <assign location="poi_name" expr="_res.poi_name" /> -->
+        <assign location="poi_number" expr="_event.data.poi_number" />
+        <send event="NavigationComponent.GoToPoi.SendGoal">
+            <!-- <param name="poi_name" expr="poi_name"/> -->
+            <param name="poi_number" expr="poi_number"/>
+        </send>
+        <send event="TICK_RESPONSE">
+            <param name="is_ok" expr="true"/>
+            <param name="status" expr="SKILL_RUNNING"/>
+        </send>
+    </transition>
+    <!-- <ros_service_handle_request name="/GoToPoiActionSkill/halt" target="idle">
+        <ros_service_send_response name="/GoToPoiActionSkill/halt"/>
+    </ros_service_handle_request> -->
+</state>
+
+<state id="goalResponse">
+    <transition event="NavigationComponent.GoToPoi.GoalResponse" cond="_event.data.is_ok" target="wait_result"/>
+    <transition event="NavigationComponent.GoToPoi.GoalResponse" cond="_event.data.is_ok == false" target="send_failure"/>
+    <transition event="CMD_TICK" target="getPoi">
+        <send event="TICK_RESPONSE">
+            <param name="is_ok" expr="true"/>
+            <param name="status" expr="SKILL_RUNNING"/>
+        </send>
+    </transition>
+    <!-- <ros_service_handle_request name="/GoToPoiActionSkill/halt" target="wait_cancel_response">
+        <ros_action_send_cancel name="go_to_poi_action"/>
+    </ros_service_handle_request> -->
+</state>
+
+<state id="wait_result">
+    <onentry>
+        <log expr="'Waiting for result'"/>
+    </onentry>
+    <transition event="CMD_TICK" target="wait_result">
+        <send event="TICK_RESPONSE">
+            <param name="is_ok" expr="true"/>
+            <param name="status" expr="SKILL_RUNNING"/>
+        </send>
+    </transition>
+    <!-- <ros_service_handle_request name="/GoToPoiActionSkill/halt" target="wait_cancel_response">
+        <ros_action_send_cancel name="go_to_poi_action"/>
+    </ros_service_handle_request> -->
+    <transition  event="NavigationComponent.GoToPoi.FeedbackReturn" target="wait_result">
+        <assign location="status" expr="_event.data.status" />
+    </transition >
+    <transition event="NavigationComponent.GoToPoi.ResultResponse" target="goal_done">
+        <assign location="result" expr="_event.data.is_ok" />
+    </transition>
+</state>
+
+<state id="goal_done">
+    <transition event="CMD_TICK" target="idle">
+        <send event="TICK_RESPONSE">
+            <param name="is_ok" expr="true"/>
+            <param name="status" expr="SKILL_SUCCESS"/>
+        </send>
+    </transition>
+</state>    
+
+<state id="send_failure">
+    <onentry>
+        <send event="TICK_RESPONSE">
+            <param name="is_ok" expr="true"/>
+            <param name="status" expr="SKILL_FAILURE"/>
+        </send>
+    </onentry>
+    <transition target="idle" />
+</state>
+
+ <!-- <state id="wait_cancel_response">
+        <ros_action_handle_cancel_result name="go_to_poi_action" target="idle">
+            <ros_service_send_response name="/GoToPoiActionSkill/halt"/>
+        </ros_action_handle_cancel_result>
+    </state> -->
+    
+
+</scxml>

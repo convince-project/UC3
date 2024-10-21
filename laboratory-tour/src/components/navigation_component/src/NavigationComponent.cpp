@@ -147,16 +147,17 @@ rclcpp_action::GoalResponse NavigationComponent::handle_goal(
         const rclcpp_action::GoalUUID & uuid,
         std::shared_ptr<const navigation_interfaces_dummy::action::GoToPoi::Goal> goal)
 {
-    RCLCPP_INFO(m_node->get_logger(), "GoToPoi Action - Received goal request, poi_name: %d", goal->poi_number);
+    RCLCPP_INFO(m_node->get_logger(), "GoToPoi Action - Received goal request, poi_number: %d", goal->poi_number);
     (void)uuid;
-    // if(goal->poi_name != "")
-    // {
+    std::string poi_name =  "sim_gam_" + std::to_string(goal->poi_number);
+    if(poi_name != "")
+    {
         return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
-    // }
-    // else
-    // {
-    //     return rclcpp_action::GoalResponse::REJECT;
-    // }
+    }
+    else
+    {
+        return rclcpp_action::GoalResponse::REJECT;
+    }
 }
 
 rclcpp_action::CancelResponse NavigationComponent::handle_cancel(const std::shared_ptr<rclcpp_action::ServerGoalHandle<navigation_interfaces_dummy::action::GoToPoi>> goal_handle)
@@ -189,7 +190,7 @@ void NavigationComponent::execute(const std::shared_ptr<rclcpp_action::ServerGoa
     const auto goal = goal_handle->get_goal();
     auto feedback = std::make_shared<navigation_interfaces_dummy::action::GoToPoi::Feedback>();
     auto result = std::make_shared<navigation_interfaces_dummy::action::GoToPoi::Result>();
-    std::string poi_name = std::to_string(goal->poi_number);
+    std::string poi_name =  "sim_gam_" + std::to_string(goal->poi_number);
     yarp::dev::Nav2D::NavigationStatusEnum status;
     {
         std::lock_guard<std::mutex> lock(m_goalMutex);
