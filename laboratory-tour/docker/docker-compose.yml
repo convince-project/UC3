@@ -53,17 +53,17 @@ services:
     depends_on:
       - yarpserver
 
-  # fakeBattery:
-  #   image: ste93/convince:laboratory_tour_ubuntu22.04_iron_devel
-  #   <<: *base
-  #   container_name: fakeBattery
-  #   command: bash -c "source /opt/ros/iron/setup.bash && \
-  #             source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
-  #             source /home/user1/UC3/laboratory-tour/install/setup.bash && \
-  #             yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; \
-  #             yarprobotinterface --config /home/user1/UC3/laboratory-tour/src/components/fake_battery_component/robotinterface.xml"
-  #   depends_on:
-  #     - yarpserver
+  fakeBattery:
+    image: ste93/convince:laboratory_tour_ubuntu22.04_iron_devel
+    <<: *base
+    container_name: fakeBattery
+    command: bash -c "source /opt/ros/iron/setup.bash && \
+              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
+              source /home/user1/UC3/laboratory-tour/install/setup.bash && \
+              yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; \
+              yarprobotinterface --config /home/user1/UC3/laboratory-tour/src/components/fake_battery_component/robotinterface.xml"
+    depends_on:
+      - yarpserver
 
   fakeNavigation:
     image: ste93/convince:laboratory_tour_ubuntu22.04_iron_devel
@@ -88,6 +88,40 @@ services:
               yarpdev --device fakeLocalizer"
     depends_on:
       - yarpserver
+
+  mapServer:
+    image: ste93/convince:laboratory_tour_ubuntu22.04_iron_devel
+    <<: *base
+    container_name: mapServer
+    command: bash -c "source /opt/ros/iron/setup.bash && \
+              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
+              yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; \
+              yarprobotinterface --context navigation2 --from mapServer.ini"
+    depends_on:
+      - yarpserver
+
+  localization:
+    image: ste93/convince:laboratory_tour_ubuntu22.04_iron_devel
+    <<: *base
+    container_name: localization
+    command: bash -c "source /opt/ros/iron/setup.bash && \
+              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
+              yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; \
+              yarprobotinterface --context navigation2 --from localizationROS2.ini --init_map gam_sim_real"
+    depends_on:
+      - yarpserver
+
+  navigator:
+    image: ste93/convince:laboratory_tour_ubuntu22.04_iron_devel
+    <<: *base
+    container_name: navigator
+    command: bash -c "source /opt/ros/iron/setup.bash && \
+              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
+              yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; \
+              yarprobotinterface --context navigation2 --from navigator2D.ini"
+    depends_on:
+      - yarpserver
+    
 
   yarprun:
     image: ste93/convince:laboratory_tour_ubuntu22.04_iron_devel
