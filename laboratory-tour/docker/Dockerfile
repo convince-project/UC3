@@ -25,7 +25,7 @@ RUN /bin/bash -c "echo 'updated on 202409251159' && \
     source /opt/ros/iron/setup.bash && \
     cd /home/user1 && \
     rm -rf UC3 && \
-    git clone https://github.com/SofiaFaraci/UC3.git -b docker-fake-nav && \
+    git clone https://github.com/convince-project/UC3.git -b dev/docker-compose-no-halt && \
     source /opt/ros/iron/setup.bash && \
     cd /home/user1/UC3/laboratory-tour && \
     colcon build --packages-select notify_user_interfaces_dummy && \
