@@ -66,8 +66,8 @@ bool BatteryLevelSkill::start(int argc, char*argv[])
     
 
     
-    m_subscription_battery_status = m_node->create_subscription<std_msgs::msg::Int32>(
-		"/battery_status", 10, std::bind(&BatteryLevelSkill::topic_callback_battery_status, this, std::placeholders::_1));
+    m_subscription_battery_level = m_node->create_subscription<std_msgs::msg::Int32>(
+		"/battery_level", 10, std::bind(&BatteryLevelSkill::topic_callback_battery_level, this, std::placeholders::_1));
     
 
     
@@ -120,11 +120,11 @@ void BatteryLevelSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfac
 
 
 
-void BatteryLevelSkill::topic_callback_battery_status(const std_msgs::msg::Int32::SharedPtr msg) {
+void BatteryLevelSkill::topic_callback_battery_level(const std_msgs::msg::Int32::SharedPtr msg) {
     std::cout << "callback" << std::endl;
     QVariantMap data;
     data.insert("percentage", msg->data);
 
-    m_stateMachine.submitEvent("BatteryComponent.battery_status.Sub", data);
-    RCLCPP_INFO(m_node->get_logger(), "BatteryComponent.battery_status.Sub");
+    m_stateMachine.submitEvent("BatteryComponent.battery_level.Sub", data);
+    RCLCPP_INFO(m_node->get_logger(), "BatteryComponent.battery_level.Sub");
 }

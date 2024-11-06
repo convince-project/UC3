@@ -6,10 +6,10 @@
         <data id="SKILL_FAILURE" expr="1"/>
     </datamodel>
     <!-- BatteryLevelSkill is a server for tick from the ROS2Condition plugin-->
-    <!-- BatteryLevelSkill is a subscriber for the /battery_status topic from the BatteryComponent-->
+    <!-- BatteryLevelSkill is a subscriber for the /battery_level topic from the BatteryComponent-->
     <state id="idle">
         <transition target="areFollowing" event="CMD_TICK"/>
-        <transition target="idle" event="BatteryComponent.battery_status.Sub">
+        <transition target="idle" event="BatteryComponent.battery_level.Sub">
             <assign location="percentage" expr="_event.data.percentage"/>
         </transition>
     </state>

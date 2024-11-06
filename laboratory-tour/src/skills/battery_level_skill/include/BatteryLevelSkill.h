@@ -35,7 +35,7 @@ public:
 	void tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Request> request,
 			   std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Response>      response);
 	
-	void topic_callback_battery_status(const std_msgs::msg::Int32::SharedPtr msg);
+	void topic_callback_battery_level(const std_msgs::msg::Int32::SharedPtr msg);
 	
 
 private:
@@ -50,7 +50,7 @@ private:
 	
 	
 	
-	rclcpp::Subscription<std_msgs::msg::Int32>::SharedPtr m_subscription_battery_status;
+	rclcpp::Subscription<std_msgs::msg::Int32>::SharedPtr m_subscription_battery_level;
 	
 };
 

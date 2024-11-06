@@ -16,7 +16,7 @@ bool BatteryComponent::start(int argc, char*argv[])
     }
     m_node = rclcpp::Node::make_shared("BatteryComponentNode");
     
-    m_publisherBatteryState = m_node->create_publisher<std_msgs::msg::Int32>("/battery_status", 10);
+    m_publisherBatteryState = m_node->create_publisher<std_msgs::msg::Int32>("/battery_level", 10);
     m_timer = m_node->create_wall_timer(std::chrono::seconds(1), std::bind(&BatteryComponent::BatteryStatePublisherCallback, this));
     RCLCPP_INFO(m_node->get_logger(), "BatteryComponent::start");
     return true;
