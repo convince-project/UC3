@@ -17,7 +17,7 @@
 #include <yarp/os/BufferedPort.h>
 #include <yarp/dev/PolyDriver.h>
 #include <yarp/dev/ISpeechSynthesizer.h>
-#include <yarp/dev/AudioPlayerStatus.h>
+#include <yarp/sig/AudioPlayerStatus.h>
 #include <yarp/dev/IAudioGrabberSound.h>
 #include <text_to_speech_interfaces/srv/get_language.hpp>
 #include <text_to_speech_interfaces/srv/set_language.hpp>
@@ -62,7 +62,7 @@ private:
     rclcpp::Service<text_to_speech_interfaces::srv::SetMicrophone>::SharedPtr m_SetMicrophoneService;
     std::mutex m_mutex;
     yarp::os::BufferedPort<yarp::sig::Sound> m_audioPort;
-    yarp::os::BufferedPort<yarp::dev::AudioPlayerStatus> m_audioStatusPort;
+    yarp::os::BufferedPort<yarp::sig::AudioPlayerStatus> m_audioStatusPort;
     rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr m_speakerStatusPub;
     rclcpp::TimerBase::SharedPtr m_timer;
 
