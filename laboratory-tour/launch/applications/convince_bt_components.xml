@@ -87,8 +87,8 @@
 
 
     <module>
-        <name>ros2_narrate_component_draft2</name>
-        <parameters>run narrate_component_draft2 narrate_component_draft2</parameters>
+        <name>ros2_narrate_component</name>
+        <parameters>run narrate_component narrate_component</parameters>
         <workdir />
         <node>bt</node>
     </module>
