@@ -200,13 +200,19 @@
         <node>bt</node>
     </module>
 
-    <module>
+    <!-- <module>
         <name>ros2_go_to_current_poi_skill</name>
         <parameters>run go_to_current_poi_skill go_to_current_poi_skill</parameters>
         <workdir />
         <node>bt</node>
+    </module> -->
+    <module>
+        <name>ros2_go_to_poi_action_skill</name>
+        <parameters>run go_to_poi_action_skill go_to_poi_action_skill</parameters>
+        <workdir />
+        <node>bt</node>
     </module>
-    
+
     <module>
         <name>ros2_set_turning_skill</name>
         <parameters>run set_turning_skill set_turning_skill</parameters>
@@ -316,8 +322,15 @@
     </module>
 
     <module>
+        <name>ros2_set_current_poi_done_skill</name>
+        <parameters>run set_current_poi_done_skill set_current_poi_done_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
         <name>ros2</name>
-        <parameters>launch bt_launch_poi_skills.py json_file:=/home/sofia/ros2_iron/src/UC3/laboratory-tour/conf/sim_tour.json tour_name:=TOUR_SIM_GAM</parameters>
+        <parameters>launch bt_launch_poi_skills_generate_bt.py json_file:=/home/user1/ros2_iron/src/UC3/laboratory-tour/conf/tours.json tour_name:=TOUR_MADAMA_3 bt_file:=../src/behavior_tree/BT/bt_poi_complex.xml</parameters>
         <workdir>/home/user1/ros2_iron/src/UC3/laboratory-tour/launch/</workdir>
         <node>bt</node>
     </module>

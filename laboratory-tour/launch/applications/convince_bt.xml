@@ -20,7 +20,7 @@
 
     <module>
         <name>ros2_bt</name>
-        <parameters>launch launch/bt_launch_tour_duration.py</parameters>
+        <parameters>launch launch/bt_launch_poi_complex.py</parameters>
         <workdir>/home/user1/UC3/laboratory-tour</workdir>
         <node>bt</node>
     </module>
