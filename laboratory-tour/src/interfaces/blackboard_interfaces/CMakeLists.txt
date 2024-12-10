@@ -19,6 +19,7 @@ rosidl_generate_interfaces(blackboard_interfaces
 "srv/GetIntBlackboard.srv"
 "srv/GetStringBlackboard.srv"
 "srv/SetStringBlackboard.srv"
+"srv/SetAllIntsWithPrefixBlackboard.srv"
 DEPENDENCIES sensor_msgs
 LIBRARY_NAME blackboard_interfaces 
 )

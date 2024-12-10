@@ -1,0 +1,4 @@
+int32 poi_number
+---
+bool is_ok
+string error_msg
