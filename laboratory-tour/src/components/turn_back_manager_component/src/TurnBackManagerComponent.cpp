@@ -83,7 +83,7 @@ void TurnBackManagerComponent::spin()
     rclcpp::spin(m_node);  
 }
 
-void SchedulerComponent::publisher(std::string text)
+void TurnBackManagerComponent::publisher(std::string text)
 {
     std_msgs::msg::String msg;
     msg.data = text;
