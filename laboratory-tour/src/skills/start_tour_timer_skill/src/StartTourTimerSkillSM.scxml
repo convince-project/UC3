@@ -7,7 +7,8 @@
 
   <datamodel>
     <data id="m_result"/>
-    <data id="m_name" expr='"SaidWarningFlag"'/>
+    <data id="m_name_war" expr='"SaidWarningFlag"'/>
+    <data id="m_name_max" expr='"SaidExceededFlag"'/>
   </datamodel>
 
   <state id="idle">
@@ -32,7 +33,7 @@
   <state id="setStatus">
     <onentry>
         <send event="BlackboardComponent.SetInt.Call">
-            <param name="field_name" expr="m_name"/>
+            <param name="field_name" expr="m_name_war"/>
             <param name="value" expr="0"/>
         </send>
     </onentry>
@@ -42,6 +43,23 @@
 </state>
 
 <state id="setStatusResult">
+    <transition cond="m_result == 'SUCCESS'" target="setStatus2" />
+    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+</state>
+
+<state id="setStatus2">
+    <onentry>
+        <send event="BlackboardComponent.SetInt.Call">
+            <param name="field_name" expr="m_name_max"/>
+            <param name="value" expr="0"/>
+        </send>
+    </onentry>
+    <transition event="BlackboardComponent.SetInt.Return" target="setStatusResult2"> 
+        <assign expr="_event.data.result" location="m_result"/>
+    </transition>
+</state>
+
+<state id="setStatusResult2">
     <transition cond="m_result == 'SUCCESS'" target="sendSuccess" />
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
 </state>
