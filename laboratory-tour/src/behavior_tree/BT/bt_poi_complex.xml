@@ -32,15 +32,17 @@
     
     <BehaviorTree ID="BehaviorTree">
         <ReactiveSequence>
+            <!--SubTree ID="NetworkManagement"/-->
             <SubTree ID="PoiScheduler" />
             <Sequence>
-                
-                <ReactiveSequence>
-                    
+                <!--SubTree ID="BatteryManagement"/-->
+                <!-- <SubTree ID="MuseumHours"/> -->
+                <ReactiveSequence> <!--or sequence?-->
+                    <!-- <SubTree ID="PeopleLeaving"/> -->
                     <SubTree ID="GoToPoi" />
                 </ReactiveSequence>
                 <SubTree ID="CheckArtworkAndExplain" />
-                
+                <!-- <SubTree ID="TourDuration"/> -->
             </Sequence>
         </ReactiveSequence>
     </BehaviorTree>
@@ -120,6 +122,7 @@
                 </Inverter>
                 <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SetPoi5" />
             </Sequence>
+            <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="ResetTourAndFlags" />
         </Fallback>
     </BehaviorTree>
     
