@@ -40,8 +40,13 @@ def generate_poi_scheduler_sub_bt(active_pois, bt_file_name):
     if fallback_node is None:
         raise ValueError("The <Fallback> node has not been found in the BT file.")
 
-    # Remove existing children of <Fallback>
+    # Remove existing children of <Fallback> except for the <Action> node with name="Reset"
     for child in list(fallback_node):
+        name_attr = child.attrib.get("name", "")
+        if "Reset" in name_attr:
+            name_attr = child.attrib.get("name", "")
+            print(f"Found 'Reset' node")
+            reset_node = child
         fallback_node.remove(child)
 
     # Add a <Sequence> node for each active POI
@@ -68,6 +73,14 @@ def generate_poi_scheduler_sub_bt(active_pois, bt_file_name):
 
         # Add the <Sequence> node as a child of <Fallback>
         fallback_node.append(sequence_element)
+
+    # If the "Reset" node exists, append it back to the end
+    if reset_node is not None:
+        fallback_node.append(reset_node)
+        print(f"Appended 'Reset' node at the end of <Fallback>.")
+    else:
+        print("No 'Reset' node found; nothing to append.")
+
     ET.indent(behavior_tree, '    ', level=1)  
     # Save the updated XML
     tree.write(bt_file_name, encoding="utf-8", xml_declaration=True)
@@ -78,13 +91,13 @@ def generate_poi_scheduler_sub_bt(active_pois, bt_file_name):
 
 def launch_nodes_from_json(context, *args, **kwargs):
     logger = launch.logging.get_logger('launch_nodes_from_json')
-
+    
     json_file_path = os.path.expanduser(
         launch.substitutions.LaunchConfiguration('json_file').perform(context)
     )
     tour_name = launch.substitutions.LaunchConfiguration('tour_name').perform(context)
-    
     if not json_file_path:
+        
         logger.error("Missing 'json_file' argument.")
         return []
     if not tour_name:
