@@ -81,8 +81,8 @@
     </module>
 
     <module>
-        <name>ros2_reset_tour_skill</name>
-        <parameters>run reset_tour_skill reset_tour_skill</parameters>
+        <name>ros2_reset_tour_and_flags_skill</name>
+        <parameters>run reset_tour_and_flags_skill reset_tour_and_flags_skill</parameters>
         <workdir />
         <node>bt</node>
     </module>
