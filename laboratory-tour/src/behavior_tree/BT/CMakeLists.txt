@@ -1,1 +1,1 @@
-file(COPY bt_failure_management.xml DESTINATION "${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}")
+file(COPY bt_poi_complex.xml DESTINATION "${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}")
