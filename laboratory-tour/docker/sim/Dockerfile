@@ -106,23 +106,24 @@ RUN /bin/bash -c "echo 'updated on 202411141542' && \
 RUN echo "source /home/user1/UC3/laboratory-tour/install/setup.bash" >> ~/.bashrc
 # 
 
-# RUN /bin/bash -c "cd /home/user1/ROSMonitoring/generator/ros2_devel && \
-#     source /opt/ros/jazzy/setup.bash && \
-#     python3 generator --config_file /home/user1/MBVM-SIMPAR2025/monitoring/monitor_prop1.yaml && \
-#     python3 generator --config_file /home/user1/MBVM-SIMPAR2025/monitoring/monitor_prop2.yaml && \
-#     python3 generator --config_file /home/user1/MBVM-SIMPAR2025/monitoring/monitor_prop3.yaml && \
-#     python3 generator --config_file /home/user1/MBVM-SIMPAR2025/monitoring/monitor_prop4.yaml && \
-#     python3 generator --config_file /home/user1/MBVM-SIMPAR2025/monitoring/monitor_prop5.yaml && \
-#     cd /home/user1/MBVM-SIMPAR2025/monitor_prop1_ws/src/ && \
-#     colcon build && \
-#     cd /home/user1/MBVM-SIMPAR2025/monitor_prop2_ws/src/ && \
-#     colcon build && \
-#     cd /home/user1/MBVM-SIMPAR2025/monitor_prop3_ws/src/ && \
-#     colcon build && \
-#     cd /home/user1/MBVM-SIMPAR2025/monitor_prop4_ws/src/ && \
-#     colcon build && \
-#     cd /home/user1/MBVM-SIMPAR2025/monitor_prop5_ws/src/ && \
-#     colcon build"
+RUN /bin/bash -c "cd /home/user1/ROSMonitoring/generator/ros2_devel && \
+    /home/user1/convince-python-env/bin/pip install websocket_client rospy_message_converter pyyaml reelay && \
+    source /opt/ros/jazzy/setup.bash && \
+    python3 generator --config_file /home/user1/UC3/laboratory-tour/monitoring/monitor_prop1.yaml && \
+    python3 generator --config_file /home/user1/UC3/laboratory-tour/monitoring/monitor_prop2.yaml && \
+    python3 generator --config_file /home/user1/UC3/laboratory-tour/monitoring/monitor_prop3.yaml && \
+    python3 generator --config_file /home/user1/UC3/laboratory-tour/monitoring/monitor_prop4.yaml && \
+    python3 generator --config_file /home/user1/UC3/laboratory-tour/monitoring/monitor_prop5.yaml && \
+    cd /home/user1/UC3/laboratory-tour/monitoring/monitor_prop1_ws/src/ && \
+    colcon build && \
+    cd /home/user1/UC3/laboratory-tour/monitoring/monitor_prop2_ws/src/ && \
+    colcon build && \
+    cd /home/user1/UC3/laboratory-tour/monitoring/monitor_prop3_ws/src/ && \
+    colcon build && \
+    cd /home/user1/UC3/laboratory-tour/monitoring/monitor_prop4_ws/src/ && \
+    colcon build && \
+    cd /home/user1/UC3/laboratory-tour/monitoring/monitor_prop5_ws/src/ && \
+    colcon build"
 
 ENV PATH=${PATH}:/home/user1/.local/bin
 

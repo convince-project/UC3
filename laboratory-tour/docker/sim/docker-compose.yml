@@ -11,7 +11,7 @@ x-base: &base
     - YARP_CLOCK=/clock
     - YARP_NAMESPACE=/root
     - ROS_DOMAIN_ID=47
-    - CYCLONEDDS_URI=/home/user1/MBVM-SIMPAR2025/docker/cyclone_dds_settings.xml
+    - CYCLONEDDS_URI=/home/user1/UC3/laboratory-tour/docker/cyclone_dds_settings.xml
   volumes:
     - "/tmp/.X11-unix:/tmp/.X11-unix:rw"
     - "/etc/hosts:/etc/hosts"
@@ -218,7 +218,7 @@ services:
     container_name: ros2oracleProp1
     command: bash -c "source /opt/ros/iron/setup.bash && \
               source $${UC3_DIR}/install/setup.bash && \
-              cd /home/user1/MBVM-SIMPAR2025/monitoring && \
+              cd /home/user1/UC3/laboratory-tour/monitoring && \
               /home/user1/convince-python-env/bin/python /home/user1/ROSMonitoring/oracle/TLOracle/oracle.py --online --dense --property prop1"
 
   
@@ -244,7 +244,7 @@ services:
     container_name: ros2monitorProp1
     command: bash -c "source /opt/ros/iron/setup.bash && \
               source $${UC3_DIR}/install/setup.bash && \
-              cd /home/user1/MBVM-SIMPAR2025/monitor_prop1_ws/src/ && \
+              cd /home/user1/UC3/laboratory-tour/monitoring/monitor_prop1_ws/src/ && \
               source install/setup.bash && \
               ros2 launch monitor/launch/monitor.launch"
     depends_on:
@@ -290,7 +290,7 @@ services:
     container_name: ros2oracleProp2
     command: bash -c "source /opt/ros/iron/setup.bash && \
               source $${UC3_DIR}/install/setup.bash && \
-              cd /home/user1/MBVM-SIMPAR2025/monitoring && \
+              cd /home/user1/UC3/laboratory-tour/monitoring && \
               /home/user1/convince-python-env/bin/python /home/user1/ROSMonitoring/oracle/TLOracle/oracle.py --online --dense --property prop2"
 
   groot_prop2:
@@ -315,7 +315,7 @@ services:
     container_name: ros2monitorProp2
     command: bash -c "source /opt/ros/iron/setup.bash && \
               source $${UC3_DIR}/install/setup.bash && \
-              cd /home/user1/MBVM-SIMPAR2025/monitor_prop2_ws/src/ && \
+              cd /home/user1/UC3/laboratory-tour/monitoring/monitor_prop2_ws/src/ && \
               source install/setup.bash && \
               ros2 launch monitor/launch/monitor.launch"
     depends_on:
@@ -361,7 +361,7 @@ services:
     container_name: ros2oracleProp3
     command: bash -c "source /opt/ros/iron/setup.bash && \
               source $${UC3_DIR}/install/setup.bash && \
-              cd /home/user1/MBVM-SIMPAR2025/monitoring && \
+              cd /home/user1/UC3/laboratory-tour/monitoring && \
               /home/user1/convince-python-env/bin/python /home/user1/ROSMonitoring/oracle/TLOracle/oracle.py --online --dense --property prop3"
 
   groot_prop3:
@@ -386,7 +386,7 @@ services:
     container_name: ros2monitorProp3
     command: bash -c "source /opt/ros/iron/setup.bash && \
               source $${UC3_DIR}/install/setup.bash && \
-              cd /home/user1/MBVM-SIMPAR2025/monitor_prop3_ws/src/ && \
+              cd /home/user1/UC3/laboratory-tour/monitoring/monitor_prop3_ws/src/ && \
               source install/setup.bash && \
               ros2 launch monitor/launch/monitor.launch"
     depends_on:
@@ -433,7 +433,7 @@ services:
     container_name: ros2oracleProp4
     command: bash -c "source /opt/ros/iron/setup.bash && \
               source $${UC3_DIR}/install/setup.bash && \
-              cd /home/user1/MBVM-SIMPAR2025/monitoring && \
+              cd /home/user1/UC3/laboratory-tour/monitoring && \
               /home/user1/convince-python-env/bin/python /home/user1/ROSMonitoring/oracle/TLOracle/oracle.py --online --dense --property prop4"
 
   groot_prop4:
@@ -458,7 +458,7 @@ services:
     container_name: ros2monitorProp4
     command: bash -c "source /opt/ros/iron/setup.bash && \
               source $${UC3_DIR}/install/setup.bash && \
-              cd /home/user1/MBVM-SIMPAR2025/monitor_prop4_ws/src/ && \
+              cd /home/user1/UC3/laboratory-tour/monitoring/monitor_prop4_ws/src/ && \
               source install/setup.bash && \
               ros2 launch monitor/launch/monitor.launch"
     depends_on:
@@ -504,7 +504,7 @@ services:
     container_name: ros2oracleProp5
     command: bash -c "source /opt/ros/iron/setup.bash && \
               source $${UC3_DIR}/install/setup.bash && \
-              cd /home/user1/MBVM-SIMPAR2025/monitoring && \
+              cd /home/user1/UC3/laboratory-tour/monitoring && \
               /home/user1/convince-python-env/bin/python /home/user1/ROSMonitoring/oracle/TLOracle/oracle.py --online --dense --property prop5"
 
   groot_prop5:
@@ -529,7 +529,7 @@ services:
     container_name: ros2monitorProp5
     command: bash -c "source /opt/ros/iron/setup.bash && \
               source $${UC3_DIR}/install/setup.bash && \
-              cd /home/user1/MBVM-SIMPAR2025/monitor_prop5_ws/src/ && \
+              cd /home/user1/UC3/laboratory-tour/monitoring/monitor_prop5_ws/src/ && \
               source install/setup.bash && \
               ros2 launch monitor/launch/monitor.launch"
     depends_on:
@@ -551,6 +551,6 @@ services:
       - run_bt_executable_prop5
       - groot_prop5
 
-# yarpmanager-console --application  MBVM-SIMPAR2025/code/launch/applications/convince_bt_components.xml --exit --run --connect
-# yarpmanager-console --application  MBVM-SIMPAR2025/code/launch/applications/convince_bt_skills.xml --exit --run --connect
-# ros2 run bt_executable bt_executable MBVM-SIMPAR2025/code/src/behavior_tree/BT/Policy.xml
+# yarpmanager-console --application  UC3/laboratory-tour/launch/applications/convince_bt_components.xml --exit --run --connect
+# yarpmanager-console --application  UC3/laboratory-tour/launch/applications/convince_bt_skills.xml --exit --run --connect
+# ros2 run bt_executable bt_executable UC3/laboratory-tour/src/behavior_tree/BT/Policy.xml
