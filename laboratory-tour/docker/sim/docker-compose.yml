@@ -219,7 +219,7 @@ services:
     command: bash -c "source /opt/ros/iron/setup.bash && \
               source $${UC3_DIR}/install/setup.bash && \
               cd /home/user1/UC3/laboratory-tour/monitoring && \
-              /home/user1/convince-python-env/bin/python /home/user1/ROSMonitoring/oracle/TLOracle/oracle.py --online --dense --property prop1"
+              /home/user1/monitoring-python-env/bin/python /home/user1/ROSMonitoring/oracle/TLOracle/oracle.py --online --dense --property prop1"
 
   
   groot_prop1:
@@ -291,7 +291,7 @@ services:
     command: bash -c "source /opt/ros/iron/setup.bash && \
               source $${UC3_DIR}/install/setup.bash && \
               cd /home/user1/UC3/laboratory-tour/monitoring && \
-              /home/user1/convince-python-env/bin/python /home/user1/ROSMonitoring/oracle/TLOracle/oracle.py --online --dense --property prop2"
+              /home/user1/monitoring-python-env/bin/python /home/user1/ROSMonitoring/oracle/TLOracle/oracle.py --online --dense --property prop2"
 
   groot_prop2:
     image: ste93/mbvm:simpar2025
@@ -362,7 +362,7 @@ services:
     command: bash -c "source /opt/ros/iron/setup.bash && \
               source $${UC3_DIR}/install/setup.bash && \
               cd /home/user1/UC3/laboratory-tour/monitoring && \
-              /home/user1/convince-python-env/bin/python /home/user1/ROSMonitoring/oracle/TLOracle/oracle.py --online --dense --property prop3"
+              /home/user1/monitoring-python-env/bin/python /home/user1/ROSMonitoring/oracle/TLOracle/oracle.py --online --dense --property prop3"
 
   groot_prop3:
     image: ste93/mbvm:simpar2025
@@ -434,7 +434,7 @@ services:
     command: bash -c "source /opt/ros/iron/setup.bash && \
               source $${UC3_DIR}/install/setup.bash && \
               cd /home/user1/UC3/laboratory-tour/monitoring && \
-              /home/user1/convince-python-env/bin/python /home/user1/ROSMonitoring/oracle/TLOracle/oracle.py --online --dense --property prop4"
+              /home/user1/monitoring-python-env/bin/python /home/user1/ROSMonitoring/oracle/TLOracle/oracle.py --online --dense --property prop4"
 
   groot_prop4:
     image: ste93/mbvm:simpar2025
@@ -505,7 +505,7 @@ services:
     command: bash -c "source /opt/ros/iron/setup.bash && \
               source $${UC3_DIR}/install/setup.bash && \
               cd /home/user1/UC3/laboratory-tour/monitoring && \
-              /home/user1/convince-python-env/bin/python /home/user1/ROSMonitoring/oracle/TLOracle/oracle.py --online --dense --property prop5"
+              /home/user1/monitoring-python-env/bin/python /home/user1/ROSMonitoring/oracle/TLOracle/oracle.py --online --dense --property prop5"
 
   groot_prop5:
     image: ste93/mbvm:simpar2025

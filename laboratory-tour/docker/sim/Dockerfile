@@ -1,4 +1,4 @@
-ARG base_img=ste93/convince:qt_6.7.3_ubuntu22.04_jazzy_stable_sim
+ARG base_img=ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim
 FROM $base_img
 LABEL maintainer="Stefano Bernagozzi"
 USER root
@@ -94,7 +94,7 @@ RUN /bin/bash -c "source /home/user1/.cargo/env && cargo install --git https://g
 
 RUN echo "export PATH=\$PATH:/home/user1/Groot/build" >> ~/.bashrc
 
-RUN /bin/bash -c "echo 'updated on 202411141542' && \
+RUN /bin/bash -c "echo 'updated on 202502071145' && \
     source /opt/ros/jazzy/setup.bash && \
     cd /home/user1 && \
     git clone https://github.com/convince-project/UC3.git -b  dev/poi-scheduler-rebased && \
@@ -106,14 +106,19 @@ RUN /bin/bash -c "echo 'updated on 202411141542' && \
 RUN echo "source /home/user1/UC3/laboratory-tour/install/setup.bash" >> ~/.bashrc
 # 
 
-RUN /bin/bash -c "cd /home/user1/ROSMonitoring/generator/ros2_devel && \
-    /home/user1/convince-python-env/bin/pip install websocket_client rospy_message_converter pyyaml reelay && \
-    source /opt/ros/jazzy/setup.bash && \
-    python3 generator --config_file /home/user1/UC3/laboratory-tour/monitoring/monitor_prop1.yaml && \
-    python3 generator --config_file /home/user1/UC3/laboratory-tour/monitoring/monitor_prop2.yaml && \
-    python3 generator --config_file /home/user1/UC3/laboratory-tour/monitoring/monitor_prop3.yaml && \
-    python3 generator --config_file /home/user1/UC3/laboratory-tour/monitoring/monitor_prop4.yaml && \
-    python3 generator --config_file /home/user1/UC3/laboratory-tour/monitoring/monitor_prop5.yaml && \
+RUN /bin/bash -c "sudo apt install gobject-introspection libgirepository1.0-dev -y && \
+    cd /home/user1/ && \
+    python3 -m venv monitoring-python-env && \
+    /home/user1/monitoring-python-env/bin/pip install --upgrade pip && \
+    /home/user1/monitoring-python-env/bin/pip install websocket_client rospy_message_converter pyyaml reelay jedi pycairo PyGObject prompt_toolkit"
+
+RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
+    cd /home/user1/ROSMonitoring/generator/ros2_devel && \
+    /home/user1/monitoring-python-env/bin/python generator --config_file /home/user1/UC3/laboratory-tour/monitoring/monitor_prop1.yaml && \
+    /home/user1/monitoring-python-env/bin/python generator --config_file /home/user1/UC3/laboratory-tour/monitoring/monitor_prop2.yaml && \
+    /home/user1/monitoring-python-env/bin/python generator --config_file /home/user1/UC3/laboratory-tour/monitoring/monitor_prop3.yaml && \
+    /home/user1/monitoring-python-env/bin/python generator --config_file /home/user1/UC3/laboratory-tour/monitoring/monitor_prop4.yaml && \
+    /home/user1/monitoring-python-env/bin/python generator --config_file /home/user1/UC3/laboratory-tour/monitoring/monitor_prop5.yaml && \
     cd /home/user1/UC3/laboratory-tour/monitoring/monitor_prop1_ws/src/ && \
     colcon build && \
     cd /home/user1/UC3/laboratory-tour/monitoring/monitor_prop2_ws/src/ && \
