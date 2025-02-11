@@ -28,26 +28,26 @@ services:
 
 # Images
   ros2:
-    image: ste93/mbvm:simpar2025
+    image: ste93/
     build:
       dockerfile: Dockerfile
       context: .
 
 # containers
   terminator:
-    image: ste93/mbvm:simpar2025
+    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
     <<: *base
     container_name: terminator
     command: sh -c "yarp conf 172.17.0.1 10000; terminator --no-dbus"
 
   yarpserver:
-    image: ste93/mbvm:simpar2025
+    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
     <<: *base
     container_name: yarpserver
     command: sh -c "yarp conf 172.17.0.1 10000; yarpserver"
 
   yarpclock:
-    image: ste93/mbvm:simpar2025
+    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
     <<: *base
     container_name: yarpclock
     command: sh -c "yarp conf 172.17.0.1 10000; yarp clock"
@@ -55,7 +55,7 @@ services:
       - yarpserver
 
   rosclock:
-      image: ste93/mbvm:simpar2025
+      image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
       <<: *base
       container_name: rosclock
       command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -66,7 +66,7 @@ services:
                 ros2 run clock_component clock_component"
 
   fakeBattery:
-    image: ste93/mbvm:simpar2025
+    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
     <<: *base
     container_name: fakeBattery
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -78,7 +78,7 @@ services:
       - yarpserver
 
   fakeNavigation:
-    image: ste93/mbvm:simpar2025
+    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
     <<: *base
     container_name: fakeNavigation
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -90,7 +90,7 @@ services:
       - yarpserver
 
   fakeLocalizer:
-    image: ste93/mbvm:simpar2025
+    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
     <<: *base
     container_name: fakeLocalizer
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -102,7 +102,7 @@ services:
       - yarpserver
 
   mapServer:
-    image: ste93/mbvm:simpar2025
+    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
     <<: *base
     container_name: mapServer
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -113,7 +113,7 @@ services:
       - yarpserver
 
   localization:
-    image: ste93/mbvm:simpar2025
+    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
     <<: *base
     container_name: localization
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -124,7 +124,7 @@ services:
       - yarpserver
 
   navigator:
-    image: ste93/mbvm:simpar2025
+    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
     <<: *base
     container_name: navigator
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -136,7 +136,7 @@ services:
     
 
   yarprun:
-    image: ste93/mbvm:simpar2025
+    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
     <<: *base
     container_name: yarprun
     command: bash -c "export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/src/robot/yarp/build/lib/:/home/user1/Qt6.6.3/lib/ && \
@@ -149,7 +149,7 @@ services:
       - yarpserver
 
   yarplogger:
-    image: ste93/mbvm:simpar2025
+    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
     <<: *base
     container_name: yarplogger
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -164,7 +164,7 @@ services:
     #     ipv4_address: 172.17.0.14
 
   run_components:
-    image: ste93/mbvm:simpar2025
+    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
     <<: *base
     container_name: run_components
     command: bash -c "sleep 2; source /opt/ros/iron/setup.bash && \
@@ -178,7 +178,7 @@ services:
       - yarplogger
 
   run_skills:
-    image: ste93/mbvm:simpar2025
+    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
     <<: *base
     container_name: run_skills
     command: bash -c "sleep 2; source /opt/ros/iron/setup.bash && \
@@ -197,7 +197,7 @@ services:
 ################################# PROP1 #################################
 
   run_bt_executable_prop1:
-    image: ste93/mbvm:simpar2025
+    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
     <<: *base
     container_name: run_bt_executable_prop1
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -213,7 +213,7 @@ services:
       - run_skills
 
   ros2oracleProp1:
-    image: ste93/mbvm:simpar2025
+    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
     <<: *base
     container_name: ros2oracleProp1
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -223,7 +223,7 @@ services:
 
   
   groot_prop1:
-    image: ste93/mbvm:simpar2025
+    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
     <<: *base
     container_name: groot_prop1
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -239,7 +239,7 @@ services:
       - run_bt_executable_prop1
 
   ros2monitorProp1:
-    image: ste93/mbvm:simpar2025
+    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
     <<: *base
     container_name: ros2monitorProp1
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -269,7 +269,7 @@ services:
 ################################# PROP2 #################################
 
   run_bt_executable_prop2:
-    image: ste93/mbvm:simpar2025
+    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
     <<: *base
     container_name: run_bt_executable_prop2
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -285,7 +285,7 @@ services:
       - run_skills
 
   ros2oracleProp2:
-    image: ste93/mbvm:simpar2025
+    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
     <<: *base
     container_name: ros2oracleProp2
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -294,7 +294,7 @@ services:
               /home/user1/monitoring-python-env/bin/python /home/user1/ROSMonitoring/oracle/TLOracle/oracle.py --online --dense --property prop2"
 
   groot_prop2:
-    image: ste93/mbvm:simpar2025
+    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
     <<: *base
     container_name: groot_prop2
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -310,7 +310,7 @@ services:
       - run_bt_executable_prop2
 
   ros2monitorProp2:
-    image: ste93/mbvm:simpar2025
+    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
     <<: *base
     container_name: ros2monitorProp2
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -340,7 +340,7 @@ services:
 ################################# PROP3 #################################
 
   run_bt_executable_prop3:
-    image: ste93/mbvm:simpar2025
+    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
     <<: *base
     container_name: run_bt_executable_prop3
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -356,7 +356,7 @@ services:
       - run_skills
 
   ros2oracleProp3:
-    image: ste93/mbvm:simpar2025
+    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
     <<: *base
     container_name: ros2oracleProp3
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -365,7 +365,7 @@ services:
               /home/user1/monitoring-python-env/bin/python /home/user1/ROSMonitoring/oracle/TLOracle/oracle.py --online --dense --property prop3"
 
   groot_prop3:
-    image: ste93/mbvm:simpar2025
+    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
     <<: *base
     container_name: groot_prop3
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -381,7 +381,7 @@ services:
       - run_bt_executable_prop3
 
   ros2monitorProp3:
-    image: ste93/mbvm:simpar2025
+    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
     <<: *base
     container_name: ros2monitorProp3
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -412,7 +412,7 @@ services:
 ################################# PROP4 #################################
 
   run_bt_executable_prop4:
-    image: ste93/mbvm:simpar2025
+    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
     <<: *base
     container_name: run_bt_executable_prop4
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -428,7 +428,7 @@ services:
       - run_skills
 
   ros2oracleProp4:
-    image: ste93/mbvm:simpar2025
+    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
     <<: *base
     container_name: ros2oracleProp4
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -437,7 +437,7 @@ services:
               /home/user1/monitoring-python-env/bin/python /home/user1/ROSMonitoring/oracle/TLOracle/oracle.py --online --dense --property prop4"
 
   groot_prop4:
-    image: ste93/mbvm:simpar2025
+    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
     <<: *base
     container_name: groot_prop4
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -453,7 +453,7 @@ services:
       - run_bt_executable_prop4
 
   ros2monitorProp4:
-    image: ste93/mbvm:simpar2025
+    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
     <<: *base
     container_name: ros2monitorProp4
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -483,7 +483,7 @@ services:
 ################################# PROP5 #################################
 
   run_bt_executable_prop5:
-    image: ste93/mbvm:simpar2025
+    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
     <<: *base
     container_name: run_bt_executable_prop5
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -499,7 +499,7 @@ services:
       - run_skills
 
   ros2oracleProp5:
-    image: ste93/mbvm:simpar2025
+    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
     <<: *base
     container_name: ros2oracleProp5
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -508,7 +508,7 @@ services:
               /home/user1/monitoring-python-env/bin/python /home/user1/ROSMonitoring/oracle/TLOracle/oracle.py --online --dense --property prop5"
 
   groot_prop5:
-    image: ste93/mbvm:simpar2025
+    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
     <<: *base
     container_name: groot_prop5
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -524,7 +524,7 @@ services:
       - run_bt_executable_prop5
 
   ros2monitorProp5:
-    image: ste93/mbvm:simpar2025
+    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
     <<: *base
     container_name: ros2monitorProp5
     command: bash -c "source /opt/ros/iron/setup.bash && \
