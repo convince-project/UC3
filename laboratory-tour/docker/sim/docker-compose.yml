@@ -35,19 +35,19 @@ services:
 
 # containers
   terminator:
-    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_full
     <<: *base
     container_name: terminator
     command: sh -c "yarp conf 172.17.0.1 10000; terminator --no-dbus"
 
   yarpserver:
-    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_full
     <<: *base
     container_name: yarpserver
     command: sh -c "yarp conf 172.17.0.1 10000; yarpserver"
 
   yarpclock:
-    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_full
     <<: *base
     container_name: yarpclock
     command: sh -c "yarp conf 172.17.0.1 10000; yarp clock"
@@ -55,7 +55,7 @@ services:
       - yarpserver
 
   rosclock:
-      image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
+      image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_full
       <<: *base
       container_name: rosclock
       command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -66,7 +66,7 @@ services:
                 ros2 run clock_component clock_component"
 
   fakeBattery:
-    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_full
     <<: *base
     container_name: fakeBattery
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -78,7 +78,7 @@ services:
       - yarpserver
 
   fakeNavigation:
-    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_full
     <<: *base
     container_name: fakeNavigation
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -90,7 +90,7 @@ services:
       - yarpserver
 
   fakeLocalizer:
-    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_full
     <<: *base
     container_name: fakeLocalizer
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -102,7 +102,7 @@ services:
       - yarpserver
 
   mapServer:
-    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_full
     <<: *base
     container_name: mapServer
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -113,7 +113,7 @@ services:
       - yarpserver
 
   localization:
-    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_full
     <<: *base
     container_name: localization
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -124,7 +124,7 @@ services:
       - yarpserver
 
   navigator:
-    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_full
     <<: *base
     container_name: navigator
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -136,7 +136,7 @@ services:
     
 
   yarprun:
-    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_full
     <<: *base
     container_name: yarprun
     command: bash -c "export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/src/robot/yarp/build/lib/:/home/user1/Qt6.6.3/lib/ && \
@@ -149,7 +149,7 @@ services:
       - yarpserver
 
   yarplogger:
-    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_full
     <<: *base
     container_name: yarplogger
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -164,7 +164,7 @@ services:
     #     ipv4_address: 172.17.0.14
 
   run_components:
-    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_full
     <<: *base
     container_name: run_components
     command: bash -c "sleep 2; source /opt/ros/iron/setup.bash && \
@@ -178,7 +178,7 @@ services:
       - yarplogger
 
   run_skills:
-    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_full
     <<: *base
     container_name: run_skills
     command: bash -c "sleep 2; source /opt/ros/iron/setup.bash && \
@@ -194,362 +194,6 @@ services:
 
 
 
-################################# PROP1 #################################
-
-  run_bt_executable_prop1:
-    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
-    <<: *base
-    container_name: run_bt_executable_prop1
-    command: bash -c "source /opt/ros/iron/setup.bash && \
-              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
-              source $${UC3_DIR}/install/setup.bash && \
-              yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; \
-              ros2 run bt_executable bt_executable $${UC3_DIR}/src/behavior_tree/BT/Policy_prop1.xml"
-    depends_on:
-      - yarpserver
-      - yarprun
-      - yarplogger
-      - run_components
-      - run_skills
-
-  ros2oracleProp1:
-    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
-    <<: *base
-    container_name: ros2oracleProp1
-    command: bash -c "source /opt/ros/iron/setup.bash && \
-              source $${UC3_DIR}/install/setup.bash && \
-              cd /home/user1/UC3/laboratory-tour/monitoring && \
-              /home/user1/monitoring-python-env/bin/python /home/user1/ROSMonitoring/oracle/TLOracle/oracle.py --online --dense --property prop1"
-
-  
-  groot_prop1:
-    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
-    <<: *base
-    container_name: groot_prop1
-    command: bash -c "source /opt/ros/iron/setup.bash && \
-              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
-              source $${UC3_DIR}/install/setup.bash && \
-              /home/user1/Groot/build/Groot --mode monitor --autoconnect"
-    depends_on:
-      - yarpserver
-      - yarprun
-      - yarplogger
-      - run_components
-      - run_skills
-      - run_bt_executable_prop1
-
-  ros2monitorProp1:
-    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
-    <<: *base
-    container_name: ros2monitorProp1
-    command: bash -c "source /opt/ros/iron/setup.bash && \
-              source $${UC3_DIR}/install/setup.bash && \
-              cd /home/user1/UC3/laboratory-tour/monitoring/monitor_prop1_ws/src/ && \
-              source install/setup.bash && \
-              ros2 launch monitor/launch/monitor.launch"
-    depends_on:
-      - ros2oracleProp1
-      - terminator
-      - yarpserver
-      - yarpclock
-      - rosclock
-      - fakeBattery
-      - fakeNavigation
-      - fakeLocalizer
-      - mapServer
-      - localization
-      - navigator
-      - yarprun
-      - yarplogger
-      - run_components
-      - run_skills
-      - run_bt_executable_prop1
-      - groot_prop1
-
-################################# PROP2 #################################
-
-  run_bt_executable_prop2:
-    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
-    <<: *base
-    container_name: run_bt_executable_prop2
-    command: bash -c "source /opt/ros/iron/setup.bash && \
-              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
-              source $${UC3_DIR}/install/setup.bash && \
-              yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; \
-              ros2 run bt_executable bt_executable $${UC3_DIR}/src/behavior_tree/BT/Policy_prop2.xml"
-    depends_on:
-      - yarpserver
-      - yarprun
-      - yarplogger
-      - run_components
-      - run_skills
-
-  ros2oracleProp2:
-    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
-    <<: *base
-    container_name: ros2oracleProp2
-    command: bash -c "source /opt/ros/iron/setup.bash && \
-              source $${UC3_DIR}/install/setup.bash && \
-              cd /home/user1/UC3/laboratory-tour/monitoring && \
-              /home/user1/monitoring-python-env/bin/python /home/user1/ROSMonitoring/oracle/TLOracle/oracle.py --online --dense --property prop2"
-
-  groot_prop2:
-    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
-    <<: *base
-    container_name: groot_prop2
-    command: bash -c "source /opt/ros/iron/setup.bash && \
-              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
-              source $${UC3_DIR}/install/setup.bash && \
-              /home/user1/Groot/build/Groot --mode monitor --autoconnect"
-    depends_on:
-      - yarpserver
-      - yarprun
-      - yarplogger
-      - run_components
-      - run_skills
-      - run_bt_executable_prop2
-
-  ros2monitorProp2:
-    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
-    <<: *base
-    container_name: ros2monitorProp2
-    command: bash -c "source /opt/ros/iron/setup.bash && \
-              source $${UC3_DIR}/install/setup.bash && \
-              cd /home/user1/UC3/laboratory-tour/monitoring/monitor_prop2_ws/src/ && \
-              source install/setup.bash && \
-              ros2 launch monitor/launch/monitor.launch"
-    depends_on:
-      - ros2oracleProp2
-      - terminator
-      - yarpserver
-      - yarpclock
-      - rosclock
-      - fakeBattery
-      - fakeNavigation
-      - fakeLocalizer
-      - mapServer
-      - localization
-      - navigator
-      - yarprun
-      - yarplogger
-      - run_components
-      - run_skills
-      - run_bt_executable_prop2
-      - groot_prop2
-
-################################# PROP3 #################################
-
-  run_bt_executable_prop3:
-    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
-    <<: *base
-    container_name: run_bt_executable_prop3
-    command: bash -c "source /opt/ros/iron/setup.bash && \
-              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
-              source $${UC3_DIR}/install/setup.bash && \
-              yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; \
-              ros2 run bt_executable bt_executable $${UC3_DIR}/src/behavior_tree/BT/Policy_prop3.xml"
-    depends_on:
-      - yarpserver
-      - yarprun
-      - yarplogger
-      - run_components
-      - run_skills
-
-  ros2oracleProp3:
-    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
-    <<: *base
-    container_name: ros2oracleProp3
-    command: bash -c "source /opt/ros/iron/setup.bash && \
-              source $${UC3_DIR}/install/setup.bash && \
-              cd /home/user1/UC3/laboratory-tour/monitoring && \
-              /home/user1/monitoring-python-env/bin/python /home/user1/ROSMonitoring/oracle/TLOracle/oracle.py --online --dense --property prop3"
-
-  groot_prop3:
-    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
-    <<: *base
-    container_name: groot_prop3
-    command: bash -c "source /opt/ros/iron/setup.bash && \
-              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
-              source $${UC3_DIR}/install/setup.bash && \
-              /home/user1/Groot/build/Groot --mode monitor --autoconnect"
-    depends_on:
-      - yarpserver
-      - yarprun
-      - yarplogger
-      - run_components
-      - run_skills
-      - run_bt_executable_prop3
-
-  ros2monitorProp3:
-    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
-    <<: *base
-    container_name: ros2monitorProp3
-    command: bash -c "source /opt/ros/iron/setup.bash && \
-              source $${UC3_DIR}/install/setup.bash && \
-              cd /home/user1/UC3/laboratory-tour/monitoring/monitor_prop3_ws/src/ && \
-              source install/setup.bash && \
-              ros2 launch monitor/launch/monitor.launch"
-    depends_on:
-      - ros2oracleProp3
-      - terminator
-      - yarpserver
-      - yarpclock
-      - rosclock
-      - fakeBattery
-      - fakeNavigation
-      - fakeLocalizer
-      - mapServer
-      - localization
-      - navigator
-      - yarprun
-      - yarplogger
-      - run_components
-      - run_skills
-      - run_bt_executable_prop3
-      - groot_prop3
-
-
-################################# PROP4 #################################
-
-  run_bt_executable_prop4:
-    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
-    <<: *base
-    container_name: run_bt_executable_prop4
-    command: bash -c "source /opt/ros/iron/setup.bash && \
-              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
-              source $${UC3_DIR}/install/setup.bash && \
-              yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; \
-              ros2 run bt_executable bt_executable $${UC3_DIR}/src/behavior_tree/BT/Policy_prop4.xml"
-    depends_on:
-      - yarpserver
-      - yarprun
-      - yarplogger
-      - run_components
-      - run_skills
-
-  ros2oracleProp4:
-    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
-    <<: *base
-    container_name: ros2oracleProp4
-    command: bash -c "source /opt/ros/iron/setup.bash && \
-              source $${UC3_DIR}/install/setup.bash && \
-              cd /home/user1/UC3/laboratory-tour/monitoring && \
-              /home/user1/monitoring-python-env/bin/python /home/user1/ROSMonitoring/oracle/TLOracle/oracle.py --online --dense --property prop4"
-
-  groot_prop4:
-    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
-    <<: *base
-    container_name: groot_prop4
-    command: bash -c "source /opt/ros/iron/setup.bash && \
-              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
-              source $${UC3_DIR}/install/setup.bash && \
-              /home/user1/Groot/build/Groot --mode monitor --autoconnect"
-    depends_on:
-      - yarpserver
-      - yarprun
-      - yarplogger
-      - run_components
-      - run_skills
-      - run_bt_executable_prop4
-
-  ros2monitorProp4:
-    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
-    <<: *base
-    container_name: ros2monitorProp4
-    command: bash -c "source /opt/ros/iron/setup.bash && \
-              source $${UC3_DIR}/install/setup.bash && \
-              cd /home/user1/UC3/laboratory-tour/monitoring/monitor_prop4_ws/src/ && \
-              source install/setup.bash && \
-              ros2 launch monitor/launch/monitor.launch"
-    depends_on:
-      - ros2oracleProp4
-      - terminator
-      - yarpserver
-      - yarpclock
-      - rosclock
-      - fakeBattery
-      - fakeNavigation
-      - fakeLocalizer
-      - mapServer
-      - localization
-      - navigator
-      - yarprun
-      - yarplogger
-      - run_components
-      - run_skills
-      - run_bt_executable_prop4
-      - groot_prop4
-
-################################# PROP5 #################################
-
-  run_bt_executable_prop5:
-    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
-    <<: *base
-    container_name: run_bt_executable_prop5
-    command: bash -c "source /opt/ros/iron/setup.bash && \
-              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
-              source $${UC3_DIR}/install/setup.bash && \
-              yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; \
-              ros2 run bt_executable bt_executable $${UC3_DIR}/src/behavior_tree/BT/Policy_prop5.xml"
-    depends_on:
-      - yarpserver
-      - yarprun
-      - yarplogger
-      - run_components
-      - run_skills
-
-  ros2oracleProp5:
-    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
-    <<: *base
-    container_name: ros2oracleProp5
-    command: bash -c "source /opt/ros/iron/setup.bash && \
-              source $${UC3_DIR}/install/setup.bash && \
-              cd /home/user1/UC3/laboratory-tour/monitoring && \
-              /home/user1/monitoring-python-env/bin/python /home/user1/ROSMonitoring/oracle/TLOracle/oracle.py --online --dense --property prop5"
-
-  groot_prop5:
-    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
-    <<: *base
-    container_name: groot_prop5
-    command: bash -c "source /opt/ros/iron/setup.bash && \
-              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
-              source $${UC3_DIR}/install/setup.bash && \
-              /home/user1/Groot/build/Groot --mode monitor --autoconnect"
-    depends_on:
-      - yarpserver
-      - yarprun
-      - yarplogger
-      - run_components
-      - run_skills
-      - run_bt_executable_prop5
-
-  ros2monitorProp5:
-    image: ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim_full
-    <<: *base
-    container_name: ros2monitorProp5
-    command: bash -c "source /opt/ros/iron/setup.bash && \
-              source $${UC3_DIR}/install/setup.bash && \
-              cd /home/user1/UC3/laboratory-tour/monitoring/monitor_prop5_ws/src/ && \
-              source install/setup.bash && \
-              ros2 launch monitor/launch/monitor.launch"
-    depends_on:
-      - ros2oracleProp5
-      - terminator
-      - yarpserver
-      - yarpclock
-      - rosclock
-      - fakeBattery
-      - fakeNavigation
-      - fakeLocalizer
-      - mapServer
-      - localization
-      - navigator
-      - yarprun
-      - yarplogger
-      - run_components
-      - run_skills
-      - run_bt_executable_prop5
-      - groot_prop5
 
 # yarpmanager-console --application  UC3/laboratory-tour/launch/applications/convince_bt_components.xml --exit --run --connect
 # yarpmanager-console --application  UC3/laboratory-tour/launch/applications/convince_bt_skills.xml --exit --run --connect

@@ -1,4 +1,4 @@
-ARG base_img=ste93/convince:qt_6.7.3_ubuntu24.04_jazzy_stable_sim
+ARG base_img=ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim
 FROM $base_img
 LABEL maintainer="Stefano Bernagozzi"
 USER root
@@ -6,7 +6,7 @@ USER root
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt upgrade -y
-RUN apt-get install -y libczmq-dev ros-jazzy-zmqpp-vendor-dbgsym ros-jazzy-zmqpp-vendor libczmq-dev libczmq4 curl 
+RUN apt-get install -y libczmq-dev ros-iron-zmqpp-vendor-dbgsym ros-iron-zmqpp-vendor libczmq-dev libczmq4 curl 
 
 RUN apt install qtbase5-dev libqt5svg5-dev libzmq3-dev libdw-dev libboost-all-dev -y
 
@@ -68,19 +68,19 @@ RUN cd yarp && cd build && \
     make -j11
 
 
-RUN cd yarp-devices-ros2/ros2_interfaces_ws && /bin/bash -c "source /opt/ros/jazzy/setup.bash; colcon build"
-RUN cd yarp-devices-ros2 && cd build && /bin/bash -c "source /opt/ros/jazzy/setup.bash; source ${robotology_install_folder}/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash; cmake .. -DYARP_ROS2_USE_SYSTEM_map2d_nws_ros2_msgs=ON -DYARP_ROS2_USE_SYSTEM_yarp_control_msgs=ON; make -j11"
+RUN cd yarp-devices-ros2/ros2_interfaces_ws && /bin/bash -c "source /opt/ros/iron/setup.bash; colcon build"
+RUN cd yarp-devices-ros2 && cd build && /bin/bash -c "source /opt/ros/iron/setup.bash; source ${robotology_install_folder}/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash; cmake .. -DYARP_ROS2_USE_SYSTEM_map2d_nws_ros2_msgs=ON -DYARP_ROS2_USE_SYSTEM_yarp_control_msgs=ON; make -j11"
     
 WORKDIR /home/user1 
 
 RUN /bin/bash -c "cd /home/user1 && rm -rf ROSMonitoring"
 
-RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
+RUN /bin/bash -c "source /opt/ros/iron/setup.bash && \
     cd /home/user1 && git clone https://github.com/ste93/ROSMonitoring.git -b ros2"
 
 # installing as2fm
 RUN /bin/bash -c "/home/user1/convince-python-env/bin/pip install --upgrade pip"
-RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
+RUN /bin/bash -c "source /opt/ros/iron/setup.bash && \
     cd /home/user1 && \
     git clone https://github.com/convince-project/AS2FM.git && /home/user1/convince-python-env/bin/python -m pip install AS2FM/"
 
@@ -95,10 +95,10 @@ RUN /bin/bash -c "source /home/user1/.cargo/env && cargo install --git https://g
 RUN echo "export PATH=\$PATH:/home/user1/Groot/build" >> ~/.bashrc
 
 RUN /bin/bash -c "echo 'updated on 202502071145' && \
-    source /opt/ros/jazzy/setup.bash && \
+    source /opt/ros/iron/setup.bash && \
     cd /home/user1 && \
     git clone https://github.com/convince-project/UC3.git -b  dev/poi-scheduler-rebased && \
-    source /opt/ros/jazzy/setup.bash && \
+    source /opt/ros/iron/setup.bash && \
     cd /home/user1/UC3/laboratory-tour/ && \
     colcon build --packages-ignore face_expressions_wrapper dialog_component"
 
@@ -112,7 +112,7 @@ RUN /bin/bash -c "sudo apt install gobject-introspection libgirepository1.0-dev 
     /home/user1/monitoring-python-env/bin/pip install --upgrade pip && \
     /home/user1/monitoring-python-env/bin/pip install websocket_client rospy_message_converter pyyaml reelay jedi pycairo PyGObject prompt_toolkit"
 
-RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
+RUN /bin/bash -c "source /opt/ros/iron/setup.bash && \
     cd /home/user1/ROSMonitoring/generator/ros2_devel && \
     /home/user1/monitoring-python-env/bin/python generator --config_file /home/user1/UC3/laboratory-tour/monitoring/monitor_prop1.yaml && \
     /home/user1/monitoring-python-env/bin/python generator --config_file /home/user1/UC3/laboratory-tour/monitoring/monitor_prop2.yaml && \
