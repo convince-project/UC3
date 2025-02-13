@@ -11,7 +11,7 @@ RUN apt-get install -y libczmq-dev ros-iron-zmqpp-vendor-dbgsym ros-iron-zmqpp-v
 RUN apt install qtbase5-dev libqt5svg5-dev libzmq3-dev libdw-dev libboost-all-dev -y
 
 ENV Qt6_DIR=/home/user1/Qt6.7.3/lib/cmake
-
+RUN usermod -a -G audio user1
 # install behavior tree.cpp v3.8
 WORKDIR /home/user1
 RUN /bin/bash -c "git clone --recurse-submodules https://github.com/BehaviorTree/BehaviorTree.CPP.git -b v3.8 && \

@@ -15,6 +15,7 @@ x-base: &base
   volumes:
     - "/tmp/.X11-unix:/tmp/.X11-unix:rw"
     - "/etc/hosts:/etc/hosts"
+    - "/dev:/dev"
 
   network_mode: host
   ipc: host
@@ -28,7 +29,7 @@ services:
 
 # Images
   ros2:
-    image: ste93/
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
     build:
       dockerfile: Dockerfile
       context: .
@@ -65,6 +66,25 @@ services:
                 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/src/robot/yarp/build/lib/; 
                 ros2 run clock_component clock_component"
 
+
+  gazebo:
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
+    <<: *base
+    container_name: gazebo
+    command: bash -c "yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; source /opt/ros/iron/setup.bash; ros2 launch gazebo_ros gazebo.launch.py world:=/usr/local/src/robot/tour-guide-robot/app/maps/SIM_GAM/GAM.world"
+    depends_on:
+      - yarpserver
+
+  yarpmanager:
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
+    <<: *base
+    container_name: yarpmanager
+    command: bash -c "yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; yarpmanager"
+    depends_on:
+      - yarpserver
+      - gazebo
+
+
   fakeBattery:
     image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
     <<: *base
@@ -76,63 +96,7 @@ services:
               yarprobotinterface --config $${UC3_DIR}/src/components/fake_battery_component/robotinterface.xml"
     depends_on:
       - yarpserver
-
-  fakeNavigation:
-    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
-    <<: *base
-    container_name: fakeNavigation
-    command: bash -c "source /opt/ros/iron/setup.bash && \
-              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
-              source $${UC3_DIR}/install/setup.bash && \
-              yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; \
-              yarprobotinterface --config $${UC3_DIR}/src/components/fake_navigation_component/robotinterface.xml"
-    depends_on:
-      - yarpserver
-
-  fakeLocalizer:
-    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
-    <<: *base
-    container_name: fakeLocalizer
-    command: bash -c "source /opt/ros/iron/setup.bash && \
-              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
-              source $${UC3_DIR}/install/setup.bash && \
-              yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; \
-              yarpdev --device fakeLocalizer"
-    depends_on:
-      - yarpserver
-
-  mapServer:
-    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
-    <<: *base
-    container_name: mapServer
-    command: bash -c "source /opt/ros/iron/setup.bash && \
-              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
-              yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; \
-              yarprobotinterface --context navigation2 --from mapServer.ini"
-    depends_on:
-      - yarpserver
-
-  localization:
-    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
-    <<: *base
-    container_name: localization
-    command: bash -c "source /opt/ros/iron/setup.bash && \
-              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
-              yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; \
-              yarprobotinterface --context navigation2 --from localizationROS2.ini --init_map gam_sim_real"
-    depends_on:
-      - yarpserver
-
-  navigator:
-    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
-    <<: *base
-    container_name: navigator
-    command: bash -c "source /opt/ros/iron/setup.bash && \
-              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
-              yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; \
-              yarprobotinterface --context navigation2 --from navigator2D.ini"
-    depends_on:
-      - yarpserver
+      - gazebo
     
 
   yarprun:
@@ -159,112 +123,9 @@ services:
               yarplogger --start"
     depends_on:
       - yarpserver
+      - gazebo 
+      - yarpmanager
     # networks:
     #   frontapp:
     #     ipv4_address: 172.17.0.14
 
-  run_components:
-    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
-    <<: *base
-    container_name: run_components
-    command: bash -c "sleep 2; source /opt/ros/iron/setup.bash && \
-              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
-              source $${UC3_DIR}/install/setup.bash && \
-              yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; \
-              yarpmanager-console --application  $${UC3_DIR}/launch/applications/convince_bt_components.xml --exit --run --connect"
-    depends_on:
-      - yarpserver
-      - yarprun
-      - yarplogger
-
-  run_skills:
-    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
-    <<: *base
-    container_name: run_skills
-    command: bash -c "sleep 2; source /opt/ros/iron/setup.bash && \
-              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
-              source $${UC3_DIR}/install/setup.bash && \
-              yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; \
-              yarpmanager-console --application  $${UC3_DIR}/launch/applications/convince_bt_skills.xml --exit --run --connect"
-    depends_on:
-      - yarpserver
-      - yarprun
-      - yarplogger
-
-
-################################# PROP1 #################################
-
-  run_bt_executable_prop1:
-    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
-    <<: *base
-    container_name: run_bt_executable_prop1
-    command: bash -c "source /opt/ros/iron/setup.bash && \
-              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
-              source $${UC3_DIR}/install/setup.bash && \
-              yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; \
-              ros2 run bt_executable bt_executable $${UC3_DIR}/src/behavior_tree/BT/Policy_prop1.xml"
-    depends_on:
-      - yarpserver
-      - yarprun
-      - yarplogger
-      - run_components
-      - run_skills
-
-  ros2oracleProp1:
-    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
-    <<: *base
-    container_name: ros2oracleProp1
-    command: bash -c "source /opt/ros/iron/setup.bash && \
-              source $${UC3_DIR}/install/setup.bash && \
-              cd /home/user1/UC3/laboratory-tour/monitoring && \
-              /home/user1/monitoring-python-env/bin/python /home/user1/ROSMonitoring/oracle/TLOracle/oracle.py --online --dense --property prop1"
-
-  
-  groot_prop1:
-    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
-    <<: *base
-    container_name: groot_prop1
-    command: bash -c "source /opt/ros/iron/setup.bash && \
-              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
-              source $${UC3_DIR}/install/setup.bash && \
-              /home/user1/Groot/build/Groot --mode monitor --autoconnect"
-    depends_on:
-      - yarpserver
-      - yarprun
-      - yarplogger
-      - run_components
-      - run_skills
-      - run_bt_executable_prop1
-
-  ros2monitorProp1:
-    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
-    <<: *base
-    container_name: ros2monitorProp1
-    command: bash -c "source /opt/ros/iron/setup.bash && \
-              source $${UC3_DIR}/install/setup.bash && \
-              cd /home/user1/UC3/laboratory-tour/monitoring/monitor_prop1_ws/src/ && \
-              source install/setup.bash && \
-              ros2 launch monitor/launch/monitor.launch"
-    depends_on:
-      - ros2oracleProp1
-      - terminator
-      - yarpserver
-      - yarpclock
-      - rosclock
-      - fakeBattery
-      - fakeNavigation
-      - fakeLocalizer
-      - mapServer
-      - localization
-      - navigator
-      - yarprun
-      - yarplogger
-      - run_components
-      - run_skills
-      - run_bt_executable_prop1
-      - groot_prop1
-
-
-# yarpmanager-console --application  UC3/laboratory-tour/launch/applications/convince_bt_components.xml --exit --run --connect
-# yarpmanager-console --application  UC3/laboratory-tour/launch/applications/convince_bt_skills.xml --exit --run --connect
-# ros2 run bt_executable bt_executable UC3/laboratory-tour/src/behavior_tree/BT/Policy.xml
