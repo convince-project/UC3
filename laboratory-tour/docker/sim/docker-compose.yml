@@ -2,7 +2,7 @@
 x-base: &base
   environment:
     - DISPLAY=${DISPLAY}
-    - UC3_DIR = /home/user1/UC3/laboratory-tour/
+    - UC3_DIR=/home/user1/UC3/laboratory-tour/
     - XAUTHORITY=/home/user1/.Xauthority
     - QT_X11_NO_MITSHM=1
 #    - DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user1/1000/bus
@@ -93,6 +93,7 @@ services:
               source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
               source $${UC3_DIR}/install/setup.bash && \
               yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; \
+              echo $${UC3_DIR} && \
               yarprobotinterface --config $${UC3_DIR}/src/components/fake_battery_component/robotinterface.xml"
     depends_on:
       - yarpserver
@@ -109,6 +110,20 @@ services:
               source $${UC3_DIR}/install/setup.bash && \
               yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; \
               yarp run --server /bt --log"
+    depends_on:
+      - yarpserver
+
+
+  yarprun_console:
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
+    <<: *base
+    container_name: yarprun_console
+    command: bash -c "export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/src/robot/yarp/build/lib/:/home/user1/Qt6.6.3/lib/ && \
+              source /opt/ros/iron/setup.bash && \
+              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
+              source $${UC3_DIR}/install/setup.bash && \
+              yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; \
+              yarp run --server /console --log"
     depends_on:
       - yarpserver
 
