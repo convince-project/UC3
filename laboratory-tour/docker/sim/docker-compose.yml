@@ -192,7 +192,77 @@ services:
       - yarplogger
 
 
+################################# PROP1 #################################
 
+  run_bt_executable_prop1:
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
+    <<: *base
+    container_name: run_bt_executable_prop1
+    command: bash -c "source /opt/ros/iron/setup.bash && \
+              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
+              source $${UC3_DIR}/install/setup.bash && \
+              yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; \
+              ros2 run bt_executable bt_executable $${UC3_DIR}/src/behavior_tree/BT/Policy_prop1.xml"
+    depends_on:
+      - yarpserver
+      - yarprun
+      - yarplogger
+      - run_components
+      - run_skills
+
+  ros2oracleProp1:
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
+    <<: *base
+    container_name: ros2oracleProp1
+    command: bash -c "source /opt/ros/iron/setup.bash && \
+              source $${UC3_DIR}/install/setup.bash && \
+              cd /home/user1/UC3/laboratory-tour/monitoring && \
+              /home/user1/monitoring-python-env/bin/python /home/user1/ROSMonitoring/oracle/TLOracle/oracle.py --online --dense --property prop1"
+
+  
+  groot_prop1:
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
+    <<: *base
+    container_name: groot_prop1
+    command: bash -c "source /opt/ros/iron/setup.bash && \
+              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
+              source $${UC3_DIR}/install/setup.bash && \
+              /home/user1/Groot/build/Groot --mode monitor --autoconnect"
+    depends_on:
+      - yarpserver
+      - yarprun
+      - yarplogger
+      - run_components
+      - run_skills
+      - run_bt_executable_prop1
+
+  ros2monitorProp1:
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
+    <<: *base
+    container_name: ros2monitorProp1
+    command: bash -c "source /opt/ros/iron/setup.bash && \
+              source $${UC3_DIR}/install/setup.bash && \
+              cd /home/user1/UC3/laboratory-tour/monitoring/monitor_prop1_ws/src/ && \
+              source install/setup.bash && \
+              ros2 launch monitor/launch/monitor.launch"
+    depends_on:
+      - ros2oracleProp1
+      - terminator
+      - yarpserver
+      - yarpclock
+      - rosclock
+      - fakeBattery
+      - fakeNavigation
+      - fakeLocalizer
+      - mapServer
+      - localization
+      - navigator
+      - yarprun
+      - yarplogger
+      - run_components
+      - run_skills
+      - run_bt_executable_prop1
+      - groot_prop1
 
 
 # yarpmanager-console --application  UC3/laboratory-tour/launch/applications/convince_bt_components.xml --exit --run --connect
