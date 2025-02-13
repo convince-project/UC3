@@ -35,19 +35,19 @@ services:
 
 # containers
   terminator:
-    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_full
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
     <<: *base
     container_name: terminator
     command: sh -c "yarp conf 172.17.0.1 10000; terminator --no-dbus"
 
   yarpserver:
-    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_full
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
     <<: *base
     container_name: yarpserver
     command: sh -c "yarp conf 172.17.0.1 10000; yarpserver"
 
   yarpclock:
-    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_full
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
     <<: *base
     container_name: yarpclock
     command: sh -c "yarp conf 172.17.0.1 10000; yarp clock"
@@ -55,7 +55,7 @@ services:
       - yarpserver
 
   rosclock:
-      image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_full
+      image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
       <<: *base
       container_name: rosclock
       command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -66,7 +66,7 @@ services:
                 ros2 run clock_component clock_component"
 
   fakeBattery:
-    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_full
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
     <<: *base
     container_name: fakeBattery
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -78,7 +78,7 @@ services:
       - yarpserver
 
   fakeNavigation:
-    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_full
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
     <<: *base
     container_name: fakeNavigation
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -90,7 +90,7 @@ services:
       - yarpserver
 
   fakeLocalizer:
-    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_full
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
     <<: *base
     container_name: fakeLocalizer
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -102,7 +102,7 @@ services:
       - yarpserver
 
   mapServer:
-    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_full
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
     <<: *base
     container_name: mapServer
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -113,7 +113,7 @@ services:
       - yarpserver
 
   localization:
-    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_full
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
     <<: *base
     container_name: localization
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -124,7 +124,7 @@ services:
       - yarpserver
 
   navigator:
-    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_full
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
     <<: *base
     container_name: navigator
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -136,7 +136,7 @@ services:
     
 
   yarprun:
-    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_full
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
     <<: *base
     container_name: yarprun
     command: bash -c "export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/src/robot/yarp/build/lib/:/home/user1/Qt6.6.3/lib/ && \
@@ -149,7 +149,7 @@ services:
       - yarpserver
 
   yarplogger:
-    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_full
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
     <<: *base
     container_name: yarplogger
     command: bash -c "source /opt/ros/iron/setup.bash && \
@@ -164,7 +164,7 @@ services:
     #     ipv4_address: 172.17.0.14
 
   run_components:
-    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_full
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
     <<: *base
     container_name: run_components
     command: bash -c "sleep 2; source /opt/ros/iron/setup.bash && \
@@ -178,7 +178,7 @@ services:
       - yarplogger
 
   run_skills:
-    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_full
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
     <<: *base
     container_name: run_skills
     command: bash -c "sleep 2; source /opt/ros/iron/setup.bash && \
