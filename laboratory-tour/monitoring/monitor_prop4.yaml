@@ -10,9 +10,9 @@ monitors: # here we list the monitors we are going to generate
         url: 127.0.0.1 # the url where it is listening
         action: nothing # the oracle will not change the message
       topics:
-        - name: IsPoiDone1Skill/tick_mon/_service_event
+        - name: IsPoiDone1Skill/tick/_service_event
           type: bt_interfaces_dummy.srv.TickCondition_Event
           action: log
-        - name: SetPoi1Skill/tick_mon/_service_event
+        - name: SetPoi1Skill/tick/_service_event
           type: bt_interfaces_dummy.srv.TickAction_Event
           action: log
