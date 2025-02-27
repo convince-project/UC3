@@ -130,8 +130,8 @@ bool ROS2Action::init()
     m_clientTick = m_node->create_client<bt_interfaces_dummy::srv::TickAction>(ActionNodeBase::name() + "Skill/tick" + m_suffixMonitor);
     m_clientHalt = m_node->create_client<bt_interfaces_dummy::srv::HaltAction>(ActionNodeBase::name() + "Skill/halt" + m_suffixMonitor);
     RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"),"name " << ActionNodeBase::name() << "suffixmonitor " << m_suffixMonitor);
-    this->m_clientTick->configure_introspection(
-        m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
+    // this->m_clientTick->configure_introspection(
+    //     m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
     return true;
 
 }

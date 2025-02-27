@@ -49,8 +49,8 @@ bool ROS2Condition::init()
     m_node = rclcpp::Node::make_shared(ConditionNode::name()+ "Leaf");
     m_clientTick = m_node->create_client<bt_interfaces_dummy::srv::TickCondition>(ConditionNode::name() + "Skill/tick" + m_suffixMonitor);
     RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"),"name " << ConditionNode::name() << "suffixmonitor " << m_suffixMonitor);
-    this->m_clientTick->configure_introspection(
-        m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
+    // this->m_clientTick->configure_introspection(
+    //     m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
 
     return true;
 
