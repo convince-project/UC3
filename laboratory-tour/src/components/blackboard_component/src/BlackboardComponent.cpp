@@ -46,8 +46,13 @@ bool BlackboardComponent::start(int argc, char*argv[])
                                                                                 this,
                                                                                 std::placeholders::_1,
                                                                                 std::placeholders::_2));
+    m_setAllIntsWithPrefixService = m_node->create_service<blackboard_interfaces::srv::SetAllIntsWithPrefixBlackboard>("/BlackboardComponent/SetAllIntsWithPrefix",  
+                                                                                std::bind(&BlackboardComponent::SetAllIntsWithPrefix,
+                                                                                this,
+                                                                                std::placeholders::_1,
+                                                                                std::placeholders::_2));
     RCLCPP_DEBUG(m_node->get_logger(), "BlackboardComponent::start");
-    std::cout << "BlackboardComponent::start";        
+    std::cout << "BlackboardComponent::start" << std::endl;        
     return true;
 
 }
@@ -71,11 +76,12 @@ void BlackboardComponent::GetDouble( const std::shared_ptr<blackboard_interfaces
         response->is_ok = false;
         response->error_msg = "missing required field name";
     } else {
-        if (!m_doubleBlacboard.contains(request->field_name)) {
+        if (!m_doubleBlackboard.contains(request->field_name)) {
             response->is_ok = false;
             response->error_msg = "field not found";
         } else {
-            response->value = m_doubleBlacboard.find(request->field_name)->second;  
+            response->value = m_doubleBlackboard.find(request->field_name)->second;  
+            std::cout << "GetDouble: " << request->field_name << " " << response->value << std::endl; 
             response->is_ok = true;
         }
     }
@@ -93,10 +99,11 @@ void BlackboardComponent::SetDouble( const std::shared_ptr<blackboard_interfaces
         response->is_ok = false;
         response->error_msg = "missing required value";
     } else {
-        if (m_doubleBlacboard.contains(request->field_name)) {
+        if (m_doubleBlackboard.contains(request->field_name)) {
             response->error_msg = "field already present, overwriting";
         } 
-        m_doubleBlacboard.insert_or_assign(request->field_name, request->value);  
+        m_doubleBlackboard.insert_or_assign(request->field_name, request->value);  
+        std::cout << "SetDouble: " << request->field_name << " " << request->value << std::endl;
         response->is_ok = true;
     }
 }
@@ -109,11 +116,12 @@ void BlackboardComponent::GetString( const std::shared_ptr<blackboard_interfaces
     if (request->field_name == "") {
         response->is_ok = false;
         response->error_msg = "missing required field name";
-    } else if (!m_stringBlacboard.contains(request->field_name)) {
+    } else if (!m_stringBlackboard.contains(request->field_name)) {
         response->is_ok = false;
         response->error_msg = "field not found";
     } else {
-        response->value = m_stringBlacboard.find(request->field_name)->second;  
+        response->value = m_stringBlackboard.find(request->field_name)->second;  
+        std::cout << "GetString: " << request->field_name << " " << response->value << std::endl; 
         response->is_ok = true;
     }
     
@@ -130,10 +138,11 @@ void BlackboardComponent::SetString(const std::shared_ptr<blackboard_interfaces:
         response->is_ok = false;
         response->error_msg = "missing required value";
     } else {
-        if (m_stringBlacboard.contains(request->field_name)) {
+        if (m_stringBlackboard.contains(request->field_name)) {
             response->error_msg = "field already present, overwriting";
         } 
-        m_stringBlacboard.insert_or_assign(request->field_name, request->value);  
+        m_stringBlackboard.insert_or_assign(request->field_name, request->value);  
+        std::cout << "SetString: " << request->field_name << " " << request->value << std::endl;
         response->is_ok = true;
     }
 }
@@ -147,11 +156,12 @@ void BlackboardComponent::GetInt( const std::shared_ptr<blackboard_interfaces::s
         response->is_ok = false;
         response->error_msg = "missing required field name";
     } else {
-        if (!m_intBlacboard.contains(request->field_name)) {
+        if (!m_intBlackboard.contains(request->field_name)) {
             response->is_ok = false;
             response->error_msg = "field not found";
         } else {
-            response->value = m_intBlacboard.find(request->field_name)->second;  
+            response->value = m_intBlackboard.find(request->field_name)->second; 
+            std::cout << "GetInt: " << request->field_name << " " << response->value << std::endl; 
             response->is_ok = true;
         }
     }
@@ -166,10 +176,39 @@ void BlackboardComponent::SetInt( const std::shared_ptr<blackboard_interfaces::s
         response->is_ok = false;
         response->error_msg = "missing required field name";
     } else {
-        if (m_intBlacboard.contains(request->field_name)) {
+        if (m_intBlackboard.contains(request->field_name)) {
             response->error_msg = "field already present, overwriting";
         } 
-        m_intBlacboard.insert_or_assign(request->field_name, request->value);  
+        m_intBlackboard.insert_or_assign(request->field_name, request->value); 
+        std::cout << "SetInt: " << request->field_name << " " << request->value << std::endl; 
+        response->is_ok = true;
+    }
+}
+
+void BlackboardComponent::SetAllIntsWithPrefix(const std::shared_ptr<blackboard_interfaces::srv::SetAllIntsWithPrefixBlackboard::Request> request,
+    std::shared_ptr<blackboard_interfaces::srv::SetAllIntsWithPrefixBlackboard::Response> response) 
+{
+    std::lock_guard<std::mutex> lock(m_mutexInt);
+    std::string prefix = request->field_name;
+    if (prefix.empty()) {
+        response->is_ok = false;
+        response->error_msg = "Field name is empty";
+        return;
+    }
+    
+    bool foundAny = false;
+    for (auto& [key, value] : m_intBlackboard) {
+        if (key.find(prefix) == 0) {
+            foundAny = true;
+            value = request->value; 
+            std::cout << "SetAllIntsWithPrefix: " << key << " " << request->value << std::endl;
+        }
+    }
+    
+    if (!foundAny) {
+        response->is_ok = false;
+        response->error_msg = "No fields with the given prefix found";
+    } else {
         response->is_ok = true;
     }
 }

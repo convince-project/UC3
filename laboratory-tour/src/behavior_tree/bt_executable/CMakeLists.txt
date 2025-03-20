@@ -8,6 +8,7 @@ set (dependencies bt_nodes bt_interfaces rclcpp behaviortree_cpp_v3)
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(bt_nodes REQUIRED)
+find_package(Boost COMPONENTS coroutine QUIET)
 find_package(rclcpp REQUIRED)
 find_package(bt_interfaces REQUIRED)
 find_package(behaviortree_cpp_v3 REQUIRED)

@@ -28,6 +28,7 @@ rosidl_generate_interfaces(scheduler_interfaces
 "srv/SetCommand.srv"
 "srv/GetCurrentCommand.srv"
 "srv/GetAvailableCommands.srv"
+"srv/SetPoi.srv"
 DEPENDENCIES sensor_msgs
 LIBRARY_NAME scheduler_interfaces 
 )

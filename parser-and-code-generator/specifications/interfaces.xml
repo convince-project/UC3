@@ -176,75 +176,6 @@
         </function>
     </interface>
 
-    <interface id="scheduler_interfaces">
-        <function id="GetCurrentPoi">
-            <protocol>
-                <ROS2data>
-                    <interface type="async-service" />
-                </ROS2data>
-            </protocol>
-            <returnValue>
-                <dataType>string</dataType>
-                <dataField>poi_name</dataField>
-            </returnValue>
-        </function>
-        <function id="UpdatePoi">
-            <protocol>
-                <ROS2data>
-                    <interface type="async-service" />
-                </ROS2data>
-            </protocol>
-        </function>
-        <function id="UpdateAction">
-            <protocol>
-                <ROS2data>
-                    <interface type="async-service" />
-                </ROS2data>
-            </protocol>
-            <returnValue>
-                <dataType>bool</dataType>
-                <dataField>done_with_poi</dataField>
-            </returnValue>
-        </function>
-        <function id="GetCurrentAction">
-            <protocol>
-                <ROS2data>
-                    <interface type="async-service" />
-                </ROS2data>
-            </protocol>
-            <returnValue>
-                <dataType>string</dataType>
-                <dataField>param</dataField>
-            </returnValue>
-            <returnValue>
-                <dataType>bool</dataType>
-                <dataField>is_blocking</dataField>
-            </returnValue>
-            <returnValue>
-                <dataType>string</dataType>
-                <dataField>type</dataField>
-            </returnValue>
-        </function>
-        <function id="GetCurrentLanguage">
-            <protocol>
-                <ROS2data>
-                    <interface type="async-service" />
-                </ROS2data>
-            </protocol>
-            <returnValue>
-                <dataType>string</dataType>
-                <dataField>language</dataField>
-            </returnValue>
-        </function>
-        <function id="SetCommand">
-            <protocol>
-                <ROS2data>
-                    <interface type="async-service" />
-                </ROS2data>
-            </protocol>
-        </function>
-    </interface>
-
     <interface id="text_to_speech_interfaces">
         <function id="Speak">
             <protocol>
@@ -283,6 +214,13 @@
             </returnValue>
         </function>
         <function id="UpdatePoi">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+        </function>
+        <function id="SetPoi">
             <protocol>
                 <ROS2data>
                     <interface type="async-service" />
@@ -355,6 +293,13 @@
                 </ROS2data>
             </protocol>
         </function>
+        <function id="Reset">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+        </function>
     </interface>
 
     <interface id="blackboard_interfaces">
@@ -370,6 +315,31 @@
             </returnValue>
         </function>
         <function id="SetInt">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+        </function>
+        <function id="SetAllIntsWithPrefix">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+        </function>
+        <function id="GetString">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>string</dataType>
+                <dataField>value</dataField>
+            </returnValue>
+        </function>
+        <function id="SetString">
             <protocol>
                 <ROS2data>
                     <interface type="async-service" />
@@ -448,6 +418,115 @@
                 </ROS2data>
             </protocol>
         </function>
+    </interface>
+    <interface id="time_interfaces">
+        <function id="StartTourTimer">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+        </function>
+        <function id="StopTourTimer">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+        </function>
+        <function id="IsMuseumClosing">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>bool</dataType>
+                <dataField>is_closing</dataField>
+            </returnValue>
+        </function>
+    </interface>
+
+    <interface id="execute_dance_interfaces">
+        <function id="ExecuteDance">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol> 
+        </function>
+        <function id="IsDancing">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>bool</dataType>
+                <dataField>is_dancing</dataField>
+            </returnValue>
+        </function>
+        <function id="TimeLeft">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>float32</dataType>
+                <dataField>time_left</dataField>
+            </returnValue>
+        </function>
+    </interface>
+    <interface id="turn_back_manager_interfaces">
+        <function id="IncreaseTurnBacksCounter">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol> 
+        </function>
+        <function id="ResetCounters">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol> 
+        </function>
+        <function id="IsAllowedToContinue">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol> 
+            <returnValue>
+                <dataType>bool</dataType>
+                <dataField>is_allowed</dataField>
+            </returnValue>
+        </function>
+        <function id="IsAllowedToTurnBack">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol> 
+            <returnValue>
+                <dataType>bool</dataType>
+                <dataField>is_allowed</dataField>
+            </returnValue>
+        </function>
+        <function id="GetTurnBacksCounter">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol> 
+            <returnValue>
+                <dataType>int32</dataType>
+                <dataField>counter</dataField>
+            </returnValue>
+        </function>
+        
     </interface>
 
 </interfaces>

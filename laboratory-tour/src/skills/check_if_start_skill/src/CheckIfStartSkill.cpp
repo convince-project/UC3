@@ -93,6 +93,7 @@ bool CheckIfStartSkill::start(int argc, char*argv[])
                     QVariantMap data;
                     data.insert("result", "SUCCESS");
                     data.insert("poi_name", response->poi_name.c_str());
+                    data.insert("poi_number", response->poi_number);
                     m_stateMachine.submitEvent("SchedulerComponent.GetCurrentPoi.Return", data);
                     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.GetCurrentPoi.Return");
                 } else {

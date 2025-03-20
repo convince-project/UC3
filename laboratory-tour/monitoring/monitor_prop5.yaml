@@ -1,0 +1,18 @@
+path: /home/user1/UC3/laboratory-tour/monitoring/monitor_prop5_ws/src  # this is the path to the ros workspace you'd like the monitor package in
+
+monitors: # here we list the monitors we are going to generate
+  - monitor:
+      id: monitor_prop5
+      log: ./log.txt # file where the monitor will log the observed events
+      silent: False # we let the monitor to print info during its execution
+      oracle: # the oracle running and ready to check the specification (localhost in this case)
+        port: 8080 # the port where it is listening
+        url: 127.0.0.1 # the url where it is listening
+        action: nothing # the oracle will not change the message
+      topics: # the list of topics this monitor is going to intercept
+        - name: PeopleDetectorFilterComponent/is_followed # name of the topic
+          type: std_msgs.msg.Bool # type of the topic
+          action: log
+        - name: clock
+          type: builtin_interfaces.msg.Time
+          action: log

@@ -1,0 +1,146 @@
+
+x-base: &base
+  environment:
+    - DISPLAY=${DISPLAY}
+    - UC3_DIR=/home/user1/UC3/laboratory-tour/
+    - XAUTHORITY=/home/user1/.Xauthority
+    - QT_X11_NO_MITSHM=1
+#    - DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user1/1000/bus
+    - LIBGL_ALWAYS_INDIRECT=0
+    - YARP_COLORED_OUTPUT=1
+    - YARP_CLOCK=/clock
+    - YARP_NAMESPACE=/root
+    - ROS_DOMAIN_ID=47
+    - CYCLONEDDS_URI=/home/user1/UC3/laboratory-tour/docker/cyclone_dds_settings.xml
+  volumes:
+    - "/tmp/.X11-unix:/tmp/.X11-unix:rw"
+    - "/etc/hosts:/etc/hosts"
+    - "/dev:/dev"
+
+  network_mode: host
+  ipc: host
+  pid: host
+  privileged: true
+  security_opt:
+    - apparmor:unconfined
+
+
+services:
+
+# Images
+  ros2:
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
+    build:
+      dockerfile: Dockerfile
+      context: .
+
+# containers
+  terminator:
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
+    <<: *base
+    container_name: terminator
+    command: sh -c "yarp conf 172.17.0.1 10000; terminator --no-dbus"
+
+  yarpserver:
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
+    <<: *base
+    container_name: yarpserver
+    command: sh -c "yarp conf 172.17.0.1 10000; yarpserver"
+
+  yarpclock:
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
+    <<: *base
+    container_name: yarpclock
+    command: sh -c "yarp conf 172.17.0.1 10000; yarp clock"
+    depends_on:
+      - yarpserver
+
+  rosclock:
+      image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
+      <<: *base
+      container_name: rosclock
+      command: bash -c "source /opt/ros/iron/setup.bash && \
+                source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
+                source $${UC3_DIR}/install/setup.bash && \
+                yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; \
+                export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/src/robot/yarp/build/lib/; 
+                ros2 run clock_component clock_component"
+
+
+  gazebo:
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
+    <<: *base
+    container_name: gazebo
+    command: bash -c "yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; source /opt/ros/iron/setup.bash; ros2 launch gazebo_ros gazebo.launch.py world:=/usr/local/src/robot/tour-guide-robot/app/maps/SIM_GAM/GAM.world"
+    depends_on:
+      - yarpserver
+
+  yarpmanager:
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
+    <<: *base
+    container_name: yarpmanager
+    command: bash -c "yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; yarpmanager"
+    depends_on:
+      - yarpserver
+      - gazebo
+
+
+  fakeBattery:
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
+    <<: *base
+    container_name: fakeBattery
+    command: bash -c "source /opt/ros/iron/setup.bash && \
+              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
+              source $${UC3_DIR}/install/setup.bash && \
+              yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; \
+              echo $${UC3_DIR} && \
+              yarprobotinterface --config $${UC3_DIR}/src/components/fake_battery_component/robotinterface.xml"
+    depends_on:
+      - yarpserver
+      - gazebo
+    
+
+  yarprun:
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
+    <<: *base
+    container_name: yarprun
+    command: bash -c "export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/src/robot/yarp/build/lib/:/home/user1/Qt6.6.3/lib/ && \
+              source /opt/ros/iron/setup.bash && \
+              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
+              source $${UC3_DIR}/install/setup.bash && \
+              yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; \
+              yarp run --server /bt --log"
+    depends_on:
+      - yarpserver
+
+
+  yarprun_console:
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
+    <<: *base
+    container_name: yarprun_console
+    command: bash -c "export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/src/robot/yarp/build/lib/:/home/user1/Qt6.6.3/lib/ && \
+              source /opt/ros/iron/setup.bash && \
+              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
+              source $${UC3_DIR}/install/setup.bash && \
+              yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; \
+              yarp run --server /console --log"
+    depends_on:
+      - yarpserver
+
+  yarplogger:
+    image: ste93/convince:qt_6.7.3_ubuntu22.04_iron_stable_sim_completed
+    <<: *base
+    container_name: yarplogger
+    command: bash -c "source /opt/ros/iron/setup.bash && \
+              source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
+              source $${UC3_DIR}/install/setup.bash && \
+              yarp conf 172.17.0.1 10000; yarp wait $${YARP_NAMESPACE}; \
+              yarplogger --start"
+    depends_on:
+      - yarpserver
+      - gazebo 
+      - yarpmanager
+    # networks:
+    #   frontapp:
+    #     ipv4_address: 172.17.0.14
+

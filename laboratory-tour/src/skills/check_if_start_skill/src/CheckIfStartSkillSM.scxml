@@ -8,7 +8,8 @@
   <datamodel>
     <data id="m_result"/>
     <data id="m_poi_name"/>
-    <data id="START_POI" expr="'madama_start'"/>
+    <data id="m_poi_number"/>
+    <data id="START_POI" expr="0"/>
   </datamodel>
 
   <state id="idle">
@@ -22,6 +23,7 @@
     <transition event="SchedulerComponent.GetCurrentPoi.Return" target="getCurrentPoiResult"> 
         <assign expr="_event.data.result" location="m_result"/>
         <assign expr="_event.data.poi_name" location="m_poi_name"/>
+        <assign expr="_event.data.poi_number" location="m_poi_number"/>
     </transition>
   </state>
 
@@ -31,7 +33,7 @@
   </state>
 
   <state id="checkPoi">
-    <transition cond="m_poi_name == START_POI" target="sendSuccess" /> 
+    <transition cond="m_poi_number == START_POI" target="sendSuccess" /> 
     <transition target="sendFailure" /> 
   </state> 
 

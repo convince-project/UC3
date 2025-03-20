@@ -12,6 +12,8 @@
 #include <rclcpp/rclcpp.hpp>
 #include "UpdatePoiSkillSM.h"
 #include <bt_interfaces/msg/action_response.hpp>
+
+#define SERVICE_TIMEOUT 8
 #include <scheduler_interfaces/srv/update_poi.hpp>
 #include <bt_interfaces/srv/tick_action.hpp>
 #include <bt_interfaces/srv/halt_action.hpp>

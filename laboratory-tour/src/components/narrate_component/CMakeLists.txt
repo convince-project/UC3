@@ -20,6 +20,7 @@ find_package(rclcpp REQUIRED)
 find_package(narrate_interfaces REQUIRED)
 find_package(scheduler_interfaces REQUIRED)
 find_package(text_to_speech_interfaces REQUIRED)
+find_package(execute_dance_interfaces REQUIRED)
 
 add_executable(${PROJECT_NAME} )
 
@@ -28,7 +29,7 @@ add_executable(${PROJECT_NAME} )
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-ament_target_dependencies(${PROJECT_NAME} narrate_interfaces text_to_speech_interfaces scheduler_interfaces rclcpp )
+ament_target_dependencies(${PROJECT_NAME} narrate_interfaces text_to_speech_interfaces scheduler_interfaces execute_dance_interfaces rclcpp )
 target_link_libraries(${PROJECT_NAME})
 
 target_include_directories(${PROJECT_NAME}

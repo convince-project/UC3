@@ -332,7 +332,7 @@ void TextToSpeechComponent::IsSpeaking(const std::shared_ptr<text_to_speech_inte
     auto timeout = 500ms;
     auto wait = 20ms;
     auto elapsed = 0ms;
-    yarp::dev::AudioPlayerStatus* player_status = nullptr;
+    yarp::sig::AudioPlayerStatus* player_status = nullptr;
 
     // Read and wait untill I have a valid message, or the timeout is passed
     while ([this, &player_status]()->bool{

@@ -7,7 +7,7 @@ endif()
 
 # find dependencies
 find_package(rclcpp REQUIRED)
-
+find_package(Boost COMPONENTS coroutine QUIET)
 find_package(ament_cmake REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.

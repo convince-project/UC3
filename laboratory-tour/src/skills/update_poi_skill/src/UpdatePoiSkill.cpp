@@ -24,6 +24,15 @@ T convert(const std::string& str) {
     } else if constexpr (std::is_same_v<T, float>) {
         return std::stof(str);
     } 
+    else if constexpr (std::is_same_v<T, bool>) { 
+        if (str == "true" || str == "1") { 
+            return true; 
+        } else if (str == "false" || str == "0") { 
+            return false; 
+        } else { 
+            throw std::invalid_argument("Invalid boolean value"); 
+        } 
+    } 
     else if constexpr (std::is_same_v<T, std::string>) {
         return str;
     }
@@ -72,33 +81,44 @@ bool UpdatePoiSkill::start(int argc, char*argv[])
         std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::UpdatePoi>> clientUpdatePoi = nodeUpdatePoi->create_client<scheduler_interfaces::srv::UpdatePoi>("/SchedulerComponent/UpdatePoi");
         auto request = std::make_shared<scheduler_interfaces::srv::UpdatePoi::Request>();
         bool wait_succeded{true};
+        int retries = 0;
         while (!clientUpdatePoi->wait_for_service(std::chrono::seconds(1))) {
             if (!rclcpp::ok()) {
                 RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'UpdatePoi'. Exiting.");
                 wait_succeded = false;
-                m_stateMachine.submitEvent("SchedulerComponent.UpdatePoi.Return");
+                break;
             } 
+            retries++;
+            if(retries == SERVICE_TIMEOUT) {
+               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while waiting for the service 'UpdatePoi'.");
+               wait_succeded = false;
+               break;
+            }
         }
         if (wait_succeded) {
             // send the request                                                                    
             auto result = clientUpdatePoi->async_send_request(request);
-            auto futureResult = rclcpp::spin_until_future_complete(nodeUpdatePoi, result);
-            auto response = result.get();
+            const std::chrono::seconds timeout_duration(SERVICE_TIMEOUT);
+            auto futureResult = rclcpp::spin_until_future_complete(nodeUpdatePoi, result, timeout_duration);
             if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
             {
-                if( response->is_ok ==true) {
-                    QVariantMap data;
-                    data.insert("result", "SUCCESS");
-                    m_stateMachine.submitEvent("SchedulerComponent.UpdatePoi.Return", data);
-                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.UpdatePoi.Return");
-                } else {
-                    QVariantMap data;
-                    data.insert("result", "FAILURE");
-                    m_stateMachine.submitEvent("SchedulerComponent.UpdatePoi.Return", data);
-                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.UpdatePoi.Return");
-                }
-            }
+               auto response = result.get();
+               if( response->is_ok ==true) {
+                   QVariantMap data;
+                   data.insert("result", "SUCCESS");
+                   m_stateMachine.submitEvent("SchedulerComponent.UpdatePoi.Return", data);
+                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.UpdatePoi.Return");
+                   return;
+               }
+           }
+           else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
+               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'UpdatePoi'.");
+           }
         }
+       QVariantMap data;
+       data.insert("result", "FAILURE");
+       m_stateMachine.submitEvent("SchedulerComponent.UpdatePoi.Return", data);
+       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.UpdatePoi.Return");
     });
 
 	m_stateMachine.connectToEvent("TICK_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){

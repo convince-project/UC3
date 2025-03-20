@@ -179,6 +179,7 @@ bool GoToCurrentPoiSkill::start(int argc, char*argv[])
         auto request = std::make_shared<navigation_interfaces::srv::CheckNearToPoi::Request>();
         auto eventParams = event.data().toMap();
         request->distance = convert<decltype(request->distance)>(eventParams["distance"].toString().toStdString());
+        request->angle = convert<decltype(request->angle)>(eventParams["angle"].toString().toStdString());
         request->poi_name = convert<decltype(request->poi_name)>(eventParams["poi_name"].toString().toStdString());
         bool wait_succeded{true};
         while (!clientCheckNearToPoi->wait_for_service(std::chrono::seconds(1))) {
