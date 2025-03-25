@@ -106,18 +106,17 @@ USER user1
 
 RUN echo "export PATH=\$PATH:/home/user1/Groot/build" >> ~/.bashrc
 
-RUN /bin/bash -c "echo 'updated on 202503250921' && \
-    source /opt/ros/jazzy/setup.bash && \
-    cd /home/user1 && \
-    git clone https://github.com/convince-project/UC3.git && \
-    source /opt/ros/jazzy/setup.bash && \
-    cd /home/user1/UC3/laboratory-tour/ && \
-    colcon build --base-paths src/* --packages-ignore face_expressions_wrapper dialog_component"
+# RUN /bin/bash -c "echo 'updated on 202503250921' && \
+#     source /opt/ros/jazzy/setup.bash && \
+#     cd /home/user1 && \
+#     git clone https://github.com/convince-project/UC3.git && \
+#     source /opt/ros/jazzy/setup.bash && \
+#     cd /home/user1/UC3/laboratory-tour/ && \
+#     colcon build --base-paths src/* --packages-ignore face_expressions_wrapper dialog_component"
 
 
-RUN echo "source /home/user1/UC3/laboratory-tour/install/setup.bash" >> ~/.bashrc
+# RUN echo "source /home/user1/UC3/laboratory-tour/install/setup.bash" >> ~/.bashrc
 
 ENV PATH=${PATH}:/home/user1/.local/bin
 
 ENV LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/src/robot/yarp/build/lib/
-
