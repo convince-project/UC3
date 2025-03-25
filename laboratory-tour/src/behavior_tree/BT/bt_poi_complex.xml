@@ -53,13 +53,17 @@
 
   <BehaviorTree ID="BehaviorTree">
     <ReactiveSequence>
-      <SubTree ID="BatteryManagement"/>
+      <SubTree ID="BatteryManagement"
+               __shared_blackboard="false"/>
       <SubTree ID="NetworkManagement"/>
-      <SubTree ID="PoiScheduler"/>
       <Sequence>
         <SubTree ID="MuseumHours"/>
-        <SubTree ID="GoToPoi"/>
-        <SubTree ID="CheckArtworkAndExplain"/>
+        <SubTree ID="PoiScheduler"
+                 __shared_blackboard="false"/>
+        <SubTree ID="GoToPoi"
+                 __shared_blackboard="false"/>
+        <SubTree ID="CheckArtworkAndExplain"
+                 __shared_blackboard="false"/>
       </Sequence>
     </ReactiveSequence>
   </BehaviorTree>
