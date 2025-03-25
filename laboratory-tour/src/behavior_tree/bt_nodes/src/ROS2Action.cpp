@@ -96,7 +96,7 @@ void ROS2Action::halt()
             RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "%s service TickAction not available, waiting again...", ActionNodeBase::name().c_str());
         }
         auto result = m_clientHalt->async_send_request(request);
-        std::this_thread::sleep_for (std::chrono::milliseconds(100));
+        // std::this_thread::sleep_for (std::chrono::milliseconds(100));
         if (rclcpp::spin_until_future_complete(m_node, result) ==
             rclcpp::FutureReturnCode::SUCCESS) {
             success = true;

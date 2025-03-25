@@ -76,7 +76,7 @@ int ROS2Condition::sendTickToSkill()
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "%s service TickCondition not available, waiting again...", ConditionNode::name().c_str());
     }
     auto result = m_clientTick->async_send_request(request);
-    std::this_thread::sleep_for (std::chrono::milliseconds(100));
+    // std::this_thread::sleep_for (std::chrono::milliseconds(100));
     if (rclcpp::spin_until_future_complete(m_node, result) ==
         rclcpp::FutureReturnCode::SUCCESS) {
         return result.get()->status.status;
