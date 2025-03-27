@@ -10,7 +10,6 @@ RUN apt-get install -y libczmq-dev ros-jazzy-zmqpp-vendor-dbgsym ros-jazzy-zmqpp
 
 RUN apt install qtbase5-dev libqt5svg5-dev libzmq3-dev libdw-dev libboost-all-dev -y
 
-ENV Qt6_DIR=/root/Qt6.7.3/lib/cmake
 RUN usermod -a -G audio user1
 # install behavior tree.cpp v3.8
 WORKDIR /home/user1
