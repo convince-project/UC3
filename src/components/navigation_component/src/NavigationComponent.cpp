@@ -222,11 +222,11 @@ void NavigationComponent::StopNavigation([[maybe_unused]] const std::shared_ptr<
 void NavigationComponent::CheckNearToPoi(const std::shared_ptr<navigation_interfaces::srv::CheckNearToPoi::Request> request,
              std::shared_ptr<navigation_interfaces::srv::CheckNearToPoi::Response>      response) 
 {
+    bool is_near = false;
     if (request->poi_name == "")
     {
         response->is_ok = false;
         response->error_msg = "empty poi";
-    bool is_near = false;
     } else if (!m_iNav2D->checkNearToLocation(request->poi_name, is_near, request->distance))
     // } else if (!m_iNav2D->checkNearToLocation(request->poi_name, request->distance, request->angle))
     {
