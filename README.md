@@ -1,5 +1,5 @@
 <h1 align="center">
-    Convince Behavior trees
+    Code for the execution of use case 3 for the [convince project](https://convince-project.eu)
 </h1>
 
 <p align="center"><img src="assets/image.png" alt=""/></p>
@@ -38,7 +38,6 @@
 ### Execution inside a container (alternative)
 
 look in the specific folders
-
 <!-- ## Reproduce the paper results
 
 Before running the experiments, it is suggested to run the following sanity checks to make sure that the environment is properly configure:
