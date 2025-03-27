@@ -13,13 +13,11 @@ RUN apt-get update && apt upgrade -y && apt-get install -y ninja-build libzmq3-d
 RUN /bin/bash -c "cd /usr/local/src && wget https://download.qt.io/official_releases/qt/6.7/${qt_version}/single/qt-everywhere-src-${qt_version}.tar.xz && \
                     tar -xvf qt-everywhere-src-${qt_version}.tar.xz && \
                     cd /usr/local/src/qt-everywhere-src-${qt_version} && \
-                        ./configure -list-features && \
-                        cd /usr/local/src/qt-everywhere-src-${qt_version} && \
                     ./configure -opensource -confirm-license -nomake examples -nomake tests -DBUILD_qt3d=OFF -DBUILD_qtquick3dphysics=OFF -DBUILD_qtquick3d=OFF  && \
                     cmake --build . --parallel && \
-                    cd /usr/local/src/qt-everywhere-src-${qt_version} && \
                     cmake --install . && \
                     rm -rf /usr/local/src/qt-everywhere-src-${qt_version}.tar.xz && \
                     rm -rf cd /usr/local/src/qt-everywhere-src-${qt_version}"
 
 
+ENV Qt6_DIR=/usr/local/Qt-6.7.3/lib/cmake
