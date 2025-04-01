@@ -1,24 +1,22 @@
-<h1 align="center">
-    Code for the execution of use case 3 for the [convince project](https://convince-project.eu)
-</h1>
+# Code for the execution of use case 3 for the [convince project](https://convince-project.eu)
 
-<p align="center"><img src="assets/image.png" alt=""/></p>
+
+## running the code
+
+inside the docker folder you can find the dockerfiles needed for executing the code. You can also find the dockerfiles pushed on [dockerhub](https://hub.docker.com/layers/ste93/convince/qt_6.7.3_ubuntu24.04_jazzy_stable/images/sha256-cd36bca9d990b799acc80cf76106032a9bd0688a1d37ea4e29c4211e88bb9ffc)
+once you execute the docker, inside the launch folder you can find all the necessary yarpmanager applications. 
 <!-- 
 <div align="center">
   Journal, vol. X, no. y, pp. abc-def, Month Year
 </div>
 
-<div align="center">
-  <a href=""><b>Paper</b></a> |
-  <a href=""><b>arXiv</b></a> |
-  <a href=""><b>Video</b></a> |
-</div> -->
 
 
-## Table of Contents
+<!-- ## Table of Contents
 
 - [Update](#updates)
-<!-- - [Installation](#installation) -->
+<!-- - [Installation](#installation) 
+- [running the code](#running-the-code)
 - [Reproduce the results](#reproduce-the-paper-results)
 - [Run the code with custom data](#run-the-code-with-custom-data-optional)
 - [License](#license)
@@ -26,18 +24,10 @@
 
 ## Updates
 
-2024-01-26 added simple example working
-
-<!-- ## Installation
-
-```console
-<all the instructions require to install your software>
-```
-:warning: In this section it would be good to provide the user with all the information necessary to install the correct dependencies, with the correct versions. If the dependencies are built from sources, indicating a specific commit/tag represents an alternative to specifying the version. -->
 
 ### Execution inside a container (alternative)
 
-look in the specific folders
+look in the specific folders -->
 <!-- ## Reproduce the paper results
 
 Before running the experiments, it is suggested to run the following sanity checks to make sure that the environment is properly configure:
