@@ -42,12 +42,15 @@
                       isMonitored="false"/>
         </ReactiveFallback>
       </ReactiveFallback>
-      <ROS2Action name="NotifyCharged"
-                  interface="ROS2SERVICE"
-                  isMonitored="false"/>
-      <ROS2Condition name="IsAllowedToMove"
-                     interface="ROS2SERVICE"
-                     isMonitored="false"/>
+      <Parallel failure_threshold="1"
+                success_threshold="">
+        <ROS2Action name="NotifyCharged"
+                    interface="ROS2SERVICE"
+                    isMonitored="false"/>
+        <ROS2Condition name="IsAllowedToMove"
+                       interface="ROS2SERVICE"
+                       isMonitored="false"/>
+      </Parallel>
     </ReactiveSequence>
   </BehaviorTree>
 
