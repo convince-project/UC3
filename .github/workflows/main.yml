@@ -39,11 +39,11 @@ jobs:
       run: |
        if [ ${{ github.event_name }} == 'schedule' ]; then
           echo "Building development tour core image"
-          sudo docker build --build-arg base_img=${{matrix.config.base_image_repo}}:${{matrix.config.base_image_tag}} -t ${{matrix.config.image_name_base}}_devel .
+          sudo docker build --build-arg base_img=${{matrix.config.base_image_repo}}:${{matrix.config.base_image_tag}} -t ${{matrix.config.image_name_base}}_devel -f Dockerfile.bt .
        elif [ ${{ github.event_name }} == 'workflow_dispatch' ]; then
           echo "Building stable tour core image"
           echo $PWD
-          sudo docker build --build-arg base_img=${{matrix.config.base_image_repo}}:${{matrix.config.base_image_tag}} -t ${{matrix.config.image_name_base}}_stable .
+          sudo docker build --build-arg base_img=${{matrix.config.base_image_repo}}:${{matrix.config.base_image_tag}} -t ${{matrix.config.image_name_base}}_stable -f Dockerfile.bt .
        else
           echo "Failure!"
           exit 1
