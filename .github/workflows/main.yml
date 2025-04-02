@@ -13,15 +13,11 @@ jobs:
       matrix:
          config:
          - {
-            ros2_distro: "iron",
-            base_image: "ste93/convince:qt_6.6.3_ubuntu22.04_iron_stable",
-            base_image_label: "ubuntu22.04",
+            ros2_distro: "jazzy",
+            base_image_repo: "elandini84/r1images",
+            base_image_tag: "tourCore2_ubuntu_24.04_qt_6.7.3_jazzy_devel",
+            image_name_base: "ste93/convince:tour_ubuntu_24.04_qt_6.7.3_jazzy",
          }
-         # - {
-         #    ros2_distro: "iron",
-         #    base_image: "ste93/convince:qt_6.6.3_ubuntu22.04_iron_stable_cuda.11.7.1-cudnn8",
-         #    base_image_label: "cuda.11.7.1-cudnn8",
-         # }
     steps:
     - name: Info
       run: |
@@ -39,27 +35,27 @@ jobs:
         username: ste93
         password: ${{ secrets.STE93_DOCKERHUB_TOKEN }}
     - name: Build the tour core Docker image
-      working-directory: laboratory-tour/docker
+      working-directory: docker
       run: |
        if [ ${{ github.event_name }} == 'schedule' ]; then
           echo "Building development tour core image"
-          sudo docker build --build-arg base_img=${{matrix.config.base_image}} --build-arg ros_distro=${{matrix.config.ros2_distro}} -t ste93/convince:laboratory_tour_${{matrix.config.base_image_label}}_${{matrix.config.ros2_distro}}_devel .
+          sudo docker build --build-arg base_img=${{matrix.config.base_image_repo}}:${{matrix.config.base_image_tag}} -t ${{matrix.config.image_name_base}}_devel .
        elif [ ${{ github.event_name }} == 'workflow_dispatch' ]; then
           echo "Building stable tour core image"
-          sudo docker build --build-arg base_img=${{matrix.config.base_image}} --build-arg ros_distro=${{matrix.config.ros2_distro}} -t ste93/convince:laboratory_tour_${{matrix.config.base_image_label}}_${{matrix.config.ros2_distro}}_stable .
+          sudo docker build --build-arg base_img=${{matrix.config.base_image_repo}}:${{matrix.config.base_image_tag}} -t ${{matrix.config.image_name_base}}_stable .
        else
           echo "Failure!"
           exit 1
        fi
     - name: Push tourCore2 image
-      working-directory: laboratory-tour/docker
+      working-directory: docker
       run: |
        if [ ${{ github.event_name }} == 'schedule' ]; then
           echo "Pushing tourCore2 development image"
-          docker push ste93/convince:laboratory_tour_${{matrix.config.base_image_label}}_${{matrix.config.ros2_distro}}_devel
+          docker push ste93/convince:laboratory_tour_${{matrix.config.base_image_label}}_devel
        elif [ ${{ github.event_name }} == 'workflow_dispatch' ]; then
           echo "Pushing tourCore2 stable image"
-          docker push ste93/convince:laboratory_tour_${{matrix.config.base_image_label}}_${{matrix.config.ros2_distro}}_stable
+          docker push ste93/convince:laboratory_tour_${{matrix.config.base_image_label}}_stable
        else
           echo "Failure!"
           exit 1
