@@ -1,10 +1,9 @@
-ARG base_img=ste93/r1images:tourCore2_ubuntu24.04_jazzy_stable_qt_6.7.3 
+ARG base_img=elandini84/r1images:tourCore2_ubuntu_24.04_qt_6.8.3_jazzy_stable
 FROM $base_img
 LABEL maintainer="Stefano Bernagozzi"
 USER root
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV Qt6_DIR=/usr/local/Qt-6.7.3/lib/cmake
 
 RUN apt-get update 
 RUN apt-get install -y libczmq-dev ros-jazzy-zmqpp-vendor-dbgsym ros-jazzy-zmqpp-vendor libczmq-dev libczmq4 curl 
@@ -105,6 +104,8 @@ USER user1
 
 
 RUN echo "export PATH=\$PATH:/home/user1/Groot/build" >> ~/.bashrc
+
+ENV PATH=/usr/local/Qt-6.8.3/bin:$PATH
 
 RUN /bin/bash -c "echo 'updated on 202503250921' && \
     source /opt/ros/jazzy/setup.bash && \
