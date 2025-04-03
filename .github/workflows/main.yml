@@ -15,8 +15,8 @@ jobs:
          - {
             ros2_distro: "jazzy",
             base_image_repo: "elandini84/r1images",
-            base_image_tag: "tourCore2_ubuntu_24.04_qt_6.7.3_jazzy_stable",
-            image_name_base: "ste93/convince:tour_ubuntu_24.04_qt_6.7.3_jazzy",
+            base_image_tag: "tourCore2_ubuntu_24.04_qt_6.8.3_jazzy_stable",
+            image_name_base: "ste93/convince:tour_ubuntu_24.04_qt_6.8.3_jazzy",
          }
     steps:
     - name: Info
