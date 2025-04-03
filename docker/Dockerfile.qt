@@ -26,3 +26,4 @@ RUN /bin/bash -c "cd /usr/local/src && wget https://download.qt.io/official_rele
 ENV Qt6_DIR=/usr/local/Qt-${qt_version}/lib/cmake
 
 ENV PATH=/usr/local/Qt-${qt_version}/bin:$PATH
+ENV LD_LIBRARY_PATH=/usr/local/Qt-${qt_version}/lib:$LD_LIBRARY_PATH
