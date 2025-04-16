@@ -10,7 +10,7 @@
     <data id="m_state"/>
     <data id="m_result"/>
     <data id="m_interaction"/>
-    <data id="m_is_duplicate"/>
+    <data id="m_duplicate_index"/>
     <data id="m_reply"/>
     <data id="m_is_question"/>
   </datamodel>
@@ -28,7 +28,7 @@
 
   <state id="waitForInteraction">
     <onentry>
-        <send event="DialogComponent.waitForInteraction.Call">
+        <send event="DialogComponent.WaitForInteraction.Call">
         </send>
 
         <script>
@@ -36,7 +36,7 @@
           qDebug() &lt;&lt; "entering waitForInteraction" &lt;&lt; topic;
         </script>
     </onentry>
-    <transition event="DialogComponentComponent.waitForInteraction.Return" target="waitForInteractionResult">
+    <transition event="DialogComponentComponent.WaitForInteraction.Return" target="waitForInteractionResult">
       <assign expr="_event.data.result" location="m_result"/>
       <assign expr="_event.data.interaction" location="m_interaction"/>
     </transition>
@@ -119,7 +119,7 @@
 
   <state id="checkDuplicate">
     <onentry>
-        <send event="DialogComponent.checkDuplicate.Call">
+        <send event="DialogComponent.CheckDuplicate.Call">
         </send>
 
         <script>
@@ -127,9 +127,9 @@
           qDebug() &lt;&lt; "entering checkDuplicate" &lt;&lt; topic;
         </script>
     </onentry>
-    <transition event="DialogComponent.checkDuplicate.Return" target="checkDuplicateResult">
+    <transition event="DialogComponent.CheckDuplicate.Return" target="checkDuplicateResult">
       <assign expr="_event.data.result" location="m_result"/>
-      <assign expr="_event.data.isDuplicate" location="m_is_duplicate"/>
+      <assign expr="_event.data.duplicateIndex" location="m_duplicate_index"/>
     </transition>
   </state>
 
@@ -155,15 +155,15 @@
         qDebug() &lt;&lt; "entering evaluateDuplicate" &lt;&lt; topic;
       </script>
     </onentry>
-    <transition cond="m_is_duplicate" target="shortenAndSpeak"/>
-    <transition cond="!m_is_duplicate" target="interpret"/>
+    <transition cond="m_duplicate_index<0" target="interpret"/>
+    <transition cond="!(m_duplicate_index<0)" target="shortenAndSpeak"/>
   </state>
 
   <!-- TODO: Discuss if adding 2 evaluateDuplicateResult states, to evaluate the correct execution of evaluateDuplicate state -->
 
   <state id="shortenAndSpeak">
     <onentry>
-        <send event="DialogComponent.shortenAndSpeak.Call">
+        <send event="DialogComponent.ShortenAndSpeak.Call">
             <!-- Assumes that the last interaction is saved in the state of the Dialog Component, therefore do not pass the interaction as an input -->
         </send>
 
@@ -172,9 +172,9 @@
           qDebug() &lt;&lt; "entering shortenAndSpeak" &lt;&lt; topic;
         </script>
     </onentry>
-    <transition event="DialogComponent.shortenAndSpeak.Return" target="shortenAndSpeakResult">
+    <transition event="DialogComponent.ShortenAndSpeak.Return" target="shortenAndSpeakResult">
       <assign expr="_event.data.result" location="m_result"/>
-      <assign expr="_event.data.reply" location="m_reply"/>
+      <!-- <assign expr="_event.data.reply" location="m_reply"/> We can remove the shortened reply since it's consumed within the same function -->
     </transition>
   </state>
 
@@ -201,7 +201,6 @@
     </onentry>
     <transition event="DialogComponent.interpret.Return" target="interpretResult">
       <assign expr="_event.data.result" location="m_result"/>
-      <assign expr="_event.data.reply" location="m_reply"/>
       <assign expr="_event.data.isQuestion" location="m_is_question"/>
     </transition>
   </state>
@@ -234,7 +233,7 @@
 
   <state id="answerAndSpeak">
     <onentry>
-        <send event="SchedulerComponent.answerAndSpeak.Call">
+        <send event="SchedulerComponent.AnswerAndSpeak.Call">
         </send>
 
         <script>
@@ -242,9 +241,9 @@
         qDebug() &lt;&lt; "entering answerAndSpeak" &lt;&lt; topic;
       </script>
     </onentry>
-    <transition event="SchedulerComponent.answerAndSpeak.Return" target="answerAndSpeakResult">
+    <transition event="SchedulerComponent.AnswerAndSpeak.Return" target="answerAndSpeakResult">
       <assign expr="_event.data.result" location="m_result"/>
-      <assign expr="_event.data.reply" location="m_reply"/>
+      <!-- <assign expr="_event.data.reply" location="m_reply"/> We can remove the reply since it's consumed within the same function -->
     </transition>
   </state>
 

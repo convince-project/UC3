@@ -117,3 +117,14 @@ This repository is maintained by:
 |:---:|:---:|
 | [<img src="assets/image.png" width="40">](https://github.com/hsp-iit) | [@hsp-iit](https://github.com/hsp-iit) |
 
+## Prerequisites
+The source code is heavily based on the concept of ROS2 services, if you are not familiar with this subject, here are some useful references to get started:
+- [Understanding services](https://docs.ros.org/en/foxy/Tutorials/Beginner-CLI-Tools/Understanding-ROS2-Services/Understanding-ROS2-Services.html)
+- [Writing a simple C++ service and client](https://docs.ros.org/en/foxy/Tutorials/Beginner-Client-Libraries/Writing-A-Simple-Cpp-Service-And-Client.html)
+- [Writing a simple Python service and client](https://docs.ros.org/en/foxy/Tutorials/Beginner-Client-Libraries/Writing-A-Simple-Py-Service-And-Client.html)
+
+## Structure of the code
+The software architecture is composed by 3 main software entities:
+- Components: software entities which collect a series of ROS2 services. Components are responsible to directly interact with the environment and to manage the actual computational load. Components are actually not monitorable, therefore they fail silently. In order to maintain a log in the component execution, there come to hand skills, which act as interfaces between components and the rest of the system.
+- Skills: software entities that reflect the processing logic of each leaf inside the main behavior tree. Each skill is characterized by its state machine,that represents the flow chart of the leaf behavior. The main responsibility of each skill is acting as an intermediatory actor between its own state machine and the components. In this context, skills represent clients, and based on the state of its own state machine, they 
+- Interfaces

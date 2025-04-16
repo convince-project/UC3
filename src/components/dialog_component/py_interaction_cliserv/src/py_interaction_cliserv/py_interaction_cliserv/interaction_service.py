@@ -9,7 +9,7 @@ class InteractionService(Node):
 
     def __init__(self):
         super().__init__('interaction_service')
-        self.srv = self.create_service(RememberInteractions, 'remember_interactions', self.get_previous_similar_interaction)
+        self.srv = self.create_service(RememberInteractions, '/DialogComponent/RememberInteractions', self.get_previous_similar_interaction)
 
         self.saved_interactions = []
         self.saved_embeddings = None
