@@ -14,18 +14,18 @@ public:
     void onRead(yarp::os::Bottle &msg) override
     {
         // std::lock_guard<std::mutex> lock(m_mutex);
-	yInfo() << "onRead" << __LINE__;
+	    yInfo() << "onRead" << __LINE__;
         if(m_hasNewMessage)
         {
             yWarning() << "[[SpeechTranscriberCallback::onRead]] got: \"" << msg.get(0).asString() << "\" while: \"" << m_listenedText << "\"";
             return;
         }
-	if (msg.get(0).asString() == "") {
-		yWarning() << "[[SpeechTranscriberCallback::onRead]] got empty message";
-		return;
-	}
-        // m_listenedText = msg.get(0).asString();
-	setText( msg.get(0).asString());
+        if (msg.get(0).asString() == "") {
+            yWarning() << "[[SpeechTranscriberCallback::onRead]] got empty message";
+            return;
+        }
+            // m_listenedText = msg.get(0).asString();
+        setText( msg.get(0).asString());
         yWarning() << "Got message: " << m_listenedText;
         m_hasNewMessage = true;
     };
