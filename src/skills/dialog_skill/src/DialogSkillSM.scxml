@@ -9,18 +9,64 @@
     <data id="STATUS_DONE" expr="'2'"/>
     <data id="m_state"/>
     <data id="m_result"/>
-    <data id="m_language"/>
+    <data id="m_interaction"/>
+    <data id="m_is_duplicate"/>
+    <data id="m_reply"/>
+    <data id="m_is_question"/>
   </datamodel>
 
   <state id="idle">
-      <transition event="CMD_TICK" target="getLanguage" />
+      <onentry>
+        <script>
+          topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
+          qDebug() &lt;&lt; "entering idle" &lt;&lt; topic;
+        </script>
+      </onentry>
+      <transition event="CMD_TICK" target="waitForInteraction" />
       <transition event="CMD_HALT" target="stop" /> 
   </state>
 
-  <state id="getLanguage">
+  <state id="waitForInteraction">
     <onentry>
-        <send event="SchedulerComponent.GetCurrentLanguage.Call">
+        <send event="DialogComponent.waitForInteraction.Call">
         </send>
+
+        <script>
+          topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
+          qDebug() &lt;&lt; "entering waitForInteraction" &lt;&lt; topic;
+        </script>
+    </onentry>
+    <transition event="DialogComponentComponent.waitForInteraction.Return" target="waitForInteractionResult">
+      <assign expr="_event.data.result" location="m_result"/>
+      <assign expr="_event.data.interaction" location="m_interaction"/>
+    </transition>
+  </state>
+
+  <state id="waitForInteractionResult">
+    <onentry>
+      <script>
+        topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
+        qDebug() &lt;&lt; "entering waitForInteractionResult" &lt;&lt; topic;
+      </script>
+    </onentry>
+    <transition cond="m_result == 'SUCCESS'" target="getLanguage" />
+    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+  </state>
+
+
+
+<!-- Added the set language utility at each interaction, so in a future we can handle questions in different languages in the same session -->
+
+
+<state id="getLanguage">
+    <onentry>
+      <send event="SchedulerComponent.GetCurrentLanguage.Call">
+      </send>
+
+      <script>
+        topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
+        qDebug() &lt;&lt; "entering getLanguage" &lt;&lt; topic;
+      </script>
     </onentry>
     <transition event="SchedulerComponent.GetCurrentLanguage.Return" target="getLanguageResult">
       <assign expr="_event.data.result" location="m_result"/>
@@ -29,6 +75,12 @@
   </state>
 
   <state id="getLanguageResult">
+    <onentry>
+      <script>
+        topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
+        qDebug() &lt;&lt; "entering getLanguageResult" &lt;&lt; topic;
+      </script>
+    </onentry>
     <transition cond="m_result == 'SUCCESS'" target="setLanguage" />
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
   </state>
@@ -38,6 +90,11 @@
         <send event="DialogComponent.SetLanguage.Call">
           <param name="new_language" expr="m_language"/>
         </send>
+
+        <script>
+          topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
+          qDebug() &lt;&lt; "entering setLanguage" &lt;&lt; topic;
+        </script>
     </onentry>
     <transition event="DialogComponent.SetLanguage.Return" target="setLanguageResult">
       <assign expr="_event.data.result" location="m_result"/>
@@ -45,41 +102,164 @@
   </state>
 
   <state id="setLanguageResult">
-  <transition cond="m_result == 'SUCCESS'" target="talk" />
-  <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+    <onentry>
+      <script>
+        topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
+        qDebug() &lt;&lt; "entering setLanguageResult" &lt;&lt; topic;
+      </script>
+    </onentry>
+    <transition cond="m_result == 'SUCCESS'" target="checkDuplicate" />
+    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
   </state>
 
-  <state id="talk">
-      <onentry>
-          <send event="DialogComponent.EnableDialog.Call">
-            <param name="enable" expr='"true"'/>
-          </send>
-      </onentry>
-      <transition event="DialogComponent.EnableDialog.Return" target="talkResult">
-        <assign expr="_event.data.result" location="m_result"/>
-      </transition>
+
+<!-- End of the Language setting utility -->
+
+
+
+  <state id="checkDuplicate">
+    <onentry>
+        <send event="DialogComponent.checkDuplicate.Call">
+        </send>
+
+        <script>
+          topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
+          qDebug() &lt;&lt; "entering checkDuplicate" &lt;&lt; topic;
+        </script>
+    </onentry>
+    <transition event="DialogComponent.checkDuplicate.Return" target="checkDuplicateResult">
+      <assign expr="_event.data.result" location="m_result"/>
+      <assign expr="_event.data.isDuplicate" location="m_is_duplicate"/>
+    </transition>
   </state>
 
-  <state id="talkResult">
+  <state id="checkDuplicateResult">
+    <onentry>
+      <script>
+        topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
+        qDebug() &lt;&lt; "entering checkDuplicateResult" &lt;&lt; topic;
+      </script>
+    </onentry>
+    <transition cond="m_result == 'SUCCESS'" target="evaluateDuplicate" />
+    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+  </state>
+
+  <state id="evaluateDuplicate">
+    <onentry>
+      <log expr="'State evaluateDuplicate'"/>
+      <log expr="m_result"/>
+      <log expr="m_interaction"/>
+
+      <script>
+        topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
+        qDebug() &lt;&lt; "entering evaluateDuplicate" &lt;&lt; topic;
+      </script>
+    </onentry>
+    <transition cond="m_is_duplicate" target="shortenAndSpeak"/>
+    <transition cond="!m_is_duplicate" target="interpret"/>
+  </state>
+
+  <!-- TODO: Discuss if adding 2 evaluateDuplicateResult states, to evaluate the correct execution of evaluateDuplicate state -->
+
+  <state id="shortenAndSpeak">
+    <onentry>
+        <send event="DialogComponent.shortenAndSpeak.Call">
+            <!-- Assumes that the last interaction is saved in the state of the Dialog Component, therefore do not pass the interaction as an input -->
+        </send>
+
+        <script>
+          topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
+          qDebug() &lt;&lt; "entering shortenAndSpeak" &lt;&lt; topic;
+        </script>
+    </onentry>
+    <transition event="DialogComponent.shortenAndSpeak.Return" target="shortenAndSpeakResult">
+      <assign expr="_event.data.result" location="m_result"/>
+      <assign expr="_event.data.reply" location="m_reply"/>
+    </transition>
+  </state>
+
+  <state id="shortenAndSpeakResult">
+    <onentry>
+      <script>
+        topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
+        qDebug() &lt;&lt; "entering shortenAndSpeakResult" &lt;&lt; topic;
+      </script>
+    </onentry>
     <transition cond="m_result == 'SUCCESS'" target="sendRunning" />
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
   </state>
 
-  <state id="stop">
+  <state id="interpret">
     <onentry>
-        <send event="DialogComponent.EnableDialog.Call">
-          <param name="enable" expr='"false"'/>
+        <send event="DialogComponent.interpret.Call">
         </send>
-    </onentry>
-    <transition event="DialogComponent.EnableDialog.Return" target="stopResult">
-      <assign expr="_event.data.result" location="m_result"/>
-    </transition>
-</state>
 
-<state id="stopResult">
-  <transition cond="m_result == 'SUCCESS'" target="sendHalted" />
-  <transition cond="m_result == 'FAILURE'" target="sendHalted" />
-</state>
+        <script>
+          topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
+          qDebug() &lt;&lt; "entering interpret" &lt;&lt; topic;
+        </script>
+    </onentry>
+    <transition event="DialogComponent.interpret.Return" target="interpretResult">
+      <assign expr="_event.data.result" location="m_result"/>
+      <assign expr="_event.data.reply" location="m_reply"/>
+      <assign expr="_event.data.isQuestion" location="m_is_question"/>
+    </transition>
+  </state>
+
+  <state id="interpretResult">
+    <onentry>
+      <script>
+        topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
+        qDebug() &lt;&lt; "entering interpretResult" &lt;&lt; topic;
+      </script>
+    </onentry>
+    <transition cond="m_result == 'SUCCESS'" target="evaluateInterpretation" />
+    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+  </state>
+
+  <state id="evaluateInterpretation">
+    <onentry>
+      <log expr="'State evaluateInterpretation'"/>
+      <log expr="m_result"/>
+      <log expr="m_interaction"/>
+
+      <script>
+        topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
+        qDebug() &lt;&lt; "entering evaluateInterpretation" &lt;&lt; topic;
+      </script>
+    </onentry>
+    <transition cond="m_is_question" target="answerAndSpeak"/>
+    <transition cond="!m_is_question" target="idle"/>
+  </state>
+
+  <state id="answerAndSpeak">
+    <onentry>
+        <send event="SchedulerComponent.answerAndSpeak.Call">
+        </send>
+
+        <script>
+        topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
+        qDebug() &lt;&lt; "entering answerAndSpeak" &lt;&lt; topic;
+      </script>
+    </onentry>
+    <transition event="SchedulerComponent.answerAndSpeak.Return" target="answerAndSpeakResult">
+      <assign expr="_event.data.result" location="m_result"/>
+      <assign expr="_event.data.reply" location="m_reply"/>
+    </transition>
+  </state>
+
+  <state id="answerAndSpeakResult">
+    <onentry>
+      <script>
+        topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
+        qDebug() &lt;&lt; "entering answerAndSpeakResult" &lt;&lt; topic;
+      </script>
+    </onentry>
+    <transition cond="m_result == 'SUCCESS'" target="sendRunning" />
+    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+  </state>
+
+<!-- Series of states to manage the robot speaking phase, cycle the Running pipeline until you end talking. After finishing talking, come back to the waitForInteraction state -->
 
 <state id="sendRunning">
     <onentry>
@@ -91,14 +271,25 @@
 </state>
 
 <state id="WaitForFinish">
-    <transition event="CMD_TICK" target="getIfIsDone" />
-    <transition event="CMD_HALT" target="stop" />
+  <onentry>
+    <script>
+      topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
+      qDebug() &lt;&lt; "entering WaitForFinish" &lt;&lt; topic;
+    </script>
+  </onentry>
+  <transition event="CMD_TICK" target="getIfIsDone" />
+  <transition event="CMD_HALT" target="stop" />
   </state>
 
   <state id="getIfIsDone">
     <onentry>
       <send event="DialogComponent.GetState.Call">
       </send>
+
+      <script>
+        topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
+        qDebug() &lt;&lt; "entering getIfIsDone" &lt;&lt; topic;
+      </script>
     </onentry>
     <transition event="DialogComponent.GetState.Return" target="getIfIsDoneResult" >
       <assign expr="_event.data.result" location="m_result"/>
@@ -107,22 +298,70 @@
   </state>
   
   <state id="getIfIsDoneResult">
+    <onentry>
+      <script>
+        topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
+        qDebug() &lt;&lt; "entering getIfIsDoneResult" &lt;&lt; topic;
+      </script>
+    </onentry>
     <transition cond="m_result == 'SUCCESS'" target="checkIfDone" />
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
   </state>  
 
-  <state id="checkIfDone"> 
+  <state id="checkIfDone">
+    <onentry>
+      <script>
+        topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
+        qDebug() &lt;&lt; "entering checkIfDone" &lt;&lt; topic;
+      </script>
+    </onentry>
     <transition cond="m_state == STATUS_DONE" target="sendSuccess" />
     <transition target="sendRunning"/>
   </state>
 
+    <state id="stop">
+    <onentry>
+        <send event="DialogComponent.EnableDialog.Call">
+          <param name="enable" expr='"false"'/>
+        </send>
+
+        <script>
+          topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
+          qDebug() &lt;&lt; "entering stop" &lt;&lt; topic;
+        </script>
+    </onentry>
+    <transition event="DialogComponent.EnableDialog.Return" target="stopResult">
+      <assign expr="_event.data.result" location="m_result"/>
+    </transition>
+</state>
+
+<state id="stopResult">
+  <onentry>
+    <script>
+      topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
+      qDebug() &lt;&lt; "entering stopResult" &lt;&lt; topic;
+    </script>
+  </onentry>
+  <transition cond="m_result == 'SUCCESS'" target="sendHalted" />
+  <transition cond="m_result == 'FAILURE'" target="sendHalted" />
+</state>
+
+
+<!-- End of the Series of states to manage the robot speaking phase -->
+
+
   <state id="sendSuccess">
     <onentry>
-        <send event="TICK_RESPONSE">
-          <param name="result" expr='"SUCCESS"'/> 
-        </send>
+      <send event="TICK_RESPONSE">
+        <param name="result" expr='"SUCCESS"'/> 
+      </send>
+
+      <script>
+        topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
+        qDebug() &lt;&lt; "entering sendSuccess" &lt;&lt; topic;
+      </script>
     </onentry>
-    <transition target="idle" />
+    <transition target="waitForInteraction" />
 
   </state>
 
@@ -130,6 +369,11 @@
       <onentry>
           <send event="HALT_RESPONSE">
           </send>
+
+          <script>
+            topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
+            qDebug() &lt;&lt; "entering sendHalted" &lt;&lt; topic;
+          </script>
       </onentry>
       <transition target="idle" />
   </state>
@@ -140,6 +384,10 @@
         <param name="result" expr='"FAILURE"'/>
       </send>
       
+      <script>
+        topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
+        qDebug() &lt;&lt; "entering sendFailure" &lt;&lt; topic;
+      </script>
     </onentry>
     <transition target="idle" />
   </state>

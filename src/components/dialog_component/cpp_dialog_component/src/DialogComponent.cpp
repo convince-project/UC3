@@ -21,6 +21,10 @@ DialogComponent::DialogComponent() : m_random_gen(m_rand_engine()),
     m_fallback_repeat_counter = 0;
     m_fallback_threshold = 3;
     m_state = IDLE;
+
+    bool m_isDuplicate = false;
+    m_last_received_interaction = ""
+
 }
 
 bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
@@ -505,9 +509,13 @@ bool DialogComponent::start(int argc, char*argv[])
                                                                                             std::placeholders::_1,
                                                                                             std::placeholders::_2));
 
+
     m_isSpeakingClient = m_node->create_client<text_to_speech_interfaces::srv::IsSpeaking>("/TextToSpeechComponent/IsSpeaking");
     m_setMicrophoneClient = m_node->create_client<text_to_speech_interfaces::srv::SetMicrophone>("/TextToSpeechComponent/SetMicrophone");
     m_speakClient = m_node->create_client<text_to_speech_interfaces::srv::Speak>("/TextToSpeechComponent/Speak");
+
+    // add the client to remember the interactions
+    m_interactionClient = m_node->create_client<dialog_interfaces::srv::RememberInteractions>("remember_interactions");
 
     RCLCPP_INFO(m_node->get_logger(), "Started node");
 
@@ -1759,3 +1767,68 @@ void DialogComponent::GetState(const std::shared_ptr<dialog_interfaces::srv::Get
         return false;
     }
 }*/
+
+
+void DialogComponent::waitForInteraction(const std::shared_ptr<dialog_interfaces::srv::SetPoi::Request> request,
+    std::shared_ptr<dialog_interfaces::srv::SetPoi::Response> response)
+{
+    while (!m_speechTranscriberCallback.hasNewMessage()) {
+
+                // Check if new message has been transcribed
+        std::string questionText = "";
+        //yInfo() << "DialogComponent::DialogExecution hasNewMessage" << __LINE__;
+        
+        if (!m_speechTranscriberCallback.getText(questionText))
+        {
+            std::this_thread::sleep_for(wait_ms);
+            yDebug() << "[DialogComponent::DialogExecution] can't get text " << __LINE__;
+            continue;
+        }
+
+        yInfo() << "DialogComponent::waitForInteraction call received" << __LINE__;
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
+    m_last_received_interaction = questionText;
+    response->is_ok=true;
+
+}
+
+// TODO: Discuss about the utility of removing the request from this function, since the current interaction has been saved inside
+// the class in waitForInteraction. In such a case, you need to modify also the RememberInreractions.srv interface file.
+void DialogComponent::checkDuplicate(const std::shared_ptr<dialog_interfaces::srv::RememberInteractions::Request> request,
+    std::shared_ptr<dialog_interfaces::srv::RememberInteractions::Response> response)
+{   
+
+    auto result_future = m_interactionClient->async_send_request(request);
+
+    if (rclcpp::spin_until_future_complete(this->get_node_base_interface(), result_future) ==
+        rclcpp::FutureReturnCode::SUCCESS)
+    {
+        response = result_future.get();
+        RCLCPP_INFO(this->get_logger(), "Got response: index = %d", response->index);
+        return response->index;
+    }
+    else
+    {
+        RCLCPP_ERROR(this->get_logger(), "Dialog's Interaction Service call failed.");
+        return -2;
+    }
+
+    yInfo() << "DialogComponent::Remember Interaction index received" << __LINE__;
+
+    if (response->index > -1) {
+        m_isDuplicate = true;
+        yInfo() << "DialogComponnt:: A similar interaction has already been received" << __LINE__;
+    }
+    else {
+        m_isDuplicate = false;
+        yInfo() << "DialogComponnt:: No similar interaction has been received until now" << __LINE__;
+    }
+
+    response->is_ok=true;
+
+}
+
+
+
