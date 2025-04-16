@@ -27,7 +27,7 @@
 #include <dialog_interfaces/srv/get_state.hpp>
 #include <dialog_interfaces/srv/skip_explanation.hpp>
 //#include <dialog_interfaces/srv/is_speaking.hpp>
-#include <yarp/dev/AudioPlayerStatus.h>
+#include <yarp/sig/AudioPlayerStatus.h>
 #include <yarp/dev/ISpeechTranscription.h>
 #include <text_to_speech_interfaces/srv/is_speaking.hpp>
 #include <text_to_speech_interfaces/srv/set_microphone.hpp>
@@ -44,6 +44,9 @@
 #include "SpeechTranscriberCallback.hpp"
 #include "SpeakerStatusCallback.hpp"
 #include "TourStorage.h"
+
+
+#include <dialog_interfaces/srv/remember_interactions.hpp> // auto-generated from the .srv file
 
 class DialogComponent
 {
@@ -69,6 +72,12 @@ public:
                         std::shared_ptr<dialog_interfaces::srv::SkipExplanation::Response> response);
     //void IsSpeaking(const std::shared_ptr<dialog_interfaces::srv::IsSpeaking::Request> request,
     //                    std::shared_ptr<dialog_interfaces::srv::IsSpeaking::Response> response);
+
+    void waitForInteraction(const std::shared_ptr<dialog_interfaces::srv::SetPoi::Request> request,
+                        std::shared_ptr<dialog_interfaces::srv::SetPoi::Response> response);
+    
+    void checkDuplicate(const std::shared_ptr<dialog_interfaces::srv::RememberInteractions::Request> request,
+        std::shared_ptr<dialog_interfaces::srv::RememberInteractions::Response> response);
 
 private:
     /*Network Wrappers*/
@@ -155,6 +164,21 @@ private:
 
     State m_state;
     std::atomic<bool> m_skipSpeaking{false};
+
+    // has the current interaction already been asked?
+    bool m_isDuplicate;
+
+    // Vector of questions and replies
+    // std::vector<std::tuple<std::string, std::string>>  m_questions_and_replies;
+
+    // last received interaction
+    std::string m_last_received_interaction;
+    // vector of replies
+    std::vector<std::string> m_replies;
+
+    // ROS2 Client Node that leverage the RememberInteractions service to get information about the interaction
+    rclcpp::Client<dialog_interfaces::srv::RememberInteractions>::SharedPtr m_interactionClient;
+
 };
 
 #endif

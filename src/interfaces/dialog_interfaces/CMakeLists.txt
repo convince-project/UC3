@@ -23,6 +23,7 @@ rosidl_generate_interfaces(dialog_interfaces
                             "srv/GetState.srv"
                             "srv/IsSpeaking.srv"
                             "srv/SkipExplanation.srv"
+                            "srv/RememberInteractions.srv"
                             DEPENDENCIES sensor_msgs
                             LIBRARY_NAME dialog_interfaces
 )
