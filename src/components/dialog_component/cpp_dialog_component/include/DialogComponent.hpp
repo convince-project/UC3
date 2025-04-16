@@ -79,7 +79,11 @@ public:
     void checkDuplicate(const std::shared_ptr<dialog_interfaces::srv::RememberInteractions::Request> request,
         std::shared_ptr<dialog_interfaces::srv::RememberInteractions::Response> response);
 
+protected:
+    void DialogComponent::SpeakFromText(std::string & text)
+
 private:
+
     /*Network Wrappers*/
     // Speech Synth
     //yarp::dev::PolyDriver m_speechSynthPoly;
@@ -166,12 +170,12 @@ private:
     std::atomic<bool> m_skipSpeaking{false};
 
     // has the current interaction already been asked?
-    bool m_isDuplicate;
+    int m_duplicateIndex;
 
     // Vector of questions and replies
     // std::vector<std::tuple<std::string, std::string>>  m_questions_and_replies;
 
-    // last received interaction
+    // last received interaction TODO: make uniform with m_lastQuestion, which I think is the same
     std::string m_last_received_interaction;
     // vector of replies
     std::vector<std::string> m_replies;
