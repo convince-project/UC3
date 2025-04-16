@@ -8,11 +8,11 @@
 // Is a mutex needed?
 #include <mutex>
 
-class SpeakerStatusCallback : public yarp::os::BufferedPort<yarp::dev::AudioPlayerStatus>
+class SpeakerStatusCallback : public yarp::os::BufferedPort<yarp::sig::AudioPlayerStatus>
 {
 public:
-    using yarp::os::BufferedPort<yarp::dev::AudioPlayerStatus>::onRead;
-    void onRead(yarp::dev::AudioPlayerStatus &msg) override
+    using yarp::os::BufferedPort<yarp::sig::AudioPlayerStatus>::onRead;
+    void onRead(yarp::sig::AudioPlayerStatus &msg) override
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         if (msg.current_buffer_size > 0)
