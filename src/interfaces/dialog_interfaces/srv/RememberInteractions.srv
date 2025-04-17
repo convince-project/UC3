@@ -1,4 +1,4 @@
 string interaction
 ---
 bool is_ok
-int64 index
+int32 index

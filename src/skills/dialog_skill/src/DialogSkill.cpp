@@ -189,7 +189,7 @@ bool DialogSkill::start(int argc, char*argv[])
 
     m_stateMachine.connectToEvent("DialogComponent.CheckDuplicate.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
         std::shared_ptr<rclcpp::Node> nodeCheckDuplicate = rclcpp::Node::make_shared(m_name + "SkillCheckDuplicate");
-        std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::RememberInteractions>> clientCheckDuplicate = nodeSetLanguage->create_client<dialog_interfaces::srv::RememberInteractions>("/DialogComponent/CheckDuplicate");
+        std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::RememberInteractions>> clientCheckDuplicate = nodeCheckDuplicate->create_client<dialog_interfaces::srv::RememberInteractions>("/DialogComponent/CheckDuplicate");
         auto request = std::make_shared<dialog_interfaces::srv::RememberInteractions::Request>();
         auto eventParams = event.data().toMap();
         request->interaction = convert<decltype(request->interaction)>(eventParams["interaction"].toString().toStdString());
@@ -212,6 +212,7 @@ bool DialogSkill::start(int argc, char*argv[])
                     QVariantMap data;
                     
                     data.insert("result", "SUCCESS");
+                    // insert the duplicate index in int64 format
                     data.insert("duplicateIndex", response->index);
                     m_stateMachine.submitEvent("DialogComponent.CheckDuplicate.Return", data);
                     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.CheckDuplicate.Return");
@@ -228,7 +229,7 @@ bool DialogSkill::start(int argc, char*argv[])
 
     m_stateMachine.connectToEvent("DialogComponent.ShortenAndSpeak.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
         std::shared_ptr<rclcpp::Node> nodeShortenAndSpeak = rclcpp::Node::make_shared(m_name + "SkillShortenAndSpeak");
-        std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::ShortenAndSpeak>> clientShortenAndSpeak = nodeSetLanguage->create_client<dialog_interfaces::srv::ShortenAndSpeak>("/DialogComponent/ShortenAndSpeak");
+        std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::ShortenAndSpeak>> clientShortenAndSpeak = nodeShortenAndSpeak->create_client<dialog_interfaces::srv::ShortenAndSpeak>("/DialogComponent/ShortenAndSpeak");
         auto request = std::make_shared<dialog_interfaces::srv::ShortenAndSpeak::Request>();
         bool wait_succeded{true};
         while (!clientShortenAndSpeak->wait_for_service(std::chrono::seconds(1))) {
@@ -263,7 +264,7 @@ bool DialogSkill::start(int argc, char*argv[])
 
     m_stateMachine.connectToEvent("DialogComponent.Interpret.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
         std::shared_ptr<rclcpp::Node> nodeInterpret = rclcpp::Node::make_shared(m_name + "SkillInterpret");
-        std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::Interpret>> clientInterpret = nodeSetLanguage->create_client<dialog_interfaces::srv::Interpret>("/DialogComponent/Interpret");
+        std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::Interpret>> clientInterpret = nodeInterpret->create_client<dialog_interfaces::srv::Interpret>("/DialogComponent/Interpret");
         auto request = std::make_shared<dialog_interfaces::srv::Interpret::Request>();
         bool wait_succeded{true};
         while (!clientInterpret->wait_for_service(std::chrono::seconds(1))) {
@@ -284,7 +285,7 @@ bool DialogSkill::start(int argc, char*argv[])
                     QVariantMap data;
                     
                     data.insert("result", "SUCCESS");
-                    data.insert("isQuestion", response->is_question.c_str());
+                    data.insert("isQuestion", response->is_question);
                     m_stateMachine.submitEvent("DialogComponent.Interpret.Return", data);
                     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.Interpret.Return");
                 } else {
@@ -298,8 +299,8 @@ bool DialogSkill::start(int argc, char*argv[])
     });
 
     m_stateMachine.connectToEvent("DialogComponent.AnswerAndSpeak.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
-        std::shared_ptr<rclcpp::Node> nodeInterpret = rclcpp::Node::make_shared(m_name + "SkillAnswerAndSpeak");
-        std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::AnswerAndSpeak>> clientAnswerAndSpeak = nodeSetLanguage->create_client<dialog_interfaces::srv::AnswerAndSpeak>("/DialogComponent/AnswerAndSpeak");
+        std::shared_ptr<rclcpp::Node> nodeAnswerAndSpeak = rclcpp::Node::make_shared(m_name + "SkillAnswerAndSpeak");
+        std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::AnswerAndSpeak>> clientAnswerAndSpeak = nodeAnswerAndSpeak->create_client<dialog_interfaces::srv::AnswerAndSpeak>("/DialogComponent/AnswerAndSpeak");
         auto request = std::make_shared<dialog_interfaces::srv::AnswerAndSpeak::Request>();
         bool wait_succeded{true};
         while (!clientAnswerAndSpeak->wait_for_service(std::chrono::seconds(1))) {

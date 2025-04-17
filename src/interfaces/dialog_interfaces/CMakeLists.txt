@@ -24,6 +24,10 @@ rosidl_generate_interfaces(dialog_interfaces
                             "srv/IsSpeaking.srv"
                             "srv/SkipExplanation.srv"
                             "srv/RememberInteractions.srv"
+                            "srv/WaitForInteraction.srv"
+                            "srv/AnswerAndSpeak.srv"
+                            "srv/ShortenAndSpeak.srv"
+                            "srv/Interpret.srv"
                             DEPENDENCIES sensor_msgs
                             LIBRARY_NAME dialog_interfaces
 )
