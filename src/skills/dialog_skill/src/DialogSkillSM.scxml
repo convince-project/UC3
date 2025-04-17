@@ -155,8 +155,8 @@
         qDebug() &lt;&lt; "entering evaluateDuplicate" &lt;&lt; topic;
       </script>
     </onentry>
-    <transition cond="m_duplicate_index<0" target="interpret"/>
-    <transition cond="!(m_duplicate_index<0)" target="shortenAndSpeak"/>
+    <transition cond="m_duplicate_index &lt; 0" target="interpret"/>
+    <transition cond="!(m_duplicate_index &lt; 0)" target="shortenAndSpeak"/>
   </state>
 
   <!-- TODO: Discuss if adding 2 evaluateDuplicateResult states, to evaluate the correct execution of evaluateDuplicate state -->

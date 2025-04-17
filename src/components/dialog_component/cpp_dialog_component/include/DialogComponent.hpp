@@ -47,6 +47,10 @@
 
 
 #include <dialog_interfaces/srv/remember_interactions.hpp> // auto-generated from the .srv file
+#include <dialog_interfaces/srv/wait_for_interaction.hpp>
+#include <dialog_interfaces/srv/shorten_and_speak.hpp>
+#include <dialog_interfaces/srv/answer_and_speak.hpp>
+#include <dialog_interfaces/srv/interpret.hpp>
 
 class DialogComponent
 {
@@ -73,14 +77,20 @@ public:
     //void IsSpeaking(const std::shared_ptr<dialog_interfaces::srv::IsSpeaking::Request> request,
     //                    std::shared_ptr<dialog_interfaces::srv::IsSpeaking::Response> response);
 
-    void waitForInteraction(const std::shared_ptr<dialog_interfaces::srv::SetPoi::Request> request,
-                        std::shared_ptr<dialog_interfaces::srv::SetPoi::Response> response);
-    
-    void checkDuplicate(const std::shared_ptr<dialog_interfaces::srv::RememberInteractions::Request> request,
-        std::shared_ptr<dialog_interfaces::srv::RememberInteractions::Response> response);
+    void WaitForInteraction(const std::shared_ptr<dialog_interfaces::srv::WaitForInteraction::Request> request,
+                        std::shared_ptr<dialog_interfaces::srv::WaitForInteraction::Response> response);
+
+    void ShortenAndSpeak(const std::shared_ptr<dialog_interfaces::srv::ShortenAndSpeak::Request> request,
+                        std::shared_ptr<dialog_interfaces::srv::ShortenAndSpeak::Response> response);
+
+    void AnswerAndSpeak(const std::shared_ptr<dialog_interfaces::srv::AnswerAndSpeak::Request> request,
+                        std::shared_ptr<dialog_interfaces::srv::AnswerAndSpeak::Response> response);
+
+    void Interpret(const std::shared_ptr<dialog_interfaces::srv::Interpret::Request> request,
+                        std::shared_ptr<dialog_interfaces::srv::Interpret::Response> response);
 
 protected:
-    void DialogComponent::SpeakFromText(std::string & text)
+    void SpeakFromText(std::string & text);
 
 private:
 
@@ -123,6 +133,10 @@ private:
     rclcpp::Service<dialog_interfaces::srv::SetPoi>::SharedPtr m_setPoiService;
     rclcpp::Service<dialog_interfaces::srv::GetState>::SharedPtr m_GetStateService;
     rclcpp::Service<dialog_interfaces::srv::SkipExplanation>::SharedPtr m_SkipExplanationService;
+    rclcpp::Service<dialog_interfaces::srv::WaitForInteraction>::SharedPtr m_WaitForInteractionService;
+    rclcpp::Service<dialog_interfaces::srv::ShortenAndSpeak>::SharedPtr m_ShortenAndSpeakService;
+    rclcpp::Service<dialog_interfaces::srv::AnswerAndSpeak>::SharedPtr m_AnswerAndSpeakService;
+    rclcpp::Service<dialog_interfaces::srv::Interpret>::SharedPtr m_InterpretService;
     //rclcpp::Service<dialog_interfaces::srv::IsSpeaking>::SharedPtr m_IsSpeakingService;
 
     rclcpp::Client<text_to_speech_interfaces::srv::IsSpeaking>::SharedPtr m_isSpeakingClient;
