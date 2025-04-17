@@ -19,6 +19,12 @@
 #include <bt_interfaces/srv/tick_action.hpp>
 #include <bt_interfaces/srv/halt_action.hpp>
 
+#include <dialog_interfaces/srv/remember_interactions.hpp> // auto-generated from the .srv file
+#include <dialog_interfaces/srv/wait_for_interaction.hpp>
+#include <dialog_interfaces/srv/shorten_and_speak.hpp>
+#include <dialog_interfaces/srv/answer_and_speak.hpp>
+#include <dialog_interfaces/srv/interpret.hpp>
+
 enum class Status{
 	undefined,
 	running,
