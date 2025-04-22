@@ -11,7 +11,7 @@ using namespace std::chrono_literals;
 DialogComponent::DialogComponent() : m_random_gen(m_rand_engine()),
                                      m_uniform_distrib(1, 2)
 {
-    m_jsonPath = "/home/user1/UC3/laboratory-tour/conf/tours.json";
+    m_jsonPath = "/home/user1/UC3/conf/tours.json";
     m_tourName = "TOUR_MADAMA_3";
     m_speechTranscriberClientName = "/DialogComponent/speechTranscriberClient:i";
     m_speechTranscriberServerName = "/speechTranscription_nws/text:o";
