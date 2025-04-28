@@ -98,14 +98,14 @@ def launch_nodes_from_json(context, *args, **kwargs):
     tour_name = launch.substitutions.LaunchConfiguration('tour_name').perform(context)
     if not json_file_path:
         
-        logger.error("Missing 'json_file' argument.")
+        print("Missing 'json_file' argument.")
         return []
     if not tour_name:
-        logger.error("Missing 'tour_name' argument.")
+        print("Missing 'tour_name' argument.")
         return []
     
     if not os.path.isfile(json_file_path):
-        logger.error(f"The JSON file '{json_file_path}' does not exist.")
+        print(f"The JSON file '{json_file_path}' does not exist.")
         return []
 
     # Load JSON file
@@ -113,7 +113,7 @@ def launch_nodes_from_json(context, *args, **kwargs):
         with open(json_file_path, 'r') as f:
             tour_data = json.load(f)
     except Exception as e:
-        logger.error(f"Failed to load JSON file '{json_file_path}'. Exception: {e}")
+        print(f"Failed to load JSON file '{json_file_path}'. Exception: {e}")
         return []
 
     # Get m_activeTourPoIs for the specified tour
@@ -121,7 +121,7 @@ def launch_nodes_from_json(context, *args, **kwargs):
     
     # Check if there are active POIs
     if not active_pois:
-        logger.error(f"No active POIs found for tour '{tour_name}' in {json_file_path}")
+        print(f"No active POIs found for tour '{tour_name}' in {json_file_path}")
         return []
 
     # Create nodes for each active POI

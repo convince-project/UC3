@@ -1,7 +1,7 @@
 <scxml 
   initial="idle" 
   version="1.0" 
-  name="Wait2SkillAction"
+  name="WaitSkillAction"
   datamodel="ecmascript"
   xmlns="http://www.w3.org/2005/07/scxml">
 
