@@ -117,7 +117,7 @@ bool ROS2Action::init()
     m_node = rclcpp::Node::make_shared(ActionNodeBase::name()+ "ActionLeaf");
     m_clientTick = m_node->create_client<bt_interfaces::srv::TickAction>(ActionNodeBase::name() + "Skill/tick" + m_suffixMonitor);
     m_clientHalt = m_node->create_client<bt_interfaces::srv::HaltAction>(ActionNodeBase::name() + "Skill/halt" + m_suffixMonitor);
-    RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"),"name " << ActionNodeBase::name() << "suffixmonitor " << m_suffixMonitor);
+    RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"),"name -- " << ActionNodeBase::name() << " -- suffixmonitor " << m_suffixMonitor);
     
     return true;
 
