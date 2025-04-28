@@ -34,7 +34,7 @@ public:
     {
 	    std::lock_guard<std::mutex> lock(m_mutex);
 	    m_listenedText = text;
-    }
+    };
 
 
     bool getText(std::string &text)

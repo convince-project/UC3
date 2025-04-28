@@ -22,7 +22,7 @@ DialogComponent::DialogComponent() : m_random_gen(m_rand_engine()),
     m_fallback_threshold = 3;
     m_state = IDLE;
 
-    m_duplicateIndex = -1;
+    // m_duplicateIndex = -1;
     m_last_received_interaction = "";
 
 }
@@ -538,7 +538,6 @@ bool DialogComponent::start(int argc, char*argv[])
     m_isSpeakingClient = m_node->create_client<text_to_speech_interfaces::srv::IsSpeaking>("/TextToSpeechComponent/IsSpeaking");
     m_setMicrophoneClient = m_node->create_client<text_to_speech_interfaces::srv::SetMicrophone>("/TextToSpeechComponent/SetMicrophone");
     m_speakClient = m_node->create_client<text_to_speech_interfaces::srv::Speak>("/TextToSpeechComponent/Speak");
-
 
     RCLCPP_INFO(m_node->get_logger(), "Started node");
 
@@ -1795,25 +1794,31 @@ void DialogComponent::GetState(const std::shared_ptr<dialog_interfaces::srv::Get
 void DialogComponent::WaitForInteraction(const std::shared_ptr<dialog_interfaces::srv::WaitForInteraction::Request> request,
                                             std::shared_ptr<dialog_interfaces::srv::WaitForInteraction::Response> response)
 {   
-
-    // Check if new message has been transcribed
     std::string questionText = "";
 
-    while (!m_speechTranscriberCallback.hasNewMessage()) {
-        //yInfo() << "DialogComponent::DialogExecution hasNewMessage" << __LINE__;
-        std::chrono::duration wait_ms = 200ms;
-        if (!m_speechTranscriberCallback.getText(questionText))
-        {
-            std::this_thread::sleep_for(wait_ms);
-            yDebug() << "[DialogComponent::WaitForInteraction] can't get text " << __LINE__;
-            continue;
+    if (request->keyboard_interaction == "") {
+        // Check if new message has been transcribed
+
+        while (!m_speechTranscriberCallback.hasNewMessage()) {
+            //yInfo() << "DialogComponent::DialogExecution hasNewMessage" << __LINE__;
+            std::chrono::duration wait_ms = 200ms;
+            if (!m_speechTranscriberCallback.getText(questionText))
+            {
+                std::this_thread::sleep_for(wait_ms);
+                yDebug() << "[DialogComponent::WaitForInteraction] can't get text " << __LINE__;
+                m_speechTranscriberCallback.setMessageConsumed();
+                continue;
+            }
+
+            yInfo() << "DialogComponent::WaitForInteraction call received" << __LINE__;
+            std::this_thread::sleep_for(std::chrono::milliseconds(wait_ms));
         }
 
-        yInfo() << "DialogComponent::WaitForInteraction call received" << __LINE__;
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
-
-    m_speechTranscriberCallback.setMessageConsumed();
+    else {
+        yInfo() << "DialogComponent::WaitForInteraction call received: " << request->keyboard_interaction << __LINE__;
+        questionText = request->keyboard_interaction;
+    }
 
     m_last_received_interaction = questionText;
     response->is_ok=true;
@@ -1821,9 +1826,10 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<dialog_interfaces
 
 }
 
-//Private function to actually speak given the text
+//Protected function to actually speak given the text
 void DialogComponent::SpeakFromText(std::string & text)
-{
+{   
+    // ---------------------------------Text to Speech Service SPEAK------------------------------
     yInfo() << "[DialogComponent::SpeakFromText] Starting Text to Speech Service";
     auto setCommandClientNode = rclcpp::Node::make_shared("TextToSpeechComponentSetCommandNode");
 
@@ -1855,9 +1861,17 @@ void DialogComponent::SpeakFromText(std::string & text)
 void DialogComponent::ShortenAndSpeak(const std::shared_ptr<dialog_interfaces::srv::ShortenAndSpeak::Request> request,
     std::shared_ptr<dialog_interfaces::srv::ShortenAndSpeak::Response> response)
 {   
+    std::cout << "DialogComponent::ShortenAndSpeak call received" << __LINE__ << std::endl;
+    for (auto &reply : m_replies)
+    {
+        std::cout << "Reply at index " << &reply - &m_replies[0] << ": " << reply << std::endl;
+    }
+    std::cout << "Request index: " << request->duplicate_index << std::endl;
 
-    // Assumption: if this function is called, then it means that the last interaction is a duplicate, and that its index has been saved in m_duplicateIndex
-    std::string previousReply = m_replies[m_duplicateIndex];
+    std::string previousReply = m_replies[request->duplicate_index];
+
+    std::cout << "The replies vector is not the problem" << std::endl;
+
     std::string genericLLMPrompt = "You have just received a question: " + m_last_received_interaction + ". " +
         "You have to answer it, but you have to take into account that the user has already received a similar answer. " +
         "The previous answer was: " + previousReply + ". " +
@@ -1871,11 +1885,11 @@ void DialogComponent::ShortenAndSpeak(const std::shared_ptr<dialog_interfaces::s
     yarp::dev::LLM_Message answer;
     if(!m_iGenericChat->ask(genericLLMPrompt, answer))
     {
-        yError() << "[DialogComponent::ShortenAndSpeak] Unable to interact with chatGPT with question: " << m_lastQuestion;
+        yError() << "[DialogComponent::ShortenAndSpeak] Unable to interact with chatGPT with question: " << m_last_received_interaction;
         std::this_thread::sleep_for(wait_ms);
     }
     std::string answerText = answer.content;
-    // ---------------------------------Text to Speech Service SPEAK------------------------------
+    
     SpeakFromText(answerText);
 
     response->is_ok=true;
@@ -1887,7 +1901,6 @@ void DialogComponent::Interpret(const std::shared_ptr<dialog_interfaces::srv::In
     std::shared_ptr<dialog_interfaces::srv::Interpret::Response> response)
 {   
 
-    // Assumption: if this function is called, then it means that the last interaction is a duplicate, and that its index has been saved in m_duplicateIndex
     std::string genericLLMPrompt = "You have received an interaction: " + m_last_received_interaction + ". " +
         "You have to interpret it and give as a result 'True' if the interaction is a question and if it does not regard continuing the tour." + 
         "You have to give as a result 'False' if the interaction is not a question or if it does regard continuing the tour.";
@@ -1900,7 +1913,7 @@ void DialogComponent::Interpret(const std::shared_ptr<dialog_interfaces::srv::In
     yarp::dev::LLM_Message answer;
     if(!m_iGenericChat->ask(genericLLMPrompt, answer))
     {
-        yError() << "[DialogComponent::Interpret] Unable to interact with chatGPT with question: " << m_lastQuestion;
+        yError() << "[DialogComponent::Interpret] Unable to interact with chatGPT with question: " << m_last_received_interaction;
         std::this_thread::sleep_for(wait_ms);
     }
 
@@ -1917,7 +1930,6 @@ void DialogComponent::AnswerAndSpeak(const std::shared_ptr<dialog_interfaces::sr
     std::shared_ptr<dialog_interfaces::srv::AnswerAndSpeak::Response> response)
 {   
 
-    // Assumption: if this function is called, then it means that the last interaction is a duplicate, and that its index has been saved in m_duplicateIndex
     std::string genericLLMPrompt = "You have received a question: " + m_last_received_interaction + ". " +
         "You have to answer it while maintaining the context of the conversation.";
 
@@ -1929,12 +1941,13 @@ void DialogComponent::AnswerAndSpeak(const std::shared_ptr<dialog_interfaces::sr
     yarp::dev::LLM_Message answer;
     if(!m_iGenericChat->ask(genericLLMPrompt, answer))
     {
-        yError() << "[DialogComponent::AnswerAndSpeak] Unable to interact with chatGPT with question: " << m_lastQuestion;
+        yError() << "[DialogComponent::AnswerAndSpeak] Unable to interact with chatGPT with question: " << m_last_received_interaction;
         std::this_thread::sleep_for(wait_ms);
     }
     std::string answerText = answer.content;
 
-    // ---------------------------------Text to Speech Service SPEAK------------------------------
+    m_replies.push_back(answerText);
+
     SpeakFromText(answerText);
 
     response->is_ok=true;
