@@ -1,3 +1,4 @@
+string keyboard_interaction # Optional, added for debugging purposes. If this field is empty, the component will look for vocal interactions from the m_speechTranscriberCallback component
 ---
 bool is_ok
 string interaction
