@@ -67,6 +67,13 @@
     </module>
 
     <module>
+        <name>ros2_wait_skill</name>
+        <parameters>run wait2_skill wait2_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
         <name>ros2_is_at_charging_station_skill</name>
         <parameters>run is_at_charging_station_skill is_at_charging_station_skill</parameters>
         <workdir />
@@ -154,6 +161,20 @@
     <module>
         <name>ros2_check_if_start_skill</name>
         <parameters>run check_if_start_skill check_if_start_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2_check_if_start_skill</name>
+        <parameters>run check_if_start2_skill check_if_start2_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2_check_if_start_skill</name>
+        <parameters>run check_if_start3_skill check_if_start3_skill</parameters>
         <workdir />
         <node>bt</node>
     </module>
