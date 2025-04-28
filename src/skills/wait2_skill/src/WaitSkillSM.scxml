@@ -1,0 +1,31 @@
+<scxml 
+  initial="idle" 
+  version="1.0" 
+  name="Wait2SkillAction"
+  datamodel="ecmascript"
+  xmlns="http://www.w3.org/2005/07/scxml">
+
+    <state id="idle">
+        <transition event="CMD_TICK" target="sendRunning" />
+        <transition event="CMD_HALT" target="sendHalted" /> 
+    </state>
+
+    <state id="sendRunning">
+        <onentry>
+          <send event="TICK_RESPONSE">
+            <param name="result" expr='"RUNNING"'/>
+          </send>
+        </onentry>
+        <transition target="idle" />
+    </state>
+
+    <state id="sendHalted">
+        <onentry>
+            <send event="HALT_RESPONSE">
+            </send>
+        </onentry>
+        <transition target="idle" />
+    </state>
+
+
+</scxml>
