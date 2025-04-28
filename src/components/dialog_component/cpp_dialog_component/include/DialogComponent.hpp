@@ -184,7 +184,7 @@ private:
     std::atomic<bool> m_skipSpeaking{false};
 
     // has the current interaction already been asked?
-    int m_duplicateIndex;
+    // int m_duplicateIndex;
 
     // Vector of questions and replies
     // std::vector<std::tuple<std::string, std::string>>  m_questions_and_replies;
