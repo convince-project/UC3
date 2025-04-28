@@ -13,6 +13,8 @@
     <data id="m_duplicate_index"/>
     <data id="m_reply"/>
     <data id="m_is_question"/>
+    <data id="m_language"/>
+    <data id="topic"/>
   </datamodel>
 
   <state id="idle">
@@ -36,7 +38,7 @@
           qDebug() &lt;&lt; "entering waitForInteraction" &lt;&lt; topic;
         </script>
     </onentry>
-    <transition event="DialogComponentComponent.WaitForInteraction.Return" target="waitForInteractionResult">
+    <transition event="DialogComponent.WaitForInteraction.Return" target="waitForInteractionResult">
       <assign expr="_event.data.result" location="m_result"/>
       <assign expr="_event.data.interaction" location="m_interaction"/>
     </transition>
@@ -120,6 +122,7 @@
   <state id="checkDuplicate">
     <onentry>
         <send event="DialogComponent.CheckDuplicate.Call">
+          <param name="interaction" expr="m_interaction"/>
         </send>
 
         <script>
@@ -149,14 +152,19 @@
       <log expr="'State evaluateDuplicate'"/>
       <log expr="m_result"/>
       <log expr="m_interaction"/>
+      <log expr="m_duplicate_index"/>
 
       <script>
         topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
         qDebug() &lt;&lt; "entering evaluateDuplicate" &lt;&lt; topic;
       </script>
     </onentry>
-    <transition cond="m_duplicate_index &lt; 0" target="interpret"/>
-    <transition cond="!(m_duplicate_index &lt; 0)" target="shortenAndSpeak"/>
+    <!-- <transition cond="m_duplicate_index &gt; 0" target="shortenAndSpeak"/>
+    <transition cond="m_duplicate_index &lt; 0" target="interpret"/> -->
+    <!-- undesirable solution, but I couldn't make the integer comparison work -->
+    <transition cond="m_duplicate_index == '-1'" target="interpret"/> 
+    <transition target="shortenAndSpeak"/>
+    
   </state>
 
   <!-- TODO: Discuss if adding 2 evaluateDuplicateResult states, to evaluate the correct execution of evaluateDuplicate state -->
@@ -164,6 +172,7 @@
   <state id="shortenAndSpeak">
     <onentry>
         <send event="DialogComponent.ShortenAndSpeak.Call">
+          <param name="index" expr="m_duplicate_index"/>
             <!-- Assumes that the last interaction is saved in the state of the Dialog Component, therefore do not pass the interaction as an input -->
         </send>
 
@@ -191,15 +200,20 @@
 
   <state id="interpret">
     <onentry>
-        <send event="DialogComponent.interpret.Call">
+        <send event="DialogComponent.Interpret.Call">
         </send>
+        
+        <log expr="'State interpret'"/>
+        <log expr="m_result"/>
+        <log expr="m_interaction"/>
+        <log expr="m_duplicate_index"/>
 
         <script>
           topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
           qDebug() &lt;&lt; "entering interpret" &lt;&lt; topic;
         </script>
     </onentry>
-    <transition event="DialogComponent.interpret.Return" target="interpretResult">
+    <transition event="DialogComponent.Interpret.Return" target="interpretResult">
       <assign expr="_event.data.result" location="m_result"/>
       <assign expr="_event.data.isQuestion" location="m_is_question"/>
     </transition>
@@ -233,7 +247,7 @@
 
   <state id="answerAndSpeak">
     <onentry>
-        <send event="SchedulerComponent.AnswerAndSpeak.Call">
+        <send event="DialogComponent.AnswerAndSpeak.Call">
         </send>
 
         <script>
@@ -241,7 +255,7 @@
         qDebug() &lt;&lt; "entering answerAndSpeak" &lt;&lt; topic;
       </script>
     </onentry>
-    <transition event="SchedulerComponent.AnswerAndSpeak.Return" target="answerAndSpeakResult">
+    <transition event="DialogComponent.AnswerAndSpeak.Return" target="answerAndSpeakResult">
       <assign expr="_event.data.result" location="m_result"/>
       <!-- <assign expr="_event.data.reply" location="m_reply"/> We can remove the reply since it's consumed within the same function -->
     </transition>
