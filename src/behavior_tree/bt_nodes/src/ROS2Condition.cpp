@@ -46,9 +46,9 @@ bool ROS2Condition::init()
         rclcpp::init(/*argc*/ 0, /*argv*/ nullptr);
     }
 
-    m_node = rclcpp::Node::make_shared(ConditionNode::name()+ "Leaf");
+    m_node = rclcpp::Node::make_shared(ConditionNode::name()+ "ConditionLeaf");
     m_clientTick = m_node->create_client<bt_interfaces::srv::TickCondition>(ConditionNode::name() + "Skill/tick" + m_suffixMonitor);
-    RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"),"name " << ConditionNode::name() << "suffixmonitor " << m_suffixMonitor);
+    RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"),"name -- " << ConditionNode::name() << " -- suffixmonitor " << m_suffixMonitor);
     
     return true;
 
