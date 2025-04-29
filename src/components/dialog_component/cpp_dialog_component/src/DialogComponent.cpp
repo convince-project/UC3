@@ -1870,8 +1870,6 @@ void DialogComponent::ShortenAndSpeak(const std::shared_ptr<dialog_interfaces::s
 
     std::string previousReply = m_replies[request->duplicate_index];
 
-    std::cout << "The replies vector is not the problem" << std::endl;
-
     std::string genericLLMPrompt = "You have just received a question: " + m_last_received_interaction + ". " +
         "You have to answer it, but you have to take into account that the user has already received a similar answer. " +
         "The previous answer was: " + previousReply + ". " +
@@ -1889,8 +1887,10 @@ void DialogComponent::ShortenAndSpeak(const std::shared_ptr<dialog_interfaces::s
         std::this_thread::sleep_for(wait_ms);
     }
     std::string answerText = answer.content;
+
+    std::cout << "The answer is: " << answerText << std::endl;
     
-    SpeakFromText(answerText);
+    // SpeakFromText(answerText);
 
     response->is_ok=true;
 
@@ -1918,6 +1918,8 @@ void DialogComponent::Interpret(const std::shared_ptr<dialog_interfaces::srv::In
     }
 
     std::string answerText = answer.content;
+
+    std::cout << "Is the interaction a question?: " << answerText << std::endl;
     
     bool isQuestion = answerText == "True" ? true : false;
 
@@ -1948,7 +1950,9 @@ void DialogComponent::AnswerAndSpeak(const std::shared_ptr<dialog_interfaces::sr
 
     m_replies.push_back(answerText);
 
-    SpeakFromText(answerText);
+    std::cout << "The answer is: " << answerText << std::endl;
+
+    // SpeakFromText(answerText);
 
     response->is_ok=true;
 
