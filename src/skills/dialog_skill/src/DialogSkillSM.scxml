@@ -13,17 +13,22 @@
     <data id="m_duplicate_index"/>
     <data id="m_reply"/>
     <data id="m_is_question"/>
+    <data id="m_is_beginning_of_conversation"/>
     <data id="m_language"/>
     <data id="topic"/>
   </datamodel>
 
   <state id="idle">
       <onentry>
-        <log expr="'State Idle'"/>
+        <log label="State Idle"/>
         <!-- <script>
           topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
           qDebug() &lt;&lt; "entering idle" &lt;&lt; topic;
         </script> -->
+        <!-- <assign expr="True" location="m_is_beginning_of_conversation"/> -->
+        <script>
+          m_is_beginning_of_conversation = 'True';
+        </script>
       </onentry>
       <transition event="CMD_TICK" target="waitForInteraction" />
       <transition event="CMD_HALT" target="stop" /> 
@@ -32,9 +37,11 @@
   <state id="waitForInteraction">
     <onentry>
         <send event="DialogComponent.WaitForInteraction.Call">
+          <param name="is_beginning_of_conversation" expr="m_is_beginning_of_conversation == 'True'"/>
         </send>
 
-        <log expr="'State waitForInteraction'"/>
+        <log label="State waitForInteraction"/>
+        <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/>
         <!-- <script>
           topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
           qDebug() &lt;&lt; "entering waitForInteraction" &lt;&lt; topic;
@@ -66,9 +73,10 @@
     <onentry>
       <send event="SchedulerComponent.GetCurrentLanguage.Call">
       </send>
-      <log expr="'State getLanguage'"/>
-      <log expr="m_result"/>
-      <log expr="m_interaction"/>
+
+      <log label="State getLanguage" expr="m_result"/>
+      <log label="Interaction" expr="m_interaction"/>
+      <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/>
 
       <!-- <script>
         topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
@@ -99,10 +107,11 @@
           <param name="new_language" expr="m_language"/>
         </send>
 
-        <log expr="'State setLanguage'"/>
-        <log expr="m_result"/>
-        <log expr="m_interaction"/>
-        <log expr="m_language"/>
+        <log label="State setLanguage" expr="m_result"/>
+        <log label="Interaction" expr="m_interaction"/>
+        <log label="Language" expr="m_language"/>
+        <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/>
+
 
         <!-- <script>
           topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
@@ -128,18 +137,21 @@
 
 <!-- End of the Language setting utility -->
 
-
-
   <state id="checkDuplicate">
     <onentry>
         <send event="DialogComponent.CheckDuplicate.Call">
           <param name="interaction" expr="m_interaction"/>
+          <param name="is_beginning_of_conversation" expr="m_is_beginning_of_conversation == 'True'"/>
         </send>
+        <!-- <assign expr="False" location="m_is_beginning_of_conversation"/> -->
+        <script>
+          m_is_beginning_of_conversation = 'False';
+        </script>
 
-        <log expr="'State checkDuplicate'"/>
-        <log expr="m_result"/>
-        <log expr="m_interaction"/>
-        <log expr="m_language"/>        
+        <log label="State checkDuplicate" expr="m_result"/>
+        <log label="Interaction" expr="m_interaction"/>
+        <log label="Language" expr="m_language"/>
+        <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/> 
 
         <!-- <script>
           topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
@@ -165,10 +177,12 @@
 
   <state id="evaluateDuplicate">
     <onentry>
-      <log expr="'State evaluateDuplicate'"/>
-      <log expr="m_result"/>
-      <log expr="m_interaction"/>
-      <log expr="m_duplicate_index"/>
+
+      <log label="State evaluateDuplicate" expr="m_result"/>
+      <log label="Interaction" expr="m_interaction"/>
+      <log label="Language" expr="m_language"/>
+      <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/> 
+      <log label="Duplicate index" expr="m_duplicate_index"/>
 
       <!-- <script>
         topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
@@ -218,11 +232,12 @@
     <onentry>
         <send event="DialogComponent.Interpret.Call">
         </send>
-        
-        <log expr="'State interpret'"/>
-        <log expr="m_result"/>
-        <log expr="m_interaction"/>
-        <log expr="m_duplicate_index"/>
+
+      <log label="State Interpret" expr="m_result"/>
+      <log label="Interaction" expr="m_interaction"/>
+      <log label="Language" expr="m_language"/>
+      <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/> 
+      <log label="Duplicate index" expr="m_duplicate_index"/>
 
         <!-- <script>
           topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
@@ -248,11 +263,13 @@
 
   <state id="evaluateInterpretation">
     <onentry>
-      <log expr="'State evaluateInterpretation'"/>
-      <log expr="m_result"/>
-      <log expr="m_interaction"/>
-      <log expr="m_duplicate_index"/>
-      <log expr="m_is_question"/>
+
+      <log label="State evaluateInterpretation" expr="m_result"/>
+      <log label="Interaction" expr="m_interaction"/>
+      <log label="Language" expr="m_language"/>
+      <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/> 
+      <log label="Duplicate index" expr="m_duplicate_index"/>
+      <log label="Is question" expr="m_is_question"/>
 
       <!-- <script>
         topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
