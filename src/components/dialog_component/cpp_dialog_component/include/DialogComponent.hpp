@@ -129,7 +129,7 @@ private:
     rclcpp::Node::SharedPtr m_node;
     rclcpp::Service<dialog_interfaces::srv::GetLanguage>::SharedPtr m_getLanguageService;
     rclcpp::Service<dialog_interfaces::srv::SetLanguage>::SharedPtr m_setLanguageService;
-    rclcpp::Service<dialog_interfaces::srv::EnableDialog>::SharedPtr m_enableDialogService;
+    rclcpp::Service<dialog_interfaces::srv::EnableDialog>::SharedPtr m_manageContextService;
     rclcpp::Service<dialog_interfaces::srv::SetPoi>::SharedPtr m_setPoiService;
     rclcpp::Service<dialog_interfaces::srv::GetState>::SharedPtr m_GetStateService;
     rclcpp::Service<dialog_interfaces::srv::SkipExplanation>::SharedPtr m_SkipExplanationService;
@@ -151,8 +151,6 @@ private:
     std::string m_currentPoiName;
     std::string m_jsonPath;
     std::string m_tourName;
-    ///TODO: Horrible solution. Remove this as soon as possible
-    std::string m_lastQuestion;
     // END
     bool m_tourLoadedAtStart;
 
@@ -165,12 +163,14 @@ private:
     std::string m_last_valid_speak;
 
     /*Threading*/
-    std::thread m_dialogThread;
+    // std::thread m_dialogThread;
     void DialogExecution();
     bool CommandManager(const std::string &command, PoI currentPoI, PoI genericPoI, std::string & phrase);
     bool InterpretCommand(const std::string &command, PoI currentPoI, PoI genericPoI, std::string & phrase);
     bool m_exit;
     void WaitForSpeakEnd();
+    void EnableMicrophone();
+    void DisableMicrophone();
 
     /* Internal State Machine*/
     enum State {
