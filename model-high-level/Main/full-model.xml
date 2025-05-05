@@ -1,0 +1,40 @@
+<specification xmlns="..." xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="...">
+
+  <model>
+
+    <taskPlan id="Policy" moc="bt" path="./Policy.xml"/> 
+
+    <plugins>
+      <plugin id="ROS2Condition" moc="fsm" path="../Plugins/ROS2Condition.scxml" />
+      <plugin id="ROS2Action" moc="fsm" path="../Plugins/ROS2Action.scxml" />
+    </plugins>
+  
+    <skills>
+      <skill id="GoToPoiActionSkill" moc="fsm" path="../Skills/GoToPoiActionSkill.scxml" />
+      <skill id="VisitorsFollowingRobotSkill" moc="fsm" path="../Skills/VisitorsFollowingRobotSkill.scxml" />
+      <skill id="IsCheckingForPeopleSkill" moc="fsm" path="../Skills/IsCheckingForPeopleSkill.scxml" />
+      <skill id="RunTimerSkill" moc="fsm" path="../Skills/RunTimerSkill.scxml" />
+      <skill id="WaitSkill" moc="fsm" path="../Skills/WaitSkill.scxml" />
+      <skill id="IsPoiDoneSkill" moc="fsm" path="../Skills/IsPoiDoneSkill.scxml" />
+      <skill id="SetPoiSkill" moc="fsm" path="../Skills/SetPoiSkill.scxml" />
+      <skill id="SetPoiDoneSkill" moc="fsm" path="../Skills/SetPoiDoneSkill.scxml" />
+      <skill id="BatteryLevelSkill" moc="fsm" path="../Skills/BatteryLevelSkill.scxml" />
+      <skill id="AlarmSkill" moc="fsm" path="../Skills/AlarmSkill.scxml" />
+    </skills>
+
+    <components>
+      <component id="BlackboardComponent" moc="fsm" path="../Components/BlackboardComponent.scxml" />
+      <component id="SchedulerComponent" moc="fsm" path="../Components/SchedulerComponent.scxml" />
+      <component id="NavigationComponent" moc="fsm" path="../Components/NavigationComponent.scxml" />
+      <component id="PeopleDetectorFilterComponent" moc="fsm" path="../Components/PeopleDetectorFilterComponent.scxml" />
+      <component id="TimerComponent" moc="fsm" path="../Components/TimerComponent.scxml" />
+      <component id="BatteryComponent" moc="fsm" path="../Components/BatteryComponent.scxml" />
+      <component id="NotifyUserComponent" moc="fsm" path="../Components/NotifyUserComponent.scxml" />
+    </components>
+ 
+  </model>
+
+  <properties path="../Properties/properties.xml"/>
+
+</specification>
