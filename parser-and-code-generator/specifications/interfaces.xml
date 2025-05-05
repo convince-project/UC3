@@ -2,6 +2,21 @@
 
     <types path="./types.xml" />
 
+    <interface id="robot_interfaces">
+        <function id="readBatteryStatus">
+            <protocol>
+                <ROS2data>
+                    <interface type="topic" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>sensor_msgs::msg::BatteryState</dataType>
+                <dataField>percentage</dataField>
+                <dataField>power_supply_status</dataField>
+            </returnValue>
+        </function>
+    </interface>
+
     <interface id="SkillInterface">
         <function id="tick">
             <protocol>
