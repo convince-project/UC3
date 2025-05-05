@@ -24,7 +24,7 @@
         </ros_topic_callback>
     </state>
 
-    <state id="checkLevel">
+    <state id="checkStatus">
         <onentry>
             <if cond="battery_status == 1"><!-- Assuming 1 means charging --> 
                 <ros_service_send_response name="/BatteryChargingSkill/tick">
@@ -38,7 +38,7 @@
                 </ros_service_send_response>
             </if>
         </onentry>
-        <ros_service_handle_request name="/BatteryChargingSkill/tick" target="checkLevel"/>
+        <ros_service_handle_request name="/BatteryChargingSkill/tick" target="checkStatus"/>
         <transition target="idle" />
     </state>
 
