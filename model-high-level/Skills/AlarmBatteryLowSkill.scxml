@@ -23,8 +23,8 @@
 
   <!-- ROS2 topic subscriber to listen for battery low state -->
   <ros_topic_subscriber
-    topic="/BatteryComponent/battery_low"
-    type="std_msgs/Int8"/>
+    topic="/BatteryDriverCmp/readStatus"
+    type="sensor_msgs/Int8"/>
 
   <!-- Idle state: waits for tick and battery topic updates -->
   <state id="idle">
@@ -34,11 +34,11 @@
       target="checkLow"/>
     
     <!-- When a battery status update arrives, update the variable -->
-    <ros_topic_callback
-      name="/BatteryComponent/battery_low"
-      target="idle">
-      <assign location="battery_low" expr="_msg.data"/>
-    </ros_topic_callback>
+  <ros_topic_callback
+    name="/BatteryDriverCmp/readStatus"
+    target="idle">
+    <assign location="battery_low" expr="_msg.power_supply_status"/>
+  </ros_topic_callback>
   </state>
 
   <!-- Check battery state and respond accordingly -->

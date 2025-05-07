@@ -2,6 +2,17 @@
 
     <types path="./types.xml" />
 
+    <!-- <interface id="battery_interfaces">
+    <function id="battery_low">
+        <protocol><ROS2data><interface type="topic"/></ROS2data></protocol>
+        <returnValue>
+        <dataType>std_msgs::msg::Int8</dataType>
+        <dataField>data</dataField>
+        </returnValue>
+    </function>
+    </interface> -->
+
+
     <interface id="robot_interfaces">
         <function id="readBatteryStatus">
             <protocol>
@@ -45,7 +56,7 @@
                     <interface type="async-service" />
                 </ROS2data>
             </protocol>
-        </function>     
+        </function>
         <function id="readLevel">
             <protocol>
                 <ROS2data>
@@ -105,7 +116,7 @@
                 <dataType>bool</dataType>
                 <dataField>is_active</dataField>
             </returnValue>
-            
+
         </function>
     </interface>
     <interface id="notify_user_interfaces">
@@ -468,7 +479,7 @@
                 <ROS2data>
                     <interface type="async-service" />
                 </ROS2data>
-            </protocol> 
+            </protocol>
         </function>
         <function id="IsDancing">
             <protocol>
@@ -499,21 +510,21 @@
                 <ROS2data>
                     <interface type="async-service" />
                 </ROS2data>
-            </protocol> 
+            </protocol>
         </function>
         <function id="ResetCounters">
             <protocol>
                 <ROS2data>
                     <interface type="async-service" />
                 </ROS2data>
-            </protocol> 
+            </protocol>
         </function>
         <function id="IsAllowedToContinue">
             <protocol>
                 <ROS2data>
                     <interface type="async-service" />
                 </ROS2data>
-            </protocol> 
+            </protocol>
             <returnValue>
                 <dataType>bool</dataType>
                 <dataField>is_allowed</dataField>
@@ -524,7 +535,7 @@
                 <ROS2data>
                     <interface type="async-service" />
                 </ROS2data>
-            </protocol> 
+            </protocol>
             <returnValue>
                 <dataType>bool</dataType>
                 <dataField>is_allowed</dataField>
@@ -535,13 +546,13 @@
                 <ROS2data>
                     <interface type="async-service" />
                 </ROS2data>
-            </protocol> 
+            </protocol>
             <returnValue>
                 <dataType>int32</dataType>
                 <dataField>counter</dataField>
             </returnValue>
         </function>
-        
+
     </interface>
 
 </interfaces>
