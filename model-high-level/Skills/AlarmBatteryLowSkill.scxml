@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml
+  xmlns="http://www.w3.org/2005/07/scxml"
+  initial="idle"
+  version="1.0"
+  name="AlarmBatteryLowSkill"
+  datamodel="ecmascript">
+
+  <!-- Variable definitions used during execution -->
+  <datamodel>
+    <!-- Holds the battery low flag: 1 = low, 0 = normal -->
+    <data id="battery_low" type="int8" expr="0"/>
+    <!-- Constant representing SUCCESS status -->
+    <data id="SKILL_SUCCESS" type="int8" expr="0"/>
+    <!-- Constant representing FAILURE status -->
+    <data id="SKILL_FAILURE" type="int8" expr="1"/>
+  </datamodel>
+
+  <!-- ROS2 service server that handles tick requests -->
+  <ros_service_server
+    service_name="/AlarmBatteryLowSkill/tick"
+    type="bt_interfaces_dummy/TickCondition"/>
+
+  <!-- ROS2 topic subscriber to listen for battery low state -->
+  <ros_topic_subscriber
+    topic="/BatteryComponent/battery_low"
+    type="std_msgs/Int8"/>
+
+  <!-- Idle state: waits for tick and battery topic updates -->
+  <state id="idle">
+    <!-- When a tick is received, transition to checkLow state -->
+    <ros_service_handle_request
+      name="/AlarmBatteryLowSkill/tick"
+      target="checkLow"/>
+    
+    <!-- When a battery status update arrives, update the variable -->
+    <ros_topic_callback
+      name="/BatteryComponent/battery_low"
+      target="idle">
+      <assign location="battery_low" expr="_msg.data"/>
+    </ros_topic_callback>
+  </state>
+
+  <!-- Check battery state and respond accordingly -->
+  <state id="checkLow">
+    <onentry>
+      <!-- If battery is low, return FAILURE -->
+      <if cond="battery_low == 1"> 
+        <ros_service_send_response name="/AlarmBatteryLowSkill/tick">
+          <field name="status" expr="SKILL_FAILURE"/>
+          <field name="is_ok" expr="false"/>
+        </ros_service_send_response>
+      <else/>
+        <!-- If battery is OK, return SUCCESS -->
+        <ros_service_send_response name="/AlarmBatteryLowSkill/tick">
+          <field name="status" expr="SKILL_SUCCESS"/>
+          <field name="is_ok" expr="true"/>
+        </ros_service_send_response>
+      </if>
+    </onentry>
+
+    <!-- Allow re-handling of tick while in this state -->
+    <ros_service_handle_request
+      name="/AlarmBatteryLowSkill/tick"
+      target="checkLow"/>
+    
+    <!-- After processing, return to idle state -->
+    <transition target="idle"/>
+  </state>
+
+</scxml>
