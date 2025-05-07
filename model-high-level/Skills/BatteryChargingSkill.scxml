@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml 
+  initial="idle" 
+  version="1.0" 
+  name="BatteryChargingSkill"
+  datamodel="ecmascript"
+  xmlns="http://www.w3.org/2005/07/scxml">
+
+    <datamodel>
+        <data id="battery_status" type="int32" expr="100" />
+        <data id="SKILL_SUCCESS" type="int8" expr="0" />
+        <data id="SKILL_FAILURE" type="int8" expr="1" />
+    </datamodel>
+
+    <!-- BatteryChargingSkill is a server for tick from the ROS2Condition plugin-->
+    <ros_service_server service_name="/BatteryChargingSkill/tick" type ="bt_interfaces_dummy/TickCondition"/>
+    <!-- BatteryChargingSkill is a subscriber for the /battery_level topic from the BatteryComponent-->
+    <ros_topic_subscriber topic="/RobotComponent/readBatteryStatus" type="sensor_msgs/BatteryState" />
+
+    <state id="idle">
+        <ros_service_handle_request name="/BatteryChargingSkill/tick" target="checkStatus"/>
+        <ros_topic_callback name="/RobotComponent/readBatteryStatus" target="idle">
+            <assign location="battery_status" expr="_msg.power_supply_status" />
+        </ros_topic_callback>
+    </state>
+
+    <state id="checkStatus">
+        <onentry>
+            <if cond="battery_status == 1"><!-- Assuming 1 means charging --> 
+                <ros_service_send_response name="/BatteryChargingSkill/tick">
+                    <field name="status" expr="SKILL_SUCCESS"/>
+                    <field name="is_ok" expr="true"/>
+                </ros_service_send_response>
+            <else/>
+                <ros_service_send_response name="/BatteryChargingSkill/tick">
+                    <field name="status" expr="SKILL_FAILURE"/>
+                    <field name="is_ok" expr="true"/>
+                </ros_service_send_response>
+            </if>
+        </onentry>
+        <ros_service_handle_request name="/BatteryChargingSkill/tick" target="checkStatus"/>
+        <transition target="idle" />
+    </state>
+
+</scxml>
