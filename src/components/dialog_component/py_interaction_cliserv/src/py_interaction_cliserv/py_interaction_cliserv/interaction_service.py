@@ -8,11 +8,11 @@ import numpy as np
 class InteractionService(Node):
 
     def __init__(self):
-        super().__init__('interaction_service')
+        super().__init__('py_dialog_component')
         self.srv = self.create_service(RememberInteractions, '/DialogComponent/RememberInteractions', self.get_previous_similar_interaction)
 
-        self.saved_interactions = []
-        self.saved_embeddings = None
+        self.saved_interactions = dict()
+        self.saved_embeddings = dict()
 
         start = time.time()
 
@@ -20,10 +20,12 @@ class InteractionService(Node):
         sentence_model_thresholds = {
             "sentence-transformers/all-MiniLM-L6-v2": 0.5,
             "sentence-transformers/distiluse-base-multilingual-cased-v1": 1, # needs to be tuned
-            "intfloat/multilingual-e5-large-instruct": 0.925
+            "intfloat/multilingual-e5-large-instruct": 0.925,
+            "paraphrase-multilingual-MiniLM-L12-v2": 0.8
         }
 
-        model_name = "intfloat/multilingual-e5-large-instruct"
+        # TODO: make it a parameter
+        model_name = "paraphrase-multilingual-MiniLM-L12-v2"
 
         self.model = SentenceTransformer(model_name)
 
@@ -36,6 +38,15 @@ class InteractionService(Node):
     # return the index of a previous interaction that is similar to the current one if found, otherwise -1
     def get_previous_similar_interaction(self, request, response):
 
+        if request.is_beginning_of_conversation:
+            self.saved_interactions = dict()
+            self.saved_embeddings = dict()
+            self.get_logger().info("New conversation started, resetting saved interactions and embeddings")
+
+        if request.llm_context not in self.saved_interactions and request.llm_context not in self.saved_embeddings:
+            self.saved_interactions[request.llm_context] = []
+            self.saved_embeddings[request.llm_context] = None
+
         # self.get_logger().info("Previous interactions: ", self.saved_interactions)
         self.get_logger().info(f"Current interaction: {request.interaction}")
 
@@ -45,7 +56,7 @@ class InteractionService(Node):
         # self.get_logger().info(embedding.shape)
 
         # start = time.time()
-        similarities = self.model.similarity(embedding, self.saved_embeddings) if self.saved_embeddings is not None else np.array([[0]])
+        similarities = self.model.similarity(embedding, self.saved_embeddings[request.llm_context]) if self.saved_embeddings[request.llm_context] is not None else np.array([[0]])
         # self.get_logger().info("Similarities calculated in %s seconds" % (time.time() - start))
         # self.get_logger().info(similarities)
         # self.get_logger().info(similarities.shape)
@@ -61,10 +72,10 @@ class InteractionService(Node):
             duplicate_index = int(max_sim_index[1])
         else:
             # start = time.time()
-            self.saved_interactions.append(request.interaction)
-            self.saved_embeddings = np.concatenate(
-                (self.saved_embeddings, embedding)
-            ) if self.saved_embeddings is not None else embedding
+            self.saved_interactions[request.llm_context].append(request.interaction)
+            self.saved_embeddings[request.llm_context] = np.concatenate(
+                (self.saved_embeddings[request.llm_context], embedding)
+            ) if self.saved_embeddings[request.llm_context] is not None else embedding
             # self.get_logger().info("Embeddings concatenated in %s seconds" % (time.time() - start))
             # self.get_logger().info(self.saved_embeddings.shape)
 
@@ -74,7 +85,7 @@ class InteractionService(Node):
         response.index = duplicate_index
         response.is_ok = True
         if duplicate_index != -1:
-            self.get_logger().info(f'Duplicate interaction detected: previous "{self.saved_interactions[duplicate_index]}" and current "{request.interaction}"')
+            self.get_logger().info(f'Duplicate interaction detected: previous "{self.saved_interactions[request.llm_context][duplicate_index]}" and current "{request.interaction}"')
 
         self.get_logger().info("-" * 50)
 
