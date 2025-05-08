@@ -1,2 +1,4 @@
+string interaction # interaction within a conversation
+string llm_context # the conversation is managed by different LLMs based on the context, we take this information as an input to store the history of the conversation for each LLM
 ---
 bool is_ok

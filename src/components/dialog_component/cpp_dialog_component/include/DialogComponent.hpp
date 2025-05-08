@@ -22,7 +22,7 @@
 #include <yarp/dev/IAudioGrabberSound.h>
 #include <dialog_interfaces/srv/get_language.hpp>
 #include <dialog_interfaces/srv/set_language.hpp>
-#include <dialog_interfaces/srv/enable_dialog.hpp>
+#include <dialog_interfaces/srv/manage_context.hpp>
 #include <dialog_interfaces/srv/set_poi.hpp>
 #include <dialog_interfaces/srv/get_state.hpp>
 #include <dialog_interfaces/srv/skip_explanation.hpp>
@@ -36,10 +36,12 @@
 #include <text_to_speech_interfaces/srv/set_voice.hpp>
 #include <scheduler_interfaces/srv/get_current_poi.hpp>
 #include <scheduler_interfaces/srv/end_tour.hpp>
+#include <scheduler_interfaces/srv/update_poi.hpp>
 #include <scheduler_interfaces/srv/set_language.hpp>
 #include "nlohmann/json.hpp"
 #include <random>
 #include <map>
+#include <unordered_map>
 
 #include "SpeechTranscriberCallback.hpp"
 #include "SpeakerStatusCallback.hpp"
@@ -64,10 +66,10 @@ public:
 
     void GetLanguage([[maybe_unused]] const std::shared_ptr<dialog_interfaces::srv::GetLanguage::Request> request,
                         std::shared_ptr<dialog_interfaces::srv::GetLanguage::Response> response);
-    void SetLanguage(const std::shared_ptr<dialog_interfaces::srv::SetLanguage::Request> request,
-                        std::shared_ptr<dialog_interfaces::srv::SetLanguage::Response> response);
-    void EnableDialog(const std::shared_ptr<dialog_interfaces::srv::EnableDialog::Request> request,
-                        std::shared_ptr<dialog_interfaces::srv::EnableDialog::Response> response);
+    // void SetLanguage(const std::shared_ptr<dialog_interfaces::srv::SetLanguage::Request> request,
+                        // std::shared_ptr<dialog_interfaces::srv::SetLanguage::Response> response);
+    void ManageContext(const std::shared_ptr<dialog_interfaces::srv::ManageContext::Request> request,
+                        std::shared_ptr<dialog_interfaces::srv::ManageContext::Response> response);
     void SetPoi(const std::shared_ptr<dialog_interfaces::srv::SetPoi::Request> request,
                         std::shared_ptr<dialog_interfaces::srv::SetPoi::Response> response);
     void GetState(const std::shared_ptr<dialog_interfaces::srv::GetState::Request> request,
@@ -129,14 +131,14 @@ private:
     rclcpp::Node::SharedPtr m_node;
     rclcpp::Service<dialog_interfaces::srv::GetLanguage>::SharedPtr m_getLanguageService;
     rclcpp::Service<dialog_interfaces::srv::SetLanguage>::SharedPtr m_setLanguageService;
-    rclcpp::Service<dialog_interfaces::srv::EnableDialog>::SharedPtr m_manageContextService;
+    rclcpp::Service<dialog_interfaces::srv::ManageContext>::SharedPtr m_manageContextService;
     rclcpp::Service<dialog_interfaces::srv::SetPoi>::SharedPtr m_setPoiService;
     rclcpp::Service<dialog_interfaces::srv::GetState>::SharedPtr m_GetStateService;
     rclcpp::Service<dialog_interfaces::srv::SkipExplanation>::SharedPtr m_SkipExplanationService;
     rclcpp::Service<dialog_interfaces::srv::WaitForInteraction>::SharedPtr m_WaitForInteractionService;
     rclcpp::Service<dialog_interfaces::srv::ShortenAndSpeak>::SharedPtr m_ShortenAndSpeakService;
     rclcpp::Service<dialog_interfaces::srv::AnswerAndSpeak>::SharedPtr m_AnswerAndSpeakService;
-    rclcpp::Service<dialog_interfaces::srv::Interpret>::SharedPtr m_InterpretService;
+    // rclcpp::Service<dialog_interfaces::srv::Interpret>::SharedPtr m_InterpretService;
     //rclcpp::Service<dialog_interfaces::srv::IsSpeaking>::SharedPtr m_IsSpeakingService;
 
     rclcpp::Client<text_to_speech_interfaces::srv::IsSpeaking>::SharedPtr m_isSpeakingClient;
@@ -164,13 +166,13 @@ private:
 
     /*Threading*/
     // std::thread m_dialogThread;
-    void DialogExecution();
-    bool CommandManager(const std::string &command, PoI currentPoI, PoI genericPoI, std::string & phrase);
-    bool InterpretCommand(const std::string &command, PoI currentPoI, PoI genericPoI, std::string & phrase);
-    bool m_exit;
+    bool CommandManager(const std::string &command, std::shared_ptr<dialog_interfaces::srv::ManageContext::Response> &response);
+    bool InterpretCommand(const std::string &command, PoI currentPoI, PoI genericPoI);
     void WaitForSpeakEnd();
     void EnableMicrophone();
     void DisableMicrophone();
+    bool SetLanguage(const std::string &newLang);
+    bool UpdatePoILLMPrompt();
 
     /* Internal State Machine*/
     enum State {
@@ -191,8 +193,8 @@ private:
 
     // last received interaction TODO: make uniform with m_lastQuestion, which I think is the same
     std::string m_last_received_interaction;
-    // vector of replies
-    std::vector<std::string> m_replies;
+    // map of vectors of replies
+    std::unordered_map<std::string, std::vector<std::string>> m_replies;
 
     // ROS2 Client Node that leverage the RememberInteractions service to get information about the interaction
     rclcpp::Client<dialog_interfaces::srv::RememberInteractions>::SharedPtr m_interactionClient;

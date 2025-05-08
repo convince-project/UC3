@@ -12,10 +12,13 @@
     <data id="m_interaction"/>
     <data id="m_duplicate_index"/>
     <data id="m_reply"/>
-    <data id="m_is_question"/>
+    <!-- <data id="m_is_question"/> -->
     <data id="m_is_beginning_of_conversation"/>
     <data id="m_language"/>
     <data id="topic"/>
+    <data id="m_needs_more_processing"/>
+    <data id="m_llm_context"/>
+    <data id="m_is_poi_ended"/>
   </datamodel>
 
   <state id="idle">
@@ -27,7 +30,7 @@
         </script> -->
         <!-- <assign expr="True" location="m_is_beginning_of_conversation"/> -->
         <script>
-          m_is_beginning_of_conversation = 'True';
+          m_is_beginning_of_conversation = 'true';
         </script>
       </onentry>
       <transition event="CMD_TICK" target="waitForInteraction" />
@@ -37,7 +40,7 @@
   <state id="waitForInteraction">
     <onentry>
         <send event="DialogComponent.WaitForInteraction.Call">
-          <param name="is_beginning_of_conversation" expr="m_is_beginning_of_conversation == 'True'"/>
+          <param name="is_beginning_of_conversation" expr="m_is_beginning_of_conversation == 'true'"/>
         </send>
 
         <log label="State waitForInteraction"/>
@@ -60,7 +63,7 @@
         qDebug() &lt;&lt; "entering waitForInteractionResult" &lt;&lt; topic;
       </script> -->
     </onentry>
-    <transition cond="m_result == 'SUCCESS'" target="getLanguage" />
+    <transition cond="m_result == 'SUCCESS'" target="manageContext" />
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
   </state>
 
@@ -125,13 +128,69 @@
 
   <state id="setLanguageResult">
     <onentry>
-      <!-- <script>
+      <script>
         topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
         qDebug() &lt;&lt; "entering setLanguageResult" &lt;&lt; topic;
-      </script> -->
+      </script>
     </onentry>
     <transition cond="m_result == 'SUCCESS'" target="checkDuplicate" />
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+  </state>
+
+  <state id="manageContext">
+    <onentry>
+        <send event="DialogComponent.ManageContext.Call">
+        </send>
+
+        <log label="State manageContext" expr="m_result"/>
+        <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/>
+        <!-- <script>
+          topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
+          qDebug() &lt;&lt; "entering waitForInteraction" &lt;&lt; topic;
+        </script> -->
+    </onentry>
+    <transition event="DialogComponent.ManageContext.Return" target="manageContextResult">
+      <assign expr="_event.data.result" location="m_result"/>
+      <assign expr="_event.data.language" location="m_language"/>
+      <assign expr="_event.data.needsMoreProcessing" location="m_needs_more_processing"/>
+      <assign expr="_event.data.llmContext" location="m_llm_context"/>
+      <assign expr="_event.data.isPoIEnded" location="m_is_poi_ended"/>
+    </transition>
+  </state>
+
+  <state id="manageContextResult">
+    <onentry>
+      <!-- <script>
+        topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
+        qDebug() &lt;&lt; "entering waitForInteractionResult" &lt;&lt; topic;
+      </script> -->
+    </onentry>
+    <transition cond="m_result == 'SUCCESS'" target="evaluateContext" />
+    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+  </state>
+
+  <state id="evaluateContext">
+    <onentry>
+
+      <log label="State evaluateContext" expr="m_result"/>
+      <log label="Interaction" expr="m_interaction"/>
+      <log label="Language" expr="m_language"/>
+      <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/> 
+      <log label="Needs more processing" expr="m_needs_more_processing"/>
+      <log label="LLM context" expr="m_llm_context"/>
+      <log label="Is tour ended" expr="m_is_poi_ended"/>
+
+      <!-- <script>
+        topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
+        qDebug() &lt;&lt; "entering evaluateDuplicate" &lt;&lt; topic;
+      </script> -->
+    </onentry>
+    <!-- <transition cond="m_duplicate_index &gt; 0" target="shortenAndSpeak"/>
+    <transition cond="m_duplicate_index &lt; 0" target="interpret"/> -->
+    <!-- undesirable solution, but I couldn't make the integer comparison work -->
+    <transition cond="m_is_poi_ended == true" target="sendSuccess"/>
+    <transition cond="m_needs_more_processing == true" target="checkDuplicate"/>
+    <transition cond="m_needs_more_processing == false" target="waitForInteraction"/> 
   </state>
 
 
@@ -139,13 +198,22 @@
 
   <state id="checkDuplicate">
     <onentry>
+        <log label="State checkDuplicate" expr="m_result"/>
+        <log label="Interaction" expr="m_interaction"/>
+        <log label="Language" expr="m_language"/>
+        <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/> 
+        <log label="Needs more processing" expr="m_needs_more_processing"/>
+        <log label="LLM context" expr="m_llm_context"/>
+        <log label="Is tour ended" expr="m_is_poi_ended"/>
+
         <send event="DialogComponent.CheckDuplicate.Call">
           <param name="interaction" expr="m_interaction"/>
-          <param name="is_beginning_of_conversation" expr="m_is_beginning_of_conversation == 'True'"/>
+          <param name="is_beginning_of_conversation" expr="m_is_beginning_of_conversation == 'true'"/>
+          <param name="llm_context" expr="m_llm_context"/>
         </send>
         <!-- <assign expr="False" location="m_is_beginning_of_conversation"/> -->
         <script>
-          m_is_beginning_of_conversation = 'False';
+          m_is_beginning_of_conversation = 'false';
         </script>
 
         <log label="State checkDuplicate" expr="m_result"/>
@@ -183,6 +251,9 @@
       <log label="Language" expr="m_language"/>
       <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/> 
       <log label="Duplicate index" expr="m_duplicate_index"/>
+      <log label="Needs more processing" expr="m_needs_more_processing"/>
+      <log label="LLM context" expr="m_llm_context"/>
+      <log label="Is tour ended" expr="m_is_poi_ended"/>
 
       <!-- <script>
         topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
@@ -192,7 +263,7 @@
     <!-- <transition cond="m_duplicate_index &gt; 0" target="shortenAndSpeak"/>
     <transition cond="m_duplicate_index &lt; 0" target="interpret"/> -->
     <!-- undesirable solution, but I couldn't make the integer comparison work -->
-    <transition cond="m_duplicate_index == '-1'" target="interpret"/> 
+    <transition cond="m_duplicate_index == '-1'" target="answerAndSpeak"/> 
     <transition target="shortenAndSpeak"/>
     
   </state>
@@ -203,6 +274,11 @@
     <onentry>
         <send event="DialogComponent.ShortenAndSpeak.Call">
           <param name="index" expr="m_duplicate_index"/>
+          <param name="llm_context" expr="m_llm_context"/>
+          <param name="interaction" expr="m_interaction"/>
+          <param name="is_beginning_of_conversation" expr="m_is_beginning_of_conversation == 'true'"/>
+          <param name="language" expr="m_language"/>
+          <param name="is_poi_ended" expr="m_is_poi_ended"/>
             <!-- Assumes that the last interaction is saved in the state of the Dialog Component, therefore do not pass the interaction as an input -->
         </send>
 
@@ -224,11 +300,11 @@
         qDebug() &lt;&lt; "entering shortenAndSpeakResult" &lt;&lt; topic;
       </script> -->
     </onentry>
-    <transition cond="m_result == 'SUCCESS'" target="sendSuccess" />
+    <transition cond="m_result == 'SUCCESS'" target="waitForInteraction" />
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
   </state>
 
-  <state id="interpret">
+  <!-- <state id="interpret">
     <onentry>
         <send event="DialogComponent.Interpret.Call">
         </send>
@@ -239,29 +315,22 @@
       <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/> 
       <log label="Duplicate index" expr="m_duplicate_index"/>
 
-        <!-- <script>
-          topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
-          qDebug() &lt;&lt; "entering interpret" &lt;&lt; topic;
-        </script> -->
     </onentry>
     <transition event="DialogComponent.Interpret.Return" target="interpretResult">
       <assign expr="_event.data.result" location="m_result"/>
       <assign expr="_event.data.isQuestion" location="m_is_question"/>
     </transition>
-  </state>
+  </state> -->
 
-  <state id="interpretResult">
+  <!-- <state id="interpretResult">
     <onentry>
-      <!-- <script>
-        topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
-        qDebug() &lt;&lt; "entering interpretResult" &lt;&lt; topic;
-      </script> -->
+
     </onentry>
     <transition cond="m_result == 'SUCCESS'" target="evaluateInterpretation" />
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
-  </state>
+  </state> -->
 
-  <state id="evaluateInterpretation">
+  <!-- <state id="evaluateInterpretation">
     <onentry>
 
       <log label="State evaluateInterpretation" expr="m_result"/>
@@ -271,18 +340,16 @@
       <log label="Duplicate index" expr="m_duplicate_index"/>
       <log label="Is question" expr="m_is_question"/>
 
-      <!-- <script>
-        topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
-        qDebug() &lt;&lt; "entering evaluateInterpretation" &lt;&lt; topic;
-      </script> -->
     </onentry>
     <transition cond="m_is_question" target="answerAndSpeak"/>
     <transition cond="!m_is_question" target="idle"/>
-  </state>
+  </state> -->
 
   <state id="answerAndSpeak">
     <onentry>
         <send event="DialogComponent.AnswerAndSpeak.Call">
+          <param name="interaction" expr="m_interaction"/>
+          <param name="llm_context" expr="m_llm_context"/>
         </send>
 
         <!-- <script>
@@ -303,7 +370,7 @@
         qDebug() &lt;&lt; "entering answerAndSpeakResult" &lt;&lt; topic;
       </script> -->
     </onentry>
-    <transition cond="m_result == 'SUCCESS'" target="sendSuccess" />
+    <transition cond="m_result == 'SUCCESS'" target="waitForInteraction" />
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
   </state>
 
@@ -423,7 +490,7 @@
         qDebug() &lt;&lt; "entering sendSuccess" &lt;&lt; topic;
       </script> -->
     </onentry>
-    <transition target="waitForInteraction" />
+    <transition target="idle" />
 
   </state>
 
