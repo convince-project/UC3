@@ -17,7 +17,7 @@ DialogComponent::DialogComponent() : m_random_gen(m_rand_engine()),
     m_speechTranscriberServerName = "/speechTranscription_nws/text:o";
     m_tourLoadedAtStart = false;
     m_currentPoiName = "sala_delle_guardie";
-    m_exit = false;
+    // m_exit = false
     m_fallback_repeat_counter = 0;
     m_fallback_threshold = 3;
     m_state = IDLE;
@@ -160,6 +160,7 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
         yarp::os::ResourceFinder resource_finder;
         resource_finder.setDefaultContext(prompt_context);
         std::string prompt_file_fullpath = resource_finder.findFile(prompt_poi_file);
+        std::cout << "Prompt file full path: " << prompt_file_fullpath << std::endl;
         auto stream = std::ifstream(prompt_file_fullpath);
         if (!stream)
         {
@@ -173,6 +174,7 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
         }
         resource_finder.setDefaultContext(prompt_context);
         prompt_file_fullpath = resource_finder.findFile(prompt_start_file);
+        std::cout << "Start Prompt file full path: " << prompt_file_fullpath << std::endl;
         stream = std::ifstream(prompt_file_fullpath);
         if (!stream)
         {
@@ -416,6 +418,8 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
                 }
             }
 
+            yInfo() << "[DialogComponent::ConfigureYARP] Loading tour from: " << m_jsonPath << " and: " << m_tourName;
+
             m_tourStorage = std::make_shared<TourStorage>();
             if (!m_tourStorage->LoadTour(m_jsonPath, m_tourName))
             {
@@ -467,6 +471,7 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
         }
     }*/
 
+
     yInfo() << "[DialogComponent::ConfigureYARP] Successfully configured component";
     return true;
 }
@@ -479,11 +484,11 @@ bool DialogComponent::start(int argc, char *argv[])
     }
     m_node = rclcpp::Node::make_shared("DialogComponentNode");
 
-    m_setLanguageService = m_node->create_service<dialog_interfaces::srv::SetLanguage>("/DialogComponent/SetLanguage",
-                                                                                       std::bind(&DialogComponent::SetLanguage,
-                                                                                                 this,
-                                                                                                 std::placeholders::_1,
-                                                                                                 std::placeholders::_2));
+    // m_setLanguageService = m_node->create_service<dialog_interfaces::srv::SetLanguage>("/DialogComponent/SetLanguage",
+    //                                                                                    std::bind(&DialogComponent::SetLanguage,
+    //                                                                                              this,
+    //                                                                                              std::placeholders::_1,
+    //                                                                                              std::placeholders::_2));
     m_getLanguageService = m_node->create_service<dialog_interfaces::srv::GetLanguage>("/DialogComponent/GetLanguage",
                                                                                        std::bind(&DialogComponent::GetLanguage,
                                                                                                  this,
@@ -528,15 +533,21 @@ bool DialogComponent::start(int argc, char *argv[])
                                                                                                        std::placeholders::_1,
                                                                                                        std::placeholders::_2));
 
-    m_InterpretService = m_node->create_service<dialog_interfaces::srv::Interpret>("/DialogComponent/Interpret",
-                                                                                   std::bind(&DialogComponent::Interpret,
-                                                                                             this,
-                                                                                             std::placeholders::_1,
-                                                                                             std::placeholders::_2));
+    // m_InterpretService = m_node->create_service<dialog_interfaces::srv::Interpret>("/DialogComponent/Interpret",
+    //                                                                                std::bind(&DialogComponent::Interpret,
+    //                                                                                          this,
+    //                                                                                          std::placeholders::_1,
+    //                                                                                          std::placeholders::_2));
 
     m_isSpeakingClient = m_node->create_client<text_to_speech_interfaces::srv::IsSpeaking>("/TextToSpeechComponent/IsSpeaking");
     m_setMicrophoneClient = m_node->create_client<text_to_speech_interfaces::srv::SetMicrophone>("/TextToSpeechComponent/SetMicrophone");
     m_speakClient = m_node->create_client<text_to_speech_interfaces::srv::Speak>("/TextToSpeechComponent/Speak");
+
+    if (!UpdatePoILLMPrompt())
+    {
+        yError() << "[DialogComponent::ConfigureYarp] Error in UpdatePoILLMPrompt";
+        return false;
+    }
 
     RCLCPP_INFO(m_node->get_logger(), "Started node");
 
@@ -552,10 +563,10 @@ bool DialogComponent::close()
     // m_speakersAudioPort.close();
     // m_speakersStatusPort.close();
 
-    if (m_dialogThread.joinable())
-    {
-        m_dialogThread.join();
-    }
+    // if (m_dialogThread.joinable())
+    // {
+    //     m_dialogThread.join();
+    // }
 
     rclcpp::shutdown();
     return true;
@@ -581,154 +592,44 @@ void DialogComponent::SkipExplanation(const std::shared_ptr<dialog_interfaces::s
     }
 }
 
-void DialogComponent::ManageContext(const std::shared_ptr<dialog_interfaces::srv::EnableDialog::Request> request,
-                                    std::shared_ptr<dialog_interfaces::srv::EnableDialog::Response> response)
+void DialogComponent::ManageContext(const std::shared_ptr<dialog_interfaces::srv::ManageContext::Request> request,
+                                    std::shared_ptr<dialog_interfaces::srv::ManageContext::Response> response)
 {
-    if (request->enable)
-    {
-        // calls the scheduler to get the current poi
-        std::shared_ptr<rclcpp::Node> nodeGetCurrentPoi = rclcpp::Node::make_shared("DialogComponentNodeGetCurrentPoi");
-        std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::GetCurrentPoi>> clientGetCurrentPoi = nodeGetCurrentPoi->create_client<scheduler_interfaces::srv::GetCurrentPoi>("/SchedulerComponent/GetCurrentPoi");
-        auto requestGetCurrentPoi = std::make_shared<scheduler_interfaces::srv::GetCurrentPoi::Request>();
-        while (!clientGetCurrentPoi->wait_for_service(std::chrono::seconds(1)))
-        {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            if (!rclcpp::ok())
-            {
-                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'GetCurrentPoi'. Exiting.");
-                response->is_ok = false;
-                response->error_msg = "Interrupted while waiting for the service 'GetCurrentPoi'. Exiting.";
-                return;
-            }
-        }
-        // send the request
-        auto resultGetCurrentPoi = clientGetCurrentPoi->async_send_request(requestGetCurrentPoi);
-        auto futureResultGetCurrentPoi = rclcpp::spin_until_future_complete(nodeGetCurrentPoi, resultGetCurrentPoi);
-        auto responseGetCurrentPoi = resultGetCurrentPoi.get();
-        if (futureResultGetCurrentPoi == rclcpp::FutureReturnCode::SUCCESS)
-        {
-            if (responseGetCurrentPoi->is_ok == true)
-            {
-                m_currentPoiName = responseGetCurrentPoi->poi_name;
-                // Set poi chat prompt
-                if (m_currentPoiName == "madama_start")
-                {
-                    m_iPoiChat->deleteConversation();
-                    m_iPoiChat->setPrompt(m_startPrompt);
-                }
-                else
-                {
-                    m_iPoiChat->deleteConversation();
-                    m_iPoiChat->setPrompt(m_poiPrompt);
-                }
-            }
-            else
-            {
-                RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), "Error in getting the current poi" << response->error_msg);
-                response->is_ok = false;
-                response->error_msg = "Error in getting the current poi" + response->error_msg;
-                return;
-            }
-        }
-        else
-        {
-            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Error in getting the current poi");
-            response->is_ok = false;
-            response->error_msg = "Error in getting the current poi";
-            return;
-        }
+    // if (request->enable)
+    // {
+    // calls the scheduler to get the current poi
 
-        m_state = RUNNING;
-        // Launch thread that periodically reads the callback from the port and manages the dialog
-        if (m_dialogThread.joinable())
-        {
-            m_dialogThread.join();
-        }
-        
-        m_speechTranscriberPort.useCallback(m_speechTranscriberCallback);
-        response->is_ok = true;
-    }
-    else
-    {
-
-        // kill thread and stop the speaking
-        m_speechTranscriberPort.disableCallback();
-
-        // Clearing the SpeechTranscriber buffer
-        m_speechTranscriberCallback.clearMessage();
-
-        if (m_dialogThread.joinable())
-        {
-            m_dialogThread.join();
-        }
-
-        m_state = IDLE;
-        response->is_ok = true;
-    }
-}
-
-void DialogComponent::DialogExecution()
-{
-    // Mic management
-    // m_iAudioGrabberSound->isRecording(isRecording);
-    // m_iRender->isPlaying(isPlaying);
-
-    /*if (!isRecording && !m_speakerCallback.isPlaying())
-    {
-        yDebug() << "[DialogComponent::DialogExecution] Starting the recording " << __LINE__;
-        m_iAudioGrabberSound->startRecording();
-    }
-    else if (m_speakerCallback.isPlaying())  // just for safety
-    {
-        yDebug() << "[DialogComponent::DialogExecution] Stopping the recording " << __LINE__;
-        m_iAudioGrabberSound->stopRecording();
-    }*/
-
-    yInfo() << "DialogComponent::DialogExecution Getting PoIs" << __LINE__;
-
-    // Get the poi object from the Tour manager
-    PoI currentPoi;
-    if (!m_tourStorage->GetTour().getPoI(m_currentPoiName, currentPoi))
-    {
-        yError() << "[DialogComponent::DialogExecution] Unable to get the current PoI name: " << m_currentPoiName;
-        std::this_thread::sleep_for(wait_ms);
-        continue;
-    }
-    // Generic PoI (TODO move to another place where it's done only once)
-    PoI genericPoI;
-    if (!m_tourStorage->GetTour().getPoI("___generic___", genericPoI))
-    {
-        yError() << "[DialogComponent::DialogExecution] Unable to get the generic PoI";
-        std::this_thread::sleep_for(wait_ms);
-        continue;
-    }
     yInfo() << "DialogComponent::DialogExecution ChatBot interrogation" << __LINE__;
     // Pass the question to chatGPT
     yarp::dev::LLM_Message answer;
     /// TODO: This is an awful solution. Remove it as soon as possible
     // END
+
+    std::chrono::duration wait_ms = 200ms;
     if (!m_iPoiChat->ask(m_last_received_interaction, answer))
     {
-        yError() << "[DialogComponent::DialogExecution] Unable to interact with chatGPT with question: " << questionText;
+        yError() << "[DialogComponent::DialogExecution] Unable to interact with chatGPT with question: " << m_last_received_interaction;
         std::this_thread::sleep_for(wait_ms);
-        continue;
     }
     std::string answerText = answer.content;
     yInfo() << "DialogComponent::DialogExecution ChatBot Output: " << answerText << __LINE__;
     // Pass the chatGPT answer to the JSON TourManager
-    std::string scriptedString = "";
-    if (!CommandManager(answerText, currentPoi, genericPoI, scriptedString))
+
+    if (!CommandManager(answerText, response))
     {
         yError() << "[DialogComponent::DialogExecution] Error in Command Manager for the command: " << answerText;
         std::this_thread::sleep_for(wait_ms);
-        continue;
     }
+
+    yDebug() << "[DialogComponent::DialogExecution] Response from Command Manager: " << response->is_ok << response->needs_more_processing << response->language << response->llm_context;
 
     return;
 }
 
-bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI, PoI genericPoI, std::string &phrase)
+bool DialogComponent::CommandManager(const std::string &command, std::shared_ptr<dialog_interfaces::srv::ManageContext::Response> &response)
 {
+    // set the end of the tour to false, change it only if we enter the action end_tour
+    response->is_poi_ended = false;
     // This works for ChatGPT bot
     // We get a string formatted like in https://github.com/hsp-iit/tour-guide-robot/blob/iron/app/llmTest/conf/Format_commands_poi_prompt.txt
     // Load the command into a bottle to split it
@@ -747,18 +648,22 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
     {
         yWarning() << "Not a bottle:" << trimmedCmd;
 
-        SpeakFromText(trimmedCmd);
+        // SpeakFromText(trimmedCmd);
 
         return true;
+        response->is_ok = false;
+        response->needs_more_processing = false;
     }
 
     extracted_command.fromString(trimmedCmd);
 
     yDebug() << "[DialogComponent::InterpretCommand] Number of elements in bottle: " << extracted_command.size();
     // In the first position we have the general thing to do, like: explain, next_poi, end_tour
-    auto actionTopicList = extracted_command.get(0).asList();
+    auto languageActionTopicList = extracted_command.get(0).asList();
+
+    std::string newLang = languageActionTopicList->get(0).asString();
     yDebug() << "DialogComponent::InterpretCommand" << __LINE__;
-    std::string action = actionTopicList->get(0).asString();
+    std::string action = languageActionTopicList->get(1).asString();
     yDebug() << "DialogComponent::InterpretCommand" << __LINE__;
     // yDebug() << "[DialogComponent::InterpretCommand] Got action: " << action << extracted_command.toString() << "Command: " << trimmedCmd;
     // if (action == "cmd_unknown")
@@ -766,68 +671,58 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
     //     m_lastQuestion = theList->get(1).asString();
     // }
 
+    if (!SetLanguage(newLang))
+    {
+        yError() << "[DialogComponent::CommandManager] Unable to set the language: " << newLang;
+        // m_speechTranscriberCallback.setMessageConsumed();
+        return false;
+    }
+
+    response->language = newLang;
+
+    // Get the poi object from the Tour manager
+    PoI currentPoI;
+    if (!m_tourStorage->GetTour().getPoI(m_currentPoiName, currentPoI))
+    {
+        yError() << "[DialogComponent::DialogExecution] Unable to get the current PoI name: " << m_currentPoiName;
+        // m_speechTranscriberCallback.setMessageConsumed();
+        return false;
+    }
+    // Generic PoI
+    PoI genericPoI;
+    if (!m_tourStorage->GetTour().getPoI("___generic___", genericPoI))
+    {
+        yError() << "[DialogComponent::DialogExecution] Unable to get the generic PoI";
+        // m_speechTranscriberCallback.setMessageConsumed();
+        return false;
+    }
+
     // Let's check what to do with the action
     if (action == "epl1")
     {
         // Check the second element for determining the exact action: artist, art_piece, historical_period, technique
-        std::string topic = actionTopicList->get(1).asString();
+        std::string topic = languageActionTopicList->get(2).asString();
 
         if (topic == "function")
         {
             action = "explainFunction";
+            response->is_ok = true;
+            response->needs_more_processing = false;
         }
         else if (topic == "description" || topic == "descriptions" ||
                  topic == "decoration" || topic == "decorations")
         {
             action = "explainDescription";
-        }
-        else if (topic == "museum")
-        {
-            /// TODO: This is an awful solution. Remove it as soon as possible
-            // Horrible solution ------------------------------------------------------------ START//
-
-            // m_iAudioGrabberSound->stopRecording();
-            std::chrono::duration wait_ms = 200ms;
-            yarp::dev::LLM_Message answer;
-            if (!m_iMuseumChat->ask(m_lastQuestion, answer))
-            {
-                yError() << "[DialogComponent::DialogExecution] Unable to interact with chatGPT with question: " << m_lastQuestion;
-                std::this_thread::sleep_for(wait_ms);
-                m_speechTranscriberCallback.setMessageConsumed();
-                return false;
-            }
-            std::string answerText = answer.content;
-
-            SpeakFromText(answerText);
-
-            return true;
-        }
-        else if (topic == "project")
-        {
-            /// TODO: This is an awful solution. Remove it as soon as possible
-            // Horrible solution ------------------------------------------------------------ START//
-
-            // m_iAudioGrabberSound->stopRecording();
-            std::chrono::duration wait_ms = 200ms;
-            yarp::dev::LLM_Message answer;
-            if (!m_iGenericChat->ask(m_lastQuestion, answer))
-            {
-                yError() << "[DialogComponent::DialogExecution] Unable to interact with chatGPT with question: " << m_lastQuestion;
-                std::this_thread::sleep_for(wait_ms);
-                m_speechTranscriberCallback.setMessageConsumed();
-                return false;
-            }
-            std::string answerText = answer.content;
-
-            SpeakFromText(answerText);
-
-            return true;
+            response->is_ok = true;
+            response->needs_more_processing = false;
         }
         else
         {
             yError() << "[DialogComponent::CommandManager] Unable to assign a known topic: " << topic;
-            m_speechTranscriberCallback.setMessageConsumed();
+            // m_speechTranscriberCallback.setMessageConsumed();
             return false;
+            response->is_ok = false;
+            response->needs_more_processing = false;
         }
 
         /*  -------------------- COMMENTING OUT FOR CALLING SERVICE
@@ -867,129 +762,13 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
         // Horrible solution -------------------------------------------------------------- END//
 
         // Now let's Find that trimmedCmd in the JSON
-        if (!InterpretCommand(action, currentPoI, genericPoI, phrase))
+        if (!InterpretCommand(action, currentPoI, genericPoI))
         {
             yError() << "[DialogComponent::CommandManager] Interpret action: " << action;
-            m_speechTranscriberCallback.setMessageConsumed();
+            // m_speechTranscriberCallback.setMessageConsumed();
             return false;
         }
         return true;
-    }
-    else if (action == "greetings")
-    {
-        std::string newLang = actionTopicList->get(1).asString();
-        // sets the language internally
-        if (!m_tourStorage->m_loadedTour.setCurrentLanguage(newLang))
-        {
-            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "cannot set language to tour storage");
-            m_speechTranscriberCallback.setMessageConsumed();
-            return false;
-        }
-
-        // Get the poi object from the Tour manager
-        if (!m_tourStorage->GetTour().getPoI(m_currentPoiName, currentPoI))
-        {
-            yError() << "[DialogComponent::DialogExecution] Unable to get the current PoI name: " << m_currentPoiName;
-            m_speechTranscriberCallback.setMessageConsumed();
-            return false;
-        }
-        // Generic PoI
-        if (!m_tourStorage->GetTour().getPoI("___generic___", genericPoI))
-        {
-            yError() << "[DialogComponent::DialogExecution] Unable to get the generic PoI";
-            m_speechTranscriberCallback.setMessageConsumed();
-            return false;
-        }
-
-        yInfo() << "[DialogComponent::InterpretCommand] Set Language Detected: " << newLang << __LINE__;
-        // Calls the set language service of the scheduler component
-        auto setLangClientNode = rclcpp::Node::make_shared("DialogComponentSetLangNode");
-        auto setLangClient = setLangClientNode->create_client<scheduler_interfaces::srv::SetLanguage>("/SchedulerComponent/SetLanguage");
-        auto request = std::make_shared<scheduler_interfaces::srv::SetLanguage::Request>();
-        request->language = newLang;
-        while (!setLangClient->wait_for_service(std::chrono::seconds(1)))
-        {
-            if (!rclcpp::ok())
-            {
-                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setLangClient'. Exiting.");
-                m_speechTranscriberCallback.setMessageConsumed();
-                return false;
-            }
-        }
-        auto result = setLangClient->async_send_request(request);
-        if (rclcpp::spin_until_future_complete(setLangClientNode, result) == rclcpp::FutureReturnCode::SUCCESS)
-        {
-            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Set Language succeeded");
-        }
-        else
-        {
-            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service set_language");
-            m_speechTranscriberCallback.setMessageConsumed();
-            return false;
-        }
-        // Calls the set language service of the text to speech component
-        auto setLangClientNode2 = rclcpp::Node::make_shared("DialogComponentSetLangNode2");
-        auto setLangClient2 = setLangClientNode2->create_client<text_to_speech_interfaces::srv::SetLanguage>("/TextToSpeechComponent/SetLanguage");
-        auto request2 = std::make_shared<text_to_speech_interfaces::srv::SetLanguage::Request>();
-        request2->new_language = newLang;
-        while (!setLangClient2->wait_for_service(std::chrono::seconds(1)))
-        {
-            if (!rclcpp::ok())
-            {
-                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setLangClient'. Exiting.");
-                m_speechTranscriberCallback.setMessageConsumed();
-                return false;
-            }
-        }
-        auto result2 = setLangClient2->async_send_request(request2);
-        if (rclcpp::spin_until_future_complete(setLangClientNode2, result2) == rclcpp::FutureReturnCode::SUCCESS)
-        {
-            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Set Language succeeded");
-        }
-        else
-        {
-            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service set_language");
-            m_speechTranscriberCallback.setMessageConsumed();
-            return false;
-        }
-        auto setVoiceClientNode = rclcpp::Node::make_shared("DialogComponentSetVoiceNode");
-        auto setVoiceClient = setVoiceClientNode->create_client<text_to_speech_interfaces::srv::SetVoice>("/TextToSpeechComponent/SetVoice");
-        auto request3 = std::make_shared<text_to_speech_interfaces::srv::SetVoice::Request>();
-        request3->new_voice = m_voicesMap[newLang];
-        while (!setVoiceClient->wait_for_service(std::chrono::seconds(1)))
-        {
-            if (!rclcpp::ok())
-            {
-                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setVoiceClient'. Exiting.");
-                m_speechTranscriberCallback.setMessageConsumed();
-                return false;
-            }
-        }
-        auto result3 = setVoiceClient->async_send_request(request3);
-        if (rclcpp::spin_until_future_complete(setVoiceClientNode, result3) == rclcpp::FutureReturnCode::SUCCESS)
-        {
-            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Set Voice succeeded");
-        }
-        else
-        {
-            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service set_voice");
-            m_speechTranscriberCallback.setMessageConsumed();
-            return false;
-        }
-        // Setting language in the speech transcriber
-        if (!m_iSpeechTranscription->setLanguage(newLang))
-        {
-            yError() << "[DialogComponent::InterpretCommand] Unable to set language: " << newLang;
-            m_speechTranscriberCallback.setMessageConsumed();
-            return false;
-        }
-
-        if (!InterpretCommand(action, currentPoI, genericPoI, phrase))
-        {
-            yError() << "[DialogComponent::CommandManager] Interpret action: " << action;
-            m_speechTranscriberCallback.setMessageConsumed();
-            return false;
-        }
     }
     else if (action == "museum")
     {
@@ -997,48 +776,12 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
         // Horrible solution ------------------------------------------------------------ START//
 
         // m_iAudioGrabberSound->stopRecording();
-        std::chrono::duration wait_ms = 200ms;
-        yarp::dev::LLM_Message answer;
-        if (!m_iMuseumChat->ask(m_lastQuestion, answer))
-        {
-            yError() << "[DialogComponent::DialogExecution] Unable to interact with chatGPT with question: " << m_lastQuestion;
-            std::this_thread::sleep_for(wait_ms);
-            m_speechTranscriberCallback.setMessageConsumed();
-            return false;
-        }
-        std::string answerText = answer.content;
+
+        response->needs_more_processing = true;
+        response->is_ok = true;
+        response->llm_context = "museum";
         // ---------------------------------Text to Speech Service SPEAK------------------------------
-        {
-            yInfo() << "[DialogComponent::DialogExecution] Starting Text to Speech Service";
-            auto setCommandClientNode = rclcpp::Node::make_shared("TextToSpeechComponentSetCommandNode");
-
-            auto speakClient = setCommandClientNode->create_client<text_to_speech_interfaces::srv::Speak>("/TextToSpeechComponent/Speak");
-            auto speak_request = std::make_shared<text_to_speech_interfaces::srv::Speak::Request>();
-            speak_request->text = answerText;
-            // Wait for service
-            while (!speakClient->wait_for_service(std::chrono::seconds(1)))
-            {
-                if (!rclcpp::ok())
-                {
-                    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setCommandClient'. Exiting.");
-                }
-            }
-            auto speak_result = speakClient->async_send_request(speak_request);
-
-            // Wait for the result.
-            if (rclcpp::spin_until_future_complete(setCommandClientNode, speak_result) == rclcpp::FutureReturnCode::SUCCESS)
-            {
-                RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Speak succeeded");
-                WaitForSpeakEnd();
-                m_speechTranscriberCallback.setMessageConsumed();
-            }
-            else
-            {
-                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service speak");
-                m_speechTranscriberCallback.setMessageConsumed();
-                return false;
-            }
-        }
+        // SpeakFromText(answerText);
     }
     else if (action == "general" || action == "cmd_unknown")
     {
@@ -1046,18 +789,11 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
         // Horrible solution ------------------------------------------------------------ START//
 
         // m_iAudioGrabberSound->stopRecording();
-        std::chrono::duration wait_ms = 200ms;
-        yarp::dev::LLM_Message answer;
-        if (!m_iGenericChat->ask(m_lastQuestion, answer))
-        {
-            yError() << "[DialogComponent::DialogExecution] Unable to interact with chatGPT with question: " << m_lastQuestion;
-            std::this_thread::sleep_for(wait_ms);
-            m_speechTranscriberCallback.setMessageConsumed();
-            return false;
-        }
-        std::string answerText = answer.content;
+        response->needs_more_processing = true;
+        response->is_ok = true;
+        response->llm_context = "general";
         // ---------------------------------Text to Speech Service SPEAK------------------------------
-        SpeakFromText(answerText);
+        // SpeakFromText(answerText);
     }
     else if (action == "say")
     {
@@ -1066,21 +802,66 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
         // Horrible solution ------------------------------------------------------------ START//
 
         // m_iAudioGrabberSound->stopRecording();
+        response->needs_more_processing = false;
+        response->is_ok = true;
+
         std::chrono::duration wait_ms = 200ms;
+
+        std::string answerText = languageActionTopicList->get(2).asString();
         // ---------------------------------Text to Speech Service SPEAK------------------------------
-        SpeakFromText(actionTopicList->get(1).asString());
+
+        // SpeakFromText(answerText);
     }
     else if (action == "next_poi" || action == "start_tour") // means that it has been found // NEXT POI
     {
+
+        auto updatePoiClientNode = rclcpp::Node::make_shared("DialogComponentUpdatePoiNode");
+        auto updatePoiClient = updatePoiClientNode->create_client<scheduler_interfaces::srv::UpdatePoi>("/SchedulerComponent/UpdatePoi");
+        auto updatePoiRequest = std::make_shared<scheduler_interfaces::srv::UpdatePoi::Request>();
+        while (!updatePoiClient->wait_for_service(std::chrono::seconds(1)))
+        {
+            if (!rclcpp::ok())
+            {
+                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'updatePoiClient'. Exiting.");
+            }
+        }
+        auto updatePoiResult = updatePoiClient->async_send_request(updatePoiRequest);
+        auto futureUpdatePoiResult = rclcpp::spin_until_future_complete(updatePoiClientNode, updatePoiResult);
+        if (futureUpdatePoiResult == rclcpp::FutureReturnCode::SUCCESS)
+        {
+            if (updatePoiResult.get()->is_ok)
+            {
+                yInfo() << "[DialogComponent::CommandManager] Update Poi Succeeded" << __LINE__;
+            }
+            else
+            {
+                yError() << "[DialogComponent::CommandManager] Update Poi Failed" << __LINE__;
+            }
+        }
+        else
+        {
+            yError() << "[DialogComponent::CommandManager] Update Poi Failed" << __LINE__;
+        }
+
+        if (!UpdatePoILLMPrompt())
+        {
+            yError() << "[DialogComponent::ManageContext] Error in UpdatePoILLMPrompt";
+            response->is_ok = false;
+            return false;
+        }
+
         m_state = SUCCESS;
-        yInfo() << "[DialogComponent::InterpretCommand] Next Poi Detected" << __LINE__;
-        m_speechTranscriberCallback.setMessageConsumed();
+        yInfo() << "[DialogComponent::CommandManager] Next Poi Detected" << __LINE__;
+        response->needs_more_processing = false;
+        response->is_ok = true;
+        response->is_poi_ended = true;
+
+        // m_speechTranscriberCallback.setMessageConsumed();
         // TODO Call a service maybe?
     }
     else if (action == "end_tour") // END TOUR
     {
-        m_state = SUCCESS;
-        yInfo() << "[DialogComponent::InterpretCommand] End Tour Detected" << __LINE__;
+        yInfo() << "[DialogComponent::CommandManager] End Tour Detected" << __LINE__;
         // calls the end tour service of the scheduler component
         auto endTourClientNode = rclcpp::Node::make_shared("DialogComponentEndTourNode");
         auto endTourClient = endTourClientNode->create_client<scheduler_interfaces::srv::EndTour>("/SchedulerComponent/EndTour");
@@ -1098,26 +879,202 @@ bool DialogComponent::CommandManager(const std::string &command, PoI currentPoI,
         {
             if (endTourResult.get()->is_ok)
             {
-                yInfo() << "[DialogComponent::InterpretCommand] End Tour Succeeded" << __LINE__;
+                yInfo() << "[DialogComponent::CommandManager] End Tour Succeeded" << __LINE__;
             }
             else
             {
-                yError() << "[DialogComponent::InterpretCommand] End Tour Failed" << __LINE__;
+                yError() << "[DialogComponent::CommandManager] End Tour Failed" << __LINE__;
             }
         }
         else
         {
-            yError() << "[DialogComponent::InterpretCommand] End Tour Failed" << __LINE__;
+            yError() << "[DialogComponent::CommandManager] End Tour Failed" << __LINE__;
         }
-        m_speechTranscriberCallback.setMessageConsumed();
+        response->needs_more_processing = false;
+        response->is_ok = true;
+        response->is_poi_ended = true;
+        m_state = SUCCESS;
+        // m_speechTranscriberCallback.setMessageConsumed();
         // TODO call service
     }
     else
     {
-        m_speechTranscriberCallback.setMessageConsumed();
-        yInfo() << "[DialogComponent::InterpretCommand] cannot interpret message " << trimmedCmd << " " << __LINE__;
+        // m_speechTranscriberCallback.setMessageConsumed();
+        yInfo() << "[DialogComponent::CommandManager] cannot interpret message " << trimmedCmd << " " << __LINE__;
+        response->needs_more_processing = false;
+        response->is_ok = false;
     }
 
+    yDebug() << "[DialogComponent::CommandManager] End of command manager" << __LINE__;
+
+    return true;
+}
+
+// void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::SetLanguage::Request> request,
+//                                   std::shared_ptr<dialog_interfaces::srv::SetLanguage::Response> response)
+// {
+//     yInfo() << "DialogComponent::SetLanguage call received" << __LINE__;
+//     if (request->new_language == "")
+//     {
+//         response->is_ok = false;
+//         response->error_msg = "Empty string passed to setting language";
+//         return;
+//     }
+
+//     if (!m_tourStorage->m_loadedTour.setCurrentLanguage(request->new_language))
+//     {
+//         response->is_ok = false;
+//         response->error_msg = "Unable to set new language to tourStorage";
+//         return;
+//     }
+//     response->is_ok = true;
+// }
+
+bool DialogComponent::UpdatePoILLMPrompt()
+{
+    std::shared_ptr<rclcpp::Node> nodeGetCurrentPoi = rclcpp::Node::make_shared("DialogComponentNodeGetCurrentPoi");
+    std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::GetCurrentPoi>> clientGetCurrentPoi = nodeGetCurrentPoi->create_client<scheduler_interfaces::srv::GetCurrentPoi>("/SchedulerComponent/GetCurrentPoi");
+    auto requestGetCurrentPoi = std::make_shared<scheduler_interfaces::srv::GetCurrentPoi::Request>();
+    while (!clientGetCurrentPoi->wait_for_service(std::chrono::seconds(1)))
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        if (!rclcpp::ok())
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'GetCurrentPoi'. Exiting.");
+            return false;
+        }
+    }
+    // send the request
+    auto resultGetCurrentPoi = clientGetCurrentPoi->async_send_request(requestGetCurrentPoi);
+    auto futureResultGetCurrentPoi = rclcpp::spin_until_future_complete(nodeGetCurrentPoi, resultGetCurrentPoi);
+    auto responseGetCurrentPoi = resultGetCurrentPoi.get();
+    yDebug() << "[DialogComponent::UpdatePoILLMPrompt] responseGetCurrentPoi" << responseGetCurrentPoi->poi_name << __LINE__;
+
+    if (futureResultGetCurrentPoi == rclcpp::FutureReturnCode::SUCCESS)
+    {
+        if (responseGetCurrentPoi->is_ok == true)
+        {
+            m_currentPoiName = responseGetCurrentPoi->poi_name;
+            // Set poi chat prompt
+            if (m_currentPoiName == "madama_start")
+            {
+                m_iPoiChat->deleteConversation();
+                m_iPoiChat->setPrompt(m_startPrompt);
+            }
+            else
+            {
+                m_iPoiChat->deleteConversation();
+                m_iPoiChat->setPrompt(m_poiPrompt);
+            }
+        }
+        else
+        {
+            RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), "Error in getting the current poi");
+            return false;
+        }
+    }
+    else
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Error in getting the current poi");
+        return false;
+    }
+    return true;
+}
+
+bool DialogComponent::SetLanguage(const std::string &newLang)
+{
+    if (!m_tourStorage->m_loadedTour.setCurrentLanguage(newLang))
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "cannot set language to tour storage");
+        // m_speechTranscriberCallback.setMessageConsumed();
+        return false;
+    }
+
+    yInfo() << "[DialogComponent::CommandManager] Set Language Detected: " << newLang << __LINE__;
+    // Calls the set language service of the scheduler component
+    auto setLangClientNode = rclcpp::Node::make_shared("DialogComponentSetLangNode");
+    auto setLangClient = setLangClientNode->create_client<scheduler_interfaces::srv::SetLanguage>("/SchedulerComponent/SetLanguage");
+    auto request = std::make_shared<scheduler_interfaces::srv::SetLanguage::Request>();
+    request->language = newLang;
+    while (!setLangClient->wait_for_service(std::chrono::seconds(1)))
+    {
+        if (!rclcpp::ok())
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setLangClient'. Exiting.");
+            // m_speechTranscriberCallback.setMessageConsumed();
+            return false;
+        }
+    }
+    auto result = setLangClient->async_send_request(request);
+    if (rclcpp::spin_until_future_complete(setLangClientNode, result) == rclcpp::FutureReturnCode::SUCCESS)
+    {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Set Language succeeded");
+    }
+    else
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service set_language");
+        // m_speechTranscriberCallback.setMessageConsumed();
+        return false;
+    }
+    // Calls the set language service of the text to speech component
+    // auto setLangClientNode2 = rclcpp::Node::make_shared("DialogComponentSetLangNode2");
+    // auto setLangClient2 = setLangClientNode2->create_client<text_to_speech_interfaces::srv::SetLanguage>("/TextToSpeechComponent/SetLanguage");
+    // auto request2 = std::make_shared<text_to_speech_interfaces::srv::SetLanguage::Request>();
+    // request2->new_language = newLang;
+    // while (!setLangClient2->wait_for_service(std::chrono::seconds(1)))
+    // {
+    //     if (!rclcpp::ok())
+    //     {
+    //         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setLangClient'. Exiting.");
+    //         // m_speechTranscriberCallback.setMessageConsumed();
+    //         return false;
+    //     }
+    // }
+    // auto result2 = setLangClient2->async_send_request(request2);
+    // if (rclcpp::spin_until_future_complete(setLangClientNode2, result2) == rclcpp::FutureReturnCode::SUCCESS)
+    // {
+    //     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Set Language succeeded");
+    // }
+    // else
+    // {
+    //     RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service set_language");
+    //     // m_speechTranscriberCallback.setMessageConsumed();
+    //     return false;
+    // }
+
+    // auto setVoiceClientNode = rclcpp::Node::make_shared("DialogComponentSetVoiceNode");
+    // auto setVoiceClient = setVoiceClientNode->create_client<text_to_speech_interfaces::srv::SetVoice>("/TextToSpeechComponent/SetVoice");
+    // auto request3 = std::make_shared<text_to_speech_interfaces::srv::SetVoice::Request>();
+    // request3->new_voice = m_voicesMap[newLang];
+    // while (!setVoiceClient->wait_for_service(std::chrono::seconds(1)))
+    // {
+    //     if (!rclcpp::ok())
+    //     {
+    //         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setVoiceClient'. Exiting.");
+    //         // m_speechTranscriberCallback.setMessageConsumed();
+    //         return false;
+    //     }
+    // }
+    // auto result3 = setVoiceClient->async_send_request(request3);
+    // if (rclcpp::spin_until_future_complete(setVoiceClientNode, result3) == rclcpp::FutureReturnCode::SUCCESS)
+    // {
+    //     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Set Voice succeeded");
+    // }
+    // else
+    // {
+    //     RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service set_voice");
+    //     // m_speechTranscriberCallback.setMessageConsumed();
+    //     return false;
+    // }
+    // Setting language in the speech transcriber
+    yDebug() << "[DialogComponent::CommandManager] Setting language in the speech transcriber: " << newLang << __LINE__;
+
+    if (!m_iSpeechTranscription->setLanguage(newLang))
+    {
+        yError() << "[DialogComponent::CommandManager] Unable to set language: " << newLang;
+        // m_speechTranscriberCallback.setMessageConsumed();
+        return false;
+    }
     return true;
 }
 
@@ -1146,7 +1103,7 @@ void DialogComponent::WaitForSpeakEnd()
     } while (isSpeaking);
 }
 
-bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPoI, PoI genericPoI, std::string &phrase)
+bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPoI, PoI genericPoI)
 {
     bool isOk = false;
     std::vector<Action> actions;
@@ -1278,9 +1235,15 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
                             yDebug() << "[DialogComponent::InterpretCommand] Waiting for previous speech to finish" ;
                         }
                     }*/
-                    WaitForSpeakEnd();
+
+
+                    // WaitForSpeakEnd();
+                    
+                    
+                    
                     // Synthesize the text
-                    SpeakFromText(action.getParam());
+                    // SpeakFromText(action.getParam());
+
                     /*
                     yarp::sig::Sound &synthesizedSound = m_speakersAudioPort.prepare();
                     synthesizedSound.clear();
@@ -1364,7 +1327,7 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
                 }
                 }
             }
-            m_speechTranscriberCallback.setMessageConsumed();
+            // m_speechTranscriberCallback.setMessageConsumed();
 
             /*if ((containsSpeak || danceTime != 0.0f) && isCommandBlocking) // Waits for the longest move in the temp list of blocked moves and speak. If there is nothing in the temp list because we are not blocking it is skipped.
             {
@@ -1426,33 +1389,6 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
         return true;
     }
     return false;
-}
-
-void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::SetLanguage::Request> request,
-                                  std::shared_ptr<dialog_interfaces::srv::SetLanguage::Response> response)
-{
-    yInfo() << "DialogComponent::SetLanguage call received" << __LINE__;
-    if (request->new_language == "")
-    {
-        response->is_ok = false;
-        response->error_msg = "Empty string passed to setting language";
-        return;
-    }
-
-    // if (!m_iSpeechSynth->setLanguage(request->new_language))
-    //{
-    //     response->is_ok=false;
-    //     response->error_msg="Unable to set new language to speech Synth";
-    //     return;
-    // }
-    //  tourStorage -> should be loaded at start or by YARP config
-    if (!m_tourStorage->m_loadedTour.setCurrentLanguage(request->new_language))
-    {
-        response->is_ok = false;
-        response->error_msg = "Unable to set new language to tourStorage";
-        return;
-    }
-    response->is_ok = true;
 }
 
 void DialogComponent::GetLanguage([[maybe_unused]] const std::shared_ptr<dialog_interfaces::srv::GetLanguage::Request> request,
@@ -1668,7 +1604,7 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<dialog_interfaces
         std::chrono::duration wait_ms = 200ms; // TODO - parameterize
         // bool isRecording = false;
         // Clearing the SpeechTranscriber buffer
-        m_speechTranscriberCallback.clearMessage();
+        // m_speechTranscriberCallback.clearMessage();
 
         EnableMicrophone();
 
@@ -1680,7 +1616,7 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<dialog_interfaces
             if (!m_speechTranscriberCallback.getText(questionText))
             {
                 yDebug() << "[DialogComponent::WaitForInteraction] can't get text " << __LINE__;
-                m_speechTranscriberCallback.setMessageConsumed();
+                // m_speechTranscriberCallback.setMessageConsumed();
                 continue;
             }
             else
@@ -1732,12 +1668,12 @@ void DialogComponent::SpeakFromText(std::string &text)
     {
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Speak succeeded");
         WaitForSpeakEnd();
-        m_speechTranscriberCallback.setMessageConsumed();
+        // m_speechTranscriberCallback.setMessageConsumed();
     }
     else
     {
         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service speak");
-        m_speechTranscriberCallback.setMessageConsumed();
+        // m_speechTranscriberCallback.setMessageConsumed();
         return;
     }
 }
@@ -1746,15 +1682,15 @@ void DialogComponent::ShortenAndSpeak(const std::shared_ptr<dialog_interfaces::s
                                       std::shared_ptr<dialog_interfaces::srv::ShortenAndSpeak::Response> response)
 {
     std::cout << "DialogComponent::ShortenAndSpeak call received" << __LINE__ << std::endl;
-    for (auto &reply : m_replies)
+    for (auto &reply : m_replies[request->llm_context])
     {
-        std::cout << "Reply at index " << &reply - &m_replies[0] << ": " << reply << std::endl;
+        std::cout << "Reply at index " << &reply - &m_replies[request->llm_context][0] << ": " << reply << std::endl;
     }
     std::cout << "Request index: " << request->duplicate_index << std::endl;
 
-    std::string previousReply = m_replies[request->duplicate_index];
+    std::string previousReply = m_replies[request->llm_context][request->duplicate_index];
 
-    std::string genericLLMPrompt = "You have just received a question: " + m_last_received_interaction + ". " +
+    std::string LLMQuestion = "You have just received a question: " + request->interaction + ". " +
                                    "You have to answer it, but you have to take into account that the user has already received a similar answer. " +
                                    "The previous answer was: " + previousReply + ". " +
                                    "Please maintain the context and shorten it to a single sentence.";
@@ -1765,11 +1701,32 @@ void DialogComponent::ShortenAndSpeak(const std::shared_ptr<dialog_interfaces::s
     // m_iAudioGrabberSound->stopRecording();
     std::chrono::duration wait_ms = 200ms;
     yarp::dev::LLM_Message answer;
-    if (!m_iGenericChat->ask(genericLLMPrompt, answer))
+
+    if (request->llm_context == "general")
     {
-        yError() << "[DialogComponent::ShortenAndSpeak] Unable to interact with chatGPT with question: " << m_last_received_interaction;
-        std::this_thread::sleep_for(wait_ms);
+        if (!m_iGenericChat->ask(LLMQuestion, answer))
+        {
+            yError() << "[DialogComponent::AnswerAndSpeak] Unable to interact with chatGPT with question: " << request->interaction;
+            std::this_thread::sleep_for(wait_ms);
+        }
     }
+    else if (request->llm_context == "museum")
+    {
+        if (!m_iMuseumChat->ask(LLMQuestion, answer))
+        {
+            yError() << "[DialogComponent::AnswerAndSpeak] Unable to interact with chatGPT with question: " << request->interaction;
+            std::this_thread::sleep_for(wait_ms);
+        }
+    }
+    else
+    {
+        yError() << "[DialogComponent::AnswerAndSpeak] Unknown context: " << request->llm_context;
+        response->is_ok = false;
+        return;
+    }
+
+
+
     std::string answerText = answer.content;
 
     std::cout << "The answer is: " << answerText << std::endl;
@@ -1779,42 +1736,42 @@ void DialogComponent::ShortenAndSpeak(const std::shared_ptr<dialog_interfaces::s
     response->is_ok = true;
 }
 
-void DialogComponent::Interpret(const std::shared_ptr<dialog_interfaces::srv::Interpret::Request> request,
-                                std::shared_ptr<dialog_interfaces::srv::Interpret::Response> response)
-{
+// void DialogComponent::Interpret(const std::shared_ptr<dialog_interfaces::srv::Interpret::Request> request,
+//                                 std::shared_ptr<dialog_interfaces::srv::Interpret::Response> response)
+// {
 
-    std::string genericLLMPrompt = "You have received an interaction: " + m_last_received_interaction + ". " +
-                                   "You have to interpret it and give as a result 'True' if the interaction is a question and if it does not regard continuing the tour." +
-                                   "You have to give as a result 'False' if the interaction is not a question or if it does regard continuing the tour.";
+//     std::string question = "You are in the middle of a tour. You have received the following interaction: '" + m_last_received_interaction + "'. " +
+//                             "You have to interpret it and give as a result 'True' if the interaction does not regard starting, ending or continuing the tour." +
+//                             "You have to give as a result 'False' if the interaction does regard starting, ending or continuing the tour.";
 
-    /// TODO: This is an awful solution. Remove it as soon as possible
-    // Horrible solution ------------------------------------------------------------ START//
+//     /// TODO: This is an awful solution. Remove it as soon as possible
+//     // Horrible solution ------------------------------------------------------------ START//
 
-    // m_iAudioGrabberSound->stopRecording();
-    std::chrono::duration wait_ms = 200ms;
-    yarp::dev::LLM_Message answer;
-    if (!m_iGenericChat->ask(genericLLMPrompt, answer))
-    {
-        yError() << "[DialogComponent::Interpret] Unable to interact with chatGPT with question: " << m_last_received_interaction;
-        std::this_thread::sleep_for(wait_ms);
-    }
+//     // m_iAudioGrabberSound->stopRecording();
+//     std::chrono::duration wait_ms = 200ms;
+//     yarp::dev::LLM_Message answer;
+//     if (!m_iGenericChat->ask(question, answer))
+//     {
+//         yError() << "[DialogComponent::Interpret] Unable to interact with chatGPT with question: " << question;
+//         std::this_thread::sleep_for(wait_ms);
+//     }
 
-    std::string answerText = answer.content;
+//     std::string answerText = answer.content;
 
-    std::cout << "Is the interaction a question?: " << answerText << std::endl;
+//     std::cout << "Is the interaction an invite to continue/start/end the tour?: " << (answerText == "True") << std::endl;
 
-    bool isQuestion = answerText == "True" ? true : false;
+//     bool isQuestion = answerText == "True" ? true : false;
 
-    response->is_ok = true;
-    response->is_question = isQuestion;
-}
+//     response->is_ok = true;
+//     response->is_question = isQuestion;
+// }
 
 void DialogComponent::AnswerAndSpeak(const std::shared_ptr<dialog_interfaces::srv::AnswerAndSpeak::Request> request,
                                      std::shared_ptr<dialog_interfaces::srv::AnswerAndSpeak::Response> response)
 {
 
-    std::string genericLLMPrompt = "You have received a question: " + m_last_received_interaction + ". " +
-                                   "You have to answer it while maintaining the context of the conversation.";
+    std::string LLMQuestion = "You have received a question: " + request->interaction + ". " +
+                              "You have to answer it while maintaining the context of the conversation.";
 
     /// TODO: This is an awful solution. Remove it as soon as possible
     // Horrible solution ------------------------------------------------------------ START//
@@ -1822,14 +1779,33 @@ void DialogComponent::AnswerAndSpeak(const std::shared_ptr<dialog_interfaces::sr
     // m_iAudioGrabberSound->stopRecording();
     std::chrono::duration wait_ms = 200ms;
     yarp::dev::LLM_Message answer;
-    if (!m_iGenericChat->ask(genericLLMPrompt, answer))
+
+    if (request->llm_context == "general")
     {
-        yError() << "[DialogComponent::AnswerAndSpeak] Unable to interact with chatGPT with question: " << m_last_received_interaction;
-        std::this_thread::sleep_for(wait_ms);
+        if (!m_iGenericChat->ask(LLMQuestion, answer))
+        {
+            yError() << "[DialogComponent::AnswerAndSpeak] Unable to interact with chatGPT with question: " << request->interaction;
+            std::this_thread::sleep_for(wait_ms);
+        }
     }
+    else if (request->llm_context == "museum")
+    {
+        if (!m_iMuseumChat->ask(LLMQuestion, answer))
+        {
+            yError() << "[DialogComponent::AnswerAndSpeak] Unable to interact with chatGPT with question: " << request->interaction;
+            std::this_thread::sleep_for(wait_ms);
+        }
+    }
+    else
+    {
+        yError() << "[DialogComponent::AnswerAndSpeak] Unknown context: " << request->llm_context;
+        response->is_ok = false;
+        return;
+    }
+
     std::string answerText = answer.content;
 
-    m_replies.push_back(answerText);
+    m_replies[request->llm_context].push_back(answerText);
 
     std::cout << "The answer is: " << answerText << std::endl;
 

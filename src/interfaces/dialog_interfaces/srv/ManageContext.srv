@@ -1,0 +1,7 @@
+---
+bool is_ok
+string error_msg
+string language
+bool needs_more_processing
+string llm_context
+bool is_poi_ended
