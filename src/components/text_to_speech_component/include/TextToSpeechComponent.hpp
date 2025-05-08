@@ -50,7 +50,8 @@ public:
                         std::shared_ptr<text_to_speech_interfaces::srv::SetMicrophone::Response> response);
 
 private:
-    bool m_manualMicDisabled = false;
+    bool m_manualMicDisabled{false};
+    bool m_startedSpeaking{false};
     yarp::dev::PolyDriver m_speechSynthPoly;
     yarp::dev::ISpeechSynthesizer *m_iSpeechSynth{nullptr};
     rclcpp::Node::SharedPtr m_node;

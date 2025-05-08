@@ -8,7 +8,7 @@
 cmake_minimum_required(VERSION 3.8)
 set (CMAKE_CXX_STANDARD 17)
 
-project(text_to_speech_component)
+project(speech_to_text_component)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -17,7 +17,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(text_to_speech_interfaces REQUIRED)
 find_package(YCM REQUIRED)
-find_package(YARP 3.7 REQUIRED COMPONENTS dev os sig)
+find_package(YARP 3.11 REQUIRED COMPONENTS dev os sig)
 
 # Embed YARP's library path into the executable using RPATH
 get_target_property(YARP_LIB_DIR YARP::YARP_init LOCATION)
@@ -39,8 +39,8 @@ target_include_directories(${PROJECT_NAME}
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
 target_sources( ${PROJECT_NAME} PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/TextToSpeechComponent.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/TextToSpeechComponent.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/SpeechToTextComponent.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/SpeechToTextComponent.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
 install(TARGETS ${PROJECT_NAME}
