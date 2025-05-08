@@ -18,7 +18,7 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(dialog_interfaces
                             "srv/SetLanguage.srv"
                             "srv/GetLanguage.srv"
-                            "srv/EnableDialog.srv"
+                            "srv/ManageContext.srv"
                             "srv/SetPoi.srv"
                             "srv/GetState.srv"
                             "srv/IsSpeaking.srv"
