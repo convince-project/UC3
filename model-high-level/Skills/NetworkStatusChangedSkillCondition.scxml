@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml
+  xmlns="http://www.w3.org/2005/07/scxml"
+  version="1.0"
+  name="NetworkStatusChangedSkillCondition"
+  datamodel="cplusplus:NetworkStatusChangedSkillDataModel:NetworkStatusChangedSkillDataModel.h"
+  initial="idle">
+
+  <!-- Condition skill: tick server only -->
+  <ros_service_server
+    service_name="/NetworkStatusChangedSkillCondition/tick"
+    type="bt_interfaces_dummy/TickCondition"/>
+
+  <datamodel>
+    <!-- Provided by C++ DataModel -->
+    <data id="m_edge_detected" type="boolean" expr="false"/>
+    <data id="SKILL_SUCCESS"    type="int8"   expr="0"/>
+    <data id="SKILL_FAILURE"    type="int8"   expr="1"/>
+  </datamodel>
+
+  <state id="idle">
+    <ros_service_handle_request
+      name="/NetworkStatusChangedSkillCondition/tick"
+      target="edgeDetected"/>
+  </state>
+
+  <state id="edgeDetected">
+    <onentry>
+      <if cond="m_edge_detected">
+        <ros_service_send_response name="/NetworkStatusChangedSkillCondition/tick">
+          <field name="status" expr="SKILL_SUCCESS"/>
+        </ros_service_send_response>
+      <else/>
+        <ros_service_send_response name="/NetworkStatusChangedSkillCondition/tick">
+          <field name="status" expr="SKILL_FAILURE"/>
+        </ros_service_send_response>
+      </if>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+</scxml>

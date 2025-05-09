@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml
+  xmlns="http://www.w3.org/2005/07/scxml"
+  version="1.0"
+  name="IsWarningDurationSkillCondition"
+  datamodel="ecmascript"
+  initial="idle">
+
+  <!-- Condition skill: tick server only -->
+  <ros_service_server
+    service_name="/IsWarningDurationSkillCondition/tick"
+    type="bt_interfaces_dummy/TickCondition"/>
+
+  <!-- Client for Blackboard GetInt -->
+  <ros_service_client
+    service_name="/BlackboardComponent/GetInt"
+    type="blackboard_interfaces_dummy/GetInt"/>
+
+  <datamodel>
+    <data id="m_name"        type="string" expr="'TourDurationWarningFlag'"/>
+    <data id="m_value"       type="int32"  expr="0"/>
+    <data id="SKILL_SUCCESS" type="int8"   expr="0"/>
+    <data id="SKILL_FAILURE" type="int8"   expr="1"/>
+  </datamodel>
+
+  <state id="idle">
+    <ros_service_handle_request
+      name="/IsWarningDurationSkillCondition/tick"
+      target="queryFlag">
+      <ros_service_send_request
+        name="/BlackboardComponent/GetInt">
+        <field name="field_name" expr="m_name"/>
+      </ros_service_send_request>
+    </ros_service_handle_request>
+  </state>
+
+  <state id="queryFlag">
+    <ros_service_handle_response
+      name="/BlackboardComponent/GetInt"
+      target="decide">
+      <assign location="m_value" expr="_res.value"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="decide">
+    <onentry>
+      <if cond="m_value != 0">
+        <ros_service_send_response name="/IsWarningDurationSkillCondition/tick">
+          <field name="status" expr="SKILL_SUCCESS"/>
+        </ros_service_send_response>
+      <else/>
+        <ros_service_send_response name="/IsWarningDurationSkillCondition/tick">
+          <field name="status" expr="SKILL_FAILURE"/>
+        </ros_service_send_response>
+      </if>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+</scxml>

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml"
+       version="1.0"
+       name="SayWarningDurationSkillAction"
+       datamodel="ecmascript"
+       initial="idle">
+
+  <datamodel>
+    <data id="m_name"        type="string"  expr="'SaidWarningFlag'"/>
+    <data id="m_value"       type="boolean" expr="false"/>
+    <data id="m_result"      type="string"  expr="''"/>
+    <data id="m_param"       type="string"  expr="''"/>
+    <data id="m_is_speaking" type="boolean" expr="false"/>
+    <data id="m_command"     type="string"  expr="'sayDurationWarning'"/>
+  </datamodel>
+
+  <state id="idle">
+    <transition event="CMD_TICK" target="getFlag"/>
+    <transition event="CMD_HALT" target="halted"/>
+  </state>
+
+  <state id="getFlag">
+    <onentry>
+      <send event="BlackboardComponent.GetInt.Call">
+        <param name="field_name" expr="m_name"/>
+      </send>
+    </onentry>
+    <transition event="BlackboardComponent.GetInt.Return" target="checkFlag">
+      <assign location="m_value"  expr="_event.data.value"/>
+      <assign location="m_result" expr="_event.data.result"/>
+    </transition>
+  </state>
+
+  <state id="checkFlag">
+    <transition cond="m_result!='SUCCESS' || !m_value" target="decideFailure"/>
+    <transition cond="m_value" target="setCommand"/>
+  </state>
+
+  <state id="decideFailure">
+    <onentry>
+      <send event="TICK_RESPONSE"><param name="result" expr="'FAILURE'"/></send>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="setCommand">
+    <onentry>
+      <send event="SchedulerComponent.SetCommand.Call">
+        <param name="command" expr="m_command"/>
+      </send>
+    </onentry>
+    <transition event="SchedulerComponent.SetCommand.Return" target="getText"/>
+  </state>
+
+  <state id="getText">
+    <onentry><send event="SchedulerComponent.GetCurrentAction.Call"/></onentry>
+    <transition event="SchedulerComponent.GetCurrentAction.Return" target="talk">
+      <assign location="m_param"  expr="_event.data.param"/>
+      <assign location="m_result" expr="_event.data.result"/>
+    </transition>
+  </state>
+
+  <state id="talk">
+    <onentry>
+      <send event="TextToSpeechComponent.Speak.Call">
+        <param name="text" expr="m_param"/>
+      </send>
+    </onentry>
+    <transition event="TextToSpeechComponent.Speak.Return" target="speaking"/>
+  </state>
+
+  <state id="speaking">
+    <onentry><send event="TICK_RESPONSE"><param name="result" expr="'RUNNING'"/></send></onentry>
+    <transition event="CMD_TICK" target="checkSpeaking"/>
+    <transition event="CMD_HALT" target="halted"/>
+  </state>
+
+  <state id="checkSpeaking">
+    <onentry><send event="TextToSpeechComponent.IsSpeaking.Call"/></onentry>
+    <transition event="TextToSpeechComponent.IsSpeaking.Return" target="decideSpeaking">
+      <assign location="m_is_speaking" expr="_event.data.is_speaking"/>
+      <assign location="m_result"       expr="_event.data.result"/>
+    </transition>
+  </state>
+
+  <state id="decideSpeaking">
+    <onentry>
+      <if cond="m_result=='SUCCESS' && m_is_speaking">
+        <send event="TICK_RESPONSE"><param name="result" expr="'RUNNING'"/></send>
+      <else/>
+        <send event="TICK_RESPONSE"><param name="result" expr="'SUCCESS'"/></send>
+      </if>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="halted">
+    <onentry><send event="HALT_RESPONSE"/></onentry>
+    <transition target="idle"/>
+  </state>
+
+</scxml>

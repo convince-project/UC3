@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml
+  xmlns="http://www.w3.org/2005/07/scxml"
+  version="1.0"
+  name="ArePeoplePresentSkillCondition"
+  datamodel="ecmascript"
+  initial="idle">
+
+  <!-- TickCondition server -->
+  <ros_service_server
+    service_name="/ArePeoplePresentSkillCondition/tick"
+    type="bt_interfaces_dummy/TickCondition"/>
+
+  <!-- Client to TurnBackManagerComponent -->
+  <ros_service_client
+    service_name="/TurnBackManagerComponent/IsAllowedToContinue"
+    type="turnbackmanager_interfaces_dummy/IsAllowedToContinue"/>
+
+  <datamodel>
+    <data id="m_result"      type="string"  expr="''"/>
+    <data id="m_is_allowed"  type="boolean" expr="false"/>
+    <data id="SKILL_SUCCESS" type="int8"    expr="0"/>
+    <data id="SKILL_FAILURE" type="int8"    expr="1"/>
+  </datamodel>
+
+  <state id="idle">
+    <ros_service_handle_request
+      name="/ArePeoplePresentSkillCondition/tick"
+      target="getStatus">
+      <ros_service_send_request
+        name="/TurnBackManagerComponent/IsAllowedToContinue"/>
+    </ros_service_handle_request>
+  </state>
+
+  <state id="getStatus">
+    <ros_service_handle_response
+      name="/TurnBackManagerComponent/IsAllowedToContinue"
+      target="decide">
+      <assign location="m_result"     expr="_res.result"/>
+      <assign location="m_is_allowed" expr="_res.is_allowed"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="decide">
+    <onentry>
+      <if cond="m_result=='SUCCESS' && m_is_allowed">
+        <ros_service_send_response name="/ArePeoplePresentSkillCondition/tick">
+          <field name="status" expr="SKILL_SUCCESS"/>
+        </ros_service_send_response>
+      <else/>
+        <ros_service_send_response name="/ArePeoplePresentSkillCondition/tick">
+          <field name="status" expr="SKILL_FAILURE"/>
+        </ros_service_send_response>
+      </if>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+</scxml>

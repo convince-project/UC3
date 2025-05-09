@@ -65,6 +65,6 @@ model2code \
   --model_filename /home/user1/UC3/parser-and-code-generator/specifications/full-model.xml \
   --interface_filename /home/user1/UC3/parser-and-code-generator/specifications/interfaces.xml \
   --template_path /home/user1/UC3/template_skill \
-  --output_path /home/user1/UC3/temp-test/src/skills/alarm_battery_low_skill/generated \
+  --output_path /home/user1/UC3/temp-test/src/skills/alarm_battery_low_skill/ \
   --verbose_mode
 

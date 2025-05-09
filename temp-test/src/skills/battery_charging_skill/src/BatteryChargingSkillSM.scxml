@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml initial="idle" version="1.0" name="BatteryChargingSkillCondition" datamodel="ecmascript" xmlns="http://www.w3.org/2005/07/scxml">
+    <datamodel>
+        <data id="battery_status" expr="100"/>
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <data id="SKILL_FAILURE" expr="1"/>
+    </datamodel>
+    <!-- BatteryChargingSkill is a server for tick from the ROS2Condition plugin-->
+    <!-- BatteryChargingSkill is a subscriber for the /battery_level topic from the BatteryComponent-->
+    <state id="idle">
+        <transition target="checkStatus" event="CMD_TICK"/>
+        <transition target="idle" event="RobotComponent.readBatteryStatus.Sub">
+            <assign location="battery_status" expr="_event.power_supply_status.battery_status"/>
+        </transition>
+    </state>
+    <state id="checkStatus">
+        <onentry>
+            <if cond="battery_status == 1">
+                <!-- Assuming 1 means charging -->
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_SUCCESS"/>
+                    <param name="is_ok" expr="true"/>
+                </send>
+                <else/>
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_FAILURE"/>
+                    <param name="is_ok" expr="true"/>
+                </send>
+            </if>
+        </onentry>
+        <transition target="checkStatus" event="CMD_TICK"/>
+        <transition target="idle"/>
+    </state>
+</scxml>

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(alarm_battery_low_skill)
+project(battery_charging_skill)
 # set(CMAKE_CXX_STANDARD 20)
 # set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -9,11 +9,10 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(sensor_msgs REQUIRED)
-
 find_package(rclcpp_action REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(bt_interfaces_dummy REQUIRED)
+find_package(sensor_msgs REQUIRED)
 
 find_package(Qt6 COMPONENTS Core Scxml StateMachine  REQUIRED)
 
@@ -33,7 +32,7 @@ ament_target_dependencies(${PROJECT_NAME}
   bt_interfaces_dummy 
   rclcpp 
   rclcpp_action 
-  sensor_msgs
+  sensor_msgs  
   )
 target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Scxml Qt6::StateMachine)
 target_include_directories(${PROJECT_NAME}
@@ -42,8 +41,8 @@ target_include_directories(${PROJECT_NAME}
     $<INSTALL_INTERFACE:include>)
 target_sources( ${PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp 
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/AlarmBatteryLowSkill.cpp 
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/AlarmBatteryLowSkill.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/BatteryChargingSkill.cpp 
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/BatteryChargingSkill.h
   )
 
 
@@ -60,6 +59,6 @@ if(BUILD_TESTING)
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
-qt6_add_statecharts(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/src/AlarmBatteryLowSkillSM.scxml)
+qt6_add_statecharts(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/src/BatteryChargingSkillSM.scxml)
 
 ament_package()
