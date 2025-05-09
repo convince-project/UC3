@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml"
+       version="1.0"
+       name="StopTourTimerSkillAction"
+       datamodel="ecmascript"
+       initial="idle">
+
+  <ros_service_server service_name="/StopTourTimerSkillAction/tick"  type="bt_interfaces_dummy/TickAction"/>
+  <ros_service_server service_name="/StopTourTimerSkillAction/halt"  type="bt_interfaces_dummy/HaltAction"/>
+
+  <ros_service_client service_name="/TimeComponent/StopTourTimer" type="time_interfaces_dummy/StopTourTimer"/>
+
+  <datamodel>
+    <data id="result" expr="''"/>
+    <data id="SKILL_SUCCESS" expr="0"/>
+    <data id="SKILL_FAILURE" expr="1"/>
+  </datamodel>
+
+  <state id="idle">
+    <ros_service_handle_request name="/StopTourTimerSkillAction/tick" target="callStop">
+      <ros_service_send_request name="/TimeComponent/StopTourTimer"/>
+    </ros_service_handle_request>
+    <ros_service_handle_request name="/StopTourTimerSkillAction/halt" target="halted"/>
+  </state>
+
+  <state id="callStop">
+    <ros_service_handle_response name="/TimeComponent/StopTourTimer" target="reply">
+      <assign location="result" expr="_res.result"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="reply">
+    <ros_service_send_response name="/StopTourTimerSkillAction/tick">
+      <field name="status" expr="result == 'SUCCESS' ? SKILL_SUCCESS : SKILL_FAILURE"/>
+    </ros_service_send_response>
+    <transition target="idle"/>
+  </state>
+
+  <state id="halted">
+    <ros_service_send_response name="/StopTourTimerSkillAction/halt"/>
+    <transition target="idle"/>
+  </state>
+
+</scxml>
