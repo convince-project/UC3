@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml
+  xmlns="http://www.w3.org/2005/07/scxml"
+  version="1.0"
+  name="SayDurationExceededSkillAction"
+  datamodel="ecmascript"
+  initial="idle">
+
+  <!-- Action skill: tick + halt servers -->
+  <ros_service_server
+    service_name="/SayDurationExceededSkillAction/tick"
+    type="bt_interfaces_dummy/TickAction"/>
+  <ros_service_server
+    service_name="/SayDurationExceededSkillAction/halt"
+    type="bt_interfaces_dummy/HaltAction"/>
+
+  <!-- Clients -->
+  <ros_service_client
+    service_name="/BlackboardComponent/GetInt"
+    type="blackboard_interfaces_dummy/GetInt"/>
+  <ros_service_client
+    service_name="/SchedulerComponent/SetCommand"
+    type="scheduler_interfaces_dummy/SetCommand"/>
+  <ros_service_client
+    service_name="/SchedulerComponent/GetCurrentAction"
+    type="scheduler_interfaces_dummy/GetCurrentAction"/>
+  <ros_service_client
+    service_name="/TextToSpeechComponent/Speak"
+    type="tts_interfaces_dummy/Speak"/>
+  <ros_service_client
+    service_name="/BlackboardComponent/SetInt"
+    type="blackboard_interfaces_dummy/SetInt"/>
+  <ros_service_client
+    service_name="/TextToSpeechComponent/IsSpeaking"
+    type="tts_interfaces_dummy/IsSpeaking"/>
+
+  <datamodel>
+    <data id="m_name"        type="string"  expr="'SaidExceededFlag'"/>
+    <data id="m_value"       type="int32"   expr="0"/>
+    <data id="m_command"     type="string"  expr="'sayDurationExceeded'"/>
+    <data id="m_param"       type="string"  expr="''"/>
+    <data id="m_is_speaking" type="boolean" expr="false"/>
+    <data id="m_result"      type="string"  expr="''"/>
+    <data id="SKILL_SUCCESS" type="int8"    expr="0"/>
+    <data id="SKILL_FAILURE" type="int8"    expr="1"/>
+    <data id="SKILL_RUNNING" type="int8"    expr="2"/>
+  </datamodel>
+
+  <state id="idle">
+    <ros_service_handle_request name="/SayDurationExceededSkillAction/tick" target="queryFlag">
+      <ros_service_send_request name="/BlackboardComponent/GetInt">
+        <field name="field_name" expr="m_name"/>
+      </ros_service_send_request>
+    </ros_service_handle_request>
+    <ros_service_handle_request name="/SayDurationExceededSkillAction/halt" target="halted"/>
+  </state>
+
+  <state id="queryFlag">
+    <ros_service_handle_response name="/BlackboardComponent/GetInt" target="checkFlag">
+      <assign location="m_value" expr="_res.value"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="checkFlag">
+    <onentry>
+      <if cond="m_value!=0">
+        <ros_service_send_response name="/SayDurationExceededSkillAction/tick">
+          <field name="status" expr="SKILL_SUCCESS"/>
+        </ros_service_send_response>
+      <else/>
+        <ros_service_send_request name="/SchedulerComponent/SetCommand">
+          <field name="command" expr="m_command"/>
+        </ros_service_send_request>
+      </if>
+    </onentry>
+    <transition target="onSetCmd"/>
+  </state>
+
+  <state id="onSetCmd">
+    <ros_service_handle_response name="/SchedulerComponent/SetCommand" target="getText">
+      <assign location="m_result" expr="_res.result"/>
+    </ros_service_handle_response>
+    <transition cond="m_result!='SUCCESS'" target="failure"/>
+  </state>
+
+  <state id="getText">
+    <ros_service_send_request name="/SchedulerComponent/GetCurrentAction"/>
+    <ros_service_handle_response name="/SchedulerComponent/GetCurrentAction" target="talk">
+      <assign location="m_param" expr="_res.param"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="talk">
+    <ros_service_send_response name="/SayDurationExceededSkillAction/tick">
+      <field name="status" expr="SKILL_RUNNING"/>
+    </ros_service_send_response>
+    <ros_service_send_request name="/TextToSpeechComponent/Speak">
+      <field name="text" expr="m_param"/>
+    </ros_service_send_request>
+    <transition target="waitSpeak"/>
+  </state>
+
+  <state id="waitSpeak">
+    <ros_service_handle_request name="/SayDurationExceededSkillAction/tick" target="checkSpeak">
+      <ros_service_send_request name="/TextToSpeechComponent/IsSpeaking"/>
+    </ros_service_handle_request>
+    <ros_service_handle_response name="/TextToSpeechComponent/Speak" cond="_res.result!='SUCCESS'" target="failure"/>
+  </state>
+
+  <state id="checkSpeak">
+    <ros_service_handle_response name="/TextToSpeechComponent/IsSpeaking" target="onCheck">
+      <assign location="m_is_speaking" expr="_res.is_speaking"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="onCheck">
+    <onentry>
+      <if cond="m_is_speaking">
+        <ros_service_send_response name="/SayDurationExceededSkillAction/tick">
+          <field name="status" expr="SKILL_RUNNING"/>
+        </ros_service_send_response>
+      <else/>
+        <ros_service_send_request name="/BlackboardComponent/SetInt">
+          <field name="field_name" expr="m_name"/>
+          <field name="value" expr="1"/>
+        </ros_service_send_request>
+      </if>
+    </onentry>
+    <transition target="onSetInt"/>
+  </state>
+
+  <state id="onSetInt">
+    <ros_service_handle_response name="/BlackboardComponent/SetInt" target="finalize">
+      <assign location="m_result" expr="_res.result"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="finalize">
+    <onentry>
+      <if cond="m_result=='SUCCESS'">
+        <ros_service_send_response name="/SayDurationExceededSkillAction/tick">
+          <field name="status" expr="SKILL_SUCCESS"/>
+        </ros_service_send_response>
+      <else/>
+        <ros_service_send_response name="/SayDurationExceededSkillAction/tick">
+          <field name="status" expr="SKILL_FAILURE"/>
+        </ros_service_send_response>
+      </if>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="failure">
+    <ros_service_send_response name="/SayDurationExceededSkillAction/tick">
+      <field name="status" expr="SKILL_FAILURE"/>
+    </ros_service_send_response>
+    <transition target="idle"/>
+  </state>
+
+  <state id="halted">
+    <ros_service_send_response name="/SayDurationExceededSkillAction/halt"/>
+    <transition target="idle"/>
+  </state>
+</scxml>
