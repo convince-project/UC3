@@ -59,3 +59,12 @@
 
 <!-- Example about how to run model2code -->
 <!-- model2code   --input_filename /workspace/UC3/model-high-level/Skills/AlarmBatteryLowSkill.scxml   --model_filename /workspace/UC3/parser-and-code-generator/specifications/full-model.xml   --interface_filename /workspace/UC3/parser-and-code-generator/specifications/interfaces.xml   --template_path /workspace/UC3/template_skill   --output_path /workspace/UC3/temp-test/skills/alarm_battery_low_skill/generated   --verbose_mode -->
+
+model2code \
+  --input_filename /home/user1/UC3/model-high-level/Skills/AlarmBatteryLowSkill.scxml \
+  --model_filename /home/user1/UC3/parser-and-code-generator/specifications/full-model.xml \
+  --interface_filename /home/user1/UC3/parser-and-code-generator/specifications/interfaces.xml \
+  --template_path /home/user1/UC3/template_skill \
+  --output_path /home/user1/UC3/temp-test/src/skills/alarm_battery_low_skill/generated \
+  --verbose_mode
+
