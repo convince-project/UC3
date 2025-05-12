@@ -6,24 +6,18 @@
   datamodel="ecmascript"
   initial="idle">
 
-  <!-- Action skill: tick + halt servers -->
-  <ros_service_server
-    service_name="/ResetCountersSkillAction/tick"
-    type="bt_interfaces_dummy/TickAction"/>
-  <ros_service_server
-    service_name="/ResetCountersSkillAction/halt"
-    type="bt_interfaces_dummy/HaltAction"/>
-
-  <!-- Client for TurnBackManagerComponent.ResetCounters -->
-  <ros_service_client
-    service_name="/TurnBackManagerComponent/ResetCounters"
-    type="turnbackmanager_interfaces_dummy/ResetCounters"/>
-
   <datamodel>
     <data id="m_result"      type="string" expr="''"/>
     <data id="SKILL_SUCCESS" type="int8"   expr="0"/>
     <data id="SKILL_FAILURE" type="int8"   expr="1"/>
   </datamodel>
+
+  <!-- Action skill: tick + halt servers -->
+  <ros_service_server service_name="/ResetCountersSkillAction/tick" type="bt_interfaces_dummy/TickAction"/>
+  <ros_service_server service_name="/ResetCountersSkillAction/halt" type="bt_interfaces_dummy/HaltAction"/>
+
+  <!-- Client for TurnBackManagerComponent.ResetCounters -->
+  <ros_service_client service_name="/TurnBackManagerComponent/ResetCounters" type="turnbackmanager_interfaces_dummy/ResetCounters"/>
 
   <state id="idle">
     <ros_service_handle_request name="/ResetCountersSkillAction/tick" target="resetCounters">

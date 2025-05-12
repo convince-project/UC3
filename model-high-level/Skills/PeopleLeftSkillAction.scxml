@@ -6,30 +6,20 @@
   datamodel="ecmascript"
   initial="idle">
 
-  <!-- Action skill: tick + halt servers -->
-  <ros_service_server
-    service_name="/PeopleLeftSkillAction/tick"
-    type="bt_interfaces_dummy/TickAction"/>
-  <ros_service_server
-    service_name="/PeopleLeftSkillAction/halt"
-    type="bt_interfaces_dummy/HaltAction"/>
-
-  <!-- Clients for resetting tour, counters, and timer -->
-  <ros_service_client
-    service_name="/SchedulerComponent/Reset"
-    type="scheduler_interfaces_dummy/Reset"/>
-  <ros_service_client
-    service_name="/TurnBackManagerComponent/ResetCounters"
-    type="turnbackmanager_interfaces_dummy/ResetCounters"/>
-  <ros_service_client
-    service_name="/TimeComponent/StopTourTimer"
-    type="time_interfaces_dummy/StopTourTimer"/>
-
   <datamodel>
     <data id="m_result"      type="string" expr="''"/>
     <data id="SKILL_SUCCESS" type="int8"   expr="0"/>
     <data id="SKILL_FAILURE" type="int8"   expr="1"/>
   </datamodel>
+
+  <!-- Clients for resetting tour, counters, and timer -->
+  <ros_service_client service_name="/SchedulerComponent/Reset" type="scheduler_interfaces_dummy/Reset"/>
+  <ros_service_client service_name="/TurnBackManagerComponent/ResetCounters" type="turnbackmanager_interfaces_dummy/ResetCounters"/>
+  <ros_service_client service_name="/TimeComponent/StopTourTimer" type="time_interfaces_dummy/StopTourTimer"/>
+
+  <!-- Action skill: tick + halt servers -->
+  <ros_service_server service_name="/PeopleLeftSkillAction/tick" type="bt_interfaces_dummy/TickAction"/>
+  <ros_service_server service_name="/PeopleLeftSkillAction/halt" type="bt_interfaces_dummy/HaltAction"/>
 
   <state id="idle">
     <ros_service_handle_request name="/PeopleLeftSkillAction/tick" target="resetTour">

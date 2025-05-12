@@ -6,24 +6,18 @@
   datamodel="ecmascript"
   initial="idle">
 
-  <!-- Action skill: tick + halt servers -->
-  <ros_service_server
-    service_name="/NotifyChargedSkillAction/tick"
-    type="bt_interfaces_dummy/TickAction"/>
-  <ros_service_server
-    service_name="/NotifyChargedSkillAction/halt"
-    type="bt_interfaces_dummy/HaltAction"/>
-
-  <!-- Client for NotifyUserComponent.NotifyUserCharged -->
-  <ros_service_client
-    service_name="/NotifyUserComponent/NotifyUserCharged"
-    type="notify_user_interfaces_dummy/NotifyUserCharged"/>
-
   <datamodel>
     <data id="m_result"      type="string" expr="''"/>
     <data id="SKILL_SUCCESS" type="int8"   expr="0"/>
     <data id="SKILL_FAILURE" type="int8"   expr="1"/>
   </datamodel>
+
+  <!-- Action skill: tick + halt servers -->
+  <ros_service_server service_name="/NotifyChargedSkillAction/tick" type="bt_interfaces_dummy/TickAction"/>
+  <ros_service_server service_name="/NotifyChargedSkillAction/halt" type="bt_interfaces_dummy/HaltAction"/>
+
+  <!-- Client for NotifyUserComponent.NotifyUserCharged -->
+  <ros_service_client service_name="/NotifyUserComponent/NotifyUserCharged" type="notify_user_interfaces_dummy/NotifyUserCharged"/>
 
   <state id="idle">
     <ros_service_handle_request name="/NotifyChargedSkillAction/tick" target="startNotify">

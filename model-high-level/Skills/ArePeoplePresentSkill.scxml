@@ -6,15 +6,6 @@
   datamodel="ecmascript"
   initial="idle">
 
-  <!-- TickCondition server -->
-  <ros_service_server
-    service_name="/ArePeoplePresentSkillCondition/tick"
-    type="bt_interfaces_dummy/TickCondition"/>
-
-  <!-- Client to TurnBackManagerComponent -->
-  <ros_service_client
-    service_name="/TurnBackManagerComponent/IsAllowedToContinue"
-    type="turnbackmanager_interfaces_dummy/IsAllowedToContinue"/>
 
   <datamodel>
     <data id="m_result"      type="string"  expr="''"/>
@@ -23,19 +14,22 @@
     <data id="SKILL_FAILURE" type="int8"    expr="1"/>
   </datamodel>
 
+  <!-- TickCondition server -->
+  <ros_service_server service_name="/ArePeoplePresentSkillCondition/tick"  type="bt_interfaces_dummy/TickCondition"/>
+
+  <!-- Client to TurnBackManagerComponent -->
+  <ros_topic_subscriber service_name="/TurnBackManagerComponent/IsAllowedToContinue" type="turnbackmanager_interfaces_dummy/IsAllowedToContinue"/>
+
+
   <state id="idle">
-    <ros_service_handle_request
-      name="/ArePeoplePresentSkillCondition/tick"
-      target="getStatus">
+    <ros_service_handle_request name="/ArePeoplePresentSkillCondition/tick" target="getStatus">
       <ros_service_send_request
         name="/TurnBackManagerComponent/IsAllowedToContinue"/>
     </ros_service_handle_request>
   </state>
 
   <state id="getStatus">
-    <ros_service_handle_response
-      name="/TurnBackManagerComponent/IsAllowedToContinue"
-      target="decide">
+    <ros_service_handle_response name="/TurnBackManagerComponent/IsAllowedToContinue" target="decide">
       <assign location="m_result"     expr="_res.result"/>
       <assign location="m_is_allowed" expr="_res.is_allowed"/>
     </ros_service_handle_response>

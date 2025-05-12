@@ -6,27 +6,6 @@
   datamodel="ecmascript"
   initial="idle">
 
-  <!-- Action skill: tick + halt servers -->
-  <ros_service_server
-    service_name="/GoToChargingStationSkillAction/tick"
-    type="bt_interfaces_dummy/TickAction"/>
-  <ros_service_server
-    service_name="/GoToChargingStationSkillAction/halt"
-    type="bt_interfaces_dummy/HaltAction"/>
-
-  <!-- Clients for navigation calls -->
-  <ros_service_client
-    service_name="/NavigationComponent/GoToPoiByName"
-    type="navigation_interfaces_dummy/GoToPoiByName"/>
-  <ros_service_client
-    service_name="/NavigationComponent/GetNavigationStatus"
-    type="navigation_interfaces_dummy/GetNavigationStatus"/>
-  <ros_service_client
-    service_name="/NavigationComponent/CheckNearToPoi"
-    type="navigation_interfaces_dummy/CheckNearToPoi"/>
-  <ros_service_client
-    service_name="/NavigationComponent/StopNavigation"
-    type="navigation_interfaces_dummy/StopNavigation"/>
 
   <datamodel>
     <data id="NAV_STATUS_MOVING"       type="int8"   expr="2"/>
@@ -39,6 +18,17 @@
     <data id="SKILL_FAILURE"           type="int8"   expr="1"/>
     <data id="SKILL_RUNNING"           type="int8"   expr="2"/>
   </datamodel>
+
+  <!-- Action skill: tick + halt servers -->
+  <ros_service_server service_name="/GoToChargingStationSkillAction/tick" type="bt_interfaces_dummy/TickAction"/>
+  <ros_service_server service_name="/GoToChargingStationSkillAction/halt" type="bt_interfaces_dummy/HaltAction"/>
+
+  <!-- Clients for navigation calls -->
+  <ros_service_client service_name="/NavigationComponent/GoToPoiByName" type="navigation_interfaces_dummy/GoToPoiByName"/>
+  <ros_service_client service_name="/NavigationComponent/GetNavigationStatus" type="navigation_interfaces_dummy/GetNavigationStatus"/>
+  <ros_service_client service_name="/NavigationComponent/CheckNearToPoi" type="navigation_interfaces_dummy/CheckNearToPoi"/>
+  <ros_service_client service_name="/NavigationComponent/StopNavigation" type="navigation_interfaces_dummy/StopNavigation"/>
+
 
   <state id="idle">
     <ros_service_handle_request name="/GoToChargingStationSkillAction/tick" target="sendGoal">

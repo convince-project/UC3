@@ -6,10 +6,6 @@
   datamodel="cplusplus:NetworkStatusChangedSkillDataModel:NetworkStatusChangedSkillDataModel.h"
   initial="idle">
 
-  <!-- Condition skill: tick server only -->
-  <ros_service_server
-    service_name="/NetworkStatusChangedSkillCondition/tick"
-    type="bt_interfaces_dummy/TickCondition"/>
 
   <datamodel>
     <!-- Provided by C++ DataModel -->
@@ -18,6 +14,9 @@
     <data id="SKILL_FAILURE"    type="int8"   expr="1"/>
   </datamodel>
 
+  <!-- Condition skill: tick server only -->
+  <ros_service_server service_name="/NetworkStatusChangedSkillCondition/tick" type="bt_interfaces_dummy/TickCondition"/>
+  
   <state id="idle">
     <ros_service_handle_request
       name="/NetworkStatusChangedSkillCondition/tick"
