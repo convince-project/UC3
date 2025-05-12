@@ -6,15 +6,6 @@
   datamodel="ecmascript"
   initial="idle">
 
-  <!-- Condition skill: tick server only -->
-  <ros_service_server
-    service_name="/IsMuseumClosingSkillCondition/tick"
-    type="bt_interfaces_dummy/TickCondition"/>
-
-  <!-- Client for TimeComponent.IsMuseumClosing -->
-  <ros_service_client
-    service_name="/TimeComponent/IsMuseumClosing"
-    type="time_interfaces_dummy/IsMuseumClosing"/>
 
   <datamodel>
     <data id="m_is_closing"  type="boolean" expr="false"/>
@@ -22,19 +13,20 @@
     <data id="SKILL_FAILURE" type="int8"   expr="1"/>
   </datamodel>
 
+  <!-- Condition skill: tick server only -->
+  <ros_service_server service_name="/IsMuseumClosingSkillCondition/tick" type="bt_interfaces_dummy/TickCondition"/>
+
+  <!-- Client for TimeComponent.IsMuseumClosing -->
+  <ros_service_client service_name="/TimeComponent/IsMuseumClosing" type="time_interfaces_dummy/IsMuseumClosing"/>
+
   <state id="idle">
-    <ros_service_handle_request
-      name="/IsMuseumClosingSkillCondition/tick"
-      target="queryClosing">
-      <ros_service_send_request
-        name="/TimeComponent/IsMuseumClosing"/>
+    <ros_service_handle_request name="/IsMuseumClosingSkillCondition/tick" target="queryClosing">
+      <ros_service_send_request name="/TimeComponent/IsMuseumClosing"/>
     </ros_service_handle_request>
   </state>
 
   <state id="queryClosing">
-    <ros_service_handle_response
-      name="/TimeComponent/IsMuseumClosing"
-      target="decide">
+    <ros_service_handle_response name="/TimeComponent/IsMuseumClosing" target="decide">
       <assign location="m_is_closing" expr="_res.is_closing"/>
     </ros_service_handle_response>
   </state>

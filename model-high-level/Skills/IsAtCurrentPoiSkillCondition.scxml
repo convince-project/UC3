@@ -6,22 +6,6 @@
   datamodel="ecmascript"
   initial="idle">
 
-  <!-- Condition skill: tick server only -->
-  <ros_service_server
-    service_name="/IsAtCurrentPoiSkillCondition/tick"
-    type="bt_interfaces_dummy/TickCondition"/>
-
-  <!-- Clients -->
-  <ros_service_client
-    service_name="/SchedulerComponent/GetCurrentPoi"
-    type="scheduler_interfaces_dummy/GetCurrentPoi"/>
-  <ros_service_client
-    service_name="/NavigationComponent/GetNavigationStatus"
-    type="navigation_interfaces_dummy/GetNavigationStatus"/>
-  <ros_service_client
-    service_name="/NavigationComponent/CheckNearToPoi"
-    type="navigation_interfaces_dummy/CheckNearToPoi"/>
-
   <datamodel>
     <data id="NAV_STATUS_MOVING" type="int8"   expr="2"/>
     <data id="distance"           type="float" expr="0.5"/>
@@ -32,41 +16,35 @@
     <data id="SKILL_FAILURE"      type="int8"    expr="1"/>
   </datamodel>
 
+  <!-- Condition skill: tick server only -->
+  <ros_service_server service_name="/IsAtCurrentPoiSkillCondition/tick" type="bt_interfaces_dummy/TickCondition"/>
+
+  <!-- Clients -->
+  <ros_service_client service_name="/SchedulerComponent/GetCurrentPoi" type="scheduler_interfaces_dummy/GetCurrentPoi"/>
+  <ros_service_client service_name="/NavigationComponent/GetNavigationStatus" type="navigation_interfaces_dummy/GetNavigationStatus"/>
+  <ros_service_client service_name="/NavigationComponent/CheckNearToPoi" type="navigation_interfaces_dummy/CheckNearToPoi"/>
+
   <state id="idle">
-    <ros_service_handle_request
-      name="/IsAtCurrentPoiSkillCondition/tick"
-      target="getPoi">
-      <ros_service_send_request
-        name="/SchedulerComponent/GetCurrentPoi"/>
+    <ros_service_handle_request name="/IsAtCurrentPoiSkillCondition/tick" target="getPoi">
+      <ros_service_send_request name="/SchedulerComponent/GetCurrentPoi"/>
     </ros_service_handle_request>
   </state>
 
   <state id="getPoi">
-    <ros_service_handle_response
-      name="/SchedulerComponent/GetCurrentPoi"
-      target="afterPoi">
+    <ros_service_handle_response name="/SchedulerComponent/GetCurrentPoi" target="afterPoi">
       <assign location="m_poi_name" expr="_res.poi_name"/>
     </ros_service_handle_response>
   </state>
 
   <state id="afterPoi">
-    <ros_service_handle_request
-      name="/IsAtCurrentPoiSkillCondition/tick"
-      cond="_res.result=='SUCCESS'"
-      target="getStatus">
-      <ros_service_send_request
-        name="/NavigationComponent/GetNavigationStatus"/>
+    <ros_service_handle_request name="/IsAtCurrentPoiSkillCondition/tick" cond="_res.result=='SUCCESS'" target="getStatus">
+      <ros_service_send_request name="/NavigationComponent/GetNavigationStatus"/>
     </ros_service_handle_request>
-    <ros_service_handle_request
-      name="/IsAtCurrentPoiSkillCondition/tick"
-      cond="_res.result!='SUCCESS'"
-      target="failure"/>
+    <ros_service_handle_request name="/IsAtCurrentPoiSkillCondition/tick" cond="_res.result!='SUCCESS'" target="failure"/>
   </state>
 
   <state id="getStatus">
-    <ros_service_handle_response
-      name="/NavigationComponent/GetNavigationStatus"
-      target="decideStatus">
+    <ros_service_handle_response name="/NavigationComponent/GetNavigationStatus" target="decideStatus">
       <assign location="m_status" expr="_res.status"/>
     </ros_service_handle_response>
   </state>
@@ -88,9 +66,7 @@
   </state>
 
   <state id="checkNear">
-    <ros_service_handle_response
-      name="/NavigationComponent/CheckNearToPoi"
-      target="finalize">
+    <ros_service_handle_response name="/NavigationComponent/CheckNearToPoi" target="finalize">
       <assign location="m_is_near" expr="_res.is_near"/>
     </ros_service_handle_response>
   </state>
