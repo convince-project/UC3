@@ -3,6 +3,24 @@
 
     <module>
         <name>yarprobotinterface</name>
+        <parameters>--context speechPipeline --from micAudio.ini --mic_sound_on_stop 1 --mic_start 0 --mic_min_samples 4000 --mic_max_samples 4000</parameters>
+        <node>console</node>
+    </module>
+
+    <module>
+        <name>yarpaudiocontrolgui</name>
+        <parameters>--local /controlMic:rpc --remote-rec /audioRecorder_nws</parameters>
+        <node>console-llm</node>
+    </module>
+
+    <module>
+        <name>yarprobotinterface</name>
+        <parameters>--context vadModule --from audioPlayer.ini</parameters>
+        <node>console</node>
+    </module>
+
+    <module>
+        <name>yarprobotinterface</name>
         <parameters>--context llmTest --from madamaChat.ini</parameters>
         <environment></environment>
         <node>console-llm</node>
@@ -70,5 +88,23 @@
         <workdir />
         <node>bt</node>
     </module> -->
+
+
+    <connection>
+        <from>/audioRecorder_nws/audio:o</from>
+        <to>/speechTranscription_nws/sound:i</to>
+    </connection>
+
+    <connection>
+        <from>/speechTranscription_nws/sound:o</from>
+        <to>/speechSynthesizer_nws/text:i</to>
+        <protocol>fast_tcp</protocol>
+    </connection>
+
+    <connection>
+        <from>/speechSynthesizer_nws/sound:o</from>
+        <to>/audioPlayerWrapper/audio:i</to>
+        <protocol>fast_tcp</protocol>
+    </connection>
 
 </application>

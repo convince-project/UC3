@@ -1017,55 +1017,55 @@ bool DialogComponent::SetLanguage(const std::string &newLang)
         return false;
     }
     // Calls the set language service of the text to speech component
-    // auto setLangClientNode2 = rclcpp::Node::make_shared("DialogComponentSetLangNode2");
-    // auto setLangClient2 = setLangClientNode2->create_client<text_to_speech_interfaces::srv::SetLanguage>("/TextToSpeechComponent/SetLanguage");
-    // auto request2 = std::make_shared<text_to_speech_interfaces::srv::SetLanguage::Request>();
-    // request2->new_language = newLang;
-    // while (!setLangClient2->wait_for_service(std::chrono::seconds(1)))
-    // {
-    //     if (!rclcpp::ok())
-    //     {
-    //         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setLangClient'. Exiting.");
-    //         // m_speechTranscriberCallback.setMessageConsumed();
-    //         return false;
-    //     }
-    // }
-    // auto result2 = setLangClient2->async_send_request(request2);
-    // if (rclcpp::spin_until_future_complete(setLangClientNode2, result2) == rclcpp::FutureReturnCode::SUCCESS)
-    // {
-    //     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Set Language succeeded");
-    // }
-    // else
-    // {
-    //     RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service set_language");
-    //     // m_speechTranscriberCallback.setMessageConsumed();
-    //     return false;
-    // }
+    auto setLangClientNode2 = rclcpp::Node::make_shared("DialogComponentSetLangNode2");
+    auto setLangClient2 = setLangClientNode2->create_client<text_to_speech_interfaces::srv::SetLanguage>("/TextToSpeechComponent/SetLanguage");
+    auto request2 = std::make_shared<text_to_speech_interfaces::srv::SetLanguage::Request>();
+    request2->new_language = newLang;
+    while (!setLangClient2->wait_for_service(std::chrono::seconds(1)))
+    {
+        if (!rclcpp::ok())
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setLangClient'. Exiting.");
+            // m_speechTranscriberCallback.setMessageConsumed();
+            return false;
+        }
+    }
+    auto result2 = setLangClient2->async_send_request(request2);
+    if (rclcpp::spin_until_future_complete(setLangClientNode2, result2) == rclcpp::FutureReturnCode::SUCCESS)
+    {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Set Language succeeded");
+    }
+    else
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service set_language");
+        // m_speechTranscriberCallback.setMessageConsumed();
+        return false;
+    }
 
-    // auto setVoiceClientNode = rclcpp::Node::make_shared("DialogComponentSetVoiceNode");
-    // auto setVoiceClient = setVoiceClientNode->create_client<text_to_speech_interfaces::srv::SetVoice>("/TextToSpeechComponent/SetVoice");
-    // auto request3 = std::make_shared<text_to_speech_interfaces::srv::SetVoice::Request>();
-    // request3->new_voice = m_voicesMap[newLang];
-    // while (!setVoiceClient->wait_for_service(std::chrono::seconds(1)))
-    // {
-    //     if (!rclcpp::ok())
-    //     {
-    //         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setVoiceClient'. Exiting.");
-    //         // m_speechTranscriberCallback.setMessageConsumed();
-    //         return false;
-    //     }
-    // }
-    // auto result3 = setVoiceClient->async_send_request(request3);
-    // if (rclcpp::spin_until_future_complete(setVoiceClientNode, result3) == rclcpp::FutureReturnCode::SUCCESS)
-    // {
-    //     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Set Voice succeeded");
-    // }
-    // else
-    // {
-    //     RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service set_voice");
-    //     // m_speechTranscriberCallback.setMessageConsumed();
-    //     return false;
-    // }
+    auto setVoiceClientNode = rclcpp::Node::make_shared("DialogComponentSetVoiceNode");
+    auto setVoiceClient = setVoiceClientNode->create_client<text_to_speech_interfaces::srv::SetVoice>("/TextToSpeechComponent/SetVoice");
+    auto request3 = std::make_shared<text_to_speech_interfaces::srv::SetVoice::Request>();
+    request3->new_voice = m_voicesMap[newLang];
+    while (!setVoiceClient->wait_for_service(std::chrono::seconds(1)))
+    {
+        if (!rclcpp::ok())
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setVoiceClient'. Exiting.");
+            // m_speechTranscriberCallback.setMessageConsumed();
+            return false;
+        }
+    }
+    auto result3 = setVoiceClient->async_send_request(request3);
+    if (rclcpp::spin_until_future_complete(setVoiceClientNode, result3) == rclcpp::FutureReturnCode::SUCCESS)
+    {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Set Voice succeeded");
+    }
+    else
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service set_voice");
+        // m_speechTranscriberCallback.setMessageConsumed();
+        return false;
+    }
     // Setting language in the speech transcriber
     yDebug() << "[DialogComponent::CommandManager] Setting language in the speech transcriber: " << newLang << __LINE__;
 
@@ -1180,6 +1180,7 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
                     yInfo() << __LINE__;
                     lastNonSignalAction = actions[i];
                 }
+
                 if (actions[i].isBlocking())
                 {
                     actionIndex = i + 1;
@@ -1204,12 +1205,15 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
             // bool containsSpeak = false;
             // float danceTime = 0.0f;
 
+            std::string speakAction = "";
+
             for (Action action : tempActions) // Loops through all the actions until the blocking one. Execute all of them
             {
                 switch (action.getType())
                 {
                 case ActionTypes::SPEAK:
-                {
+                {   
+
                     if (m_skipSpeaking)
                     {
                         m_skipSpeaking.store(false);
@@ -1227,22 +1231,19 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
                     // Check if the robot is already speaking and wait for it to finish
                     /*if (m_speakerCallback.isPlaying())
                     {
-                        yDebug() << "[DialogComponent::InterpretCommand] Waiting for previous speech to finish" ;
+                        yDebug() << "[DialogComponent::InterpretCommand] Waiting for previous speech to finish";
                         while (m_speakerCallback.isPlaying() && !m_exit)
                         {
                             // Wait
                             std::this_thread::sleep_for(100ms); // TODO - parameterize
-                            yDebug() << "[DialogComponent::InterpretCommand] Waiting for previous speech to finish" ;
+                            yDebug() << "[DialogComponent::InterpretCommand] Waiting for previous speech to finish";
                         }
                     }*/
 
-
-                    // WaitForSpeakEnd();
-                    
-                    
+                    WaitForSpeakEnd();
                     
                     // Synthesize the text
-                    // SpeakFromText(action.getParam());
+                    SpeakFromText(action.getParam());
 
                     /*
                     yarp::sig::Sound &synthesizedSound = m_speakersAudioPort.prepare();
@@ -1643,7 +1644,7 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<dialog_interfaces
 }
 
 // Protected function to actually speak given the text
-void DialogComponent::SpeakFromText(std::string &text)
+void DialogComponent::SpeakFromText(std::string text)
 {
 
     // ---------------------------------Text to Speech Service SPEAK------------------------------
@@ -1681,6 +1682,10 @@ void DialogComponent::SpeakFromText(std::string &text)
 void DialogComponent::ShortenAndSpeak(const std::shared_ptr<dialog_interfaces::srv::ShortenAndSpeak::Request> request,
                                       std::shared_ptr<dialog_interfaces::srv::ShortenAndSpeak::Response> response)
 {
+
+    yDebug() << "DialogComponent::ShortenAndSpeak call received with request: " << request->interaction;
+    yDebug() << "DialogComponent::ShortenAndSpeak call received with context: " << request->llm_context;
+
     std::cout << "DialogComponent::ShortenAndSpeak call received" << __LINE__ << std::endl;
     for (auto &reply : m_replies[request->llm_context])
     {
@@ -1731,7 +1736,7 @@ void DialogComponent::ShortenAndSpeak(const std::shared_ptr<dialog_interfaces::s
 
     std::cout << "The answer is: " << answerText << std::endl;
 
-    // SpeakFromText(answerText);
+    SpeakFromText(answerText);
 
     response->is_ok = true;
 }
@@ -1809,7 +1814,7 @@ void DialogComponent::AnswerAndSpeak(const std::shared_ptr<dialog_interfaces::sr
 
     std::cout << "The answer is: " << answerText << std::endl;
 
-    // SpeakFromText(answerText);
+    SpeakFromText(answerText);
 
     response->is_ok = true;
 }
