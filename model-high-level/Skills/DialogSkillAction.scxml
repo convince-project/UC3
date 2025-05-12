@@ -6,28 +6,6 @@
   datamodel="ecmascript"
   initial="idle">
 
-  <!-- ROS2 service servers for tick and halt -->
-  <ros_service_server
-    service_name="/DialogSkillAction/tick"
-    type="bt_interfaces_dummy/TickAction"/>
-  <ros_service_server
-    service_name="/DialogSkillAction/halt"
-    type="bt_interfaces_dummy/HaltAction"/>
-
-  <!-- ROS2 service clients -->
-  <ros_service_client
-    service_name="/SchedulerComponent/GetCurrentLanguage"
-    type="scheduler_interfaces_dummy/GetCurrentLanguage"/>
-  <ros_service_client
-    service_name="/DialogComponent/SetLanguage"
-    type="dialog_interfaces_dummy/SetLanguage"/>
-  <ros_service_client
-    service_name="/DialogComponent/EnableDialog"
-    type="dialog_interfaces_dummy/EnableDialog"/>
-  <ros_service_client
-    service_name="/DialogComponent/GetState"
-    type="dialog_interfaces_dummy/GetState"/>
-
   <datamodel>
     <data id="STATUS_DONE"    type="int8"   expr="2"/>
     <data id="m_language"     type="string" expr="''"/>
@@ -36,6 +14,17 @@
     <data id="SKILL_FAILURE"  type="int8"   expr="1"/>
     <data id="SKILL_RUNNING"  type="int8"   expr="2"/>
   </datamodel>
+
+
+  <!-- ROS2 service servers for tick and halt -->
+  <ros_service_server service_name="/DialogSkillAction/tick" type="bt_interfaces_dummy/TickAction"/>
+  <ros_service_server service_name="/DialogSkillAction/halt" type="bt_interfaces_dummy/HaltAction"/>
+
+  <!-- ROS2 service clients -->
+  <ros_service_client service_name="/SchedulerComponent/GetCurrentLanguage" type="scheduler_interfaces_dummy/GetCurrentLanguage"/>
+  <ros_service_client service_name="/DialogComponent/SetLanguage" type="dialog_interfaces_dummy/SetLanguage"/>
+  <ros_service_client service_name="/DialogComponent/EnableDialog" type="dialog_interfaces_dummy/EnableDialog"/>
+  <ros_service_client service_name="/DialogComponent/GetState" type="dialog_interfaces_dummy/GetState"/>
 
   <state id="idle">
     <!-- tick request -->

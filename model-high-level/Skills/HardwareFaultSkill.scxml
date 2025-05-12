@@ -43,12 +43,8 @@
       - on receiving a new hardware_status message, update jointStatus and stay idle
   -->
   <state id="idle">
-    <ros_service_handle_request
-      name="/HardwareFaultSkill/tick"
-      target="checkFault"/>
-    <ros_topic_callback
-      name="/hardware_status"
-      target="idle">
+    <ros_service_handle_request name="/HardwareFaultSkill/tick" target="checkFault"/>
+    <ros_topic_callback name="/hardware_status" target="idle">
       <assign location="jointStatus" expr="_msg.data"/>
     </ros_topic_callback>
   </state>
