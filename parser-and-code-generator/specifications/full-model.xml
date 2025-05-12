@@ -16,11 +16,14 @@
       <skillDeclaration id="BatteryDrainer" interface="SkillInterface">
         <skillDefinition type="action" moc="fsm" path="../../skill-functions-SCXML/museum-guide/BatteryDrainer.scxml" />
       </skillDeclaration>
+      <skillDeclaration id="BatteryDrainer" interface="SkillInterface">
+        <skillDefinition type="action" moc="fsm" path="../../skill-functions-SCXML/museum-guide/BatteryDrainer.scxml" />
+      </skillDeclaration>
     </skillList>
 
     <componentList>
-      <componentDeclaration id="RobotComponent" interface="robot_interfaces">
-        <componentDefinition moc="fsm" path="../../environment-XML/museum-guide/robot_interfaces.scxml" />
+      <componentDeclaration id="CER" interface="CER">
+        <componentDefinition />
       </componentDeclaration>
       <componentDeclaration id="BatteryDriverCmp" interface="drain_interfaces">
         <componentDefinition moc="fsm" path="../../environment-XML/museum-guide/BatteryDriverCmp.scxml" />
@@ -68,6 +71,9 @@
         <componentDefinition />
       </componentDeclaration>
       <componentDeclaration id="TimeComponent" interface="time_interfaces">
+        <componentDefinition />
+      </componentDeclaration>
+      <componentDeclaration id="PeopleDetectorFilterComponent" interface="people_detector_filter_interfaces">
         <componentDefinition />
       </componentDeclaration>
     </componentList>

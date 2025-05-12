@@ -2,8 +2,8 @@
 
     <types path="./types.xml" />
 
-    <interface id="robot_interfaces">
-        <function id="readBatteryStatus">
+    <interface id="CER" virtual="true">
+        <function id="battery_state">
             <protocol>
                 <ROS2data>
                     <interface type="topic" />
@@ -11,8 +11,8 @@
             </protocol>
             <returnValue>
                 <dataType>sensor_msgs::msg::BatteryState</dataType>
-                <dataField>percentage</dataField>
                 <dataField>power_supply_status</dataField>
+                <dataField>percentage</dataField>
             </returnValue>
         </function>
     </interface>
@@ -542,6 +542,21 @@
             </returnValue>
         </function>
         
+    </interface>
+
+
+    <interface id="people_detector_filter_interfaces" virtual="true">
+        <function id="is_followed">
+            <protocol>
+                <ROS2data>
+                    <interface type="topic" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>std_msgs::msg::Bool</dataType>
+                <dataField>data</dataField>
+            </returnValue>
+        </function>
     </interface>
 
 </interfaces>
