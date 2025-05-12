@@ -18,25 +18,18 @@
 
   <!-- ROS2 service server that handles tick requests -->
   <ros_service_server
-    service_name="/AlarmBatteryLowSkill/tick"
-    type="bt_interfaces_dummy/TickCondition"/>
+    service_name="/AlarmBatteryLowSkill/tick" type="bt_interfaces_dummy/TickCondition"/>
 
   <!-- ROS2 topic subscriber to listen for battery low state -->
-  <ros_topic_subscriber
-    topic="/BatteryDriverCmp/readStatus"
-    type="sensor_msgs/Int8"/>
+  <ros_topic_subscriber topic="/BatteryDriverCmp/readStatus" type="sensor_msgs/Int8"/>
 
   <!-- Idle state: waits for tick and battery topic updates -->
   <state id="idle">
     <!-- When a tick is received, transition to checkLow state -->
-    <ros_service_handle_request
-      name="/AlarmBatteryLowSkill/tick"
-      target="checkLow"/>
+    <ros_service_handle_request  name="/AlarmBatteryLowSkill/tick"  target="checkLow"/>
     
     <!-- When a battery status update arrives, update the variable -->
-  <ros_topic_callback
-    name="/BatteryDriverCmp/readStatus"
-    target="idle">
+  <ros_topic_callback name="/BatteryDriverCmp/readStatus" target="idle">
     <assign location="battery_low" expr="_msg.power_supply_status"/>
   </ros_topic_callback>
   </state>
@@ -60,9 +53,7 @@
     </onentry>
 
     <!-- Allow re-handling of tick while in this state -->
-    <ros_service_handle_request
-      name="/AlarmBatteryLowSkill/tick"
-      target="checkLow"/>
+    <ros_service_handle_request name="/AlarmBatteryLowSkill/tick" target="checkLow"/>
     
     <!-- After processing, return to idle state -->
     <transition target="idle"/>
