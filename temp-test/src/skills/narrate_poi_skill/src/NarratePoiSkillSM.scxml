@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="NarratePoiSkillActionAction" datamodel="ecmascript" initial="idle">
+    <datamodel>
+        <data id="m_command" expr="&apos;explainRoom&apos;"/>
+        <data id="m_is_done" expr="false"/>
+        <data id="m_result" expr="&apos;&apos;"/>
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <data id="SKILL_FAILURE" expr="1"/>
+        <data id="SKILL_RUNNING" expr="2"/>
+    </datamodel>
+    <!-- Action skill: tick + halt servers -->
+    <!-- Clients for NarrateComponent -->
+    <state id="idle">
+        <transition target="start" event="CMD_TICK">
+            <send event="NarrateComponent.Narrate.Call">
+                <param name="command" expr="m_command"/>
+            </send>
+        </transition>
+        <transition target="stop" event="CMD_HALT">
+            <send event="NarrateComponent.Stop.Call"/>
+        </transition>
+    </state>
+    <state id="start">
+        <transition cond="_event.data.result==&apos;SUCCESS&apos;" target="running" event="NarrateComponent.Narrate.Return"/>
+        <transition cond="_event.data.result!=&apos;SUCCESS&apos;" target="idle" event="NarrateComponent.Narrate.Return"/>
+    </state>
+    <state id="running">
+        <send event="TICK_RESPONSE">
+            <param name="status" expr="SKILL_RUNNING"/>
+        </send>
+        <transition target="check" event="CMD_TICK">
+            <send event="NarrateComponent.IsDone.Call"/>
+        </transition>
+        <transition target="stop" event="CMD_HALT">
+            <send event="NarrateComponent.Stop.Call"/>
+        </transition>
+    </state>
+    <state id="check">
+        <transition cond="_event.data.is_done" target="success" event="NarrateComponent.IsDone.Return"/>
+        <transition cond="!_event.data.is_done" target="running" event="NarrateComponent.IsDone.Return"/>
+    </state>
+    <state id="stop">
+        <transition target="halted" event="NarrateComponent.Stop.Return">
+            <send event="HALT_RESPONSE"/>
+        </transition>
+    </state>
+    <state id="success">
+        <send event="TICK_RESPONSE">
+            <param name="status" expr="SKILL_SUCCESS"/>
+        </send>
+        <transition target="idle"/>
+    </state>
+    <state id="halted">
+        <transition target="idle"/>
+    </state>
+</scxml>
