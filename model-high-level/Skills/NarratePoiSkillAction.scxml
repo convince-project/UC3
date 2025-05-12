@@ -6,24 +6,7 @@
   datamodel="ecmascript"
   initial="idle">
 
-  <!-- Action skill: tick + halt servers -->
-  <ros_service_server
-    service_name="/NarratePoiSkillAction/tick"
-    type="bt_interfaces_dummy/TickAction"/>
-  <ros_service_server
-    service_name="/NarratePoiSkillAction/halt"
-    type="bt_interfaces_dummy/HaltAction"/>
 
-  <!-- Clients for NarrateComponent -->
-  <ros_service_client
-    service_name="/NarrateComponent/Narrate"
-    type="narrate_interfaces_dummy/Narrate"/>
-  <ros_service_client
-    service_name="/NarrateComponent/Stop"
-    type="narrate_interfaces_dummy/Stop"/>
-  <ros_service_client
-    service_name="/NarrateComponent/IsDone"
-    type="narrate_interfaces_dummy/IsDone"/>
 
   <datamodel>
     <data id="m_command"    type="string"  expr="'explainRoom'"/>
@@ -33,6 +16,16 @@
     <data id="SKILL_FAILURE" type="int8"    expr="1"/>
     <data id="SKILL_RUNNING" type="int8"    expr="2"/>
   </datamodel>
+  
+  <!-- Action skill: tick + halt servers -->
+  <ros_service_server service_name="/NarratePoiSkillAction/tick" type="bt_interfaces_dummy/TickAction"/>
+  <ros_service_server service_name="/NarratePoiSkillAction/halt" type="bt_interfaces_dummy/HaltAction"/>
+
+  <!-- Clients for NarrateComponent -->
+  <ros_service_client service_name="/NarrateComponent/Narrate" type="narrate_interfaces_dummy/Narrate"/>
+  <ros_service_client service_name="/NarrateComponent/Stop" type="narrate_interfaces_dummy/Stop"/>
+  <ros_service_client service_name="/NarrateComponent/IsDone" type="narrate_interfaces_dummy/IsDone"/>
+
 
   <state id="idle">
     <ros_service_handle_request name="/NarratePoiSkillAction/tick" target="start">

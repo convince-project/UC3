@@ -7,14 +7,10 @@
   initial="idle">
 
   <!-- Condition skill: tick server only -->
-  <ros_service_server
-    service_name="/IsCheckingForPeopleSkillCondition/tick"
-    type="bt_interfaces_dummy/TickCondition"/>
+  <ros_service_server service_name="/IsCheckingForPeopleSkillCondition/tick" type="bt_interfaces_dummy/TickCondition"/>
 
   <!-- Client for Blackboard GetInt -->
-  <ros_service_client
-    service_name="/BlackboardComponent/GetInt"
-    type="blackboard_interfaces_dummy/GetInt"/>
+  <ros_service_client service_name="/BlackboardComponent/GetInt" type="blackboard_interfaces_dummy/GetInt"/>
 
   <datamodel>
     <data id="m_name"        type="string"  expr="'isCheckingForPeople'"/>
@@ -24,20 +20,15 @@
   </datamodel>
 
   <state id="idle">
-    <ros_service_handle_request
-      name="/IsCheckingForPeopleSkillCondition/tick"
-      target="query">
-      <ros_service_send_request
-        name="/BlackboardComponent/GetInt">
+    <ros_service_handle_request name="/IsCheckingForPeopleSkillCondition/tick" target="query">
+      <ros_service_send_request name="/BlackboardComponent/GetInt">
         <field name="field_name" expr="m_name"/>
       </ros_service_send_request>
     </ros_service_handle_request>
   </state>
 
   <state id="query">
-    <ros_service_handle_response
-      name="/BlackboardComponent/GetInt"
-      target="decide">
+    <ros_service_handle_response name="/BlackboardComponent/GetInt" target="decide">
       <assign location="m_value" expr="_res.value"/>
     </ros_service_handle_response>
   </state>
