@@ -92,7 +92,7 @@ public:
                         std::shared_ptr<dialog_interfaces::srv::Interpret::Response> response);
 
 protected:
-    void SpeakFromText(std::string & text);
+    void SpeakFromText(std::string text);
 
 private:
 
