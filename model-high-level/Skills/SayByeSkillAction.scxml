@@ -5,7 +5,7 @@
   name="SayByeSkillAction"
   datamodel="ecmascript"
   initial="idle">
-
+<!-- NON HA COMPILATO MODEL2CODE DA VEDERE -->
   <datamodel>
     <data id="m_command"    type="string"  expr="'sayBye'"/>
     <data id="m_param"      type="string"  expr="''"/>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="ResetTourAndFlagsSkillActionAction" datamodel="ecmascript" initial="idle">
+    <!-- Action skill: tick + halt servers -->
+    <!-- Clients for Reset and Blackboard set-all-ints -->
+    <datamodel>
+        <data id="m_name" expr="&apos;PoiDone&apos;"/>
+        <data id="m_value" expr="0"/>
+        <data id="m_result" expr="&apos;&apos;"/>
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <data id="SKILL_FAILURE" expr="1"/>
+    </datamodel>
+    <state id="idle">
+        <transition target="resetTour" event="CMD_TICK">
+            <send event="SchedulerComponent.Reset.Call"/>
+        </transition>
+        <transition target="halted" event="CMD_HALT"/>
+    </state>
+    <state id="resetTour">
+        <transition target="setFlags" event="SchedulerComponent.Reset.Return">
+            <assign location="m_result" expr="_event.data.result"/>
+        </transition>
+    </state>
+    <state id="setFlags">
+        <onentry>
+            <send event="BlackboardComponent.SetAllIntsWithPrefix.Call">
+                <param name="field_name" expr="m_name"/>
+                <param name="value" expr="m_value"/>
+            </send>
+        </onentry>
+        <transition target="decide" event="BlackboardComponent.SetAllIntsWithPrefix.Return">
+            <assign location="m_result" expr="_event.data.result"/>
+        </transition>
+    </state>
+    <state id="decide">
+        <onentry>
+            <if cond="m_result==&apos;SUCCESS&apos;">
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_SUCCESS"/>
+                </send>
+                <else/>
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_FAILURE"/>
+                </send>
+            </if>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="halted">
+        <onentry>
+            <send event="HALT_RESPONSE"/>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+</scxml>
