@@ -25,6 +25,8 @@
 #include <dialog_interfaces/srv/answer_and_speak.hpp>
 #include <dialog_interfaces/srv/interpret.hpp>
 
+#include <text_to_speech_interfaces/srv/set_microphone.hpp>
+
 enum class Status{
 	undefined,
 	running,
@@ -44,6 +46,10 @@ public:
 			   [[maybe_unused]] std::shared_ptr<bt_interfaces::srv::HaltAction::Response> response);
 
 private:
+	void EnableMicrophone();
+    void DisableMicrophone();
+
+
 	std::shared_ptr<std::thread> m_threadSpin;
 	std::shared_ptr<rclcpp::Node> m_node;
 	std::mutex m_requestMutex;

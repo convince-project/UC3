@@ -19,6 +19,11 @@ find_package(text_to_speech_interfaces REQUIRED)
 find_package(YCM REQUIRED)
 find_package(YARP 3.7 REQUIRED COMPONENTS dev os sig)
 
+# Embed YARP's library path into the executable using RPATH
+get_target_property(YARP_LIB_DIR YARP::YARP_init LOCATION)
+get_filename_component(YARP_LIB_DIR "${YARP_LIB_DIR}" DIRECTORY)
+set(CMAKE_INSTALL_RPATH "${YARP_LIB_DIR}")
+
 add_executable(${PROJECT_NAME})
 
 # find dependencies
@@ -34,7 +39,7 @@ target_include_directories(${PROJECT_NAME}
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
 target_sources( ${PROJECT_NAME} PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/TextToSpeechComponent.cpp  
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/TextToSpeechComponent.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/include/TextToSpeechComponent.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
