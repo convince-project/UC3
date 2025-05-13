@@ -5,6 +5,12 @@
        datamodel="ecmascript"
        initial="idle">
 
+  <datamodel>
+    <data id="result"          expr="''"/>
+    <data id="SKILL_SUCCESS"   expr="0"/>
+    <data id="SKILL_FAILURE"   expr="1"/>
+  </datamodel>
+
   <!-- Tick / halt servers -->
   <ros_service_server service_name="/StartServiceSkillAction/tick"  type="bt_interfaces_dummy/TickAction"/>
   <ros_service_server service_name="/StartServiceSkillAction/halt"  type="bt_interfaces_dummy/HaltAction"/>
@@ -12,12 +18,6 @@
   <!-- Client used -->
   <ros_service_client service_name="/ManagePeopleDetectorComponent/StartService"
                       type="manage_people_detector_interfaces_dummy/StartService"/>
-
-  <datamodel>
-    <data id="result"          expr="''"/>
-    <data id="SKILL_SUCCESS"   expr="0"/>
-    <data id="SKILL_FAILURE"   expr="1"/>
-  </datamodel>
 
   <state id="idle">
     <ros_service_handle_request name="/StartServiceSkillAction/tick" target="callStart">
