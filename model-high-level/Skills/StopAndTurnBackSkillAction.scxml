@@ -21,8 +21,8 @@
 
   <!-- Clients -->
   <ros_service_client service_name="/NavigationComponent/TurnBack"          type="navigation_interfaces_dummy/TurnBack"/>
-  <ros_service_client service_name="/NavigationComponent/GetNavigationStatus" type="navigation_interfaces_dummy/GetStatus"/>
-  <ros_service_client service_name="/NavigationComponent/StopNavigation"    type="navigation_interfaces_dummy/Stop"/>
+  <ros_service_client service_name="/NavigationComponent/GetNavigationStatus" type="navigation_interfaces_dummy/GetNavigationStatus"/>
+  <ros_service_client service_name="/NavigationComponent/StopNavigation"    type="navigation_interfaces_dummy/StopNavigation"/>
   <ros_service_client service_name="/BlackboardComponent/SetInt"            type="blackboard_interfaces_dummy/SetInt"/>
 
   <!-- === flow === -->
