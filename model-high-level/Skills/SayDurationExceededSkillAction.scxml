@@ -6,34 +6,6 @@
   datamodel="ecmascript"
   initial="idle">
 
-  <!-- Action skill: tick + halt servers -->
-  <ros_service_server
-    service_name="/SayDurationExceededSkillAction/tick"
-    type="bt_interfaces_dummy/TickAction"/>
-  <ros_service_server
-    service_name="/SayDurationExceededSkillAction/halt"
-    type="bt_interfaces_dummy/HaltAction"/>
-
-  <!-- Clients -->
-  <ros_service_client
-    service_name="/BlackboardComponent/GetInt"
-    type="blackboard_interfaces_dummy/GetInt"/>
-  <ros_service_client
-    service_name="/SchedulerComponent/SetCommand"
-    type="scheduler_interfaces_dummy/SetCommand"/>
-  <ros_service_client
-    service_name="/SchedulerComponent/GetCurrentAction"
-    type="scheduler_interfaces_dummy/GetCurrentAction"/>
-  <ros_service_client
-    service_name="/TextToSpeechComponent/Speak"
-    type="tts_interfaces_dummy/Speak"/>
-  <ros_service_client
-    service_name="/BlackboardComponent/SetInt"
-    type="blackboard_interfaces_dummy/SetInt"/>
-  <ros_service_client
-    service_name="/TextToSpeechComponent/IsSpeaking"
-    type="tts_interfaces_dummy/IsSpeaking"/>
-
   <datamodel>
     <data id="m_name"        type="string"  expr="'SaidExceededFlag'"/>
     <data id="m_value"       type="int32"   expr="0"/>
@@ -45,6 +17,18 @@
     <data id="SKILL_FAILURE" type="int8"    expr="1"/>
     <data id="SKILL_RUNNING" type="int8"    expr="2"/>
   </datamodel>
+
+  <!-- Action skill: tick + halt servers -->
+  <ros_service_server service_name="/SayDurationExceededSkillAction/tick" type="bt_interfaces_dummy/TickAction"/>
+  <ros_service_server service_name="/SayDurationExceededSkillAction/halt" type="bt_interfaces_dummy/HaltAction"/>
+
+  <!-- Clients -->
+  <ros_service_client service_name="/BlackboardComponent/GetInt" type="blackboard_interfaces_dummy/GetInt"/>
+  <ros_service_client service_name="/SchedulerComponent/SetCommand" type="scheduler_interfaces_dummy/SetCommand"/>
+  <ros_service_client service_name="/SchedulerComponent/GetCurrentAction" type="scheduler_interfaces_dummy/GetCurrentAction"/>
+  <ros_service_client service_name="/TextToSpeechComponent/Speak" type="tts_interfaces_dummy/Speak"/>
+  <ros_service_client service_name="/BlackboardComponent/SetInt" type="blackboard_interfaces_dummy/SetInt"/>
+  <ros_service_client service_name="/TextToSpeechComponent/IsSpeaking" type="tts_interfaces_dummy/IsSpeaking"/>
 
   <state id="idle">
     <ros_service_handle_request name="/SayDurationExceededSkillAction/tick" target="queryFlag">
