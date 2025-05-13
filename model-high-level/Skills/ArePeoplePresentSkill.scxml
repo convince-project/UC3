@@ -18,7 +18,7 @@
   <ros_service_server service_name="/ArePeoplePresentSkillCondition/tick"  type="bt_interfaces_dummy/TickCondition"/>
 
   <!-- Client to TurnBackManagerComponent -->
-  <ros_topic_subscriber service_name="/TurnBackManagerComponent/IsAllowedToContinue" type="turnbackmanager_interfaces_dummy/IsAllowedToContinue"/>
+  <ros_service_client service_name="/TurnBackManagerComponent/IsAllowedToContinue" type="turn_back_manager_interfaces_dummy/IsAllowedToContinue"/>
 
 
   <state id="idle">
