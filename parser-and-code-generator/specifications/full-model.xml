@@ -58,7 +58,7 @@
       <componentDeclaration id="TimerCheckForPeopleComponent" interface="timer_check_for_people_interfaces">
         <componentDefinition />
       </componentDeclaration>
-      <componentDeclaration id="NotifyUserComponent" interface="notify_user_interfaces">
+      <componentDeclaration id="NotifyUserComponent" interface="alarm_interfaces">
         <componentDefinition />
       </componentDeclaration>
       <componentDeclaration id="AllowedToMoveComponent" interface="allowed_to_move_interfaces">
@@ -75,7 +75,7 @@
       </componentDeclaration>
     </componentList>
 
-    <interfaces path="../interface-definition-IDL/interfaces.xml"/>
+    <interfaces path="interfaces.xml"/>
 
   </model>
 
