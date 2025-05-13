@@ -6,28 +6,6 @@
   datamodel="ecmascript"
   initial="idle">
 
-  <!-- Action skill: tick + halt servers -->
-  <ros_service_server
-    service_name="/SayWhileNavigatingSkillAction/tick"
-    type="bt_interfaces_dummy/TickAction"/>
-  <ros_service_server
-    service_name="/SayWhileNavigatingSkillAction/halt"
-    type="bt_interfaces_dummy/HaltAction"/>
-
-  <!-- Clients -->
-  <ros_service_client
-    service_name="/TurnBackManagerComponent/GetTurnBacksCounter"
-    type="turnbackmanager_interfaces_dummy/GetTurnBacksCounter"/>
-  <ros_service_client
-    service_name="/NarrateComponent/Narrate"
-    type="narrate_interfaces_dummy/Narrate"/>
-  <ros_service_client
-    service_name="/NarrateComponent/IsDone"
-    type="narrate_interfaces_dummy/IsDone"/>
-  <ros_service_client
-    service_name="/NarrateComponent/Stop"
-    type="narrate_interfaces_dummy/Stop"/>
-
   <datamodel>
     <data id="m_command"    type="string"  expr="'sayWhileNavigating'"/>
     <data id="m_counter"    type="int32"   expr="0"/>
@@ -37,6 +15,16 @@
     <data id="SKILL_FAILURE" type="int8"   expr="1"/>
     <data id="SKILL_RUNNING" type="int8"   expr="2"/>
   </datamodel>
+
+  <!-- Action skill: tick + halt servers -->
+  <ros_service_server service_name="/SayWhileNavigatingSkillAction/tick" type="bt_interfaces_dummy/TickAction"/>
+  <ros_service_server service_name="/SayWhileNavigatingSkillAction/halt" type="bt_interfaces_dummy/HaltAction"/>
+
+  <!-- Clients -->
+  <ros_service_client service_name="/TurnBackManagerComponent/GetTurnBacksCounter" type="turnbackmanager_interfaces_dummy/GetTurnBacksCounter"/>
+  <ros_service_client service_name="/NarrateComponent/Narrate" type="narrate_interfaces_dummy/Narrate"/>
+  <ros_service_client service_name="/NarrateComponent/IsDone" type="narrate_interfaces_dummy/IsDone"/>
+  <ros_service_client service_name="/NarrateComponent/Stop" type="narrate_interfaces_dummy/Stop"/>
 
   <state id="idle">
     <ros_service_handle_request name="/SayWhileNavigatingSkillAction/tick" target="getCount">

@@ -5,16 +5,16 @@
        datamodel="ecmascript"
        initial="idle">
 
-  <ros_service_server service_name="/StopTourTimerSkillAction/tick"  type="bt_interfaces_dummy/TickAction"/>
-  <ros_service_server service_name="/StopTourTimerSkillAction/halt"  type="bt_interfaces_dummy/HaltAction"/>
-
-  <ros_service_client service_name="/TimeComponent/StopTourTimer" type="time_interfaces_dummy/StopTourTimer"/>
-
   <datamodel>
     <data id="result" expr="''"/>
     <data id="SKILL_SUCCESS" expr="0"/>
     <data id="SKILL_FAILURE" expr="1"/>
   </datamodel>
+
+  <ros_service_server service_name="/StopTourTimerSkillAction/tick"  type="bt_interfaces_dummy/TickAction"/>
+  <ros_service_server service_name="/StopTourTimerSkillAction/halt"  type="bt_interfaces_dummy/HaltAction"/>
+
+  <ros_service_client service_name="/TimeComponent/StopTourTimer" type="time_interfaces_dummy/StopTourTimer"/>
 
   <state id="idle">
     <ros_service_handle_request name="/StopTourTimerSkillAction/tick" target="callStop">

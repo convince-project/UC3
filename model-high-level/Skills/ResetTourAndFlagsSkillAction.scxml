@@ -7,20 +7,12 @@
   initial="idle">
 
   <!-- Action skill: tick + halt servers -->
-  <ros_service_server
-    service_name="/ResetTourAndFlagsSkillAction/tick"
-    type="bt_interfaces_dummy/TickAction"/>
-  <ros_service_server
-    service_name="/ResetTourAndFlagsSkillAction/halt"
-    type="bt_interfaces_dummy/HaltAction"/>
+  <ros_service_server service_name="/ResetTourAndFlagsSkillAction/tick" type="bt_interfaces_dummy/TickAction"/>
+  <ros_service_server service_name="/ResetTourAndFlagsSkillAction/halt" type="bt_interfaces_dummy/HaltAction"/>
 
   <!-- Clients for Reset and Blackboard set-all-ints -->
-  <ros_service_client
-    service_name="/SchedulerComponent/Reset"
-    type="scheduler_interfaces_dummy/Reset"/>
-  <ros_service_client
-    service_name="/BlackboardComponent/SetAllIntsWithPrefix"
-    type="blackboard_interfaces_dummy/SetAllIntsWithPrefix"/>
+  <ros_service_client service_name="/SchedulerComponent/Reset" type="scheduler_interfaces_dummy/Reset"/>
+  <ros_service_client service_name="/BlackboardComponent/SetAllIntsWithPrefix" type="blackboard_interfaces_dummy/SetAllIntsWithPrefix"/>
 
   <datamodel>
     <data id="m_name"        type="string" expr="'PoiDone'"/>
@@ -59,7 +51,7 @@
     <onentry>
       <if cond="m_result=='SUCCESS'">
         <ros_service_send_response name="/ResetTourAndFlagsSkillAction/tick">
-          <field name="status" expr="SKILL_SUCCESS"/>
+          <field name="status" expr="SKILL_SUCCESS"/> 
         </ros_service_send_response>
       <else/>
         <ros_service_send_response name="/ResetTourAndFlagsSkillAction/tick">

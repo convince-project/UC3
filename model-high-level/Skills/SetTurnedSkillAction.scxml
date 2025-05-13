@@ -6,12 +6,6 @@
   datamodel="ecmascript"
   initial="idle">
 
-  <ros_service_server service_name="/SetTurnedSkillAction/tick"  type="bt_interfaces_dummy/TickAction"/>
-  <ros_service_server service_name="/SetTurnedSkillAction/halt"  type="bt_interfaces_dummy/HaltAction"/>
-
-  <ros_service_client service_name="/BlackboardComponent/SetString" type="blackboard_interfaces_dummy/SetString"/>
-  <ros_service_client service_name="/TurnBackManagerComponent/IncreaseTurnBacksCounter" type="turn_back_interfaces_dummy/IncreaseCounter"/>
-
   <datamodel>
     <data id="FIELD_NAME" expr="'turnBackState'"/>
     <data id="VALUE_STR"  expr="'turned'"/>
@@ -19,6 +13,12 @@
     <data id="SKILL_SUCCESS" type="int8" expr="0"/>
     <data id="SKILL_FAILURE" type="int8" expr="1"/>
   </datamodel>
+
+  <ros_service_server service_name="/SetTurnedSkillAction/tick"  type="bt_interfaces_dummy/TickAction"/>
+  <ros_service_server service_name="/SetTurnedSkillAction/halt"  type="bt_interfaces_dummy/HaltAction"/>
+
+  <ros_service_client service_name="/BlackboardComponent/SetString" type="blackboard_interfaces_dummy/SetString"/>
+  <ros_service_client service_name="/TurnBackManagerComponent/IncreaseTurnBacksCounter" type="turn_back_interfaces_dummy/IncreaseCounter"/>
 
   <state id="idle">
     <ros_service_handle_request name="/SetTurnedSkillAction/tick" target="setString">

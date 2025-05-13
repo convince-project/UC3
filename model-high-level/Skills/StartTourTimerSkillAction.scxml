@@ -5,12 +5,6 @@
        datamodel="ecmascript"
        initial="idle">
 
-  <ros_service_server service_name="/StartTourTimerSkillAction/tick"  type="bt_interfaces_dummy/TickAction"/>
-  <ros_service_server service_name="/StartTourTimerSkillAction/halt"  type="bt_interfaces_dummy/HaltAction"/>
-
-  <ros_service_client service_name="/TimeComponent/StartTourTimer"      type="time_interfaces_dummy/StartTourTimer"/>
-  <ros_service_client service_name="/BlackboardComponent/SetInt"        type="blackboard_interfaces_dummy/SetInt"/>
-
   <datamodel>
     <data id="result"          expr="''"/>
     <data id="SKILL_SUCCESS"   expr="0"/>
@@ -18,6 +12,12 @@
     <data id="FLAG_WARN" expr="'SaidWarningFlag'"/>
     <data id="FLAG_EXC"  expr="'SaidExceededFlag'"/>
   </datamodel>
+
+  <ros_service_server service_name="/StartTourTimerSkillAction/tick"  type="bt_interfaces_dummy/TickAction"/>
+  <ros_service_server service_name="/StartTourTimerSkillAction/halt"  type="bt_interfaces_dummy/HaltAction"/>
+
+  <ros_service_client service_name="/TimeComponent/StartTourTimer"      type="time_interfaces_dummy/StartTourTimer"/>
+  <ros_service_client service_name="/BlackboardComponent/SetInt"        type="blackboard_interfaces_dummy/SetInt"/>
 
   <state id="idle">
     <ros_service_handle_request name="/StartTourTimerSkillAction/tick" target="startTimer">
