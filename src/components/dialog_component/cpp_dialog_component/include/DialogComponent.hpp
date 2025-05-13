@@ -112,20 +112,12 @@ private:
     std::map<std::string,std::string> m_voicesMap;
     std::string m_poiPrompt;
     std::string m_startPrompt;
-    // Microphone
-    yarp::dev::PolyDriver m_audioRecorderPoly;
-    yarp::dev::IAudioGrabberSound *m_iAudioGrabberSound{nullptr};
 
-    // Callback on SpeechTranscriber port
-    SpeechTranscriberCallback m_speechTranscriberCallback;
-    std::string m_speechTranscriberClientName;
-    std::string m_speechTranscriberServerName;
-    yarp::os::BufferedPort<yarp::os::Bottle> m_speechTranscriberPort;
-
-    /*Speakers*/
-    //yarp::os::BufferedPort<yarp::sig::Sound> m_speakersAudioPort;
-    //yarp::os::BufferedPort<yarp::dev::AudioPlayerStatus> m_speakersStatusPort;
-    //SpeakerStatusCallback m_speakerCallback;
+    // Callback on SpeechToText port
+    // SpeechToTextComponent m_speechToTextComponent;
+    std::string m_speechToTextClientName;
+    std::string m_speechToTextServerName;
+    yarp::os::BufferedPort<yarp::os::Bottle> m_speechToTextPort;
 
     /*ROS2*/
     rclcpp::Node::SharedPtr m_node;
@@ -169,8 +161,6 @@ private:
     bool CommandManager(const std::string &command, std::shared_ptr<dialog_interfaces::srv::ManageContext::Response> &response);
     bool InterpretCommand(const std::string &command, PoI currentPoI, PoI genericPoI);
     void WaitForSpeakEnd();
-    void EnableMicrophone();
-    void DisableMicrophone();
     bool SetLanguage(const std::string &newLang);
     bool UpdatePoILLMPrompt();
 
