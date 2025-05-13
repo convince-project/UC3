@@ -6,14 +6,6 @@
   datamodel="ecmascript"
   initial="idle">
 
-  <!-- Tick / halt servers (Behaviour-Tree plugin) -->
-  <ros_service_server service_name="/SetNavigationPositionSkillAction/tick"  type="bt_interfaces_dummy/TickAction"/>
-  <ros_service_server service_name="/SetNavigationPositionSkillAction/halt" type="bt_interfaces_dummy/HaltAction"/>
-
-  <!-- Clients used by this skill -->
-  <ros_service_client service_name="/ExecuteDanceComponent/ExecuteDance" type="execute_dance_interfaces_dummy/ExecuteDance"/>
-  <ros_service_client service_name="/ExecuteDanceComponent/IsDancing"   type="execute_dance_interfaces_dummy/IsDancing"/>
-
   <datamodel>
     <data id="DANCE_NAME"          expr="'navigationPosition'"/>
     <data id="is_dancing"  type="boolean" expr="false"/>
@@ -22,6 +14,14 @@
     <data id="SKILL_FAILURE" type="int8" expr="1"/>
     <data id="SKILL_RUNNING" type="int8" expr="2"/>
   </datamodel>
+
+  <!-- Tick / halt servers (Behaviour-Tree plugin) -->
+  <ros_service_server service_name="/SetNavigationPositionSkillAction/tick"  type="bt_interfaces_dummy/TickAction"/>
+  <ros_service_server service_name="/SetNavigationPositionSkillAction/halt" type="bt_interfaces_dummy/HaltAction"/>
+
+  <!-- Clients used by this skill -->
+  <ros_service_client service_name="/ExecuteDanceComponent/ExecuteDance" type="execute_dance_interfaces_dummy/ExecuteDance"/>
+  <ros_service_client service_name="/ExecuteDanceComponent/IsDancing"   type="execute_dance_interfaces_dummy/IsDancing"/>
 
   <!-- ============ STATES ============ -->
 
