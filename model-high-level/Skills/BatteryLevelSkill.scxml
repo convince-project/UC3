@@ -15,12 +15,12 @@
     <!-- BatteryLevelSkill is a server for tick from the ROS2Condition plugin-->
     <ros_service_server service_name="/BatteryLevelSkill/tick" type ="bt_interfaces_dummy/TickCondition"/>
     <!-- BatteryLevelSkill is a subscriber for the /battery_level topic from the BatteryComponent-->
-    <ros_topic_subscriber topic="/BatteryComponent/battery_level" type="std_msgs/Int32" />
+    <ros_topic_subscriber topic="/BatteryComponent/battery_level" type="sensor_msgs/BatteryState" />
 
     <state id="idle">
         <ros_service_handle_request name="/BatteryLevelSkill/tick" target="checkLevel"/>
         <ros_topic_callback name="/BatteryComponent/battery_level" target="idle">
-            <assign location="percentage" expr="_msg.data" />
+            <assign location="percentage" expr="_msg.percentage" />
         </ros_topic_callback>
     </state>
 
