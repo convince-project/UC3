@@ -88,6 +88,10 @@
                     <interface type="sync-service" />
                 </ROS2data>
             </protocol>
+            <returnValue>
+                <dataType>bool</dataType>
+                <dataField>is_ok</dataField>
+            </returnValue>
         </function>
         <function id="StopAlarm">
             <protocol>
@@ -95,6 +99,10 @@
                     <interface type="sync-service" />
                 </ROS2data>
             </protocol>
+            <returnValue>
+                <dataType>bool</dataType>
+                <dataField>is_ok</dataField>
+            </returnValue>
         </function>
     </interface>
 

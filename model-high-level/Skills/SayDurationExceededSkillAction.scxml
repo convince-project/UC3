@@ -26,9 +26,9 @@
   <ros_service_client service_name="/BlackboardComponent/GetInt" type="blackboard_interfaces_dummy/GetInt"/>
   <ros_service_client service_name="/SchedulerComponent/SetCommand" type="scheduler_interfaces_dummy/SetCommand"/>
   <ros_service_client service_name="/SchedulerComponent/GetCurrentAction" type="scheduler_interfaces_dummy/GetCurrentAction"/>
-  <ros_service_client service_name="/TextToSpeechComponent/Speak" type="tts_interfaces_dummy/Speak"/>
+  <ros_service_client service_name="/TextToSpeechComponent/Speak" type="text_to_speech_interfaces_dummy/Speak"/>
   <ros_service_client service_name="/BlackboardComponent/SetInt" type="blackboard_interfaces_dummy/SetInt"/>
-  <ros_service_client service_name="/TextToSpeechComponent/IsSpeaking" type="tts_interfaces_dummy/IsSpeaking"/>
+  <ros_service_client service_name="/TextToSpeechComponent/IsSpeaking" type="text_to_speech_interfaces_dummy/IsSpeaking"/>
 
   <state id="idle">
     <ros_service_handle_request name="/SayDurationExceededSkillAction/tick" target="queryFlag">
