@@ -17,7 +17,7 @@
 
   <!-- Client used -->
   <ros_service_client service_name="/ManagePeopleDetectorComponent/StartService"
-                      type="manage_people_detector_interfaces_dummy/StartService"/>
+                      type="manage_service_interfaces_dummy/StartService"/>
 
   <state id="idle">
     <ros_service_handle_request name="/StartServiceSkillAction/tick" target="callStart">

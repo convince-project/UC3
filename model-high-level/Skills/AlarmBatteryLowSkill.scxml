@@ -21,7 +21,7 @@
     service_name="/AlarmBatteryLowSkill/tick" type="bt_interfaces_dummy/TickCondition"/>
 
   <!-- ROS2 topic subscriber to listen for battery low state -->
-  <ros_topic_subscriber topic="/BatteryDriverCmp/readStatus" type="sensor_msgs/Int8"/>
+  <ros_topic_subscriber topic="/BatteryDriverCmp/readStatus" type="sensor_msgs/BatteryState"/>
 
   <!-- Idle state: waits for tick and battery topic updates -->
   <state id="idle">
