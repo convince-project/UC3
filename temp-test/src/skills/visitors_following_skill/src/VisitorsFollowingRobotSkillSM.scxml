@@ -1,0 +1,31 @@
+<scxml initial="idle" version="1.0" name="VisitorsFollowingRobotSkillCondition" datamodel="ecmascript" xmlns="http://www.w3.org/2005/07/scxml">
+    <datamodel>
+        <data id="is_followed" expr="true"/>
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <data id="SKILL_FAILURE" expr="1"/>
+    </datamodel>
+    <!-- VisitorsFollowingRobotSkill is a server for tick from the ROS2Condition plugin-->
+    <!-- VisitorsFollowingRobotSkill is a subscriber for the /is_followed topic from the PeopleDetectorFilterComponent-->
+    <state id="idle">
+        <transition target="areFollowing" event="CMD_TICK"/>
+        <transition target="idle" event="PeopleDetectorFilterComponent.is_followed.Sub">
+            <assign location="is_followed" expr="_event.data.is_followed"/>
+        </transition>
+    </state>
+    <state id="areFollowing">
+        <onentry>
+            <if cond="is_followed">
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_SUCCESS"/>
+                    <param name="is_ok" expr="true"/>
+                </send>
+                <else/>
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_FAILURE"/>
+                    <param name="is_ok" expr="true"/>
+                </send>
+            </if>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+</scxml>
