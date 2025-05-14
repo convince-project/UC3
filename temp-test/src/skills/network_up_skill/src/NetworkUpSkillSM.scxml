@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="NetworkUpSkillConditionCondition" datamodel="cplusplus:NetworkUpSkillDataModel:NetworkUpSkillDataModel.h" initial="idle">
-    <!-- Condition skill: tick server only -->
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="NetworkUpSkillCondition" datamodel="cplusplus:NetworkUpSkillDataModel:NetworkUpSkillDataModel.h" initial="idle">
     <datamodel>
         <!-- Provided by C++ DataModel -->
         <data id="m_status" expr="false"/>
         <data id="SKILL_SUCCESS" expr="0"/>
         <data id="SKILL_FAILURE" expr="1"/>
     </datamodel>
+    <!-- Condition skill: tick server only -->
     <state id="idle">
         <transition target="decide" event="CMD_TICK"/>
     </state>

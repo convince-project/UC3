@@ -58,7 +58,7 @@ bool NetworkStatusChangedSkill::start(int argc, char*argv[])
 	std::cout << "NetworkStatusChangedSkill::start";
 
   
-	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickConditionCondition>(m_name + "Skill/tick",
+	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickCondition>(m_name + "Skill/tick",
                                                                            	std::bind(&NetworkStatusChangedSkill::tick,
                                                                            	this,
                                                                            	std::placeholders::_1,
@@ -93,8 +93,8 @@ bool NetworkStatusChangedSkill::start(int argc, char*argv[])
 	return true;
 }
 
-void NetworkStatusChangedSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickConditionCondition::Request> request,
-                                std::shared_ptr<bt_interfaces_dummy::srv::TickConditionCondition::Response>      response)
+void NetworkStatusChangedSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Request> request,
+                                std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Response>      response)
 {
   std::lock_guard<std::mutex> lock(m_requestMutex);
   RCLCPP_INFO(m_node->get_logger(), "NetworkStatusChangedSkill::tick");

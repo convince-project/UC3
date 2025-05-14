@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="CheckIfFirstPoiSkillConditionCondition" datamodel="ecmascript" initial="idle">
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="CheckIfFirstPoiSkillCondition" datamodel="ecmascript" initial="idle">
     <datamodel>
         <data id="FIRST_POI" expr="1"/>
         <data id="m_poi_name" expr="&apos;&apos;"/>

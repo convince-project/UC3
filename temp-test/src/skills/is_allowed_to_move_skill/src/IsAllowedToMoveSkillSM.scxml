@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="IsAllowedToMoveSkillConditionCondition" datamodel="ecmascript" initial="idle">
-    <!-- Condition skill: tick server only -->
-    <!-- Client for AllowedToMoveComponent.IsAllowedToMove -->
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="IsAllowedToMoveSkillCondition" datamodel="ecmascript" initial="idle">
     <datamodel>
         <data id="m_is_allowed_to_move" expr="false"/>
         <data id="SKILL_SUCCESS" expr="0"/>
         <data id="SKILL_FAILURE" expr="1"/>
     </datamodel>
+    <!-- Condition skill: tick server only -->
+    <!-- Client for AllowedToMoveComponent.IsAllowedToMove -->
     <state id="idle">
         <transition target="query" event="CMD_TICK">
             <send event="AllowedToMoveComponent.IsAllowedToMove.Call"/>

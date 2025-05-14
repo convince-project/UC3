@@ -1,0 +1,6 @@
+---
+bool is_blocking
+string param
+string type
+bool is_ok
+string error_msg

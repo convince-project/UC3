@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="ArePeoplePresentSkillConditionCondition" datamodel="ecmascript" initial="idle">
-    <!-- TickCondition server -->
-    <!-- Client to TurnBackManagerComponent -->
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="ArePeoplePresentSkillCondition" datamodel="ecmascript" initial="idle">
     <datamodel>
         <data id="m_result" expr="&apos;&apos;"/>
         <data id="m_is_allowed" expr="false"/>
         <data id="SKILL_SUCCESS" expr="0"/>
         <data id="SKILL_FAILURE" expr="1"/>
     </datamodel>
+    <!-- TickCondition server -->
+    <!-- Client to TurnBackManagerComponent -->
     <state id="idle">
         <transition target="getStatus" event="CMD_TICK">
             <send event="TurnBackManagerComponent.IsAllowedToContinue.Call"/>
