@@ -58,7 +58,7 @@ bool ArePeoplePresentSkill::start(int argc, char*argv[])
 	std::cout << "ArePeoplePresentSkill::start";
 
   
-	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickConditionCondition>(m_name + "Skill/tick",
+	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickCondition>(m_name + "Skill/tick",
                                                                            	std::bind(&ArePeoplePresentSkill::tick,
                                                                            	this,
                                                                            	std::placeholders::_1,
@@ -139,8 +139,8 @@ bool ArePeoplePresentSkill::start(int argc, char*argv[])
 	return true;
 }
 
-void ArePeoplePresentSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickConditionCondition::Request> request,
-                                std::shared_ptr<bt_interfaces_dummy::srv::TickConditionCondition::Response>      response)
+void ArePeoplePresentSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Request> request,
+                                std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Response>      response)
 {
   std::lock_guard<std::mutex> lock(m_requestMutex);
   RCLCPP_INFO(m_node->get_logger(), "ArePeoplePresentSkill::tick");
