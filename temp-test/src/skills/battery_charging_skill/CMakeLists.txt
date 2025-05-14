@@ -12,7 +12,6 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(bt_interfaces_dummy REQUIRED)
-find_package(sensor_msgs REQUIRED)
 
 find_package(Qt6 COMPONENTS Core Scxml StateMachine  REQUIRED)
 
@@ -32,7 +31,7 @@ ament_target_dependencies(${PROJECT_NAME}
   bt_interfaces_dummy 
   rclcpp 
   rclcpp_action 
-  sensor_msgs  
+  
   )
 target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Scxml Qt6::StateMachine)
 target_include_directories(${PROJECT_NAME}
