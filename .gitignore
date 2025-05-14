@@ -13,5 +13,4 @@ bak/
 build/
 log/
 install/
-speech_to_text_component_leo/
 venv_sbert/
