@@ -1,0 +1,7 @@
+string poi_name
+float64 distance
+float64 angle
+---
+bool is_near
+bool is_ok
+string error_msg
