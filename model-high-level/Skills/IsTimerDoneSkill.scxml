@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml"
+       version="1.0"
+       name="IsTimerDoneSkill"
+       datamodel="ecmascript"
+       initial="idle">
+
+  <datamodel>
+    <data id="m_result"    type="string"  expr="''"/>
+    <data id="m_is_active" type="boolean" expr="false"/>
+  </datamodel>
+
+  <state id="idle">
+    <transition event="CMD_TICK" target="getStatus"/>
+  </state>
+
+  <state id="getStatus">
+    <onentry>
+      <send event="TimerCheckForPeopleComponent.IsTimerActive.Call"/>
+    </onentry>
+    <transition event="TimerCheckForPeopleComponent.IsTimerActive.Return" target="decide">
+      <assign location="m_result"    expr="_event.data.result"/>
+      <assign location="m_is_active" expr="_event.data.is_active"/>
+    </transition>
+  </state>
+
+  <state id="decide">
+    <onentry>
+      <if cond="m_result != 'SUCCESS' || m_is_active">
+        <send event="TICK_RESPONSE">
+          <param name="result" expr="'FAILURE'"/>
+        </send>
+      <else/>
+        <send event="TICK_RESPONSE">
+          <param name="result" expr="'SUCCESS'"/>
+        </send>
+      </if>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+</scxml>
