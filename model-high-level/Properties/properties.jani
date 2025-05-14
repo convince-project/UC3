@@ -1,0 +1,65 @@
+{
+    "properties": [
+        {
+            "name": "alarm-follows-battery-low-old",
+            "expression": {
+              "op": "filter",
+              "fun": "values",
+              "values": {
+                "op": "Pmin",
+                "exp": {
+                  "op": "U",
+                  "left": true,
+                  "right": {
+                    "comment": "Goal reached",
+                    "op": "⇒",
+                    "left": {
+                      "op": "≤",
+                      "left": "topic_BatteryComponent__battery_level_msg.ros_fields__data",
+                      "right": 30
+                    },
+                    "right": {
+                      "op": "=",
+                      "left": "topic_NotifyUserComponent_alarm_msg.ros_fields__data"
+                      },
+                      "right": true
+                  }
+              }
+            },
+            "states": {
+              "op": "initial"
+            }
+          }
+        },
+        {
+          "name": "alarm-follows-battery-low",
+          "expression": {
+            "op": "filter",
+            "fun": "values",
+            "values": {
+              "op": "Pmin",
+              "exp": {
+                "op": "U",
+                "left": {
+                  "op": "∨",
+                  "left": {
+                      "op": ">",
+                      "left": "topic_BatteryComponent__battery_level_msg.ros_fields__data",
+                      "right": 26
+                  },
+                  "right": {
+                      "op": "¬",
+                      "exp": "topic_BatteryComponent__battery_level_msg.valid"
+                  }
+                },
+                "right": "topic_NotifyUserComponent__alarm_msg.ros_fields__data"
+            }
+          },
+          "states": {
+            "op": "initial"
+          }
+      }
+    }
+    
+    ]
+}

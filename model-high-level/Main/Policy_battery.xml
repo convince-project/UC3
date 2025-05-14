@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<root main_tree_to_execute="BehaviorTree">
+    <!-- ////////// -->
+    <BehaviorTree ID="BehaviorTree">
+        <!-- <ReactiveFallback> -->
+        <Fallback>
+            <Condition ID="ROS2Condition" name="BatteryLevel" service_name="/BatteryLevelSkill/tick"/>
+            <Action ID="ROS2Action" name="Alarm"  service_name="/AlarmSkill/tick"/>
+        </Fallback> 
+        <!-- </ReactiveFallback> -->
+    </BehaviorTree>
+    <!-- ////////// -->
+    <!-- ////////// -->
+    <!-- <TreeNodesModel>
+        <SubTree ID="BatteryManagment"/>
+        <Action ID="ROS2Action"/>
+        <Condition ID="ROS2Condition"/>
+    </TreeNodesModel> -->
+    <!-- ////////// -->
+</root>

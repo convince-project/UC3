@@ -1,4 +1,4 @@
-path: /home/user1/UC3/laboratory-tour/monitoring/monitor_prop3_ws/src  # this is the path to the ros workspace you'd like the monitor package in
+path: /home/user1/UC3/monitoring/monitor_prop3_ws/src  # this is the path to the ros workspace you'd like the monitor package in
 
 monitors: # here we list the monitors we are going to generate
   - monitor:

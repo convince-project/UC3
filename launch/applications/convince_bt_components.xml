@@ -4,22 +4,22 @@
     <module>
         <name>python3</name>
         <parameters>create_symlinks.py ../applications/convince_bt_components.xml</parameters>
-        <workdir>/home/user1/UC3/laboratory-tour/launch/symbolic_links/</workdir>
+        <workdir>/home/user1/UC3/launch/symbolic_links/</workdir>
         <node>bt</node>
     </module>
 
     <module>
         <name>text_to_speech_component</name>
-        <parameters>--from /home/user1/UC3/laboratory-tour/src/components/text_to_speech_component/config/text_to_speech_config.ini</parameters>
-        <workdir>/home/user1/UC3/laboratory-tour/build/text_to_speech_component</workdir>
+        <parameters>--from /home/user1/UC3/src/components/text_to_speech_component/config/text_to_speech_config.ini</parameters>
+        <workdir>/home/user1/UC3/build/text_to_speech_component</workdir>
         <node>bt</node>
     </module>
 
 
     <module>
         <name>dialog_component</name>
-        <parameters>--from /home/user1/UC3/laboratory-tour/src/components/dialog_component/config/config.ini</parameters>
-        <workdir>/home/user1/UC3/laboratory-tour/build/dialog_component</workdir>
+        <parameters>--from /home/user1/UC3/src/components/dialog_component/config/config.ini</parameters>
+        <workdir>/home/user1/UC3/build/dialog_component</workdir>
         <node>bt</node>
     </module>
 
@@ -103,7 +103,7 @@
     <module>
         <name>ros2_dance_component</name>
         <parameters>run dance_component dance_component conf/movements.json</parameters>
-        <workdir>/home/user1/UC3/laboratory-tour</workdir>
+        <workdir>/home/user1/UC3</workdir>
         <node>bt</node>
     </module>
 
@@ -112,7 +112,7 @@
     <module>
         <name>ros2_scheduler_component</name>
         <parameters>run scheduler_component scheduler_component conf/tours.json TOUR_MADAMA_3</parameters>
-        <workdir>/home/user1/UC3/laboratory-tour</workdir>
+        <workdir>/home/user1/UC3</workdir>
         <node>bt</node>
     </module>
 
@@ -120,7 +120,7 @@
     <module>
         <name>ros2_manage_people_detector_component</name>
         <parameters>run manage_people_detector_component manage_people_detector_component</parameters>
-        <workdir>/home/user1/UC3/laboratory-tour</workdir>
+        <workdir>/home/user1/UC3</workdir>
         <node>bt</node>
     </module>
 
@@ -148,7 +148,7 @@
     <module>
         <name>ros2_time_component</name>
         <parameters>run time_component time_component config/config.ini</parameters>
-        <workdir>/home/user1/UC3/laboratory-tour/src/components/time_component/</workdir>
+        <workdir>/home/user1/UC3/src/components/time_component/</workdir>
         <node>bt</node>
     </module>
 
