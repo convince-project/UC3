@@ -374,80 +374,6 @@
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
   </state>
 
-<!-- Series of states to manage the robot speaking phase, cycle the Running pipeline until you end talking. After finishing talking, come back to the waitForInteraction state -->
-
-<state id="sendRunning">
-    <onentry>
-      <log expr="'State sendRunning'"/>
-      <log expr="m_state"/>
-
-      <send event="TICK_RESPONSE">
-        <param name="result" expr='"RUNNING"'/>
-      </send>
-    </onentry>
-    <transition target="WaitForFinish" />
-</state>
-
-<state id="WaitForFinish">
-  <onentry>
-    <log expr="'State waitForFinish'"/>
-    <log expr="m_state"/>
-    <!-- <script>
-      topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
-      qDebug() &lt;&lt; "entering WaitForFinish" &lt;&lt; topic;
-    </script> -->
-  </onentry>
-  <transition event="CMD_TICK" target="getIfIsDone" />
-  <transition event="CMD_HALT" target="stop" />
-  </state>
-
-  <state id="getIfIsDone">
-    <onentry>
-      <log expr="'State getIfIsDone'"/>
-      <log expr="m_state"/>
-
-      <send event="DialogComponent.GetState.Call">
-      </send>
-
-      <!-- <script>
-        topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
-        qDebug() &lt;&lt; "entering getIfIsDone" &lt;&lt; topic;
-      </script> -->
-    </onentry>
-    <transition event="DialogComponent.GetState.Return" target="getIfIsDoneResult" >
-      <assign expr="_event.data.result" location="m_result"/>
-      <assign expr="_event.data.state" location="m_state"/>
-    </transition>
-  </state>
-  
-  <state id="getIfIsDoneResult">
-    <onentry>
-      <log expr="'State getIfIsDoneResult'"/>
-      <log expr="m_state"/>
-
-      <!-- <script>
-        topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
-        qDebug() &lt;&lt; "entering getIfIsDoneResult" &lt;&lt; topic;
-      </script> -->
-    </onentry>
-    <transition cond="m_result == 'SUCCESS'" target="checkIfDone" />
-    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
-  </state>  
-
-  <state id="checkIfDone">
-    <onentry>
-      <log expr="'State checkIfDone'"/>
-      <log expr="m_state"/>
-
-      <!-- <script>
-        topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
-        qDebug() &lt;&lt; "entering checkIfDone" &lt;&lt; topic;
-      </script> -->
-    </onentry>
-    <transition cond="m_state == STATUS_DONE" target="sendSuccess" />
-    <transition target="sendRunning"/>
-  </state>
-
     <state id="stop">
     <onentry>
         <send event="DialogComponent.EnableDialog.Call">
@@ -474,10 +400,6 @@
   <transition cond="m_result == 'SUCCESS'" target="sendHalted" />
   <transition cond="m_result == 'FAILURE'" target="sendHalted" />
 </state>
-
-
-<!-- End of the Series of states to manage the robot speaking phase -->
-
 
   <state id="sendSuccess">
     <onentry>
