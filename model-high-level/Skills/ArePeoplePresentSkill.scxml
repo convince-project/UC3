@@ -2,7 +2,7 @@
 <scxml
   xmlns="http://www.w3.org/2005/07/scxml"
   version="1.0"
-  name="ArePeoplePresentSkillCondition"
+  name="ArePeoplePresentSkill"
   datamodel="ecmascript"
   initial="idle">
 
@@ -15,14 +15,14 @@
   </datamodel>
 
   <!-- TickCondition server -->
-  <ros_service_server service_name="/ArePeoplePresentSkillCondition/tick"  type="bt_interfaces_dummy/TickCondition"/>
+  <ros_service_server service_name="/ArePeoplePresentSkill/tick"  type="bt_interfaces_dummy/TickCondition"/>
 
   <!-- Client to TurnBackManagerComponent -->
   <ros_service_client service_name="/TurnBackManagerComponent/IsAllowedToContinue" type="turn_back_manager_interfaces_dummy/IsAllowedToContinue"/>
 
 
   <state id="idle">
-    <ros_service_handle_request name="/ArePeoplePresentSkillCondition/tick" target="getStatus">
+    <ros_service_handle_request name="/ArePeoplePresentSkill/tick" target="getStatus">
       <ros_service_send_request
         name="/TurnBackManagerComponent/IsAllowedToContinue"/>
     </ros_service_handle_request>
@@ -38,11 +38,11 @@
   <state id="decide">
     <onentry>
       <if cond="m_result=='SUCCESS' && m_is_allowed">
-        <ros_service_send_response name="/ArePeoplePresentSkillCondition/tick">
+        <ros_service_send_response name="/ArePeoplePresentSkill/tick">
           <field name="status" expr="SKILL_SUCCESS"/>
         </ros_service_send_response>
       <else/>
-        <ros_service_send_response name="/ArePeoplePresentSkillCondition/tick">
+        <ros_service_send_response name="/ArePeoplePresentSkill/tick">
           <field name="status" expr="SKILL_FAILURE"/>
         </ros_service_send_response>
       </if>

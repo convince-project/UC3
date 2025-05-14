@@ -1,0 +1,4 @@
+---
+bool is_ok
+bool is_allowed_to_move
+string error_msg
