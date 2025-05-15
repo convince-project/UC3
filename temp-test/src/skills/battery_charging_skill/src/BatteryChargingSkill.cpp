@@ -127,7 +127,7 @@ void BatteryChargingSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_inter
 void BatteryChargingSkill::topic_callback_readBatteryStatus(const sensor_msgs::msg::BatteryState::SharedPtr msg) {
   std::cout << "callback" << std::endl;
   QVariantMap data;
-  data.insert("percentage", msg->data);
+  data.insert("percentage", msg->percentage);
 
   m_stateMachine.submitEvent("RobotComponent.readBatteryStatus.Sub", data);
   RCLCPP_INFO(m_node->get_logger(), "RobotComponent.readBatteryStatus.Sub");
