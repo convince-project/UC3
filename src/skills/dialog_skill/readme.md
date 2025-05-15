@@ -4,14 +4,17 @@ The dialog pipeline is supposed to define the sequences of actions of a generic 
 
 # State Machine
 <!-- ![Dialog Flow Chart](images/Dialog_pipeline.drawio.svg) -->
-<figure style="text-align: center;">
-    <img src="images/Dialog_pipeline.drawio.svg" alt="Alt Text" style="width:75%; height:auto;">
-    <figcaption style="margin-top: 0.5em; font-style: italic; color: #555;">
-        Dialog Flow Chart (made with 
-        <a href="https://app.diagrams.net/" target="_blank" style="color: #007acc; text-decoration: none;">diagrams.net</a>, 
-        last update: May 14th 2025)
-    </figcaption>
+<figure>
+  <p align="center">
+    <img src="images/Dialog_pipeline.drawio.svg" alt="Alt Text" width="75%"><br>
+    <em>
+      Dialog Flow Chart (made with 
+      <a href="https://app.diagrams.net/" target="_blank">diagrams.net</a>, 
+      last update: May 14th 2025)
+    </em>
+  </p>
 </figure>
+
 
 
 The dialog skill behavior follows the flow chart presented above:
