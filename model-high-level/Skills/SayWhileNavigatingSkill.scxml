@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml
+  xmlns="http://www.w3.org/2005/07/scxml"
+  version="1.0"
+  name="SayWhileNavigatingSkill"
+  datamodel="ecmascript"
+  initial="idle">
+
+  <datamodel>
+    <data id="m_command"    type="string"  expr="'sayWhileNavigating'"/>
+    <data id="m_counter"    type="int32"   expr="0"/>
+    <data id="m_is_done"    type="boolean" expr="false"/>
+    <data id="m_result"     type="string"  expr="''"/>
+    <data id="SKILL_SUCCESS" type="int8"   expr="0"/>
+    <data id="SKILL_FAILURE" type="int8"   expr="1"/>
+    <data id="SKILL_RUNNING" type="int8"   expr="2"/>
+  </datamodel>
+
+  <!-- Action skill: tick + halt servers -->
+  <ros_service_server service_name="/SayWhileNavigatingSkill/tick" type="bt_interfaces_dummy/TickAction"/>
+  <ros_service_server service_name="/SayWhileNavigatingSkill/halt" type="bt_interfaces_dummy/HaltAction"/>
+
+  <!-- Clients -->
+  <ros_service_client service_name="/TurnBackManagerComponent/GetTurnBacksCounter" type="turnbackmanager_interfaces_dummy/GetTurnBacksCounter"/>
+  <ros_service_client service_name="/NarrateComponent/Narrate" type="narrate_interfaces_dummy/Narrate"/>
+  <ros_service_client service_name="/NarrateComponent/IsDone" type="narrate_interfaces_dummy/IsDone"/>
+  <ros_service_client service_name="/NarrateComponent/Stop" type="narrate_interfaces_dummy/Stop"/>
+
+  <state id="idle">
+    <ros_service_handle_request name="/SayWhileNavigatingSkill/tick" target="getCount">
+      <ros_service_send_request name="/TurnBackManagerComponent/GetTurnBacksCounter"/>
+    </ros_service_handle_request>
+    <ros_service_handle_request name="/SayWhileNavigatingSkill/halt" target="stopNarration"/>
+  </state>
+
+  <state id="getCount">
+    <ros_service_handle_response name="/TurnBackManagerComponent/GetTurnBacksCounter" target="decideCount">
+      <assign location="m_counter" expr="_res.counter"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="decideCount">
+    <onentry>
+      <if cond="_res.result!='SUCCESS'">
+        <ros_service_send_response name="/SayWhileNavigatingSkill/tick">
+          <field name="status" expr="SKILL_FAILURE"/>
+        </ros_service_send_response>
+      <elseif cond="m_counter!=0"/>
+        <ros_service_send_response name="/SayWhileNavigatingSkill/tick">
+          <field name="status" expr="SKILL_SUCCESS"/>
+        </ros_service_send_response>
+      <else/>
+        <ros_service_send_request name="/NarrateComponent/Narrate">
+          <field name="command" expr="m_command"/>
+        </ros_service_send_request>
+      </if>
+    </onentry>
+    <transition target="running"/>
+  </state>
+
+  <state id="running">
+    <ros_service_send_response name="/SayWhileNavigatingSkill/tick">
+      <field name="status" expr="SKILL_RUNNING"/>
+    </ros_service_send_response>
+    <ros_service_handle_request name="/SayWhileNavigatingSkill/tick" target="checkDone">
+      <ros_service_send_request name="/NarrateComponent/IsDone"/>
+    </ros_service_handle_request>
+    <ros_service_handle_request name="/SayWhileNavigatingSkill/halt" target="stopNarration"/>
+  </state>
+
+  <state id="checkDone">
+    <ros_service_handle_response name="/NarrateComponent/IsDone" target="onCheck">
+      <assign location="m_is_done" expr="_res.is_done"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="onCheck">
+    <onentry>
+      <if cond="m_is_done">
+        <ros_service_send_response name="/SayWhileNavigatingSkill/tick">
+          <field name="status" expr="SKILL_SUCCESS"/>
+        </ros_service_send_response>
+      <else/>
+        <ros_service_send_response name="/SayWhileNavigatingSkill/tick">
+          <field name="status" expr="SKILL_RUNNING"/>
+        </ros_service_send_response>
+      </if>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="stopNarration">
+    <ros_service_handle_response name="/NarrateComponent/Stop" target="halted">
+      <ros_service_send_response name="/SayWhileNavigatingSkill/halt"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="halted">
+    <transition target="idle"/>
+  </state>
+</scxml>
