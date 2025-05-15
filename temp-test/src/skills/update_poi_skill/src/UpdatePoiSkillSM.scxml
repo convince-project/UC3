@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="UpdatePoiSkillAction" datamodel="ecmascript" initial="idle">
+    <datamodel>
+        <data id="result" expr="&apos;&apos;"/>
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <data id="SKILL_FAILURE" expr="1"/>
+    </datamodel>
+    <state id="idle">
+        <transition target="callUpdate" event="CMD_TICK">
+            <send event="SchedulerComponent.UpdatePoi.Call"/>
+        </transition>
+        <transition target="halted" event="CMD_HALT"/>
+    </state>
+    <state id="callUpdate">
+        <transition target="reply" event="SchedulerComponent.UpdatePoi.Return">
+            <assign location="result" expr="_event.data.result"/>
+        </transition>
+    </state>
+    <state id="reply">
+        <send event="TICK_RESPONSE">
+            <param name="status" expr="result == &apos;SUCCESS&apos; ? SKILL_SUCCESS : SKILL_FAILURE"/>
+        </send>
+        <transition target="idle"/>
+    </state>
+    <state id="halted">
+        <send event="HALT_RESPONSE"/>
+        <transition target="idle"/>
+    </state>
+</scxml>
