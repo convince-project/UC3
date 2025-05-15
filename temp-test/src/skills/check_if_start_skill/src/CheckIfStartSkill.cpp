@@ -99,7 +99,7 @@ bool CheckIfStartSkill::start(int argc, char*argv[])
                   QVariantMap data;
                   data.insert("is_ok", true);
                   data.insert("poi_number", response->poi_number);
-                  data.insert("poi_name", response->poi_name);
+                  data.insert("poi_name", response->poi_name.c_str());
                   m_stateMachine.submitEvent("SchedulerComponent.GetCurrentPoi.Return", data);
                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.GetCurrentPoi.Return");
                   return;
@@ -140,29 +140,34 @@ bool CheckIfStartSkill::start(int argc, char*argv[])
 	return true;
 }
 
-void CheckIfStartSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Request> request,
-                                std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Response>      response)
+void CheckIfStartSkill::tick([[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Request> request,
+                            std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Response> response)
 {
-  std::lock_guard<std::mutex> lock(m_requestMutex);
-  RCLCPP_INFO(m_node->get_logger(), "CheckIfStartSkill::tick");
-  m_tickResult.store(Status::undefined);
-  m_stateMachine.submitEvent("CMD_TICK");
-  
-  while(m_tickResult.load()== Status::undefined) {
-      std::this_thread::sleep_for (std::chrono::milliseconds(100));
-  }
-  switch(m_tickResult.load()) 
-  {
-      
-      case Status::failure:
-          response->status = SKILL_FAILURE;
-          break;
-      case Status::success:
-          response->status = SKILL_SUCCESS;
-          break;            
-  }
-  RCLCPP_INFO(m_node->get_logger(), "CheckIfStartSkill::tickDone");
-  response->is_ok = true;
+    std::lock_guard<std::mutex> lock(m_requestMutex);
+    RCLCPP_INFO(m_node->get_logger(), "CheckIfStartSkill::tick");
+    m_tickResult.store(Status::undefined);
+    m_stateMachine.submitEvent("CMD_TICK");
+    
+    while(m_tickResult.load() == Status::undefined) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    
+    switch(m_tickResult.load()) 
+    {
+        case Status::failure:
+            response->status = SKILL_FAILURE;
+            break;
+        case Status::success:
+            response->status = SKILL_SUCCESS;
+            break;
+        case Status::undefined:
+        default:
+            response->status = SKILL_RUNNING;
+            break;            
+    }
+    
+    RCLCPP_INFO(m_node->get_logger(), "CheckIfStartSkill::tickDone");
+    response->is_ok = true;
 }
 
 

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="SetNavigationPositionSkillAction" datamodel="ecmascript" initial="idle">
+    <datamodel>
+        <data id="DANCE_NAME" expr="&apos;navigationPosition&apos;"/>
+        <data id="is_dancing" expr="false"/>
+        <data id="result" expr="&apos;&apos;"/>
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <data id="SKILL_FAILURE" expr="1"/>
+        <data id="SKILL_RUNNING" expr="2"/>
+    </datamodel>
+    <!-- Tick / halt servers (Behaviour-Tree plugin) -->
+    <!-- Clients used by this skill -->
+    <!-- ============ STATES ============ -->
+    <!-- Waiting for a tick/halt -->
+    <state id="idle">
+        <transition target="executeDance" event="CMD_TICK">
+            <send event="ExecuteDanceComponent.ExecuteDance.Call">
+                <param name="dance_name" expr="DANCE_NAME"/>
+            </send>
+        </transition>
+        <transition target="halted" event="CMD_HALT"/>
+    </state>
+    <!-- First service reply (start dance) -->
+    <state id="executeDance">
+        <transition target="afterExecute" event="ExecuteDanceComponent.ExecuteDance.Return">
+            <assign location="result" expr="_event.data.result"/>
+        </transition>
+    </state>
+    <state id="afterExecute">
+        <onentry>
+            <if cond="result == &apos;SUCCESS&apos;">
+                <!-- Tell BT this skill is running -->
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_RUNNING"/>
+                </send>
+                <else/>
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_FAILURE"/>
+                </send>
+            </if>
+        </onentry>
+        <transition cond="result == &apos;SUCCESS&apos;" target="wait_dance_done"/>
+        <transition cond="result != &apos;SUCCESS&apos;" target="idle"/>
+    </state>
+    <!-- Running loop: check IsDancing until finished -->
+    <state id="wait_dance_done">
+        <transition target="queryDancing" event="CMD_TICK">
+            <send event="ExecuteDanceComponent.IsDancing.Call"/>
+        </transition>
+        <transition target="halted" event="CMD_HALT"/>
+    </state>
+    <state id="queryDancing">
+        <transition target="onQuery" event="ExecuteDanceComponent.IsDancing.Return">
+            <assign location="is_dancing" expr="_event.data.is_dancing"/>
+        </transition>
+    </state>
+    <state id="onQuery">
+        <onentry>
+            <if cond="is_dancing">
+                <!-- still running -->
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_RUNNING"/>
+                </send>
+                <else/>
+                <!-- done -->
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_SUCCESS"/>
+                </send>
+            </if>
+        </onentry>
+        <transition cond="is_dancing" target="wait_dance_done"/>
+        <transition cond="!is_dancing" target="idle"/>
+    </state>
+    <!-- Halt simply acknowledges -->
+    <state id="halted">
+        <onentry>
+            <send event="HALT_RESPONSE"/>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+</scxml>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="SayWhileNavigatingSkillAction" datamodel="ecmascript" initial="idle">
+    <datamodel>
+        <data id="m_command" expr="&apos;sayWhileNavigating&apos;"/>
+        <data id="m_counter" expr="0"/>
+        <data id="m_is_done" expr="false"/>
+        <data id="m_result" expr="&apos;&apos;"/>
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <data id="SKILL_FAILURE" expr="1"/>
+        <data id="SKILL_RUNNING" expr="2"/>
+    </datamodel>
+    <!-- Action skill: tick + halt servers -->
+    <!-- Clients -->
+    <state id="idle">
+        <transition target="getCount" event="CMD_TICK">
+            <send event="TurnBackManagerComponent.GetTurnBacksCounter.Call"/>
+        </transition>
+        <transition target="stopNarration" event="CMD_HALT"/>
+    </state>
+    <state id="getCount">
+        <transition target="decideCount" event="TurnBackManagerComponent.GetTurnBacksCounter.Return">
+            <assign location="m_counter" expr="_event.data.counter"/>
+        </transition>
+    </state>
+    <state id="decideCount">
+        <onentry>
+            <if cond="_res.result!=&apos;SUCCESS&apos;">
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_FAILURE"/>
+                </send>
+                <elseif cond="m_counter!=0"/>
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_SUCCESS"/>
+                </send>
+                <else/>
+                <send event="NarrateComponent.Narrate.Call">
+                    <param name="command" expr="m_command"/>
+                </send>
+            </if>
+        </onentry>
+        <transition target="running"/>
+    </state>
+    <state id="running">
+        <send event="TICK_RESPONSE">
+            <param name="status" expr="SKILL_RUNNING"/>
+        </send>
+        <transition target="checkDone" event="CMD_TICK">
+            <send event="NarrateComponent.IsDone.Call"/>
+        </transition>
+        <transition target="stopNarration" event="CMD_HALT"/>
+    </state>
+    <state id="checkDone">
+        <transition target="onCheck" event="NarrateComponent.IsDone.Return">
+            <assign location="m_is_done" expr="_event.data.is_done"/>
+        </transition>
+    </state>
+    <state id="onCheck">
+        <onentry>
+            <if cond="m_is_done">
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_SUCCESS"/>
+                </send>
+                <else/>
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_RUNNING"/>
+                </send>
+            </if>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="stopNarration">
+        <transition target="halted" event="NarrateComponent.Stop.Return">
+            <send event="HALT_RESPONSE"/>
+        </transition>
+    </state>
+    <state id="halted">
+        <transition target="idle"/>
+    </state>
+</scxml>

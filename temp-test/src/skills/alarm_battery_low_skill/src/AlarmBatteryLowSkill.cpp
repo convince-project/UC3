@@ -110,12 +110,16 @@ void AlarmBatteryLowSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_inter
   switch(m_tickResult.load()) 
   {
       
-      case Status::failure:
-          response->status = SKILL_FAILURE;
-          break;
       case Status::success:
           response->status = SKILL_SUCCESS;
+          break;
+      case Status::failure:
+          response->status = SKILL_FAILURE;
           break;            
+      case Status::undefined:
+      default:
+          response->status = SKILL_RUNNING;
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "AlarmBatteryLowSkill::tickDone");
   response->is_ok = true;
@@ -127,7 +131,7 @@ void AlarmBatteryLowSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_inter
 void AlarmBatteryLowSkill::topic_callback_readStatus(const sensor_msgs::msg::BatteryState::SharedPtr msg) {
   std::cout << "callback" << std::endl;
   QVariantMap data;
-  data.insert("power_supply_status", msg->data);
+  data.insert("power_supply_status", msg->power_supply_status);
 
   m_stateMachine.submitEvent("BatteryDriverCmp.readStatus.Sub", data);
   RCLCPP_INFO(m_node->get_logger(), "BatteryDriverCmp.readStatus.Sub");
