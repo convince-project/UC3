@@ -5,7 +5,6 @@
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
-#include <std_msgs/msg/bool.hpp>
 
 #include <type_traits>
 
@@ -65,12 +64,9 @@ bool CheckNetworkSkill::start(int argc, char*argv[])
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
   
-	// Subscribe to network status topic
-	m_networkStatusSub = m_node->create_subscription<std_msgs::msg::Bool>(
-		"/NetworkStatus",
-		10,
-		std::bind(&CheckNetworkSkill::onNetworkStatus, this, std::placeholders::_1)
-	);
+  
+  
+  
   
   m_stateMachine.connectToEvent("TICK_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){
     RCLCPP_INFO(m_node->get_logger(), "CheckNetworkSkill::tickReturn %s", event.data().toMap()["status"].toString().toStdString().c_str());
@@ -85,10 +81,11 @@ bool CheckNetworkSkill::start(int argc, char*argv[])
     }
   });
     
-  // Connect network_status variable to state machine
-  m_stateMachine.network_status.setHandler([this](const bool &val) {
-    m_networkStatus.store(val);
-  });
+
+  
+  
+  
+  
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
@@ -119,12 +116,6 @@ void CheckNetworkSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfac
   }
   RCLCPP_INFO(m_node->get_logger(), "CheckNetworkSkill::tickDone");
   response->is_ok = true;
-}
-
-void CheckNetworkSkill::onNetworkStatus(const std_msgs::msg::Bool::SharedPtr msg)
-{
-	m_networkStatus.store(msg->data);
-	m_stateMachine.network_status = msg->data;
 }
 
 

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="StopAndTurnBackSkillAction" datamodel="ecmascript" initial="idle">
+    <datamodel>
+        <data id="status" expr="0"/>
+        <data id="result" expr="&apos;&apos;"/>
+        <data id="NAV_MOVING" expr="2"/>
+        <data id="NAV_REACHED" expr="4"/>
+        <data id="BB_FIELD" expr="&apos;isCheckingForPeople&apos;"/>
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <data id="SKILL_FAILURE" expr="1"/>
+        <data id="SKILL_RUNNING" expr="2"/>
+    </datamodel>
+    <!-- Clients -->
+    <!-- === flow === -->
+    <state id="idle">
+        <transition target="callTurnBack" event="CMD_TICK">
+            <send event="NavigationComponent.TurnBack.Call"/>
+        </transition>
+        <transition target="callStopNav" event="CMD_HALT">
+            <send event="NavigationComponent.StopNavigation.Call"/>
+        </transition>
+    </state>
+    <!-- TurnBack answer -->
+    <state id="callTurnBack">
+        <transition target="afterTurnBack" event="NavigationComponent.TurnBack.Return">
+            <assign location="result" expr="_event.data.result"/>
+        </transition>
+    </state>
+    <state id="afterTurnBack">
+        <onentry>
+            <if cond="result == &apos;SUCCESS&apos;">
+                <send event="NavigationComponent.GetNavigationStatus.Call"/>
+                <else/>
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_FAILURE"/>
+                </send>
+            </if>
+        </onentry>
+        <transition cond="result == &apos;SUCCESS&apos;" target="waitStatus"/>
+        <transition cond="result != &apos;SUCCESS&apos;" target="idle"/>
+    </state>
+    <!-- Loop asking status each tick -->
+    <state id="waitStatus">
+        <transition target="evalStatus" event="NavigationComponent.GetNavigationStatus.Return">
+            <assign location="status" expr="_event.data.status"/>
+        </transition>
+    </state>
+    <state id="evalStatus">
+        <onentry>
+            <if cond="status == NAV_MOVING">
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_RUNNING"/>
+                </send>
+                <elseif cond="status == NAV_REACHED"/>
+                <!-- set BB flag -->
+                <send event="BlackboardComponent.SetInt.Call">
+                    <param name="field_name" expr="BB_FIELD"/>
+                    <param name="value" expr="1"/>
+                </send>
+                <else/>
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_FAILURE"/>
+                </send>
+            </if>
+        </onentry>
+        <transition cond="status == NAV_MOVING" target="idle"/>
+        <transition cond="status == NAV_REACHED" target="waitBB"/>
+        <transition cond="status != NAV_MOVING &amp;&amp; status != NAV_REACHED" target="idle"/>
+    </state>
+    <state id="waitBB">
+        <transition target="done" event="BlackboardComponent.SetInt.Return">
+            <assign location="result" expr="_event.data.result"/>
+        </transition>
+    </state>
+    <state id="done">
+        <send event="TICK_RESPONSE">
+            <param name="status" expr="result == &apos;SUCCESS&apos; ? SKILL_SUCCESS : SKILL_FAILURE"/>
+        </send>
+        <transition target="idle"/>
+    </state>
+    <!-- Halt path -->
+    <state id="callStopNav">
+        <transition target="halted" event="NavigationComponent.StopNavigation.Return"/>
+    </state>
+    <state id="halted">
+        <send event="HALT_RESPONSE"/>
+        <transition target="idle"/>
+    </state>
+</scxml>
