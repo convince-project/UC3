@@ -20,39 +20,39 @@
 #include <yarp/dev/ISpeechSynthesizer.h>
 #include <yarp/dev/ILLM.h>
 #include <yarp/dev/IAudioGrabberSound.h>
-#include <dialog_interfaces/srv/get_language.hpp>
-#include <dialog_interfaces/srv/set_language.hpp>
+
+// Dialog Component Interfaces
 #include <dialog_interfaces/srv/manage_context.hpp>
-#include <dialog_interfaces/srv/set_poi.hpp>
-#include <dialog_interfaces/srv/get_state.hpp>
 #include <dialog_interfaces/srv/skip_explanation.hpp>
-//#include <dialog_interfaces/srv/is_speaking.hpp>
+#include <dialog_interfaces/srv/remember_interactions.hpp> // auto-generated from the .srv file
+#include <dialog_interfaces/srv/wait_for_interaction.hpp>
+#include <dialog_interfaces/srv/shorten_and_speak.hpp>
+#include <dialog_interfaces/srv/answer_and_speak.hpp>
+
+// YARP modules
 #include <yarp/sig/AudioPlayerStatus.h>
 #include <yarp/dev/ISpeechTranscription.h>
+
+// Text to Speech Interfaces
 #include <text_to_speech_interfaces/srv/is_speaking.hpp>
 #include <text_to_speech_interfaces/srv/set_microphone.hpp>
 #include <text_to_speech_interfaces/srv/speak.hpp>
 #include <text_to_speech_interfaces/srv/set_language.hpp>
 #include <text_to_speech_interfaces/srv/set_voice.hpp>
+
+// Scheduler Interfaces
 #include <scheduler_interfaces/srv/get_current_poi.hpp>
 #include <scheduler_interfaces/srv/end_tour.hpp>
 #include <scheduler_interfaces/srv/update_poi.hpp>
 #include <scheduler_interfaces/srv/set_language.hpp>
+
+
 #include "nlohmann/json.hpp"
 #include <random>
 #include <map>
 #include <unordered_map>
-
-#include "SpeechTranscriberCallback.hpp"
-#include "SpeakerStatusCallback.hpp"
 #include "TourStorage.h"
 
-
-#include <dialog_interfaces/srv/remember_interactions.hpp> // auto-generated from the .srv file
-#include <dialog_interfaces/srv/wait_for_interaction.hpp>
-#include <dialog_interfaces/srv/shorten_and_speak.hpp>
-#include <dialog_interfaces/srv/answer_and_speak.hpp>
-#include <dialog_interfaces/srv/interpret.hpp>
 
 class DialogComponent
 {
@@ -63,21 +63,9 @@ public:
     bool close();
     void spin();
     bool ConfigureYARP(yarp::os::ResourceFinder &rf);
-
-    void GetLanguage([[maybe_unused]] const std::shared_ptr<dialog_interfaces::srv::GetLanguage::Request> request,
-                        std::shared_ptr<dialog_interfaces::srv::GetLanguage::Response> response);
-    // void SetLanguage(const std::shared_ptr<dialog_interfaces::srv::SetLanguage::Request> request,
-                        // std::shared_ptr<dialog_interfaces::srv::SetLanguage::Response> response);
+    
     void ManageContext(const std::shared_ptr<dialog_interfaces::srv::ManageContext::Request> request,
                         std::shared_ptr<dialog_interfaces::srv::ManageContext::Response> response);
-    void SetPoi(const std::shared_ptr<dialog_interfaces::srv::SetPoi::Request> request,
-                        std::shared_ptr<dialog_interfaces::srv::SetPoi::Response> response);
-    void GetState(const std::shared_ptr<dialog_interfaces::srv::GetState::Request> request,
-                        std::shared_ptr<dialog_interfaces::srv::GetState::Response> response);
-    void SkipExplanation(const std::shared_ptr<dialog_interfaces::srv::SkipExplanation::Request> request,
-                        std::shared_ptr<dialog_interfaces::srv::SkipExplanation::Response> response);
-    //void IsSpeaking(const std::shared_ptr<dialog_interfaces::srv::IsSpeaking::Request> request,
-    //                    std::shared_ptr<dialog_interfaces::srv::IsSpeaking::Response> response);
 
     void WaitForInteraction(const std::shared_ptr<dialog_interfaces::srv::WaitForInteraction::Request> request,
                         std::shared_ptr<dialog_interfaces::srv::WaitForInteraction::Response> response);
@@ -88,66 +76,51 @@ public:
     void AnswerAndSpeak(const std::shared_ptr<dialog_interfaces::srv::AnswerAndSpeak::Request> request,
                         std::shared_ptr<dialog_interfaces::srv::AnswerAndSpeak::Response> response);
 
-    void Interpret(const std::shared_ptr<dialog_interfaces::srv::Interpret::Request> request,
-                        std::shared_ptr<dialog_interfaces::srv::Interpret::Response> response);
-
 protected:
     void SpeakFromText(std::string text);
 
 private:
 
-    /*Network Wrappers*/
-    // Speech Synth
-    //yarp::dev::PolyDriver m_speechSynthPoly;
-    //yarp::dev::ISpeechSynthesizer *m_iSpeechSynth{nullptr};
     // ChatGPT
+    // Defines the LLM that manages the context of the conversation
     yarp::dev::PolyDriver m_poiChatPoly;
-    yarp::dev::PolyDriver m_genericChatPoly;
-    yarp::dev::PolyDriver m_museumChatPoly;
-    yarp::dev::PolyDriver m_speechTranscriptionPoly;
     yarp::dev::ILLM *m_iPoiChat{nullptr};
-    yarp::dev::ILLM *m_iMuseumChat{nullptr};
+    // Defines the LLM that is specialized into R1-related questions and generic questions
+    yarp::dev::PolyDriver m_genericChatPoly;
     yarp::dev::ILLM *m_iGenericChat{nullptr};
-    yarp::dev::ISpeechTranscription  *m_iSpeechTranscription{nullptr};
+    // Defines the LLM that is specialized into museum-related questions
+    yarp::dev::PolyDriver m_museumChatPoly;
+    yarp::dev::ILLM *m_iMuseumChat{nullptr};
+    
+    // Map of the languages supported by the SpeechSynthesizer
     std::map<std::string,std::string> m_voicesMap;
-    std::string m_poiPrompt;
+    // Stores the PoiChat LLM prompt for the start of the tour
     std::string m_startPrompt;
+    // Stores the PoIChat LLM prompt for the rest of the PoIs
+    std::string m_poiPrompt;
 
     // Callback on SpeechToText port
-    // SpeechToTextComponent m_speechToTextComponent;
     std::string m_speechToTextClientName;
     std::string m_speechToTextServerName;
     yarp::os::BufferedPort<yarp::os::Bottle> m_speechToTextPort;
 
-    /*ROS2*/
+    /*ROS2 Services Servers provided by this component */
     rclcpp::Node::SharedPtr m_node;
-    rclcpp::Service<dialog_interfaces::srv::GetLanguage>::SharedPtr m_getLanguageService;
-    rclcpp::Service<dialog_interfaces::srv::SetLanguage>::SharedPtr m_setLanguageService;
-    rclcpp::Service<dialog_interfaces::srv::ManageContext>::SharedPtr m_manageContextService;
-    rclcpp::Service<dialog_interfaces::srv::SetPoi>::SharedPtr m_setPoiService;
-    rclcpp::Service<dialog_interfaces::srv::GetState>::SharedPtr m_GetStateService;
-    rclcpp::Service<dialog_interfaces::srv::SkipExplanation>::SharedPtr m_SkipExplanationService;
     rclcpp::Service<dialog_interfaces::srv::WaitForInteraction>::SharedPtr m_WaitForInteractionService;
+    rclcpp::Service<dialog_interfaces::srv::ManageContext>::SharedPtr m_manageContextService;
     rclcpp::Service<dialog_interfaces::srv::ShortenAndSpeak>::SharedPtr m_ShortenAndSpeakService;
     rclcpp::Service<dialog_interfaces::srv::AnswerAndSpeak>::SharedPtr m_AnswerAndSpeakService;
-    // rclcpp::Service<dialog_interfaces::srv::Interpret>::SharedPtr m_InterpretService;
-    //rclcpp::Service<dialog_interfaces::srv::IsSpeaking>::SharedPtr m_IsSpeakingService;
-
-    rclcpp::Client<text_to_speech_interfaces::srv::IsSpeaking>::SharedPtr m_isSpeakingClient;
-    rclcpp::Client<text_to_speech_interfaces::srv::Speak>::SharedPtr m_speakClient;
-    rclcpp::Client<text_to_speech_interfaces::srv::SetMicrophone>::SharedPtr m_setMicrophoneClient;
-    std::mutex m_mutex;
-    rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr m_speakerStatusPub;
-    //rclcpp::TimerBase::SharedPtr m_timer;
 
     /*Dialog JSON*/
     std::shared_ptr<TourStorage> m_tourStorage;
     std::string m_currentPoiName;
     std::string m_jsonPath;
     std::string m_tourName;
-    // END
+    
+    // is the tour loaded at the start?
     bool m_tourLoadedAtStart;
 
+    // Pseudo-Random Number Generator for the randomization of the predefined answers inside the JSON
     /*Answers Randomizer*/
     std::mt19937 m_random_gen;
     std::default_random_engine m_rand_engine;
@@ -156,13 +129,12 @@ private:
     int m_fallback_repeat_counter;
     std::string m_last_valid_speak;
 
-    /*Threading*/
-    // std::thread m_dialogThread;
-    bool CommandManager(const std::string &command, std::shared_ptr<dialog_interfaces::srv::ManageContext::Response> &response);
-    bool InterpretCommand(const std::string &command, PoI currentPoI, PoI genericPoI);
-    void WaitForSpeakEnd();
+    // Private methods to manage internal functions and to interact with other services
+    bool CommandManager(const std::string &command, std::shared_ptr<dialog_interfaces::srv::ManageContext::Response> &response); // Manages the command received from the PoiChat LLM and returns the response to the caller
+    bool InterpretCommand(const std::string &command, PoI currentPoI, PoI genericPoI); // Interprets the command and returns the action to be performed
+    void WaitForSpeakEnd(); // ROS2 service client to TextToSpeechComponent to get if the TTS is speaking. Wait until it is not
     bool SetLanguage(const std::string &newLang);
-    bool UpdatePoILLMPrompt();
+    bool UpdatePoILLMPrompt(); // Updates the prompt of the PoIChat LLM based on the current PoI. Leverages the SchedulerComponent service to get the current PoI name
 
     /* Internal State Machine*/
     enum State {
@@ -173,21 +145,11 @@ private:
     };
 
     State m_state;
-    std::atomic<bool> m_skipSpeaking{false};
 
-    // has the current interaction already been asked?
-    // int m_duplicateIndex;
-
-    // Vector of questions and replies
-    // std::vector<std::tuple<std::string, std::string>>  m_questions_and_replies;
-
-    // last received interaction TODO: make uniform with m_lastQuestion, which I think is the same
+    // save the last received interaction, may be omitted
     std::string m_last_received_interaction;
     // map of vectors of replies
     std::unordered_map<std::string, std::vector<std::string>> m_replies;
-
-    // ROS2 Client Node that leverage the RememberInteractions service to get information about the interaction
-    rclcpp::Client<dialog_interfaces::srv::RememberInteractions>::SharedPtr m_interactionClient;
 
 };
 
