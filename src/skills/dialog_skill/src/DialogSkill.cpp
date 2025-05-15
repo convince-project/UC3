@@ -135,80 +135,6 @@ bool DialogSkill::start(int argc, char *argv[])
             }
         } });
 
-    // m_stateMachine.connectToEvent("SchedulerComponent.GetCurrentLanguage.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
-    //     std::shared_ptr<rclcpp::Node> nodeGetCurrentLanguage = rclcpp::Node::make_shared(m_name + "SkillNodeGetCurrentLanguage");
-    //     std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::GetCurrentLanguage>> clientGetCurrentLanguage = nodeGetCurrentLanguage->create_client<scheduler_interfaces::srv::GetCurrentLanguage>("/SchedulerComponent/GetCurrentLanguage");
-    //     auto request = std::make_shared<scheduler_interfaces::srv::GetCurrentLanguage::Request>();
-    //     bool wait_succeded{true};
-    //     while (!clientGetCurrentLanguage->wait_for_service(std::chrono::seconds(1))) {
-    //         if (!rclcpp::ok()) {
-    //             RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'GetCurrentLanguage'. Exiting.");
-    //             wait_succeded = false;
-    //             m_stateMachine.submitEvent("SchedulerComponent.GetCurrentLanguage.Return");
-    //         }
-    //         else {
-    //             RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Waiting for the service 'SchedulerComponent/GetCurrentLanguage' to be available...");
-    //         }
-    //     }
-    //     if (wait_succeded) {
-    //         // send the request
-    //         auto result = clientGetCurrentLanguage->async_send_request(request);
-    //         auto futureResult = rclcpp::spin_until_future_complete(nodeGetCurrentLanguage, result);
-    //         auto response = result.get();
-    //         if (futureResult == rclcpp::FutureReturnCode::SUCCESS)
-    //         {
-    //             if( response->is_ok ==true) {
-    //                 QVariantMap data;
-    //                 data.insert("result", "SUCCESS");
-    //                 data.insert("language", response->language.c_str());
-    //                 m_stateMachine.submitEvent("SchedulerComponent.GetCurrentLanguage.Return", data);
-    //                 RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.GetCurrentLanguage.Return");
-    //             } else {
-    //                 QVariantMap data;
-    //                 data.insert("result", "FAILURE");
-    //                 m_stateMachine.submitEvent("SchedulerComponent.GetCurrentLanguage.Return", data);
-    //                 RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.GetCurrentLanguage.Return");
-    //             }
-    //         }
-    //     }
-    // });
-
-    // m_stateMachine.connectToEvent("DialogComponent.SetLanguage.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
-    //     std::shared_ptr<rclcpp::Node> nodeSetLanguage = rclcpp::Node::make_shared(m_name + "SkillNodeSetLanguage");
-    //     std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::SetLanguage>> clientSetLanguage = nodeSetLanguage->create_client<dialog_interfaces::srv::SetLanguage>("/DialogComponent/SetLanguage");
-    //     auto request = std::make_shared<dialog_interfaces::srv::SetLanguage::Request>();
-    //     auto eventParams = event.data().toMap();
-    //     request->new_language = convert<decltype(request->new_language)>(eventParams["new_language"].toString().toStdString());
-    //     bool wait_succeded{true};
-    //     while (!clientSetLanguage->wait_for_service(std::chrono::seconds(1))) {
-    //         if (!rclcpp::ok()) {
-    //             RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'SetLanguage'. Exiting.");
-    //             wait_succeded = false;
-    //             m_stateMachine.submitEvent("DialogComponent.SetLanguage.Return");
-    //         }
-    //     }
-    //     if (wait_succeded) {
-    //         // send the request
-    //         auto result = clientSetLanguage->async_send_request(request);
-    //         auto futureResult = rclcpp::spin_until_future_complete(nodeSetLanguage, result);
-    //         auto response = result.get();
-    //         if (futureResult == rclcpp::FutureReturnCode::SUCCESS)
-    //         {
-    //             if( response->is_ok ==true) {
-    //                 QVariantMap data;
-    //                 data.insert("result", "SUCCESS");
-    //                 m_stateMachine.submitEvent("DialogComponent.SetLanguage.Return", data);
-    //                 RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.SetLanguage.Return");
-    //             } else {
-    //                 QVariantMap data;
-    //                 data.insert("result", "FAILURE");
-    //                 m_stateMachine.submitEvent("DialogComponent.SetLanguage.Return", data);
-    //                 RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.SetLanguage.Return");
-    //             }
-    //         }
-    //     }
-    // });
-
     m_stateMachine.connectToEvent("DialogComponent.ManageContext.Call", [this]([[maybe_unused]] const QScxmlEvent &event)
                                   {
         std::shared_ptr<rclcpp::Node> nodeManageContext = rclcpp::Node::make_shared(m_name + "SkillManageContext");
@@ -465,41 +391,6 @@ bool DialogSkill::start(int argc, char *argv[])
 		{ 
 			m_tickResult.store(Status::failure);
 		} });
-
-    m_stateMachine.connectToEvent("DialogComponent.GetState.Call", [this]([[maybe_unused]] const QScxmlEvent &event)
-                                  {
-        std::shared_ptr<rclcpp::Node> nodeGetState = rclcpp::Node::make_shared(m_name + "SkillNodeGetState");
-        std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::GetState>> clientGetState = nodeGetState->create_client<dialog_interfaces::srv::GetState>("/DialogComponent/GetState");
-        auto request = std::make_shared<dialog_interfaces::srv::GetState::Request>();
-        bool wait_succeded{true};
-        while (!clientGetState->wait_for_service(std::chrono::seconds(1))) {
-            if (!rclcpp::ok()) {
-                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'GetState'. Exiting.");
-                wait_succeded = false;
-                m_stateMachine.submitEvent("DialogComponent.GetState.Return");
-            } 
-        }
-        if (wait_succeded) {
-            // send the request                                                                    
-            auto result = clientGetState->async_send_request(request);
-            auto futureResult = rclcpp::spin_until_future_complete(nodeGetState, result);
-            auto response = result.get();
-            if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
-            {
-                if( response->is_ok ==true) {
-                    QVariantMap data;
-                    data.insert("result", "SUCCESS");
-                    data.insert("state", response->state);
-                    m_stateMachine.submitEvent("DialogComponent.GetState.Return", data);
-                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.GetState.Return");
-                } else {
-                    QVariantMap data;
-                    data.insert("result", "FAILURE");
-                    m_stateMachine.submitEvent("DialogComponent.GetState.Return", data);
-                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.GetState.Return");
-                }
-            }
-        } });
 
     m_stateMachine.connectToEvent("HALT_RESPONSE", [this]([[maybe_unused]] const QScxmlEvent &event)
                                   {

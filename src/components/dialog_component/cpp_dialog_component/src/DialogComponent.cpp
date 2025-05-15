@@ -320,36 +320,12 @@ bool DialogComponent::start(int argc, char *argv[])
     }
     m_node = rclcpp::Node::make_shared("DialogComponentNode");
 
-    // m_setLanguageService = m_node->create_service<dialog_interfaces::srv::SetLanguage>("/DialogComponent/SetLanguage",
-    //                                                                                    std::bind(&DialogComponent::SetLanguage,
-    //                                                                                              this,
-    //                                                                                              std::placeholders::_1,
-    //                                                                                              std::placeholders::_2));
-    m_getLanguageService = m_node->create_service<dialog_interfaces::srv::GetLanguage>("/DialogComponent/GetLanguage",
-                                                                                       std::bind(&DialogComponent::GetLanguage,
-                                                                                                 this,
-                                                                                                 std::placeholders::_1,
-                                                                                                 std::placeholders::_2));
+
     m_manageContextService = m_node->create_service<dialog_interfaces::srv::ManageContext>("/DialogComponent/ManageContext",
                                                                                            std::bind(&DialogComponent::ManageContext,
                                                                                                      this,
                                                                                                      std::placeholders::_1,
                                                                                                      std::placeholders::_2));
-    m_setPoiService = m_node->create_service<dialog_interfaces::srv::SetPoi>("/DialogComponent/SetPoi",
-                                                                             std::bind(&DialogComponent::SetPoi,
-                                                                                       this,
-                                                                                       std::placeholders::_1,
-                                                                                       std::placeholders::_2));
-    m_GetStateService = m_node->create_service<dialog_interfaces::srv::GetState>("/DialogComponent/GetState",
-                                                                                 std::bind(&DialogComponent::GetState,
-                                                                                           this,
-                                                                                           std::placeholders::_1,
-                                                                                           std::placeholders::_2));
-    m_SkipExplanationService = m_node->create_service<dialog_interfaces::srv::SkipExplanation>("/DialogComponent/SkipExplanation",
-                                                                                               std::bind(&DialogComponent::SkipExplanation,
-                                                                                                         this,
-                                                                                                         std::placeholders::_1,
-                                                                                                         std::placeholders::_2));
 
     m_WaitForInteractionService = m_node->create_service<dialog_interfaces::srv::WaitForInteraction>("/DialogComponent/WaitForInteraction",
                                                                                                      std::bind(&DialogComponent::WaitForInteraction,
@@ -368,13 +344,7 @@ bool DialogComponent::start(int argc, char *argv[])
                                                                                                        this,
                                                                                                        std::placeholders::_1,
                                                                                                        std::placeholders::_2));
-
-    // m_InterpretService = m_node->create_service<dialog_interfaces::srv::Interpret>("/DialogComponent/Interpret",
-    //                                                                                std::bind(&DialogComponent::Interpret,
-    //                                                                                          this,
-    //                                                                                          std::placeholders::_1,
-    //                                                                                          std::placeholders::_2));
-
+    
     if (!UpdatePoILLMPrompt())
     {
         yError() << "[DialogComponent::ConfigureYarp] Error in UpdatePoILLMPrompt";
@@ -399,21 +369,6 @@ bool DialogComponent::close()
 void DialogComponent::spin()
 {
     rclcpp::spin(m_node);
-}
-
-void DialogComponent::SkipExplanation(const std::shared_ptr<dialog_interfaces::srv::SkipExplanation::Request> request,
-                                      std::shared_ptr<dialog_interfaces::srv::SkipExplanation::Response> response)
-{
-    if (m_state == RUNNING)
-    {
-        m_skipSpeaking.store(true);
-        response->is_ok = true;
-    }
-    else
-    {
-        response->error_msg = "Component is not running";
-        response->is_ok = false;
-    }
 }
 
 void DialogComponent::ManageContext(const std::shared_ptr<dialog_interfaces::srv::ManageContext::Request> request,
@@ -670,26 +625,6 @@ bool DialogComponent::CommandManager(const std::string &command, std::shared_ptr
 
     return true;
 }
-
-// void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::SetLanguage::Request> request,
-//                                   std::shared_ptr<dialog_interfaces::srv::SetLanguage::Response> response)
-// {
-//     yInfo() << "DialogComponent::SetLanguage call received" << __LINE__;
-//     if (request->new_language == "")
-//     {
-//         response->is_ok = false;
-//         response->error_msg = "Empty string passed to setting language";
-//         return;
-//     }
-
-//     if (!m_tourStorage->m_loadedTour.setCurrentLanguage(request->new_language))
-//     {
-//         response->is_ok = false;
-//         response->error_msg = "Unable to set new language to tourStorage";
-//         return;
-//     }
-//     response->is_ok = true;
-// }
 
 bool DialogComponent::UpdatePoILLMPrompt()
 {
@@ -998,12 +933,6 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
                 case ActionTypes::SPEAK:
                 {
 
-                    if (m_skipSpeaking)
-                    {
-                        m_skipSpeaking.store(false);
-                        return true;
-                    }
-
                     // Synthesize the text
                     SpeakFromText(action.getParam());
 
@@ -1118,136 +1047,6 @@ bool DialogComponent::InterpretCommand(const std::string &command, PoI currentPo
     }
     return false;
 }
-
-void DialogComponent::GetLanguage([[maybe_unused]] const std::shared_ptr<dialog_interfaces::srv::GetLanguage::Request> request,
-                                  std::shared_ptr<dialog_interfaces::srv::GetLanguage::Response> response)
-{
-    std::string current_language = "";
-    current_language = m_tourStorage->m_loadedTour.getCurrentLanguage();
-    if (current_language != "")
-    {
-        response->current_language = current_language;
-        response->is_ok = true;
-    }
-    else
-    {
-        response->is_ok = false;
-        response->error_msg = "Unable to get language from speechSynthesizer";
-        response->current_language = current_language;
-    }
-
-    /*
-    if (!m_tourStorage->m_loadedTour.getCurrentLanguage(current_language))
-    {
-        response->is_ok=false;
-        response->error_msg="Unable to get language from speechSynthesizer";
-        response->current_language = current_language;
-    }
-    else
-    {
-        response->current_language = current_language;
-        response->is_ok=true;
-    }*/
-}
-
-void DialogComponent::SetPoi(const std::shared_ptr<dialog_interfaces::srv::SetPoi::Request> request,
-                             std::shared_ptr<dialog_interfaces::srv::SetPoi::Response> response)
-{
-    if (request->poi_name == "")
-    {
-        response->is_ok = false;
-        response->error_msg = "Empty string passed to setPoi";
-        return;
-    }
-    else
-    {
-        m_currentPoiName = request->poi_name;
-        response->is_ok = true;
-    }
-    return;
-}
-
-void DialogComponent::GetState(const std::shared_ptr<dialog_interfaces::srv::GetState::Request> request,
-                               std::shared_ptr<dialog_interfaces::srv::GetState::Response> response)
-{
-    response->state = m_state;
-    response->is_ok = true;
-}
-
-/*void DialogComponent::IsSpeaking(const std::shared_ptr<dialog_interfaces::srv::IsSpeaking::Request> request,
-                        std::shared_ptr<dialog_interfaces::srv::IsSpeaking::Response> response)
-{
-    auto timeout = 500ms;
-    auto wait = 20ms;
-    auto elapsed = 0ms;
-    yarp::dev::AudioPlayerStatus* player_status = nullptr;
-
-    // Read and wait untill I have a valid message, or the timeout is passed
-    while ([this, &player_status]()->bool{
-                player_status = m_speakersStatusPort.read();
-                if (player_status != nullptr)
-                    return true;
-                else
-                    return false;}()
-        && elapsed < timeout)
-    {
-        std::this_thread::sleep_for(wait);
-        elapsed += wait;
-    }
-
-    if(player_status == nullptr)
-    {
-        response->is_ok = false;
-        response->error_msg = "Timout while reading the speakers status port. No messages";
-    }
-    else
-    {
-        response->is_ok = true;
-        if (player_status->current_buffer_size > 0)
-            response->is_speaking = true;
-        else
-            response->is_speaking = false;
-    }
-}*/
-
-/*bool DialogComponent::isSpeaking(bool &result)
-{
-    auto data = m_speakersStatusPort.read();
-    if (data != nullptr)
-    {
-        yDebug() << "[DialogComponent::isSpeaking] got speakers status buffer size: " << data->current_buffer_size;
-        if(data->current_buffer_size > 0)
-        {
-            result = true;
-        }
-        else
-        {
-            result = false;
-        }
-        return true;
-    }
-    else
-    {
-        yError() << "[DialogComponent::isSpeaking] unable to read from port, got a null pointer" << __LINE__;
-        return false;
-    }
-}*/
-
-/*bool DialogComponent::isAudioEnabled(bool &result)
-{
-    auto data = m_speakersStatusPort.read();
-    if (data != nullptr)
-    {
-        yDebug() << "[DialogComponent::isAudioEnabled] got speakers audio enabled: " << data->enabled;
-        result = data->enabled;
-        return true;
-    }
-    else
-    {
-        yError() << "[DialogComponent::isAudioEnabled] unable to read from port, got a null pointer" << __LINE__;
-        return false;
-    }
-}*/
 
 void DialogComponent::WaitForInteraction(const std::shared_ptr<dialog_interfaces::srv::WaitForInteraction::Request> request,
                                          std::shared_ptr<dialog_interfaces::srv::WaitForInteraction::Response> response)
@@ -1379,32 +1178,6 @@ void DialogComponent::ShortenAndSpeak(const std::shared_ptr<dialog_interfaces::s
 
     response->is_ok = true;
 }
-
-// void DialogComponent::Interpret(const std::shared_ptr<dialog_interfaces::srv::Interpret::Request> request,
-//                                 std::shared_ptr<dialog_interfaces::srv::Interpret::Response> response)
-// {
-
-//     std::string question = "You are in the middle of a tour. You have received the following interaction: '" + m_last_received_interaction + "'. " +
-//                             "You have to interpret it and give as a result 'True' if the interaction does not regard starting, ending or continuing the tour." +
-//                             "You have to give as a result 'False' if the interaction does regard starting, ending or continuing the tour.";
-
-//     std::chrono::duration wait_ms = 200ms;
-//     yarp::dev::LLM_Message answer;
-//     if (!m_iGenericChat->ask(question, answer))
-//     {
-//         yError() << "[DialogComponent::Interpret] Unable to interact with chatGPT with question: " << question;
-//         std::this_thread::sleep_for(wait_ms);
-//     }
-
-//     std::string answerText = answer.content;
-
-//     std::cout << "Is the interaction an invite to continue/start/end the tour?: " << (answerText == "True") << std::endl;
-
-//     bool isQuestion = answerText == "True" ? true : false;
-
-//     response->is_ok = true;
-//     response->is_question = isQuestion;
-// }
 
 void DialogComponent::AnswerAndSpeak(const std::shared_ptr<dialog_interfaces::srv::AnswerAndSpeak::Request> request,
                                      std::shared_ptr<dialog_interfaces::srv::AnswerAndSpeak::Response> response)
