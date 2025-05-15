@@ -5,17 +5,15 @@ The dialog pipeline is supposed to define the sequences of actions of a generic 
 # State Machine
 <!-- ![Dialog Flow Chart](images/Dialog_pipeline.drawio.svg) -->
 <figure>
-  <p align="center">
-    <img src="images/Dialog_pipeline.drawio.svg" alt="Alt Text" width="75%"><br>
-    <em>
-      Dialog Flow Chart (made with 
-      <a href="https://app.diagrams.net/" target="_blank">diagrams.net</a>, 
-      last update: May 14th 2025)
-    </em>
-  </p>
+    <p align="center">
+        <img src="images/Dialog_pipeline.drawio.svg" alt="Alt Text" width="75%"><br>
+        <em>
+            Dialog Flow Chart (made with 
+            <a href="https://app.diagrams.net/" target="_blank">diagrams.net</a>, 
+            last update: May 14th 2025)
+        </em>
+    </p>
 </figure>
-
-
 
 The dialog skill behavior follows the flow chart presented above:
 - The starting state is `IDLE`
@@ -37,23 +35,27 @@ The Dialog Component also interacts with the following components:
 
 Below is a graphical representation of the components and their interactions. Here, grey boxes represent ROS2 nodes, orange boxes represent ROS2 services and blue boxes represent ROS2 topics. If the ROS2 service is on the left side of the box, it means that the service is provided by the node (i.e., the node implements them as ROS2 services server), otherwise it means that the service is required by the node (i.e., the node implements them as ROS2 service clients).
 
-<figure style="text-align: center;">
-    <img src="images/dialog_network_viz.png" alt="Alt Text" style="width:100%; height:auto;">
-    <figcaption style="margin-top: 0.5em; font-style: italic; color: #555;">
-        ROS2 services of Dialog Component and Skill (made automatically with 
-        <a href="https://github.com/ros2/ros_network_viz">ros network viz</a>
-        , last update: April 29th, 2025)
-    </figcaption>
+<figure>
+    <p align="center">
+        <img src="images/dialog_network_viz.png" alt="Alt Text" width="100%"><br>
+        <em>
+            ROS2 services of Dialog Component and Skill (made automatically with 
+            <a href="https://github.com/ros2/ros_network_viz">ros network viz</a>
+            , last update: April 29th, 2025)
+        </em>
+    </p>
 </figure>
 
 # Component-Skill-State Machine Communication
 Below is a graphical representation of the communication between the component, the skill and the state machine. The arrows represent the communication between the entities. When a state of the state machine presents multiple input-output arrows, the green arrows represent the sequential input-output flow of the state machine's communication with the skill.
 
-<figure style="text-align: center;">
-    <img src="images/SequenceDiagram.drawio.svg" alt="Alt Text" style="width:75%; height:auto;">
-    <figcaption style="margin-top: 0.5em; font-style: italic; color: #555;">
-        Sequence Diagram representing the communication among the Dialog Component, Skill and State Machine (made with 
-        <a href="https://app.diagrams.net/" target="_blank" style="color: #007acc; text-decoration: none;">diagrams.net</a>, 
-        last update: May 14th 2025)
-    </figcaption>
+<figure>
+    <p align="center">
+        <img src="images/SequenceDiagram.drawio.svg" alt="Alt Text" width="75%"><br>
+        <em>
+            Sequence Diagram representing the communication among the Dialog Component, Skill and State Machine (made with 
+            <a href="https://app.diagrams.net/" target="_blank" style="color: #007acc; text-decoration: none;">diagrams.net</a>
+            , last update: May 14th 2025)
+        </em>
+    </p>
 </figure>
