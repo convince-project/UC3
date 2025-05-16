@@ -113,32 +113,32 @@ bool IsAllowedToTurnBackSkill::start(int argc, char*argv[])
       m_stateMachine.submitEvent("TurnBackManagerComponent.IsAllowedToTurnBack.Return", data);
       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TurnBackManagerComponent.IsAllowedToTurnBack.Return");
   });
-  m_stateMachine.connectToEvent("BlackboardComponent.GetStringBlackboard.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
-      std::shared_ptr<rclcpp::Node> nodeGetStringBlackboard = rclcpp::Node::make_shared(m_name + "SkillNodeGetStringBlackboard");
-      std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::GetStringBlackboard>> clientGetStringBlackboard = nodeGetStringBlackboard->create_client<blackboard_interfaces::srv::GetStringBlackboard>("/BlackboardComponent/GetStringBlackboard");
+  m_stateMachine.connectToEvent("BlackboardComponent.GetString.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
+      std::shared_ptr<rclcpp::Node> nodeGetString = rclcpp::Node::make_shared(m_name + "SkillNodeGetString");
+      std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::GetStringBlackboard>> clientGetString = nodeGetString->create_client<blackboard_interfaces::srv::GetStringBlackboard>("/BlackboardComponent/GetString");
       auto request = std::make_shared<blackboard_interfaces::srv::GetStringBlackboard::Request>();
       auto eventParams = event.data().toMap();
       
       request->field_name = convert<decltype(request->field_name)>(eventParams["field_name"].toString().toStdString());
       bool wait_succeded{true};
       int retries = 0;
-      while (!clientGetStringBlackboard->wait_for_service(std::chrono::seconds(1))) {
+      while (!clientGetString->wait_for_service(std::chrono::seconds(1))) {
           if (!rclcpp::ok()) {
-              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'GetStringBlackboard'. Exiting.");
+              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'GetString'. Exiting.");
               wait_succeded = false;
               break;
           } 
           retries++;
           if(retries == SERVICE_TIMEOUT) {
-              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while waiting for the service 'GetStringBlackboard'.");
+              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while waiting for the service 'GetString'.");
               wait_succeded = false;
               break;
           }
       }
       if (wait_succeded) {                                                                   
-          auto result = clientGetStringBlackboard->async_send_request(request);
+          auto result = clientGetString->async_send_request(request);
           const std::chrono::seconds timeout_duration(SERVICE_TIMEOUT);
-          auto futureResult = rclcpp::spin_until_future_complete(nodeGetStringBlackboard, result, timeout_duration);
+          auto futureResult = rclcpp::spin_until_future_complete(nodeGetString, result, timeout_duration);
           if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
           {
               auto response = result.get();
@@ -146,19 +146,19 @@ bool IsAllowedToTurnBackSkill::start(int argc, char*argv[])
                   QVariantMap data;
                   data.insert("is_ok", true);
                   data.insert("value", response->value.c_str());
-                  m_stateMachine.submitEvent("BlackboardComponent.GetStringBlackboard.Return", data);
-                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.GetStringBlackboard.Return");
+                  m_stateMachine.submitEvent("BlackboardComponent.GetString.Return", data);
+                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.GetString.Return");
                   return;
               }
           }
           else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
-              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'GetStringBlackboard'.");
+              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'GetString'.");
           }
       }
       QVariantMap data;
       data.insert("is_ok", false);
-      m_stateMachine.submitEvent("BlackboardComponent.GetStringBlackboard.Return", data);
-      RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.GetStringBlackboard.Return");
+      m_stateMachine.submitEvent("BlackboardComponent.GetString.Return", data);
+      RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.GetString.Return");
   });
   
   m_stateMachine.connectToEvent("TICK_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){
