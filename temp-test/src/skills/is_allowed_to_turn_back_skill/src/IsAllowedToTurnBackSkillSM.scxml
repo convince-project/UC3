@@ -28,11 +28,11 @@
     </state>
     <state id="getTurning">
         <onentry>
-            <send event="BlackboardComponent.GetString.Call">
+            <send event="BlackboardComponent.GetStringBlackboard.Call">
                 <param name="field_name" expr="m_name"/>
             </send>
         </onentry>
-        <transition target="evaluateTurning" event="BlackboardComponent.GetString.Return">
+        <transition target="evaluateTurning" event="BlackboardComponent.GetStringBlackboard.Return">
             <assign location="m_result" expr="_event.data.result"/>
             <assign location="m_value" expr="_event.data.value"/>
         </transition>
