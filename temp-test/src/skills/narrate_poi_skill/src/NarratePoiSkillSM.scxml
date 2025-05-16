@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="NarratePoiSkillActionAction" datamodel="ecmascript" initial="idle">
+<scxml xmlns="http://www.w3.org/2005/07/scxml" xmlns:qt="http://www.qt.io/2015/02/scxml-ext" version="1.0" name="NarratePoiSkillAction" datamodel="ecmascript" initial="idle">
     <datamodel>
         <data id="m_command" expr="&apos;explainRoom&apos;"/>
         <data id="m_is_done" expr="false"/>
@@ -11,43 +11,47 @@
     <!-- Action skill: tick + halt servers -->
     <!-- Clients for NarrateComponent -->
     <state id="idle">
-        <transition target="start" event="CMD_TICK">
+        <transition event="CMD_TICK" target="start">
             <send event="NarrateComponent.Narrate.Call">
                 <param name="command" expr="m_command"/>
             </send>
         </transition>
-        <transition target="stop" event="CMD_HALT">
+        <transition event="CMD_HALT" target="stop">
             <send event="NarrateComponent.Stop.Call"/>
         </transition>
     </state>
     <state id="start">
-        <transition cond="_event.data.result==&apos;SUCCESS&apos;" target="running" event="NarrateComponent.Narrate.Return"/>
-        <transition cond="_event.data.result!=&apos;SUCCESS&apos;" target="idle" event="NarrateComponent.Narrate.Return"/>
+        <transition event="NarrateComponent.Narrate.Return" cond="_event.data.result==&apos;SUCCESS&apos;" target="running"/>
+        <transition event="NarrateComponent.Narrate.Return" cond="_event.data.result!=&apos;SUCCESS&apos;" target="idle"/>
     </state>
     <state id="running">
-        <send event="TICK_RESPONSE">
-            <param name="status" expr="SKILL_RUNNING"/>
-        </send>
-        <transition target="check" event="CMD_TICK">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_RUNNING"/>
+            </send>
+        </onentry>
+        <transition event="CMD_TICK" target="check">
             <send event="NarrateComponent.IsDone.Call"/>
         </transition>
-        <transition target="stop" event="CMD_HALT">
+        <transition event="CMD_HALT" target="stop">
             <send event="NarrateComponent.Stop.Call"/>
         </transition>
     </state>
     <state id="check">
-        <transition cond="_event.data.is_done" target="success" event="NarrateComponent.IsDone.Return"/>
-        <transition cond="!_event.data.is_done" target="running" event="NarrateComponent.IsDone.Return"/>
+        <transition event="NarrateComponent.IsDone.Return" cond="_event.data.is_done" target="success"/>
+        <transition event="NarrateComponent.IsDone.Return" cond="!_event.data.is_done" target="running"/>
     </state>
     <state id="stop">
-        <transition target="halted" event="NarrateComponent.Stop.Return">
+        <transition event="NarrateComponent.Stop.Return" target="halted">
             <send event="HALT_RESPONSE"/>
         </transition>
     </state>
     <state id="success">
-        <send event="TICK_RESPONSE">
-            <param name="status" expr="SKILL_SUCCESS"/>
-        </send>
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_SUCCESS"/>
+            </send>
+        </onentry>
         <transition target="idle"/>
     </state>
     <state id="halted">

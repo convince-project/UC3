@@ -58,13 +58,13 @@ bool NarratePoiSkill::start(int argc, char*argv[])
 	std::cout << "NarratePoiSkill::start";
 
   
-	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickActionAction>(m_name + "Skill/tick",
+	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
                                                                            	std::bind(&NarratePoiSkill::tick,
                                                                            	this,
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
   
-	m_haltService = m_node->create_service<bt_interfaces_dummy::srv::HaltActionAction>(m_name + "Skill/halt",
+	m_haltService = m_node->create_service<bt_interfaces_dummy::srv::HaltAction>(m_name + "Skill/halt",
                                                                             	std::bind(&NarratePoiSkill::halt,
                                                                             	this,
                                                                             	std::placeholders::_1,
@@ -217,6 +217,10 @@ bool NarratePoiSkill::start(int argc, char*argv[])
     {
       m_tickResult.store(Status::success);
     }
+    else if (result == std::to_string(SKILL_RUNNING) )
+    {
+      m_tickResult.store(Status::running);
+    }
     else if (result == std::to_string(SKILL_FAILURE) )
     { 
       m_tickResult.store(Status::failure);
@@ -239,8 +243,8 @@ bool NarratePoiSkill::start(int argc, char*argv[])
 	return true;
 }
 
-void NarratePoiSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickActionAction::Request> request,
-                                std::shared_ptr<bt_interfaces_dummy::srv::TickActionAction::Response>      response)
+void NarratePoiSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Request> request,
+                                std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Response>      response)
 {
   std::lock_guard<std::mutex> lock(m_requestMutex);
   RCLCPP_INFO(m_node->get_logger(), "NarratePoiSkill::tick");
@@ -252,7 +256,9 @@ void NarratePoiSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces
   }
   switch(m_tickResult.load()) 
   {
-      
+      case Status::running:
+          response->status = SKILL_RUNNING;
+          break;
       case Status::failure:
           response->status = SKILL_FAILURE;
           break;
@@ -264,8 +270,8 @@ void NarratePoiSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces
   response->is_ok = true;
 }
 
-void NarratePoiSkill::halt( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::HaltActionAction::Request> request,
-    [[maybe_unused]] std::shared_ptr<bt_interfaces_dummy::srv::HaltActionAction::Response> response)
+void NarratePoiSkill::halt( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::HaltAction::Request> request,
+    [[maybe_unused]] std::shared_ptr<bt_interfaces_dummy::srv::HaltAction::Response> response)
 {
   std::lock_guard<std::mutex> lock(m_requestMutex);
   RCLCPP_INFO(m_node->get_logger(), "NarratePoiSkill::halt");
