@@ -12,18 +12,34 @@
         <transition target="halted" event="CMD_HALT"/>
     </state>
     <state id="callStop">
-        <transition target="reply" event="ManagePeopleDetectorComponent.StopService.Return">
+        <transition target="checkResult" event="ManagePeopleDetectorComponent.StopService.Return">
             <assign location="result" expr="_event.data.result"/>
         </transition>
     </state>
-    <state id="reply">
-        <send event="TICK_RESPONSE">
-            <param name="status" expr="result == &apos;SUCCESS&apos; ? SKILL_SUCCESS : SKILL_FAILURE"/>
-        </send>
+    <state id="checkResult">
+        <transition cond="result == &apos;SUCCESS&apos;" target="replySuccess"/>
+        <transition cond="result != &apos;SUCCESS&apos;" target="replyFailure"/>
+    </state>
+    <state id="replySuccess">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_SUCCESS"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="replyFailure">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_FAILURE"/>
+            </send>
+        </onentry>
         <transition target="idle"/>
     </state>
     <state id="halted">
-        <send event="HALT_RESPONSE"/>
+        <onentry>
+            <send event="HALT_RESPONSE"/>
+        </onentry>
         <transition target="idle"/>
     </state>
 </scxml>
