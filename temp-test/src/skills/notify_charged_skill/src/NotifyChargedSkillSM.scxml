@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="NotifyChargedSkillAction" datamodel="ecmascript" initial="idle">
+    <datamodel>
+        <data id="m_result" expr="&apos;&apos;"/>
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <data id="SKILL_FAILURE" expr="1"/>
+    </datamodel>
+    <!-- Action skill: tick + halt servers -->
+    <!-- Client for NotifyUserComponent.NotifyUserCharged -->
+    <state id="idle">
+        <transition target="startNotify" event="CMD_TICK">
+            <send event="NotifyUserComponent.NotifyUserCharged.Call"/>
+        </transition>
+        <transition target="halted" event="CMD_HALT"/>
+    </state>
+    <state id="startNotify">
+        <transition target="decide" event="NotifyUserComponent.NotifyUserCharged.Return">
+            <assign location="m_result" expr="_event.data.result"/>
+        </transition>
+    </state>
+    <state id="decide">
+        <onentry>
+            <if cond="m_result==&apos;SUCCESS&apos;">
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_SUCCESS"/>
+                </send>
+                <else/>
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_FAILURE"/>
+                </send>
+            </if>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="halted">
+        <onentry>
+            <send event="HALT_RESPONSE"/>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+</scxml>
