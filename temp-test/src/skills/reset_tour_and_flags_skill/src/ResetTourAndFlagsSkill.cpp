@@ -119,8 +119,8 @@ bool ResetTourAndFlagsSkill::start(int argc, char*argv[])
   });
   m_stateMachine.connectToEvent("BlackboardComponent.SetAllIntsWithPrefix.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
       std::shared_ptr<rclcpp::Node> nodeSetAllIntsWithPrefix = rclcpp::Node::make_shared(m_name + "SkillNodeSetAllIntsWithPrefix");
-      std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::SetAllIntsWithPrefix>> clientSetAllIntsWithPrefix = nodeSetAllIntsWithPrefix->create_client<blackboard_interfaces::srv::SetAllIntsWithPrefix>("/BlackboardComponent/SetAllIntsWithPrefix");
-      auto request = std::make_shared<blackboard_interfaces::srv::SetAllIntsWithPrefix::Request>();
+      std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::SetAllIntsWithPrefixBlackboard>> clientSetAllIntsWithPrefix = nodeSetAllIntsWithPrefix->create_client<blackboard_interfaces::srv::SetAllIntsWithPrefixBlackboard>("/BlackboardComponent/SetAllIntsWithPrefix");
+      auto request = std::make_shared<blackboard_interfaces::srv::SetAllIntsWithPrefixBlackboard::Request>();
       auto eventParams = event.data().toMap();
       
       request->value = convert<decltype(request->value)>(eventParams["value"].toString().toStdString());
