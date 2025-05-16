@@ -99,7 +99,7 @@ bool SetCurrentPoiDoneSkill::start(int argc, char*argv[])
                   QVariantMap data;
                   data.insert("is_ok", true);
                   data.insert("poi_number", response->poi_number);
-                  data.insert("poi_name", response->poi_name);
+                  data.insert("poi_name", response->poi_name.c_str());
                   m_stateMachine.submitEvent("SchedulerComponent.GetCurrentPoi.Return", data);
                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.GetCurrentPoi.Return");
                   return;
@@ -116,8 +116,8 @@ bool SetCurrentPoiDoneSkill::start(int argc, char*argv[])
   });
   m_stateMachine.connectToEvent("BlackboardComponent.SetInt.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
       std::shared_ptr<rclcpp::Node> nodeSetInt = rclcpp::Node::make_shared(m_name + "SkillNodeSetInt");
-      std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::SetInt>> clientSetInt = nodeSetInt->create_client<blackboard_interfaces::srv::SetInt>("/BlackboardComponent/SetInt");
-      auto request = std::make_shared<blackboard_interfaces::srv::SetInt::Request>();
+      std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::SetIntBlackboard>> clientSetInt = nodeSetInt->create_client<blackboard_interfaces::srv::SetIntBlackboard>("/BlackboardComponent/SetInt");
+      auto request = std::make_shared<blackboard_interfaces::srv::SetIntBlackboard::Request>();
       auto eventParams = event.data().toMap();
       
       request->value = convert<decltype(request->value)>(eventParams["value"].toString().toStdString());

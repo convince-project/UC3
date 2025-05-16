@@ -119,8 +119,8 @@ bool SetTurnedSkill::start(int argc, char*argv[])
   });
   m_stateMachine.connectToEvent("BlackboardComponent.SetString.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
       std::shared_ptr<rclcpp::Node> nodeSetString = rclcpp::Node::make_shared(m_name + "SkillNodeSetString");
-      std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::SetString>> clientSetString = nodeSetString->create_client<blackboard_interfaces::srv::SetString>("/BlackboardComponent/SetString");
-      auto request = std::make_shared<blackboard_interfaces::srv::SetString::Request>();
+      std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::SetStringBlackboard>> clientSetString = nodeSetString->create_client<blackboard_interfaces::srv::SetStringBlackboard>("/BlackboardComponent/SetString");
+      auto request = std::make_shared<blackboard_interfaces::srv::SetStringBlackboard::Request>();
       auto eventParams = event.data().toMap();
       
       request->value = convert<decltype(request->value)>(eventParams["value"].toString().toStdString());

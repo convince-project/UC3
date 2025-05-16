@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="SayDurationExceededSkillActionAction" datamodel="ecmascript" initial="idle">
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="SayDurationExceededSkillAction" datamodel="ecmascript" initial="idle">
     <datamodel>
         <data id="m_name" expr="&apos;SaidExceededFlag&apos;"/>
         <data id="m_value" expr="0"/>
@@ -29,36 +29,42 @@
     <state id="checkFlag">
         <onentry>
             <if cond="m_value!=0">
-                <send event="TICK_RESPONSE">
-                    <param name="status" expr="SKILL_SUCCESS"/>
-                </send>
+                <assign location="m_result" expr="&apos;SUCCESS&apos;"/>
                 <else/>
-                <send event="SchedulerComponent.SetCommand.Call">
-                    <param name="command" expr="m_command"/>
-                </send>
+                <assign location="m_result" expr="&apos;SETCMD&apos;"/>
             </if>
         </onentry>
-        <transition target="onSetCmd"/>
+        <transition cond="m_result==&apos;SUCCESS&apos;" target="finalize_success"/>
+        <transition cond="m_result==&apos;SETCMD&apos;" target="setCmd"/>
     </state>
-    <state id="onSetCmd">
+    <state id="setCmd">
+        <onentry>
+            <send event="SchedulerComponent.SetCommand.Call">
+                <param name="command" expr="m_command"/>
+            </send>
+        </onentry>
         <transition target="getText" event="SchedulerComponent.SetCommand.Return">
             <assign location="m_result" expr="_event.data.result"/>
         </transition>
         <transition cond="m_result!=&apos;SUCCESS&apos;" target="failure"/>
     </state>
     <state id="getText">
-        <send event="SchedulerComponent.GetCurrentAction.Call"/>
+        <onentry>
+            <send event="SchedulerComponent.GetCurrentAction.Call"/>
+        </onentry>
         <transition target="talk" event="SchedulerComponent.GetCurrentAction.Return">
             <assign location="m_param" expr="_event.data.param"/>
         </transition>
     </state>
     <state id="talk">
-        <send event="TICK_RESPONSE">
-            <param name="status" expr="SKILL_RUNNING"/>
-        </send>
-        <send event="TextToSpeechComponent.Speak.Call">
-            <param name="text" expr="m_param"/>
-        </send>
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_RUNNING"/>
+            </send>
+            <send event="TextToSpeechComponent.Speak.Call">
+                <param name="text" expr="m_param"/>
+            </send>
+        </onentry>
         <transition target="waitSpeak"/>
     </state>
     <state id="waitSpeak">
@@ -75,22 +81,40 @@
     <state id="onCheck">
         <onentry>
             <if cond="m_is_speaking">
-                <send event="TICK_RESPONSE">
-                    <param name="status" expr="SKILL_RUNNING"/>
-                </send>
+                <assign location="m_result" expr="&apos;RUNNING&apos;"/>
                 <else/>
-                <send event="BlackboardComponent.SetInt.Call">
-                    <param name="field_name" expr="m_name"/>
-                    <param name="value" expr="1"/>
-                </send>
+                <assign location="m_result" expr="&apos;SETINT&apos;"/>
             </if>
         </onentry>
-        <transition target="onSetInt"/>
+        <transition cond="m_result==&apos;RUNNING&apos;" target="finalize_running"/>
+        <transition cond="m_result==&apos;SETINT&apos;" target="setInt"/>
     </state>
-    <state id="onSetInt">
+    <state id="setInt">
+        <onentry>
+            <send event="BlackboardComponent.SetInt.Call">
+                <param name="field_name" expr="m_name"/>
+                <param name="value" expr="1"/>
+            </send>
+        </onentry>
         <transition target="finalize" event="BlackboardComponent.SetInt.Return">
             <assign location="m_result" expr="_event.data.result"/>
         </transition>
+    </state>
+    <state id="finalize_success">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_SUCCESS"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="finalize_running">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_RUNNING"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
     </state>
     <state id="finalize">
         <onentry>
@@ -107,13 +131,17 @@
         <transition target="idle"/>
     </state>
     <state id="failure">
-        <send event="TICK_RESPONSE">
-            <param name="status" expr="SKILL_FAILURE"/>
-        </send>
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_FAILURE"/>
+            </send>
+        </onentry>
         <transition target="idle"/>
     </state>
     <state id="halted">
-        <send event="HALT_RESPONSE"/>
+        <onentry>
+            <send event="HALT_RESPONSE"/>
+        </onentry>
         <transition target="idle"/>
     </state>
 </scxml>
