@@ -337,7 +337,7 @@
     </interface>
 
     <interface id="blackboard_interfaces">
-        <function id="GetInt">
+        <function id="GetIntBlackboard">
             <protocol>
                 <ROS2data>
                     <interface type="async-service" />
@@ -348,7 +348,7 @@
                 <dataField>value</dataField>
             </returnValue>
         </function>
-        <function id="SetInt">
+        <function id="SetIntBlackboard">
             <protocol>
                 <ROS2data>
                     <interface type="async-service" />
