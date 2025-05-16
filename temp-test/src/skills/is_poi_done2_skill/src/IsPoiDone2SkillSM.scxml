@@ -7,28 +7,28 @@
         <data id="SKILL_FAILURE" expr="1"/>
     </datamodel>
     <!-- IsPoiDoneSkill is a server for tick from the ROS2Condition plugin-->
-    <!-- IsPoiDoneSkill is a client for GetInt from the BlackboardComponent -->
+    <!-- IsPoiDoneSkill is a client for GetIntBlackboard from the BlackboardComponent -->
     <state id="idle">
         <transition target="checkInt" event="CMD_TICK">
-            <send event="BlackboardComponent.GetInt.Call">
+            <send event="BlackboardComponent.GetIntBlackboard.Call">
                 <param name="field_name" expr="key"/>
             </send>
         </transition>
     </state>
     <state id="checkInt">
-        <transition cond="(_event.data.is_ok) == false" target="idle" event="BlackboardComponent.GetInt.Return">
+        <transition cond="(_event.data.is_ok) == false" target="idle" event="BlackboardComponent.GetIntBlackboard.Return">
             <send event="TICK_RESPONSE">
                 <param name="status" expr="SKILL_FAILURE"/>
                 <param name="is_ok" expr="true"/>
             </send>
         </transition>
-        <transition cond="_event.data.value == 1" target="idle" event="BlackboardComponent.GetInt.Return">
+        <transition cond="_event.data.value == 1" target="idle" event="BlackboardComponent.GetIntBlackboard.Return">
             <send event="TICK_RESPONSE">
                 <param name="status" expr="SKILL_SUCCESS"/>
                 <param name="is_ok" expr="true"/>
             </send>
         </transition>
-        <transition cond="(_event.data.value) == 0" target="idle" event="BlackboardComponent.GetInt.Return">
+        <transition cond="(_event.data.value) == 0" target="idle" event="BlackboardComponent.GetIntBlackboard.Return">
             <send event="TICK_RESPONSE">
                 <param name="status" expr="SKILL_FAILURE"/>
                 <param name="is_ok" expr="true"/>
