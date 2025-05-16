@@ -67,32 +67,32 @@ bool IsWarningDurationSkill::start(int argc, char*argv[])
   
   
   
-  m_stateMachine.connectToEvent("BlackboardComponent.GetIntBlackboard.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
-      std::shared_ptr<rclcpp::Node> nodeGetIntBlackboard = rclcpp::Node::make_shared(m_name + "SkillNodeGetIntBlackboard");
-      std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::GetIntBlackboard>> clientGetIntBlackboard = nodeGetIntBlackboard->create_client<blackboard_interfaces::srv::GetIntBlackboard>("/BlackboardComponent/GetIntBlackboard");
+  m_stateMachine.connectToEvent("BlackboardComponent.GetInt.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
+      std::shared_ptr<rclcpp::Node> nodeGetInt = rclcpp::Node::make_shared(m_name + "SkillNodeGetInt");
+      std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::GetIntBlackboard>> clientGetInt = nodeGetInt->create_client<blackboard_interfaces::srv::GetIntBlackboard>("/BlackboardComponent/GetInt");
       auto request = std::make_shared<blackboard_interfaces::srv::GetIntBlackboard::Request>();
       auto eventParams = event.data().toMap();
       
       request->field_name = convert<decltype(request->field_name)>(eventParams["field_name"].toString().toStdString());
       bool wait_succeded{true};
       int retries = 0;
-      while (!clientGetIntBlackboard->wait_for_service(std::chrono::seconds(1))) {
+      while (!clientGetInt->wait_for_service(std::chrono::seconds(1))) {
           if (!rclcpp::ok()) {
-              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'GetIntBlackboard'. Exiting.");
+              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'GetInt'. Exiting.");
               wait_succeded = false;
               break;
           } 
           retries++;
           if(retries == SERVICE_TIMEOUT) {
-              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while waiting for the service 'GetIntBlackboard'.");
+              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while waiting for the service 'GetInt'.");
               wait_succeded = false;
               break;
           }
       }
       if (wait_succeded) {                                                                   
-          auto result = clientGetIntBlackboard->async_send_request(request);
+          auto result = clientGetInt->async_send_request(request);
           const std::chrono::seconds timeout_duration(SERVICE_TIMEOUT);
-          auto futureResult = rclcpp::spin_until_future_complete(nodeGetIntBlackboard, result, timeout_duration);
+          auto futureResult = rclcpp::spin_until_future_complete(nodeGetInt, result, timeout_duration);
           if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
           {
               auto response = result.get();
@@ -100,19 +100,19 @@ bool IsWarningDurationSkill::start(int argc, char*argv[])
                   QVariantMap data;
                   data.insert("is_ok", true);
                   data.insert("value", response->value);
-                  m_stateMachine.submitEvent("BlackboardComponent.GetIntBlackboard.Return", data);
-                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.GetIntBlackboard.Return");
+                  m_stateMachine.submitEvent("BlackboardComponent.GetInt.Return", data);
+                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.GetInt.Return");
                   return;
               }
           }
           else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
-              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'GetIntBlackboard'.");
+              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'GetInt'.");
           }
       }
       QVariantMap data;
       data.insert("is_ok", false);
-      m_stateMachine.submitEvent("BlackboardComponent.GetIntBlackboard.Return", data);
-      RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.GetIntBlackboard.Return");
+      m_stateMachine.submitEvent("BlackboardComponent.GetInt.Return", data);
+      RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.GetInt.Return");
   });
   
   m_stateMachine.connectToEvent("TICK_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){
