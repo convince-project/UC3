@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="IsCheckingForPeopleSkillCondition" datamodel="ecmascript" initial="idle">
     <!-- Condition skill: tick server only -->
-    <!-- Client for Blackboard GetIntBlackboard -->
+    <!-- Client for Blackboard GetInt -->
     <datamodel>
         <data id="m_name" expr="&apos;isCheckingForPeople&apos;"/>
         <data id="m_value" expr="0"/>
@@ -10,13 +10,13 @@
     </datamodel>
     <state id="idle">
         <transition target="query" event="CMD_TICK">
-            <send event="BlackboardComponent.GetIntBlackboard.Call">
+            <send event="BlackboardComponent.GetInt.Call">
                 <param name="field_name" expr="m_name"/>
             </send>
         </transition>
     </state>
     <state id="query">
-        <transition target="decide" event="BlackboardComponent.GetIntBlackboard.Return">
+        <transition target="decide" event="BlackboardComponent.GetInt.Return">
             <assign location="m_value" expr="_event.data.value"/>
         </transition>
     </state>
