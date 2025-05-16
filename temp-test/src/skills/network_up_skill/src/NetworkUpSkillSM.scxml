@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="NetworkUpSkillCondition" datamodel="cplusplus:NetworkUpSkillDataModel:NetworkUpSkillDataModel.h" initial="idle">
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="NetworkUpSkillCondition" datamodel="ecmascript" initial="idle">
     <datamodel>
         <!-- Provided by C++ DataModel -->
         <data id="m_status" expr="false"/>
