@@ -362,7 +362,7 @@
                 </ROS2data>
             </protocol>
         </function>
-        <function id="GetString">
+        <function id="GetStringBlackboard">
             <protocol>
                 <ROS2data>
                     <interface type="async-service" />
