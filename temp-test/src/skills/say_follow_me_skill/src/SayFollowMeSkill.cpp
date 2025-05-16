@@ -241,8 +241,8 @@ bool SayFollowMeSkill::start(int argc, char*argv[])
               if( response->is_ok == true) {
                   QVariantMap data;
                   data.insert("is_ok", true);
-                  data.insert("type", response->type);
-                  data.insert("param", response->param);
+                  data.insert("type", response->type.c_str());
+                  data.insert("param", response->param.c_str());
                   data.insert("is_blocking", response->is_blocking);
                   m_stateMachine.submitEvent("SchedulerComponent.GetCurrentAction.Return", data);
                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.GetCurrentAction.Return");

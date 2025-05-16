@@ -11,7 +11,6 @@
         <data id="SKILL_RUNNING" expr="2"/>
     </datamodel>
     <!-- Clients -->
-    <!-- === flow === -->
     <state id="idle">
         <transition target="callTurnBack" event="CMD_TICK">
             <send event="NavigationComponent.TurnBack.Call"/>
@@ -20,70 +19,70 @@
             <send event="NavigationComponent.StopNavigation.Call"/>
         </transition>
     </state>
-    <!-- TurnBack answer -->
     <state id="callTurnBack">
         <transition target="afterTurnBack" event="NavigationComponent.TurnBack.Return">
             <assign location="result" expr="_event.data.result"/>
         </transition>
     </state>
     <state id="afterTurnBack">
-        <onentry>
-            <if cond="result == &apos;SUCCESS&apos;">
-                <send event="NavigationComponent.GetNavigationStatus.Call"/>
-                <else/>
-                <send event="TICK_RESPONSE">
-                    <param name="status" expr="SKILL_FAILURE"/>
-                </send>
-            </if>
-        </onentry>
-        <transition cond="result == &apos;SUCCESS&apos;" target="waitStatus"/>
-        <transition cond="result != &apos;SUCCESS&apos;" target="idle"/>
+        <transition cond="result == &apos;SUCCESS&apos;" target="getStatus"/>
+        <transition cond="result != &apos;SUCCESS&apos;" target="failReply"/>
     </state>
-    <!-- Loop asking status each tick -->
-    <state id="waitStatus">
+    <state id="getStatus">
+        <onentry>
+            <send event="NavigationComponent.GetNavigationStatus.Call"/>
+        </onentry>
         <transition target="evalStatus" event="NavigationComponent.GetNavigationStatus.Return">
             <assign location="status" expr="_event.data.status"/>
         </transition>
     </state>
     <state id="evalStatus">
-        <onentry>
-            <if cond="status == NAV_MOVING">
-                <send event="TICK_RESPONSE">
-                    <param name="status" expr="SKILL_RUNNING"/>
-                </send>
-                <elseif cond="status == NAV_REACHED"/>
-                <!-- set BB flag -->
-                <send event="BlackboardComponent.SetInt.Call">
-                    <param name="field_name" expr="BB_FIELD"/>
-                    <param name="value" expr="1"/>
-                </send>
-                <else/>
-                <send event="TICK_RESPONSE">
-                    <param name="status" expr="SKILL_FAILURE"/>
-                </send>
-            </if>
-        </onentry>
-        <transition cond="status == NAV_MOVING" target="idle"/>
-        <transition cond="status == NAV_REACHED" target="waitBB"/>
-        <transition cond="status != NAV_MOVING &amp;&amp; status != NAV_REACHED" target="idle"/>
+        <transition cond="status == NAV_MOVING" target="runningReply"/>
+        <transition cond="status == NAV_REACHED" target="setBBFlag"/>
+        <transition cond="status != NAV_MOVING &amp;&amp; status != NAV_REACHED" target="failReply"/>
     </state>
-    <state id="waitBB">
+    <state id="runningReply">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_RUNNING"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="setBBFlag">
+        <onentry>
+            <send event="BlackboardComponent.SetInt.Call">
+                <param name="field_name" expr="BB_FIELD"/>
+                <param name="value" expr="1"/>
+            </send>
+        </onentry>
         <transition target="done" event="BlackboardComponent.SetInt.Return">
             <assign location="result" expr="_event.data.result"/>
         </transition>
     </state>
     <state id="done">
-        <send event="TICK_RESPONSE">
-            <param name="status" expr="result == &apos;SUCCESS&apos; ? SKILL_SUCCESS : SKILL_FAILURE"/>
-        </send>
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="result == &apos;SUCCESS&apos; ? SKILL_SUCCESS : SKILL_FAILURE"/>
+            </send>
+        </onentry>
         <transition target="idle"/>
     </state>
-    <!-- Halt path -->
+    <state id="failReply">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_FAILURE"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
     <state id="callStopNav">
         <transition target="halted" event="NavigationComponent.StopNavigation.Return"/>
     </state>
     <state id="halted">
-        <send event="HALT_RESPONSE"/>
+        <onentry>
+            <send event="HALT_RESPONSE"/>
+        </onentry>
         <transition target="idle"/>
     </state>
 </scxml>

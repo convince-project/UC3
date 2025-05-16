@@ -58,13 +58,13 @@ bool SayWarningDurationSkill::start(int argc, char*argv[])
 	std::cout << "SayWarningDurationSkill::start";
 
   
-	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickCondition>(m_name + "Skill/tick",
+	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
                                                                            	std::bind(&SayWarningDurationSkill::tick,
                                                                            	this,
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
   
-	m_haltService = m_node->create_service<bt_interfaces_dummy::srv::HaltCondition>(m_name + "Skill/halt",
+	m_haltService = m_node->create_service<bt_interfaces_dummy::srv::HaltAction>(m_name + "Skill/halt",
                                                                             	std::bind(&SayWarningDurationSkill::halt,
                                                                             	this,
                                                                             	std::placeholders::_1,
@@ -241,8 +241,8 @@ bool SayWarningDurationSkill::start(int argc, char*argv[])
               if( response->is_ok == true) {
                   QVariantMap data;
                   data.insert("is_ok", true);
-                  data.insert("type", response->type);
-                  data.insert("param", response->param);
+                  data.insert("type", response->type.c_str());
+                  data.insert("param", response->param.c_str());
                   data.insert("is_blocking", response->is_blocking);
                   m_stateMachine.submitEvent("SchedulerComponent.GetCurrentAction.Return", data);
                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.GetCurrentAction.Return");
@@ -260,8 +260,8 @@ bool SayWarningDurationSkill::start(int argc, char*argv[])
   });
   m_stateMachine.connectToEvent("BlackboardComponent.GetInt.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
       std::shared_ptr<rclcpp::Node> nodeGetInt = rclcpp::Node::make_shared(m_name + "SkillNodeGetInt");
-      std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::GetInt>> clientGetInt = nodeGetInt->create_client<blackboard_interfaces::srv::GetInt>("/BlackboardComponent/GetInt");
-      auto request = std::make_shared<blackboard_interfaces::srv::GetInt::Request>();
+      std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::GetIntBlackboard>> clientGetInt = nodeGetInt->create_client<blackboard_interfaces::srv::GetIntBlackboard>("/BlackboardComponent/GetInt");
+      auto request = std::make_shared<blackboard_interfaces::srv::GetIntBlackboard::Request>();
       auto eventParams = event.data().toMap();
       
       request->field_name = convert<decltype(request->field_name)>(eventParams["field_name"].toString().toStdString());
@@ -313,6 +313,10 @@ bool SayWarningDurationSkill::start(int argc, char*argv[])
     {
       m_tickResult.store(Status::success);
     }
+    else if (result == std::to_string(SKILL_RUNNING) )
+    {
+      m_tickResult.store(Status::running);
+    }
     else if (result == std::to_string(SKILL_FAILURE) )
     { 
       m_tickResult.store(Status::failure);
@@ -335,8 +339,8 @@ bool SayWarningDurationSkill::start(int argc, char*argv[])
 	return true;
 }
 
-void SayWarningDurationSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Request> request,
-                                std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Response>      response)
+void SayWarningDurationSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Request> request,
+                                std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Response>      response)
 {
   std::lock_guard<std::mutex> lock(m_requestMutex);
   RCLCPP_INFO(m_node->get_logger(), "SayWarningDurationSkill::tick");
@@ -348,7 +352,9 @@ void SayWarningDurationSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_in
   }
   switch(m_tickResult.load()) 
   {
-      
+      case Status::running:
+          response->status = SKILL_RUNNING;
+          break;
       case Status::failure:
           response->status = SKILL_FAILURE;
           break;
@@ -360,8 +366,8 @@ void SayWarningDurationSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_in
   response->is_ok = true;
 }
 
-void SayWarningDurationSkill::halt( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::HaltCondition::Request> request,
-    [[maybe_unused]] std::shared_ptr<bt_interfaces_dummy::srv::HaltCondition::Response> response)
+void SayWarningDurationSkill::halt( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::HaltAction::Request> request,
+    [[maybe_unused]] std::shared_ptr<bt_interfaces_dummy::srv::HaltAction::Response> response)
 {
   std::lock_guard<std::mutex> lock(m_requestMutex);
   RCLCPP_INFO(m_node->get_logger(), "SayWarningDurationSkill::halt");

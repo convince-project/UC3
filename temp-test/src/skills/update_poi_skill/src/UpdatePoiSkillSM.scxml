@@ -12,18 +12,34 @@
         <transition target="halted" event="CMD_HALT"/>
     </state>
     <state id="callUpdate">
-        <transition target="reply" event="SchedulerComponent.UpdatePoi.Return">
+        <transition target="decideResult" event="SchedulerComponent.UpdatePoi.Return">
             <assign location="result" expr="_event.data.result"/>
         </transition>
     </state>
-    <state id="reply">
-        <send event="TICK_RESPONSE">
-            <param name="status" expr="result == &apos;SUCCESS&apos; ? SKILL_SUCCESS : SKILL_FAILURE"/>
-        </send>
+    <state id="decideResult">
+        <transition cond="result == &apos;SUCCESS&apos;" target="success"/>
+        <transition cond="result != &apos;SUCCESS&apos;" target="failure"/>
+    </state>
+    <state id="success">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_SUCCESS"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="failure">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_FAILURE"/>
+            </send>
+        </onentry>
         <transition target="idle"/>
     </state>
     <state id="halted">
-        <send event="HALT_RESPONSE"/>
+        <onentry>
+            <send event="HALT_RESPONSE"/>
+        </onentry>
         <transition target="idle"/>
     </state>
 </scxml>

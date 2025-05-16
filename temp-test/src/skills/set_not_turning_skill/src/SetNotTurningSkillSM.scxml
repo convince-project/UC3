@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="SetNotTurningSkillActionAction" datamodel="ecmascript" initial="idle">
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="SetNotTurningSkillAction" datamodel="ecmascript" initial="idle">
     <datamodel>
         <data id="FIELD_NAME" expr="&apos;turnBackState&apos;"/>
         <data id="VALUE_STR" expr="&apos;not_turning&apos;"/>
