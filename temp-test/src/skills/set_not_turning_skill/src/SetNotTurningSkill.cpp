@@ -58,13 +58,13 @@ bool SetNotTurningSkill::start(int argc, char*argv[])
 	std::cout << "SetNotTurningSkill::start";
 
   
-	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickActionAction>(m_name + "Skill/tick",
+	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
                                                                            	std::bind(&SetNotTurningSkill::tick,
                                                                            	this,
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
   
-	m_haltService = m_node->create_service<bt_interfaces_dummy::srv::HaltActionAction>(m_name + "Skill/halt",
+	m_haltService = m_node->create_service<bt_interfaces_dummy::srv::HaltAction>(m_name + "Skill/halt",
                                                                             	std::bind(&SetNotTurningSkill::halt,
                                                                             	this,
                                                                             	std::placeholders::_1,
@@ -74,8 +74,8 @@ bool SetNotTurningSkill::start(int argc, char*argv[])
   
   m_stateMachine.connectToEvent("BlackboardComponent.SetString.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
       std::shared_ptr<rclcpp::Node> nodeSetString = rclcpp::Node::make_shared(m_name + "SkillNodeSetString");
-      std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::SetString>> clientSetString = nodeSetString->create_client<blackboard_interfaces::srv::SetString>("/BlackboardComponent/SetString");
-      auto request = std::make_shared<blackboard_interfaces::srv::SetString::Request>();
+      std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::SetStringBlackboard>> clientSetString = nodeSetString->create_client<blackboard_interfaces::srv::SetStringBlackboard>("/BlackboardComponent/SetString");
+      auto request = std::make_shared<blackboard_interfaces::srv::SetStringBlackboard::Request>();
       auto eventParams = event.data().toMap();
       
       request->value = convert<decltype(request->value)>(eventParams["value"].toString().toStdString());
@@ -127,6 +127,10 @@ bool SetNotTurningSkill::start(int argc, char*argv[])
     {
       m_tickResult.store(Status::success);
     }
+    else if (result == std::to_string(SKILL_RUNNING) )
+    {
+      m_tickResult.store(Status::running);
+    }
     else if (result == std::to_string(SKILL_FAILURE) )
     { 
       m_tickResult.store(Status::failure);
@@ -149,8 +153,8 @@ bool SetNotTurningSkill::start(int argc, char*argv[])
 	return true;
 }
 
-void SetNotTurningSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickActionAction::Request> request,
-                                std::shared_ptr<bt_interfaces_dummy::srv::TickActionAction::Response>      response)
+void SetNotTurningSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Request> request,
+                                std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Response>      response)
 {
   std::lock_guard<std::mutex> lock(m_requestMutex);
   RCLCPP_INFO(m_node->get_logger(), "SetNotTurningSkill::tick");
@@ -162,7 +166,9 @@ void SetNotTurningSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfa
   }
   switch(m_tickResult.load()) 
   {
-      
+      case Status::running:
+          response->status = SKILL_RUNNING;
+          break;
       case Status::failure:
           response->status = SKILL_FAILURE;
           break;
@@ -174,8 +180,8 @@ void SetNotTurningSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfa
   response->is_ok = true;
 }
 
-void SetNotTurningSkill::halt( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::HaltActionAction::Request> request,
-    [[maybe_unused]] std::shared_ptr<bt_interfaces_dummy::srv::HaltActionAction::Response> response)
+void SetNotTurningSkill::halt( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::HaltAction::Request> request,
+    [[maybe_unused]] std::shared_ptr<bt_interfaces_dummy::srv::HaltAction::Response> response)
 {
   std::lock_guard<std::mutex> lock(m_requestMutex);
   RCLCPP_INFO(m_node->get_logger(), "SetNotTurningSkill::halt");

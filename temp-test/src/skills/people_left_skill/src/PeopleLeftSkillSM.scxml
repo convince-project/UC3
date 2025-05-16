@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="PeopleLeftSkillActionAction" datamodel="ecmascript" initial="idle">
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="PeopleLeftSkillAction" datamodel="ecmascript" initial="idle">
     <datamodel>
         <data id="m_result" expr="&apos;&apos;"/>
         <data id="SKILL_SUCCESS" expr="0"/>
