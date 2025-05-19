@@ -1,0 +1,5 @@
+# Request
+---
+# Response
+bool has_fault   # true se c'è almeno un fault hardware
+bool is_ok       # true se la chiamata è andata a buon fine
