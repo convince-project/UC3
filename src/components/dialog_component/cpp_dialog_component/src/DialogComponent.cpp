@@ -58,7 +58,7 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
     {
         okCheck = rf.check("POICHAT-CLIENT");
         device = "LLM_nwc_yarp";
-        std::string prompt_context = "llmTest";
+        std::string prompt_context = "convince";
         std::string prompt_poi_file = "poi_madama_prompt.txt";
         std::string prompt_start_file = "Format_commands_welcome_prompt.txt";
         local = "/DialogComponent/chatBotClient/rpc:o";
@@ -433,14 +433,14 @@ bool DialogComponent::CommandManager(const std::string &command, std::shared_ptr
 
     extracted_command.fromString(trimmedCmd);
 
-    yDebug() << "[DialogComponent::InterpretCommand] Number of elements in bottle: " << extracted_command.size();
+    yDebug() << "[DialogComponent::CommandManager] Number of elements in bottle: " << extracted_command.size();
     // In the first position we have the general thing to do, like: explain, next_poi, end_tour
     auto languageActionTopicList = extracted_command.get(0).asList();
 
     std::string newLang = languageActionTopicList->get(0).asString();
-    yDebug() << "DialogComponent::InterpretCommand" << __LINE__;
+    yDebug() << "DialogComponent::CommandManager" << __LINE__;
     std::string action = languageActionTopicList->get(1).asString();
-    yDebug() << "DialogComponent::InterpretCommand" << __LINE__;
+    yDebug() << "DialogComponent::CommandManager" << __LINE__;
 
     if (!SetLanguage(newLang))
     {
@@ -454,14 +454,14 @@ bool DialogComponent::CommandManager(const std::string &command, std::shared_ptr
     PoI currentPoI;
     if (!m_tourStorage->GetTour().getPoI(m_currentPoiName, currentPoI))
     {
-        yError() << "[DialogComponent::DialogExecution] Unable to get the current PoI name: " << m_currentPoiName;
+        yError() << "[DialogComponent::CommandManager] Unable to get the current PoI name: " << m_currentPoiName;
         return false;
     }
     // Generic PoI
     PoI genericPoI;
     if (!m_tourStorage->GetTour().getPoI("___generic___", genericPoI))
     {
-        yError() << "[DialogComponent::DialogExecution] Unable to get the generic PoI";
+        yError() << "[DialogComponent::CommandManager] Unable to get the generic PoI";
         return false;
     }
 
@@ -563,7 +563,7 @@ bool DialogComponent::CommandManager(const std::string &command, std::shared_ptr
 
         if (!UpdatePoILLMPrompt())
         {
-            yError() << "[DialogComponent::ManageContext] Error in UpdatePoILLMPrompt";
+            yError() << "[DialogComponent::CommandManager] Error in UpdatePoILLMPrompt";
             response->is_ok = false;
             return false;
         }
@@ -685,7 +685,7 @@ bool DialogComponent::SetLanguage(const std::string &newLang)
         return false;
     }
 
-    yInfo() << "[DialogComponent::CommandManager] Set Language Detected: " << newLang << __LINE__;
+    yInfo() << "[DialogComponent::SetLanguage] Set Language Detected: " << newLang << __LINE__;
     // Calls the set language service of the scheduler component
     auto setLangClientNode = rclcpp::Node::make_shared("DialogComponentSetLangNode");
     auto setLangClient = setLangClientNode->create_client<scheduler_interfaces::srv::SetLanguage>("/SchedulerComponent/SetLanguage");
@@ -757,7 +757,7 @@ bool DialogComponent::SetLanguage(const std::string &newLang)
         return false;
     }
     // Setting language in the speech transcriber
-    yDebug() << "[DialogComponent::CommandManager] Setting language in the speech transcriber: " << newLang << __LINE__;
+    yDebug() << "[DialogComponent::SetLanguage] Setting language in the speech transcriber: " << newLang << __LINE__;
 
     // BEGIN OF THE CODE THAT MAY BE USEFUL IN THE FUTURE
 
@@ -1056,31 +1056,31 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<dialog_interfaces
     {
         m_replies.clear();
         m_last_received_interaction = "";
-        yDebug() << "DialogComponent::Beginning of conversation detected, clearing replies" << __LINE__;
+        yDebug() << "[DialogComponent::WaitForInteraction] Beginning of conversation detected, clearing replies" << __LINE__;
     }
 
     std::string questionText = "";
 
     if (request->keyboard_interaction == "")
     {
-        yInfo() << "DialogComponent::Trying to read from speechToText Port" << __LINE__;
+        yInfo() << "[DialogComponent::WaitForInteraction] Trying to read from speechToText Port" << __LINE__;
 
         yarp::os::Bottle *result = m_speechToTextPort.read();
         if (result)
         {   
             questionText = result->toString();
-            yInfo() << "Transcribed text:" << questionText << __LINE__;
+            yInfo() << "[DialogComponent::WaitForInteraction] Transcribed text:" << questionText << __LINE__;
         }
         else
         {
-            yError() << "Failed to read transcribed text";
+            yError() << "[DialogComponent::WaitForInteraction] Failed to read transcribed text";
         }
 
         yInfo() << "[DialogComponent::WaitForInteraction] Call received" << __LINE__;
     }
     else
     {
-        yInfo() << "DialogComponent::WaitForInteraction call received: " << request->keyboard_interaction << __LINE__;
+        yInfo() << "[DialogComponent::WaitForInteraction] call received: " << request->keyboard_interaction << __LINE__;
         questionText = request->keyboard_interaction;
     }
 
@@ -1127,8 +1127,8 @@ void DialogComponent::ShortenAndSpeak(const std::shared_ptr<dialog_interfaces::s
                                       std::shared_ptr<dialog_interfaces::srv::ShortenAndSpeak::Response> response)
 {
 
-    yDebug() << "DialogComponent::ShortenAndSpeak call received with request: " << request->interaction;
-    yDebug() << "DialogComponent::ShortenAndSpeak call received with context: " << request->llm_context;
+    yDebug() << "[DialogComponent::ShortenAndSpeak] call received with request: " << request->interaction;
+    yDebug() << "[DialogComponent::ShortenAndSpeak] call received with context: " << request->llm_context;
 
     std::cout << "DialogComponent::ShortenAndSpeak call received" << __LINE__ << std::endl;
     for (auto &reply : m_replies[request->llm_context])

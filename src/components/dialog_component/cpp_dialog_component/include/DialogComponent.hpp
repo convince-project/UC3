@@ -23,7 +23,6 @@
 
 // Dialog Component Interfaces
 #include <dialog_interfaces/srv/manage_context.hpp>
-#include <dialog_interfaces/srv/skip_explanation.hpp>
 #include <dialog_interfaces/srv/remember_interactions.hpp> // auto-generated from the .srv file
 #include <dialog_interfaces/srv/wait_for_interaction.hpp>
 #include <dialog_interfaces/srv/shorten_and_speak.hpp>
