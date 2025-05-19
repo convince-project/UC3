@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml
+  xmlns="http://www.w3.org/2005/07/scxml"
+  version="1.0"
+  name="PeopleLeftSkill"
+  datamodel="ecmascript"
+  initial="idle">
+
+  <datamodel>
+    <data id="m_result"      type="string" expr="''"/>
+    <data id="SKILL_SUCCESS" type="int8"   expr="0"/>
+    <data id="SKILL_FAILURE" type="int8"   expr="1"/>
+  </datamodel>
+
+  <!-- Clients for resetting tour, counters, and timer -->
+  <ros_service_client service_name="/SchedulerComponent/Reset" type="scheduler_interfaces_dummy/Reset"/>
+  <ros_service_client service_name="/TurnBackManagerComponent/ResetCounters" type="turnbackmanager_interfaces_dummy/ResetCounters"/>
+  <ros_service_client service_name="/TimeComponent/StopTourTimer" type="time_interfaces_dummy/StopTourTimer"/>
+
+  <!-- Action skill: tick + halt servers -->
+  <ros_service_server service_name="/PeopleLeftSkill/tick" type="bt_interfaces_dummy/TickAction"/>
+  <ros_service_server service_name="/PeopleLeftSkill/halt" type="bt_interfaces_dummy/HaltAction"/>
+
+  <state id="idle">
+    <ros_service_handle_request name="/PeopleLeftSkill/tick" target="resetTour">
+      <ros_service_send_request name="/SchedulerComponent/Reset"/>
+    </ros_service_handle_request>
+    <ros_service_handle_request name="/PeopleLeftSkill/halt" target="halted"/>
+  </state>
+
+  <state id="resetTour">
+    <ros_service_handle_response name="/SchedulerComponent/Reset" target="resetCounters">
+      <assign location="m_result" expr="_res.result"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="resetCounters">
+    <onentry>
+      <ros_service_send_request name="/TurnBackManagerComponent/ResetCounters"/>
+    </onentry>
+    <ros_service_handle_response name="/TurnBackManagerComponent/ResetCounters" target="stopTimer">
+      <assign location="m_result" expr="_res.result"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="stopTimer">
+    <onentry>
+      <ros_service_send_request name="/TimeComponent/StopTourTimer"/>
+    </onentry>
+    <ros_service_handle_response name="/TimeComponent/StopTourTimer" target="decide">
+      <assign location="m_result" expr="_res.result"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="decide">
+    <onentry>
+      <if cond="m_result=='SUCCESS'">
+        <ros_service_send_response name="/PeopleLeftSkill/tick">
+          <field name="status" expr="SKILL_SUCCESS"/>
+        </ros_service_send_response>
+      <else/>
+        <ros_service_send_response name="/PeopleLeftSkill/tick">
+          <field name="status" expr="SKILL_FAILURE"/>
+        </ros_service_send_response>
+      </if>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="halted">
+    <onentry>
+      <ros_service_send_response name="/PeopleLeftSkill/halt"/>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+</scxml>
