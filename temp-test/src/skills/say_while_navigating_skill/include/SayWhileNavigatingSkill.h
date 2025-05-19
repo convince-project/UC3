@@ -7,6 +7,7 @@
 #include "SayWhileNavigatingSkillSM.h"
 #include <bt_interfaces_dummy/msg/action_response.hpp>
 #include <turn_back_manager_interfaces/srv/get_turn_backs_counter.hpp> 
+#include <narrate_interfaces/srv/stop.hpp> 
 #include <narrate_interfaces/srv/narrate.hpp> 
 #include <narrate_interfaces/srv/is_done.hpp> 
 

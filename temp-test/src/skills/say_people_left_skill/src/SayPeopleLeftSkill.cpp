@@ -241,8 +241,8 @@ bool SayPeopleLeftSkill::start(int argc, char*argv[])
               if( response->is_ok == true) {
                   QVariantMap data;
                   data.insert("is_ok", true);
-                  data.insert("type", response->type);
-                  data.insert("param", response->param);
+                  data.insert("type", response->type.c_str());
+                  data.insert("param", response->param.c_str());
                   data.insert("is_blocking", response->is_blocking);
                   m_stateMachine.submitEvent("SchedulerComponent.GetCurrentAction.Return", data);
                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.GetCurrentAction.Return");
@@ -313,7 +313,11 @@ void SayPeopleLeftSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfa
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;            
+          break;
+      default:
+          // Optionally handle undefined or unexpected values
+          response->status = SKILL_FAILURE;
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "SayPeopleLeftSkill::tickDone");
   response->is_ok = true;
