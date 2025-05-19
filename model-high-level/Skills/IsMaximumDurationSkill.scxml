@@ -9,8 +9,8 @@
   <!-- Condition skill: tick server only -->
   <ros_service_server service_name="/IsMaximumDurationSkill/tick" type="bt_interfaces_dummy/TickCondition"/>
 
-  <!-- Client for Blackboard GetIntBlackboard -->
-  <ros_service_client service_name="/BlackboardComponent/GetIntBlackboard" type="blackboard_interfaces_dummy/GetIntBlackboard"/>
+  <!-- Client for Blackboard GetInt -->
+  <ros_service_client service_name="/BlackboardComponent/GetInt" type="blackboard_interfaces_dummy/GetIntBlackboard"/>
 
   <datamodel>
     <data id="m_name"        type="string" expr="'TourDurationExceededFlag'"/>
@@ -21,14 +21,14 @@
 
   <state id="idle">
     <ros_service_handle_request name="/IsMaximumDurationSkill/tick"  target="queryFlag">
-      <ros_service_send_request name="/BlackboardComponent/GetIntBlackboard">
+      <ros_service_send_request name="/BlackboardComponent/GetInt">
         <field name="field_name" expr="m_name"/>
       </ros_service_send_request>
     </ros_service_handle_request>
   </state>
 
   <state id="queryFlag">
-    <ros_service_handle_response name="/BlackboardComponent/GetIntBlackboard" target="decide">
+    <ros_service_handle_response name="/BlackboardComponent/GetInt" target="decide">
       <assign location="m_value" expr="_res.value"/>
     </ros_service_handle_response>
   </state>

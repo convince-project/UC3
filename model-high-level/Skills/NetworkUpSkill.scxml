@@ -3,7 +3,7 @@
   xmlns="http://www.w3.org/2005/07/scxml"
   version="1.0"
   name="NetworkUpSkill"
-  datamodel="cplusplus:NetworkUpSkillDataModel:NetworkUpSkillDataModel.h"
+  datamodel="ecmascript"
   initial="idle">
 
 

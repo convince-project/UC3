@@ -22,7 +22,7 @@
 
   <!-- Clients -->
   <ros_service_client service_name="/TurnBackManagerComponent/IsAllowedToTurnBack" type="turnbackmanager_interfaces_dummy/IsAllowedToTurnBack"/>
-  <ros_service_client service_name="/BlackboardComponent/GetStringBlackboard" type="blackboard_interfaces_dummy/GetStringBlackboard"/>
+  <ros_service_client service_name="/BlackboardComponent/GetString" type="blackboard_interfaces_dummy/GetStringBlackboard"/>
 
   <state id="idle">
     <ros_service_handle_request name="/IsAllowedToTurnBackSkill/tick" target="getAllowed">
@@ -45,11 +45,11 @@
 
   <state id="getTurning">
     <onentry>
-      <ros_service_send_request name="/BlackboardComponent/GetStringBlackboard">
+      <ros_service_send_request name="/BlackboardComponent/GetString">
         <field name="field_name" expr="m_name"/>
       </ros_service_send_request>
     </onentry>
-    <ros_service_handle_response name="/BlackboardComponent/GetStringBlackboard" target="evaluateTurning">
+    <ros_service_handle_response name="/BlackboardComponent/GetString" target="evaluateTurning">
       <assign location="m_result" expr="_res.result"/>
       <assign location="m_value"  expr="_res.value"/>
     </ros_service_handle_response>

@@ -25,7 +25,6 @@
   <ros_service_client service_name="/NavigationComponent/StopNavigation"    type="navigation_interfaces_dummy/StopNavigation"/>
   <ros_service_client service_name="/BlackboardComponent/SetInt"            type="blackboard_interfaces_dummy/SetInt"/>
 
-  <!-- === flow === -->
   <state id="idle">
     <ros_service_handle_request name="/StopAndTurnBackSkillAction/tick" target="callTurnBack">
       <ros_service_send_request name="/NavigationComponent/TurnBack"/>
@@ -35,7 +34,6 @@
     </ros_service_handle_request>
   </state>
 
-  <!-- TurnBack answer -->
   <state id="callTurnBack">
     <ros_service_handle_response name="/NavigationComponent/TurnBack" target="afterTurnBack">
       <assign location="result" expr="_res.result"/>
@@ -43,69 +41,72 @@
   </state>
 
   <state id="afterTurnBack">
-    <onentry>
-      <if cond="result == 'SUCCESS'">
-        <ros_service_send_request name="/NavigationComponent/GetNavigationStatus"/>
-      <else/>
-        <ros_service_send_response name="/StopAndTurnBackSkillAction/tick">
-          <field name="status" expr="SKILL_FAILURE"/>
-        </ros_service_send_response>
-      </if>
-    </onentry>
-    <transition cond="result == 'SUCCESS'" target="waitStatus"/>
-    <transition cond="result != 'SUCCESS'" target="idle"/>
+    <transition cond="result == 'SUCCESS'" target="getStatus"/>
+    <transition cond="result != 'SUCCESS'" target="failReply"/>
   </state>
 
-  <!-- Loop asking status each tick -->
-  <state id="waitStatus">
+  <state id="getStatus">
+    <onentry>
+      <ros_service_send_request name="/NavigationComponent/GetNavigationStatus"/>
+    </onentry>
     <ros_service_handle_response name="/NavigationComponent/GetNavigationStatus" target="evalStatus">
       <assign location="status" expr="_res.status"/>
     </ros_service_handle_response>
   </state>
 
   <state id="evalStatus">
-    <onentry>
-      <if cond="status == NAV_MOVING">
-        <ros_service_send_response name="/StopAndTurnBackSkillAction/tick">
-          <field name="status" expr="SKILL_RUNNING"/>
-        </ros_service_send_response>
-      <elseif cond="status == NAV_REACHED"/>
-        <!-- set BB flag -->
-        <ros_service_send_request name="/BlackboardComponent/SetInt">
-          <field name="field_name" expr="BB_FIELD"/>
-          <field name="value"      expr="1"/>
-        </ros_service_send_request>
-      <else/>
-        <ros_service_send_response name="/StopAndTurnBackSkillAction/tick">
-          <field name="status" expr="SKILL_FAILURE"/>
-        </ros_service_send_response>
-      </if>
-    </onentry>
-    <transition cond="status == NAV_MOVING"  target="idle"/>
-    <transition cond="status == NAV_REACHED" target="waitBB"/>
-    <transition cond="status != NAV_MOVING && status != NAV_REACHED" target="idle"/>
+    <transition cond="status == NAV_MOVING" target="runningReply"/>
+    <transition cond="status == NAV_REACHED" target="setBBFlag"/>
+    <transition cond="status != NAV_MOVING && status != NAV_REACHED" target="failReply"/>
   </state>
 
-  <state id="waitBB">
+  <state id="runningReply">
+    <onentry>
+      <ros_service_send_response name="/StopAndTurnBackSkillAction/tick">
+        <field name="status" expr="SKILL_RUNNING"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="setBBFlag">
+    <onentry>
+      <ros_service_send_request name="/BlackboardComponent/SetInt">
+        <field name="field_name" expr="BB_FIELD"/>
+        <field name="value"      expr="1"/>
+      </ros_service_send_request>
+    </onentry>
     <ros_service_handle_response name="/BlackboardComponent/SetInt" target="done">
       <assign location="result" expr="_res.result"/>
     </ros_service_handle_response>
   </state>
 
   <state id="done">
-    <ros_service_send_response name="/StopAndTurnBackSkillAction/tick">
-      <field name="status" expr="result == 'SUCCESS' ? SKILL_SUCCESS : SKILL_FAILURE"/>
-    </ros_service_send_response>
+    <onentry>
+      <ros_service_send_response name="/StopAndTurnBackSkillAction/tick">
+        <field name="status" expr="result == 'SUCCESS' ? SKILL_SUCCESS : SKILL_FAILURE"/>
+      </ros_service_send_response>
+    </onentry>
     <transition target="idle"/>
   </state>
 
-  <!-- Halt path -->
+  <state id="failReply">
+    <onentry>
+      <ros_service_send_response name="/StopAndTurnBackSkillAction/tick">
+        <field name="status" expr="SKILL_FAILURE"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
   <state id="callStopNav">
     <ros_service_handle_response name="/NavigationComponent/StopNavigation" target="halted"/>
   </state>
 
   <state id="halted">
-    <ros_service_send_response name="/StopAndTurnBackSkillAction/halt"/>
+    <onentry>
+      <ros_service_send_response name="/StopAndTurnBackSkillAction/halt"/>
+    </onentry>
     <transition target="idle"/>
   </state>
 
