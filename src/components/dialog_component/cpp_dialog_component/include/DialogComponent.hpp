@@ -77,7 +77,13 @@ public:
                         std::shared_ptr<dialog_interfaces::srv::AnswerAndSpeak::Response> response);
 
 protected:
-    void SpeakFromText(std::string text);
+    // Protected methods to manage internal functions and to interact with other services
+    void SpeakFromText(std::string text); // ROS2 service client to TextToSpeechComponent to speak the text
+    bool CommandManager(const std::string &command, std::shared_ptr<dialog_interfaces::srv::ManageContext::Response> &response); // Manages the command received from the PoiChat LLM and returns the response to the caller
+    bool InterpretCommand(const std::string &command, PoI currentPoI, PoI genericPoI); // Interprets the command and returns the action to be performed
+    void WaitForSpeakEnd(); // ROS2 service client to TextToSpeechComponent to get if the TTS is speaking. Wait until it is not
+    bool SetLanguage(const std::string &newLang);
+    bool UpdatePoILLMPrompt(); // Updates the prompt of the PoIChat LLM based on the current PoI. Leverages the SchedulerComponent service to get the current PoI name
 
 private:
 
@@ -128,13 +134,6 @@ private:
     int m_fallback_threshold;
     int m_fallback_repeat_counter;
     std::string m_last_valid_speak;
-
-    // Private methods to manage internal functions and to interact with other services
-    bool CommandManager(const std::string &command, std::shared_ptr<dialog_interfaces::srv::ManageContext::Response> &response); // Manages the command received from the PoiChat LLM and returns the response to the caller
-    bool InterpretCommand(const std::string &command, PoI currentPoI, PoI genericPoI); // Interprets the command and returns the action to be performed
-    void WaitForSpeakEnd(); // ROS2 service client to TextToSpeechComponent to get if the TTS is speaking. Wait until it is not
-    bool SetLanguage(const std::string &newLang);
-    bool UpdatePoILLMPrompt(); // Updates the prompt of the PoIChat LLM based on the current PoI. Leverages the SchedulerComponent service to get the current PoI name
 
     /* Internal State Machine*/
     enum State {
