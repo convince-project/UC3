@@ -1,95 +1,61 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<scxml
-  xmlns="http://www.w3.org/2005/07/scxml"
-  initial="idle"
-  version="1.0"
-  name="HardwareFaultSkillLevel"
-  datamodel="ecmascript">
+<scxml xmlns="http://www.w3.org/2005/07/scxml"
+       version="1.0"
+       name="HardwareFaultSkill"
+       datamodel="ecmascript"
+       initial="idle">
 
-  <!--
-    Data model:
-      jointStatus: array of int8 status codes received from /hardware_status topic
-      FAULT_CODE: the integer value that indicates a faulty joint
-      SKILL_SUCCESS / SKILL_FAILURE: response codes for the tick service
-  -->
   <datamodel>
-    <data id="jointStatus" expr="[]"/>
-    <data id="FAULT_CODE" expr="1"/>
-    <data id="SKILL_SUCCESS" expr="0"/>
-    <data id="SKILL_FAILURE" expr="1"/>
+    <!-- valore restituito dal componente di monitoraggio -->
+    <data id="m_has_fault"   type="boolean" expr="false"/>
+
+    <!-- costanti di ritorno BT -->
+    <data id="SKILL_SUCCESS" type="int8"    expr="0"/> <!-- nessun fault -->
+    <data id="SKILL_FAILURE" type="int8"    expr="1"/> <!-- presente un fault -->
   </datamodel>
 
-  <!--
-    ROS2 service server:
-      - service_name: /HardwareFaultSkill/tick
-      - type: bt_interfaces_dummy/TickCondition
-  -->
-  <ros_service_server
-    service_name="/HardwareFaultSkill/tick"
-    type="bt_interfaces_dummy/TickCondition"/>
+  <!-- TickCondition server -->
+  <ros_service_server service_name="/HardwareFaultSkill/tick" type="bt_interfaces_dummy/TickCondition"/>
 
-  <!--
-    ROS2 topic subscriber:
-      - topic: /hardware_status
-      - type: std_msgs/Int8MultiArray
-  -->
-  <ros_topic_subscriber
-    topic="/hardware_status"
-    type="std_msgs/Int8MultiArray"/>
+  <!-- client verso il componente di monitoraggio HW -->
+  <ros_service_client service_name="/HardwareMonitorComponent/HasFaults" type="hardware_monitor_interfaces_dummy/HasFaults"/>
 
-  <!--
-    idle state:
-      - on ROS2 service request, transition to checkFault
-      - on receiving a new hardware_status message, update jointStatus and stay idle
-  -->
+  <!-- ===========  Stati  =========== -->
+
   <state id="idle">
-    <ros_service_handle_request name="/HardwareFaultSkill/tick" target="checkFault"/>
-    <ros_topic_callback name="/hardware_status" target="idle">
-      <assign location="jointStatus" expr="_msg.data"/>
-    </ros_topic_callback>
+    <!-- su tick chiedo lo stato al componente -->
+    <ros_service_handle_request name="/HardwareFaultSkill/tick" target="query">
+      <ros_service_send_request name="/HardwareMonitorComponent/HasFaults"/>
+    </ros_service_handle_request>
   </state>
 
-  <!--
-    checkFault state:
-      - on entry, run JS loop over jointStatus:
-          if any element == FAULT_CODE → send FAILURE
-          else → send SUCCESS
-      - then return to idle
-  -->
-  <state id="checkFault">
+  <state id="query">
+    <!-- ricevo la risposta e passo al decision making -->
+    <ros_service_handle_response name="/HardwareMonitorComponent/HasFaults"
+                                 target="decide">
+      <assign location="m_has_fault" expr="_res.has_fault"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="decide">
+    <transition cond="m_has_fault == false" target="success"/>
+    <transition cond="m_has_fault == true" target="failure"/>
+  </state>
+
+  <state id="success">
     <onentry>
-      <script>
-        // log the received array
-        log("jointStatus = " + jointStatus);
-        var anyFault = false;
-        for (var i = 0; i < jointStatus.length; i++) {
-          log("checking jointStatus[" + i + "] = " + jointStatus[i]);
-          if (jointStatus[i] === FAULT_CODE) {
-            anyFault = true;
-            break;
-          }
-        }
-        // send ROS2 service response
-        if (anyFault) {
-          _send({
-            type: "ros_service_send_response",
-            name: "/HardwareFaultSkill/tick",
-            fields: {
-              status: SKILL_FAILURE,
-              is_ok: false
-            }
-          });
-        } else {
-          _send({
-            type: "ros_service_send_response",
-            name: "/HardwareFaultSkill/tick",
-            fields: {
-              status: SKILL_SUCCESS,
-              is_ok: true
-            }
-          });
-        }
-      </script>
+      <ros_service_send_response name="/HardwareFaultSkill/tick">
+        <field name="status" expr="SKILL_SUCCESS"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="failure">
+    <onentry>
+      <ros_service_send_response name="/HardwareFaultSkill/tick">
+        <field name="status" expr="SKILL_FAILURE"/>
+      </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
   </state>

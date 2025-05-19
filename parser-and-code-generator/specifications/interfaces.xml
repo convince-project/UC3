@@ -2,15 +2,58 @@
 
     <types path="./types.xml" />
 
-    <!-- <interface id="battery_interfaces">
-    <function id="battery_low">
-        <protocol><ROS2data><interface type="topic"/></ROS2data></protocol>
+    <interface id="battery_interfaces">
+        <function id="battery_low">
+            <protocol>
+                <ROS2data>
+                    <interface type="topic" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>std_msgs::msg::Int8</dataType>
+                <dataField>data</dataField>
+            </returnValue>
+        </function>
+        <function id="battery_level">
+            <protocol>
+                <ROS2data>
+                    <interface type="topic" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>sensor_msgs::msg::BatteryState</dataType>
+                <dataField>percentage</dataField>
+            </returnValue>
+        </function>
+        <function id="hardwareStatus">
+            <protocol>
+                <ROS2data>
+                    <interface type="topic" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>std_msgs::msg::Int8MultiArray</dataType>
+                <dataField>data</dataField>
+            </returnValue>
+        </function>
+    </interface>
+
+    <!-- ──────────────────────────────────────────────────────────────── -->
+    <interface id="hardware_monitor_interfaces">
+    <function id="HasFaults">
+        <protocol>
+        <ROS2data>
+            <interface type="sync-service"/>
+        </ROS2data>
+        </protocol>
         <returnValue>
-        <dataType>std_msgs::msg::Int8</dataType>
-        <dataField>data</dataField>
+        <dataType>bool</dataType>
+        <dataField>has_fault</dataField>
         </returnValue>
     </function>
-    </interface> -->
+    </interface>
+    <!-- ──────────────────────────────────────────────────────────────── -->
+
 
 
     <interface id="robot_interfaces">
@@ -199,6 +242,13 @@
             </protocol>
             <returnValue>
             </returnValue>
+        </function>
+        <function id="GoToPoi">
+            <protocol>
+                <ROS2data>
+                    <interface type="action" />
+                </ROS2data>
+            </protocol>
         </function>
     </interface>
     <interface id="network_interfaces">
