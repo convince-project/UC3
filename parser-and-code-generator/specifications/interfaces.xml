@@ -134,6 +134,10 @@
                     <interface type="sync-service" />
                 </ROS2data>
             </protocol>
+            <returnValue>
+                <dataType>bool</dataType>
+                <dataField>is_ok</dataField>
+            </returnValue>
         </function>
     </interface>
     <interface id="allowed_to_move_interfaces">
@@ -563,4 +567,24 @@
 
     </interface>
 
+    <interface id="people_detector_filter_interfaces">
+        <function id="FilterPeople">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+        </function>
+        <function id="is_followed">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>bool</dataType>
+                <dataField>is_followed</dataField>
+            </returnValue>
+        </function>
+    </interface>
 </interfaces>
