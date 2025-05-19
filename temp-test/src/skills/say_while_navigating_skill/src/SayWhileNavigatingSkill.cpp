@@ -118,6 +118,51 @@ bool SayWhileNavigatingSkill::start(int argc, char*argv[])
       m_stateMachine.submitEvent("TurnBackManagerComponent.GetTurnBacksCounter.Return", data);
       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TurnBackManagerComponent.GetTurnBacksCounter.Return");
   });
+  m_stateMachine.connectToEvent("NarrateComponent.Stop.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
+      std::shared_ptr<rclcpp::Node> nodeStop = rclcpp::Node::make_shared(m_name + "SkillNodeStop");
+      std::shared_ptr<rclcpp::Client<narrate_interfaces::srv::Stop>> clientStop = nodeStop->create_client<narrate_interfaces::srv::Stop>("/NarrateComponent/Stop");
+      auto request = std::make_shared<narrate_interfaces::srv::Stop::Request>();
+      auto eventParams = event.data().toMap();
+      
+      bool wait_succeded{true};
+      int retries = 0;
+      while (!clientStop->wait_for_service(std::chrono::seconds(1))) {
+          if (!rclcpp::ok()) {
+              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'Stop'. Exiting.");
+              wait_succeded = false;
+              break;
+          } 
+          retries++;
+          if(retries == SERVICE_TIMEOUT) {
+              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while waiting for the service 'Stop'.");
+              wait_succeded = false;
+              break;
+          }
+      }
+      if (wait_succeded) {                                                                   
+          auto result = clientStop->async_send_request(request);
+          const std::chrono::seconds timeout_duration(SERVICE_TIMEOUT);
+          auto futureResult = rclcpp::spin_until_future_complete(nodeStop, result, timeout_duration);
+          if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
+          {
+              auto response = result.get();
+              if( response->is_ok == true) {
+                  QVariantMap data;
+                  data.insert("is_ok", true);
+                  m_stateMachine.submitEvent("NarrateComponent.Stop.Return", data);
+                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NarrateComponent.Stop.Return");
+                  return;
+              }
+          }
+          else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
+              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'Stop'.");
+          }
+      }
+      QVariantMap data;
+      data.insert("is_ok", false);
+      m_stateMachine.submitEvent("NarrateComponent.Stop.Return", data);
+      RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NarrateComponent.Stop.Return");
+  });
   m_stateMachine.connectToEvent("NarrateComponent.Narrate.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
       std::shared_ptr<rclcpp::Node> nodeNarrate = rclcpp::Node::make_shared(m_name + "SkillNodeNarrate");
       std::shared_ptr<rclcpp::Client<narrate_interfaces::srv::Narrate>> clientNarrate = nodeNarrate->create_client<narrate_interfaces::srv::Narrate>("/NarrateComponent/Narrate");
