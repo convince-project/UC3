@@ -19,9 +19,9 @@
     </skillList>
 
     <componentList>
-      <!-- <componentDeclaration id="BatteryComponent" interface="battery_interfaces">
+      <componentDeclaration id="BatteryComponent" interface="battery_interfaces">
         <componentDefinition moc="fsm" path="…/BatteryComponent.scxml"/>
-      </componentDeclaration> -->
+      </componentDeclaration>
       <componentDeclaration id="NotifyUserComponent" interface="notify_user_interfaces">
         <componentDefinition moc="fsm" path = "…/NotifyUserComponent.scxml"/>
       </componentDeclaration>
@@ -77,6 +77,9 @@
         <componentDefinition />
       </componentDeclaration>
       <componentDeclaration id="PeopleDetectorFilterComponent" interface="people_detector_filter_interfaces">
+        <componentDefinition />
+      </componentDeclaration>
+      <componentDeclaration id="HardwareMonitorComponent" interface="hardware_monitor_interfaces">
         <componentDefinition />
       </componentDeclaration>
 
