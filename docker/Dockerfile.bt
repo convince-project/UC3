@@ -1,4 +1,4 @@
-ARG base_img=elandini84/r1images:tourCore2_ubuntu_24.04_qt_6.8.3_jazzy_stable
+ARG base_img=elandini84/r1images:tourCore2_ubuntu_24.04_qt_6.8.3_jazzy_devel
 FROM $base_img
 LABEL maintainer="Stefano Bernagozzi"
 USER root
