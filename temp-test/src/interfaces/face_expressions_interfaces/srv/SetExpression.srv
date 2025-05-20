@@ -1,6 +1,0 @@
-int32 command_id
-int32[] value
----
-string answer
-bool is_ok
-string error_msg
