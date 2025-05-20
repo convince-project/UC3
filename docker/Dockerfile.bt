@@ -121,3 +121,9 @@ RUN echo "source /home/user1/UC3/install/setup.bash" >> ~/.bashrc
 ENV PATH=${PATH}:/home/user1/.local/bin
 
 ENV LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/src/robot/yarp/build/lib/
+
+ENV LD_LIBRARY_PATH=/usr/local/Qt-6.8.3/lib/:$LD_LIBRARY_PATH 
+
+ENV CYCLONE_DDS_URI=/home/user1/UC3/docker/cyclone_dds_settings.xml
+
+ENV YARP_DATA_DIRS=${YARP_DATA_DIRS}:/home/user1/UC3/launch
