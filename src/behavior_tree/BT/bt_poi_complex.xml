@@ -43,7 +43,7 @@
         </ReactiveFallback>
       </ReactiveFallback>
       <Parallel failure_threshold="1"
-                success_threshold="">
+                success_threshold="2">
         <ROS2Action name="NotifyCharged"
                     interface="ROS2SERVICE"
                     isMonitored="false"/>
