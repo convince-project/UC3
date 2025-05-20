@@ -1,4 +1,0 @@
----
-string current_language
-bool is_ok
-string error_msg
