@@ -10,7 +10,7 @@ USER root
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt upgrade -y && apt-get install -y ninja-build libzmq3-dev build-essential libgl1-mesa-dev wget cmake
+RUN apt-get update && apt upgrade -y && apt-get install -y ninja-build libzmq3-dev build-essential libgl1-mesa-dev wget cmake python3 
 # libqt6scxml6 qt6-base-dev qt6-scxml-dev libqt6scxml6-bin
 
 RUN /bin/bash -c "cd /usr/local/src && wget https://download.qt.io/official_releases/qt/${qt_version_major}/${qt_version}/single/qt-everywhere-src-${qt_version}.tar.xz && \
