@@ -1,4 +1,0 @@
----
-bool is_ok
-bool is_active
-string error_msg
