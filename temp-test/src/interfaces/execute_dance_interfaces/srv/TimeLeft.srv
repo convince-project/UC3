@@ -1,4 +1,0 @@
----
-float32 time_left
-bool is_ok
-string error_msg

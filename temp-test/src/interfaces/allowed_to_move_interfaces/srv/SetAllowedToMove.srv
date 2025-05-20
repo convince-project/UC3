@@ -1,4 +1,0 @@
-bool is_allowed_to_move
----
-bool is_ok
-string error_msg
