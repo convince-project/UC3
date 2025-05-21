@@ -47,7 +47,7 @@ bool ROS2Condition::init()
     }
 
     m_node = rclcpp::Node::make_shared(ConditionNode::name()+ "ConditionLeaf");
-    m_clientTick = m_node->create_client<bt_interfaces::srv::TickCondition>(ConditionNode::name() + "Skill/tick" + m_suffixMonitor);
+    m_clientTick = m_node->create_client<bt_interfaces_dummy::srv::TickCondition>(ConditionNode::name() + "Skill/tick" + m_suffixMonitor);
     RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"),"name -- " << ConditionNode::name() << " -- suffixmonitor " << m_suffixMonitor);
     
     return true;
@@ -66,8 +66,8 @@ bool ROS2Condition::stop()
 int ROS2Condition::sendTickToSkill() 
 {
     std::lock_guard<std::mutex> lock(m_requestMutex);
-    auto msg = bt_interfaces::msg::ConditionResponse();
-    auto request = std::make_shared<bt_interfaces::srv::TickCondition::Request>();
+    auto msg = bt_interfaces_dummy::msg::ConditionResponse();
+    auto request = std::make_shared<bt_interfaces_dummy::srv::TickCondition::Request>();
     while (!m_clientTick->wait_for_service(std::chrono::seconds(1))) {
         if (!rclcpp::ok()) {
         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service TickCondition. Exiting.");
@@ -79,7 +79,7 @@ int ROS2Condition::sendTickToSkill()
     // std::this_thread::sleep_for (std::chrono::milliseconds(100));
     if (rclcpp::spin_until_future_complete(m_node, result) ==
         rclcpp::FutureReturnCode::SUCCESS) {
-        return result.get()->status.status;
+        return result.get()->status;
     }
     return msg.SKILL_FAILURE;
 }
@@ -87,7 +87,7 @@ int ROS2Condition::sendTickToSkill()
 
 BT::NodeStatus ROS2Condition::tick()
 {
-    auto message = bt_interfaces::msg::ConditionResponse();
+    auto message = bt_interfaces_dummy::msg::ConditionResponse();
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Node %s sending tick to skill", ConditionNode::name().c_str());
     auto status = sendTickToSkill();
     switch (status) {
