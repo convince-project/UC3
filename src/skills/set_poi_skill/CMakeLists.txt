@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(is_poi_done_skill)
+project(set_poi_skill)
 # set(CMAKE_CXX_STANDARD 20)
 # set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -11,7 +11,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(bt_interfaces_dummy REQUIRED)
 
-find_package(blackboard_interfaces REQUIRED)
+find_package(scheduler_interfaces REQUIRED)
 find_package(Qt6 COMPONENTS Core Scxml StateMachine  REQUIRED)
 
 add_executable(${PROJECT_NAME} )
@@ -28,7 +28,7 @@ endif()
 ament_target_dependencies(${PROJECT_NAME} 
   bt_interfaces_dummy 
   rclcpp 
-  blackboard_interfaces 
+  scheduler_interfaces 
   
   )
 target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Scxml Qt6::StateMachine)
@@ -38,8 +38,8 @@ target_include_directories(${PROJECT_NAME}
     $<INSTALL_INTERFACE:include>)
 target_sources( ${PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp 
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/IsPoiDoneSkill.cpp 
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/IsPoiDoneSkill.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/SetPoiSkill.cpp 
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/SetPoiSkill.h
   )
 
 
@@ -56,6 +56,6 @@ if(BUILD_TESTING)
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
-qt6_add_statecharts(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/src/IsPoiDoneSkillSM.scxml)
+qt6_add_statecharts(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/src/SetPoiSkillSM.scxml)
 
 ament_package()
