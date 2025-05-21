@@ -71,7 +71,7 @@ bool IsPoiDoneSkill::start(int argc, char*argv[])
 	std::cout << "IsPoiDoneSkill::start";
 
     
-	m_tickService = m_node->create_service<bt_interfaces::srv::TickCondition>(m_name + "Skill/tick",
+	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickCondition>(m_name + "Skill/tick",
                                                                            	std::bind(&IsPoiDoneSkill::tick,
                                                                            	this,
                                                                            	std::placeholders::_1,
@@ -145,12 +145,12 @@ bool IsPoiDoneSkill::start(int argc, char*argv[])
 	return true;
 }
 
-void IsPoiDoneSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::TickCondition::Request> request,
-                                std::shared_ptr<bt_interfaces::srv::TickCondition::Response>      response)
+void IsPoiDoneSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Request> request,
+                                std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Response>      response)
 {
     std::lock_guard<std::mutex> lock(m_requestMutex);
     RCLCPP_INFO(m_node->get_logger(), "IsPoiDoneSkill::tick");
-    auto message = bt_interfaces::msg::ConditionResponse();
+    auto message = bt_interfaces_dummy::msg::ConditionResponse();
     m_tickResult.store(Status::undefined);
     m_stateMachine.submitEvent("CMD_TICK");
    
@@ -161,10 +161,10 @@ void IsPoiDoneSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces:
     {
         
         case Status::failure:
-            response->status.status = message.SKILL_FAILURE;
+            response->status = message.SKILL_FAILURE;
             break;
         case Status::success:
-            response->status.status = message.SKILL_SUCCESS;
+            response->status = message.SKILL_SUCCESS;
             break;            
     }
     RCLCPP_INFO(m_node->get_logger(), "IsPoiDoneSkill::tickDone");
