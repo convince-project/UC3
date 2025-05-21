@@ -9,7 +9,9 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(bt_interfaces REQUIRED)
+find_package(rclcpp_action REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(bt_interfaces_dummy REQUIRED)
 
 find_package(text_to_speech_interfaces REQUIRED)
 find_package(scheduler_interfaces REQUIRED)
@@ -28,8 +30,10 @@ endif()
 # find_package(<dependency> REQUIRED)
 
 ament_target_dependencies(${PROJECT_NAME} 
-  bt_interfaces 
+  std_msgs
+  bt_interfaces_dummy 
   rclcpp 
+  rclcpp_action 
   text_to_speech_interfaces 
   scheduler_interfaces 
   blackboard_interfaces 

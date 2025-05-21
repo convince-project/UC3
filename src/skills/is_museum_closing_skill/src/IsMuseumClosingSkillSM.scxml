@@ -1,55 +1,34 @@
-<scxml 
-  initial="idle" 
-  version="1.0" 
-  name="IsMuseumClosingSkillCondition"
-  datamodel="ecmascript"
-  xmlns="http://www.w3.org/2005/07/scxml">
-
-  <datamodel>
-    <data id="m_result"/>
-    <data id="is_closing"/>
-  </datamodel>
-
-  <state id="idle">
-      <transition event="CMD_TICK" target="getIsClosing" />
-  </state>
-
-  <state id="getIsClosing">
-    <onentry>
-        <send event="TimeComponent.IsMuseumClosing.Call"/>
-    </onentry>
-    <transition event="TimeComponent.IsMuseumClosing.Return" target="getIsClosingResult"> 
-        <assign expr="_event.data.result" location="m_result"/>
-        <assign expr="_event.data.is_closing" location="is_closing"/>
-    </transition>
-  </state>
-
-  <state id="getIsClosingResult">
-    <transition cond="m_result == 'SUCCESS'" target="checkIsClosing" />
-    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
-  </state>
-
-  <state id="checkIsClosing">
-    <transition cond="is_closing" target="sendSuccess" />
-    <transition target="sendFailure" />
-  </state>
-
-  <state id="sendFailure">
-    <onentry>
-      <send event="TICK_RESPONSE">
-        <param name="result" expr='"FAILURE"'/>
-      </send>
-    </onentry>
-    <transition target="idle" />
-  </state>
-
-  <state id="sendSuccess">
-      <onentry>
-        <send event="TICK_RESPONSE">
-          <param name="result" expr='"SUCCESS"'/>
-        </send>
-      </onentry>
-      <transition target="idle" />
-  </state>
-
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="IsMuseumClosingSkillCondition" datamodel="ecmascript" initial="idle">
+    <datamodel>
+        <data id="m_is_closing" expr="false"/>
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <data id="SKILL_FAILURE" expr="1"/>
+    </datamodel>
+    <!-- Condition skill: tick server only -->
+    <!-- Client for TimeComponent.IsMuseumClosing -->
+    <state id="idle">
+        <transition target="queryClosing" event="CMD_TICK">
+            <send event="TimeComponent.IsMuseumClosing.Call"/>
+        </transition>
+    </state>
+    <state id="queryClosing">
+        <transition target="decide" event="TimeComponent.IsMuseumClosing.Return">
+            <assign location="m_is_closing" expr="_event.data.is_closing"/>
+        </transition>
+    </state>
+    <state id="decide">
+        <onentry>
+            <if cond="m_is_closing">
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_SUCCESS"/>
+                </send>
+                <else/>
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_FAILURE"/>
+                </send>
+            </if>
+        </onentry>
+        <transition target="idle"/>
+    </state>
 </scxml>
