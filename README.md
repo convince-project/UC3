@@ -1,10 +1,39 @@
 # Code for the execution of use case 3 for the [convince project](https://convince-project.eu)
 
+## run the simulation with docker
 
-## running the code
+first run the docker 
 
-inside the docker folder you can find the dockerfiles needed for executing the code. You can also find the dockerfiles pushed on [dockerhub](https://hub.docker.com/layers/ste93/convince/qt_6.7.3_ubuntu24.04_jazzy_stable/images/sha256-cd36bca9d990b799acc80cf76106032a9bd0688a1d37ea4e29c4211e88bb9ffc)
-once you execute the docker, inside the launch folder you can find all the necessary yarpmanager applications. 
+```
+sudo xhost + 
+docker run --rm -it --privileged --network host --pid host -e DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -e QT_X11_NO_MITSHM=1  ste93/convince:ubuntu_22.04_qt_6.8.3_sim
+```
+
+
+to run the simulation, first you need to change directory to tour guide robot:
+
+```
+cd /usr/local/src/robot/tour-guide-robot/app/navigation2/scripts/
+```
+
+and then start the simulation:
+
+```
+./start_sim_madama.sh
+```
+
+after this run all the navigation stack from the **Navigation_ROS2_R1_Madama_SIM** app
+
+once the navigation is done, you need to run the behavior tree from the app
+
+first launch a server for yarp run on the docker terminal:
+
+``` 
+yarp run --server /bt --log
+```
+
+then launch the various files from the application **convince_bt.xml**
+
 <!-- 
 <div align="center">
   Journal, vol. X, no. y, pp. abc-def, Month Year
