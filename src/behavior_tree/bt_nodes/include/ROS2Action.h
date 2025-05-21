@@ -13,10 +13,10 @@
 
 
 #include <string>
-#include <bt_interfaces/msg/action_response.hpp>
+#include <bt_interfaces_dummy/msg/action_response.hpp>
 #include <mutex>
-#include <bt_interfaces/srv/tick_action.hpp>
-#include <bt_interfaces/srv/halt_action.hpp>
+#include <bt_interfaces_dummy/srv/tick_action.hpp>
+#include <bt_interfaces_dummy/srv/halt_action.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <behaviortree_cpp_v3/action_node.h>
 
@@ -33,8 +33,8 @@ public:
 
 private:
     std::mutex m_requestMutex;
-    rclcpp::Client<bt_interfaces::srv::TickAction>::SharedPtr m_clientTick;
-    rclcpp::Client<bt_interfaces::srv::HaltAction>::SharedPtr m_clientHalt;
+    rclcpp::Client<bt_interfaces_dummy::srv::TickAction>::SharedPtr m_clientTick;
+    rclcpp::Client<bt_interfaces_dummy::srv::HaltAction>::SharedPtr m_clientHalt;
     std::shared_ptr<rclcpp::Node> m_node;
     std::string m_name;
     std::string m_suffixMonitor;

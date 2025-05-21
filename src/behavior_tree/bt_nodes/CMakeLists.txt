@@ -21,7 +21,7 @@ add_library(${PROJECT_NAME}
   ${CMAKE_CURRENT_SOURCE_DIR}/src/ROS2Condition.cpp
   )
  
-set(dependencies  bt_interfaces rclcpp behaviortree_cpp_v3)
+set(dependencies  bt_interfaces_dummy rclcpp behaviortree_cpp_v3)
 
 # this line to exports the library
 target_include_directories(${PROJECT_NAME}
@@ -29,7 +29,7 @@ target_include_directories(${PROJECT_NAME}
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
 
-  find_package(bt_interfaces REQUIRED)
+  find_package(bt_interfaces_dummy REQUIRED)
   ament_target_dependencies(${PROJECT_NAME} ${dependencies})
   ament_export_targets(${PROJECT_NAME} HAS_LIBRARY_TARGET)
 
