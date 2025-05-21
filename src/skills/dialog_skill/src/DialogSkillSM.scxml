@@ -1,148 +1,92 @@
-<scxml 
-  initial="idle" 
-  version="1.0" 
-  name="DialogSkillAction"
-  datamodel="ecmascript"
-  xmlns="http://www.w3.org/2005/07/scxml">
-
-  <datamodel>
-    <data id="STATUS_DONE" expr="'2'"/>
-    <data id="m_state"/>
-    <data id="m_result"/>
-    <data id="m_language"/>
-  </datamodel>
-
-  <state id="idle">
-      <transition event="CMD_TICK" target="getLanguage" />
-      <transition event="CMD_HALT" target="stop" /> 
-  </state>
-
-  <state id="getLanguage">
-    <onentry>
-        <send event="SchedulerComponent.GetCurrentLanguage.Call">
-        </send>
-    </onentry>
-    <transition event="SchedulerComponent.GetCurrentLanguage.Return" target="getLanguageResult">
-      <assign expr="_event.data.result" location="m_result"/>
-      <assign expr="_event.data.language" location="m_language"/>
-    </transition>
-  </state>
-
-  <state id="getLanguageResult">
-    <transition cond="m_result == 'SUCCESS'" target="setLanguage" />
-    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
-  </state>
-
-  <state id="setLanguage">
-    <onentry>
-        <send event="DialogComponent.SetLanguage.Call">
-          <param name="new_language" expr="m_language"/>
-        </send>
-    </onentry>
-    <transition event="DialogComponent.SetLanguage.Return" target="setLanguageResult">
-      <assign expr="_event.data.result" location="m_result"/>
-    </transition>
-  </state>
-
-  <state id="setLanguageResult">
-  <transition cond="m_result == 'SUCCESS'" target="talk" />
-  <transition cond="m_result == 'FAILURE'" target="sendFailure" />
-  </state>
-
-  <state id="talk">
-      <onentry>
-          <send event="DialogComponent.EnableDialog.Call">
-            <param name="enable" expr='"true"'/>
-          </send>
-      </onentry>
-      <transition event="DialogComponent.EnableDialog.Return" target="talkResult">
-        <assign expr="_event.data.result" location="m_result"/>
-      </transition>
-  </state>
-
-  <state id="talkResult">
-    <transition cond="m_result == 'SUCCESS'" target="sendRunning" />
-    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
-  </state>
-
-  <state id="stop">
-    <onentry>
-        <send event="DialogComponent.EnableDialog.Call">
-          <param name="enable" expr='"false"'/>
-        </send>
-    </onentry>
-    <transition event="DialogComponent.EnableDialog.Return" target="stopResult">
-      <assign expr="_event.data.result" location="m_result"/>
-    </transition>
-</state>
-
-<state id="stopResult">
-  <transition cond="m_result == 'SUCCESS'" target="sendHalted" />
-  <transition cond="m_result == 'FAILURE'" target="sendHalted" />
-</state>
-
-<state id="sendRunning">
-    <onentry>
-      <send event="TICK_RESPONSE">
-        <param name="result" expr='"RUNNING"'/>
-      </send>
-    </onentry>
-    <transition target="WaitForFinish" />
-</state>
-
-<state id="WaitForFinish">
-    <transition event="CMD_TICK" target="getIfIsDone" />
-    <transition event="CMD_HALT" target="stop" />
-  </state>
-
-  <state id="getIfIsDone">
-    <onentry>
-      <send event="DialogComponent.GetState.Call">
-      </send>
-    </onentry>
-    <transition event="DialogComponent.GetState.Return" target="getIfIsDoneResult" >
-      <assign expr="_event.data.result" location="m_result"/>
-      <assign expr="_event.data.state" location="m_state"/>
-    </transition>
-  </state>
-  
-  <state id="getIfIsDoneResult">
-    <transition cond="m_result == 'SUCCESS'" target="checkIfDone" />
-    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
-  </state>  
-
-  <state id="checkIfDone"> 
-    <transition cond="m_state == STATUS_DONE" target="sendSuccess" />
-    <transition target="sendRunning"/>
-  </state>
-
-  <state id="sendSuccess">
-    <onentry>
-        <send event="TICK_RESPONSE">
-          <param name="result" expr='"SUCCESS"'/> 
-        </send>
-    </onentry>
-    <transition target="idle" />
-
-  </state>
-
-  <state id="sendHalted">
-      <onentry>
-          <send event="HALT_RESPONSE">
-          </send>
-      </onentry>
-      <transition target="idle" />
-  </state>
-
-  <state id="sendFailure">
-    <onentry>
-      <send event="TICK_RESPONSE">
-        <param name="result" expr='"FAILURE"'/>
-      </send>
-      
-    </onentry>
-    <transition target="idle" />
-  </state>
-
-
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="DialogSkillAction" datamodel="ecmascript" initial="idle">
+    <datamodel>
+        <data id="STATUS_DONE" expr="2"/>
+        <data id="m_language" expr="&apos;&apos;"/>
+        <data id="m_state" expr="0"/>
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <data id="SKILL_FAILURE" expr="1"/>
+        <data id="SKILL_RUNNING" expr="2"/>
+    </datamodel>
+    <!-- ROS2 service servers for tick and halt -->
+    <!-- ROS2 service clients -->
+    <state id="idle">
+        <!-- tick request -->
+        <transition target="getLanguage" event="CMD_TICK">
+            <send event="SchedulerComponent.GetCurrentLanguage.Call"/>
+        </transition>
+        <!-- halt request -->
+        <transition target="disableDialog" event="CMD_HALT">
+            <send event="DialogComponent.EnableDialog.Call">
+                <param name="enable" expr="false"/>
+            </send>
+        </transition>
+    </state>
+    <state id="getLanguage">
+        <transition target="setLanguage" event="SchedulerComponent.GetCurrentLanguage.Return">
+            <assign location="m_language" expr="_event.data.language"/>
+        </transition>
+    </state>
+    <state id="setLanguage">
+        <onentry>
+            <send event="DialogComponent.SetLanguage.Call">
+                <param name="new_language" expr="m_language"/>
+            </send>
+        </onentry>
+        <transition target="enableDialog" event="DialogComponent.SetLanguage.Return"/>
+    </state>
+    <state id="enableDialog">
+        <onentry>
+            <send event="DialogComponent.EnableDialog.Call">
+                <param name="enable" expr="true"/>
+            </send>
+        </onentry>
+        <transition target="running" event="DialogComponent.EnableDialog.Return"/>
+    </state>
+    <state id="running">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_RUNNING"/>
+            </send>
+        </onentry>
+        <!-- poll for completion -->
+        <transition target="checkState" event="CMD_TICK">
+            <send event="DialogComponent.GetState.Call"/>
+        </transition>
+        <!-- allow halt while running -->
+        <transition target="disableDialog" event="CMD_HALT">
+            <send event="DialogComponent.EnableDialog.Call">
+                <param name="enable" expr="false"/>
+            </send>
+        </transition>
+    </state>
+    <state id="checkState">
+        <transition target="decide" event="DialogComponent.GetState.Return">
+            <assign location="m_state" expr="_event.data.state"/>
+        </transition>
+    </state>
+    <state id="decide">
+        <onentry>
+            <if cond="m_state == STATUS_DONE">
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_SUCCESS"/>
+                </send>
+                <else/>
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_RUNNING"/>
+                </send>
+            </if>
+        </onentry>
+        <transition cond="m_state == STATUS_DONE" target="idle"/>
+        <transition cond="m_state != STATUS_DONE" target="running"/>
+    </state>
+    <state id="disableDialog">
+        <transition target="halted" event="DialogComponent.EnableDialog.Return"/>
+    </state>
+    <state id="halted">
+        <onentry>
+            <send event="HALT_RESPONSE"/>
+        </onentry>
+        <transition target="idle"/>
+    </state>
 </scxml>

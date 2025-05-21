@@ -1,21 +1,23 @@
-/******************************************************************************
- *                                                                            *
- * Copyright (C) 2020 Fondazione Istituto Italiano di Tecnologia (IIT)        *
- * All Rights Reserved.                                                       *
- *                                                                            *
- ******************************************************************************/
-
 # pragma once
 
 #include <mutex>
 #include <thread>
 #include <rclcpp/rclcpp.hpp>
+#include "rclcpp_action/rclcpp_action.hpp"
 #include "BatteryLevelSkillSM.h"
-#include <bt_interfaces/msg/condition_response.hpp>
-#include "BatteryLevelSkillDataModel.h"
-#include <bt_interfaces/srv/tick_condition.hpp>
+#include <bt_interfaces_dummy/msg/condition_response.hpp>
+#include <sensor_msgs/msg/battery_state.hpp> 
+
+
+
+#include <bt_interfaces_dummy/srv/tick_condition.hpp>
+
+
 
 #define SERVICE_TIMEOUT 8
+#define SKILL_SUCCESS 0
+#define SKILL_FAILURE 1
+#define SKILL_RUNNING 2
 
 enum class Status{
 	undefined,
@@ -29,8 +31,12 @@ public:
 	BatteryLevelSkill(std::string name );
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
-	void tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::TickCondition::Request> request,
-			   std::shared_ptr<bt_interfaces::srv::TickCondition::Response>      response);
+	
+	void tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Request> request,
+			   std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Response>      response);
+	
+	void topic_callback_battery_level(const sensor_msgs::msg::BatteryState::SharedPtr msg);
+	
 
 private:
 	std::shared_ptr<std::thread> m_threadSpin;
@@ -38,9 +44,16 @@ private:
 	std::mutex m_requestMutex;
 	std::string m_name;
 	BatteryLevelSkillCondition m_stateMachine;
-	BatteryLevelSkillDataModel m_dataModel;
 	std::atomic<Status> m_tickResult{Status::undefined};
-	rclcpp::Service<bt_interfaces::srv::TickCondition>::SharedPtr m_tickService;
+	rclcpp::Service<bt_interfaces_dummy::srv::TickCondition>::SharedPtr m_tickService;
 	
+	
+	
+	
+	rclcpp::Subscription<sensor_msgs::msg::BatteryState>::SharedPtr m_subscription_battery_level;
+	
+	
+	
+
 };
 
