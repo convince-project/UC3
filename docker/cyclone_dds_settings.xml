@@ -1,7 +1,18 @@
 <CycloneDDS>
    <Domain>
+      <General>
+         <AllowMulticast>false</AllowMulticast>
+         <Interfaces>
+            <NetworkInterface address="172.17.0.1" priority="default"/>
+         </Interfaces>
+      </General>
       <Discovery>
-         <ParticipantIndex>none</ParticipantIndex>
+         <MaxAutoParticipantIndex>300</MaxAutoParticipantIndex>
+         <ParticipantIndex>auto</ParticipantIndex>
+         <Peers>
+            <Peer address="localhost"/>
+            <Peer address="172.17.0.1"/>
+         </Peers>
       </Discovery>
    </Domain>
 </CycloneDDS>
