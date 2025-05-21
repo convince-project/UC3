@@ -1,58 +1,37 @@
-<scxml 
-  initial="idle" 
-  version="1.0" 
-  name="IsWarningDurationSkillCondition"
-  datamodel="ecmascript"
-  xmlns="http://www.w3.org/2005/07/scxml">
-
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="IsWarningDurationSkillCondition" datamodel="ecmascript" initial="idle">
     <datamodel>
-        <data id="m_result"/>
-        <data id="m_value"/>
-        <data id="m_name" expr='"TourDurationWarningFlag"'/>
+        <data id="m_name" expr="&apos;TourDurationWarningFlag&apos;"/>
+        <data id="m_value" expr="0"/>
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <data id="SKILL_FAILURE" expr="1"/>
     </datamodel>
-
+    <!-- Condition skill: tick server only -->
+    <!-- Client for Blackboard GetInt -->
     <state id="idle">
-        <transition event="CMD_TICK" target="getStatus"/>
-    </state>
-
-    <state id="getStatus">
-        <onentry>
+        <transition target="queryFlag" event="CMD_TICK">
             <send event="BlackboardComponent.GetInt.Call">
                 <param name="field_name" expr="m_name"/>
             </send>
-        </onentry>
-        <transition event="BlackboardComponent.GetInt.Return" target="getStatusResult"> 
-            <assign expr="_event.data.value" location="m_value"/>
-            <assign expr="_event.data.result" location="m_result"/>
         </transition>
     </state>
-
-    <state id="getStatusResult">
-        <transition cond="m_result == 'SUCCESS'" target="checkStatus" />
-        <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+    <state id="queryFlag">
+        <transition target="decide" event="BlackboardComponent.GetInt.Return">
+            <assign location="m_value" expr="_event.data.value"/>
+        </transition>
     </state>
-
-    <state id="checkStatus">
-        <transition cond="m_value" target="sendSuccess" /> 
-        <transition target="sendFailure" /> 
-    </state> 
-
-    <state id="sendFailure">
+    <state id="decide">
         <onentry>
-            <send event="TICK_RESPONSE">
-                <param name="result" expr='"FAILURE"'/>
-            </send>
+            <if cond="m_value != 0">
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_SUCCESS"/>
+                </send>
+                <else/>
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_FAILURE"/>
+                </send>
+            </if>
         </onentry>
-        <transition target="idle" />
+        <transition target="idle"/>
     </state>
-
-    <state id="sendSuccess">
-        <onentry>
-            <send event="TICK_RESPONSE">
-                <param name="result" expr='"SUCCESS"'/>
-            </send>
-        </onentry>
-        <transition target="idle" />
-    </state>
-
 </scxml>

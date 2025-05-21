@@ -1,0 +1,38 @@
+<scxml version="1.0" xmlns="http://www.w3.org/2005/07/scxml" datamodel="ecmascript" name="IsPoiDone2SkillCondition" initial="idle">
+    <datamodel>
+        <!-- <data id="key" type="string" expr='"PoiDone"'/> -->
+        <data id="key" expr="2"/>
+        <data id="value" expr="0"/>
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <data id="SKILL_FAILURE" expr="1"/>
+    </datamodel>
+    <!-- IsPoiDoneSkill is a server for tick from the ROS2Condition plugin-->
+    <!-- IsPoiDoneSkill is a client for GetInt from the BlackboardComponent -->
+    <state id="idle">
+        <transition target="checkInt" event="CMD_TICK">
+            <send event="BlackboardComponent.GetInt.Call">
+                <param name="field_name" expr="key"/>
+            </send>
+        </transition>
+    </state>
+    <state id="checkInt">
+        <transition cond="(_event.data.is_ok) == false" target="idle" event="BlackboardComponent.GetInt.Return">
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_FAILURE"/>
+                <param name="is_ok" expr="true"/>
+            </send>
+        </transition>
+        <transition cond="_event.data.value == 1" target="idle" event="BlackboardComponent.GetInt.Return">
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_SUCCESS"/>
+                <param name="is_ok" expr="true"/>
+            </send>
+        </transition>
+        <transition cond="(_event.data.value) == 0" target="idle" event="BlackboardComponent.GetInt.Return">
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_FAILURE"/>
+                <param name="is_ok" expr="true"/>
+            </send>
+        </transition>
+    </state>
+</scxml>
