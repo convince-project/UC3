@@ -1,69 +1,41 @@
-<scxml 
-  initial="idle" 
-  version="1.0" 
-  name="StartServiceSkillAction"
-  datamodel="ecmascript"
-  xmlns="http://www.w3.org/2005/07/scxml">
-
-  <datamodel>
-    <data id="m_result"/>
-  </datamodel>
-
-  <state id="idle">
-      <transition event="CMD_TICK" target="start" />
-      <transition event="CMD_HALT" target="sendHalted" /> 
-  </state>
-
-  <state id="start">
-      <onentry>
-          <send event="ManagePeopleDetectorComponent.StartService.Call">
-          </send>
-      </onentry>
-      <transition event="ManagePeopleDetectorComponent.StartService.Return" target="startResult">
-        <assign expr="_event.data.result" location="m_result"/>
-      </transition>
-  </state>
-
-  <state id="startResult">
-    <transition cond="m_result == 'SUCCESS'" target="sendSuccess" />
-    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
-  </state>
-
-  <state id="sendRunning">
-      <onentry>
-        <send event="TICK_RESPONSE">
-          <param name="result" expr='"RUNNING"'/>
-        </send>
-      </onentry>
-      <transition target="idle" />
-  </state>
-
-  <state id="sendSuccess">
-    <onentry>
-        <send event="TICK_RESPONSE">
-          <param name="result" expr='"SUCCESS"'/> 
-        </send>
-    </onentry>
-    <transition target="idle" />
-
-  </state>
-
-  <state id="sendHalted">
-      <onentry>
-          <send event="HALT_RESPONSE">
-          </send>
-      </onentry>
-      <transition target="idle" />
-  </state>
-
-  <state id="sendFailure">
-    <onentry>
-      <send event="TICK_RESPONSE">
-        <param name="result" expr='"FAILURE"'/>
-      </send>
-    </onentry>
-    <transition target="idle" />
-  </state>
-
-
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="StartServiceSkillAction" datamodel="ecmascript" initial="idle">
+    <datamodel>
+        <data id="result" expr="&apos;&apos;"/>
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <data id="SKILL_FAILURE" expr="1"/>
+    </datamodel>
+    <!-- Tick / halt servers -->
+    <!-- Client used -->
+    <state id="idle">
+        <transition target="callStart" event="CMD_TICK">
+            <send event="ManagePeopleDetectorComponent.StartService.Call"/>
+        </transition>
+        <transition target="halted" event="CMD_HALT"/>
+    </state>
+    <state id="callStart">
+        <transition target="reply" event="ManagePeopleDetectorComponent.StartService.Return">
+            <assign location="result" expr="_event.data.result"/>
+        </transition>
+    </state>
+    <state id="reply">
+        <onentry>
+            <if cond="result == &apos;SUCCESS&apos;">
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_SUCCESS"/>
+                </send>
+                <else/>
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_FAILURE"/>
+                </send>
+            </if>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="halted">
+        <onentry>
+            <send event="HALT_RESPONSE"/>
+        </onentry>
+        <transition target="idle"/>
+    </state>
 </scxml>

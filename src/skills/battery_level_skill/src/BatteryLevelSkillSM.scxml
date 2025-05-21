@@ -1,30 +1,33 @@
-<!--This skill checks from the battery component if it is charging or not, 
-    it return success if it is charging, failure otherwise-->
-<scxml 
-  initial="idle" 
-  version="1.0" 
-  name="BatteryLevelSkillCondition"
-  datamodel="cplusplus:BatteryLevelSkillDataModel:BatteryLevelSkillDataModel.h"
-  xmlns="http://www.w3.org/2005/07/scxml">
-
-
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml initial="idle" version="1.0" name="BatteryLevelSkillCondition" datamodel="ecmascript" xmlns="http://www.w3.org/2005/07/scxml">
+    <datamodel>
+        <data id="percentage" expr="100"/>
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <data id="SKILL_FAILURE" expr="1"/>
+    </datamodel>
+    <!-- BatteryLevelSkill is a server for tick from the ROS2Condition plugin-->
+    <!-- BatteryLevelSkill is a subscriber for the /battery_level topic from the BatteryComponent-->
     <state id="idle">
-        <transition event="CMD_TICK" target="checkLevel" />
+        <transition target="checkLevel" event="CMD_TICK"/>
+        <transition target="idle" event="BatteryComponent.battery_level.Sub">
+            <assign location="percentage" expr="_event.percentage.percentage"/>
+        </transition>
     </state>
-
     <state id="checkLevel">
         <onentry>
-            <if cond="m_returnValue"> 
+            <if cond="percentage &gt; 30">
                 <send event="TICK_RESPONSE">
-                    <param name="result" expr='"SUCCESS"'/>
+                    <param name="status" expr="SKILL_SUCCESS"/>
+                    <param name="is_ok" expr="true"/>
                 </send>
-            <else/>
+                <else/>
                 <send event="TICK_RESPONSE">
-                    <param name="result" expr='"FAILURE"'/>
+                    <param name="status" expr="SKILL_FAILURE"/>
+                    <param name="is_ok" expr="true"/>
                 </send>
             </if>
         </onentry>
-        <transition target="idle" />
+        <transition target="checkLevel" event="CMD_TICK"/>
+        <transition target="idle"/>
     </state>
-
 </scxml>

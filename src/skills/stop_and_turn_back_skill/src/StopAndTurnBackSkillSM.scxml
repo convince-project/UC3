@@ -1,142 +1,88 @@
-<scxml 
-  initial="idle" 
-  version="1.0" 
-  name="StopAndTurnBackSkillAction"
-  datamodel="ecmascript"
-  xmlns="http://www.w3.org/2005/07/scxml">
-
-
-  <datamodel>
-    <data id="m_result" expr="'START'"/>
-    <data id="m_status"/>
-    <data id="NAVIGATION_STATUS_MOVING" expr="2"/>
-    <data id="NAVIGATION_STATUS_GOAL_REACHED" expr="4"/>
-    <data id="m_name" expr='"isCheckingForPeople"'/>
-  </datamodel>
-
-  <state id="idle">
-      <transition event="CMD_TICK" target="start" />
-      <transition event="CMD_HALT" target="stopNavigation" /> 
-  </state>
-
-  <state id="start">
-    <transition cond="m_result == 'START'" target="turnBack" />
-    <transition target="getStatus" />
-  </state>
-
-  <state id="turnBack">
-    <onentry>
-      <send event="NavigationComponent.TurnBack.Call"/>
-    </onentry>
-    <transition event="NavigationComponent.TurnBack.Return" target="turnBackResult"> 
-      <assign expr="_event.data.result" location="m_result"/>
-    </transition>
-  </state>
-
-  <state id="turnBackResult">
-    <transition cond="m_result == 'SUCCESS'" target="getStatus" />
-    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
-  </state>
-
-  <state id="getStatus">
-    <onentry>
-        <send event="NavigationComponent.GetNavigationStatus.Call">
-        </send>
-    </onentry>
-    <transition event="NavigationComponent.GetNavigationStatus.Return" target="getStatusResult"> 
-        <assign expr="_event.data.result" location="m_result"/>
-        <assign expr="_event.data.status" location="m_status"/>
-    </transition>
-  </state>
-
-  <state id="getStatusResult">
-    <transition cond="m_result == 'SUCCESS'" target="checkStatus" />
-    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
-  </state>
-
-  <state id="checkStatus">
-    <onentry>
-      <log expr="m_status" label="Navigation Status"/>
-    </onentry>
-    <transition cond="m_status == NAVIGATION_STATUS_MOVING" target="sendRunning" />
-    <transition cond="m_status == NAVIGATION_STATUS_GOAL_REACHED" target="setBBStatus" />
-    <transition target="sendFailure" />
-  </state>
-
-  <state id="setBBStatus">
-    <onentry>
-      <send event="BlackboardComponent.SetInt.Call">
-        <param name="field_name" expr="m_name"/>
-        <param name="value" expr="1"/>
-      </send>
-    </onentry>
-    <transition event="BlackboardComponent.SetInt.Return" target="setBBStatusResult"> 
-      <assign expr="_event.data.value" location="m_value"/>
-      <assign expr="_event.data.result" location="m_result"/>
-  </transition>
-  </state>
-
-  <state id="setBBStatusResult">
-    <transition cond="m_result == 'SUCCESS'" target="sendSuccess" />
-    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
-</state>
-
-  <state id="sendFailure">
-    <onentry>
-      <send event="TICK_RESPONSE">
-        <param name="result" expr='"FAILURE"'/>
-      </send>
-      <assign expr="'START'" location="m_result"/>
-    </onentry>
-    <transition target="idle" />
-  </state>
-
-  <state id="stopNavigation">
-    <onentry>
-        <send event="NavigationComponent.StopNavigation.Call">
-        </send>
-    </onentry>
-    <transition event="NavigationComponent.StopNavigation.Return" target="stopNavigationResult"> 
-      <assign location="m_result" expr="_event.data.result" />
-    </transition>
-  </state>
-
-  <state id="stopNavigationResult">
-    <transition cond="m_result == 'SUCCESS'" target="sendHalted" >
-      <log expr='"stopNavigation SUCCESS"'/>
-    </transition>
-    <transition cond="m_result == 'FAILURE'" target="sendHalted" >
-      <log expr='"stopNavigation FAILURE"'/>
-    </transition>
-  </state>
-
-  <state id="sendSuccess">
-      <onentry>
-        <send event="TICK_RESPONSE">
-          <param name="result" expr='"SUCCESS"'/>
-        </send>
-        <assign expr="'START'" location="m_result"/>
-      </onentry>
-      <transition target="idle" />
-  </state>
-
-  <state id="sendRunning">
-      <onentry>
-        <send event="TICK_RESPONSE">
-          <param name="result" expr='"RUNNING"'/>
-        </send>
-      </onentry>
-      <transition target="idle" />
-  </state>
-
-  <state id="sendHalted">
-      <onentry>
-          <send event="HALT_RESPONSE">
-          </send>
-          <assign expr="'START'" location="m_result"/>
-      </onentry>
-      <transition target="idle" />
-  </state>
-
-
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="StopAndTurnBackSkillAction" datamodel="ecmascript" initial="idle">
+    <datamodel>
+        <data id="status" expr="0"/>
+        <data id="result" expr="&apos;&apos;"/>
+        <data id="NAV_MOVING" expr="2"/>
+        <data id="NAV_REACHED" expr="4"/>
+        <data id="BB_FIELD" expr="&apos;isCheckingForPeople&apos;"/>
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <data id="SKILL_FAILURE" expr="1"/>
+        <data id="SKILL_RUNNING" expr="2"/>
+    </datamodel>
+    <!-- Clients -->
+    <state id="idle">
+        <transition target="callTurnBack" event="CMD_TICK">
+            <send event="NavigationComponent.TurnBack.Call"/>
+        </transition>
+        <transition target="callStopNav" event="CMD_HALT">
+            <send event="NavigationComponent.StopNavigation.Call"/>
+        </transition>
+    </state>
+    <state id="callTurnBack">
+        <transition target="afterTurnBack" event="NavigationComponent.TurnBack.Return">
+            <assign location="result" expr="_event.data.result"/>
+        </transition>
+    </state>
+    <state id="afterTurnBack">
+        <transition cond="result == &apos;SUCCESS&apos;" target="getStatus"/>
+        <transition cond="result != &apos;SUCCESS&apos;" target="failReply"/>
+    </state>
+    <state id="getStatus">
+        <onentry>
+            <send event="NavigationComponent.GetNavigationStatus.Call"/>
+        </onentry>
+        <transition target="evalStatus" event="NavigationComponent.GetNavigationStatus.Return">
+            <assign location="status" expr="_event.data.status"/>
+        </transition>
+    </state>
+    <state id="evalStatus">
+        <transition cond="status == NAV_MOVING" target="runningReply"/>
+        <transition cond="status == NAV_REACHED" target="setBBFlag"/>
+        <transition cond="status != NAV_MOVING &amp;&amp; status != NAV_REACHED" target="failReply"/>
+    </state>
+    <state id="runningReply">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_RUNNING"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="setBBFlag">
+        <onentry>
+            <send event="BlackboardComponent.SetInt.Call">
+                <param name="field_name" expr="BB_FIELD"/>
+                <param name="value" expr="1"/>
+            </send>
+        </onentry>
+        <transition target="done" event="BlackboardComponent.SetInt.Return">
+            <assign location="result" expr="_event.data.result"/>
+        </transition>
+    </state>
+    <state id="done">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="result == &apos;SUCCESS&apos; ? SKILL_SUCCESS : SKILL_FAILURE"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="failReply">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_FAILURE"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="callStopNav">
+        <transition target="halted" event="NavigationComponent.StopNavigation.Return"/>
+    </state>
+    <state id="halted">
+        <onentry>
+            <send event="HALT_RESPONSE"/>
+        </onentry>
+        <transition target="idle"/>
+    </state>
 </scxml>

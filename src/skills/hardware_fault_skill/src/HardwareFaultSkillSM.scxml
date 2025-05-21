@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="HardwareFaultSkillCondition" datamodel="ecmascript" initial="idle">
+    <datamodel>
+        <!-- valore restituito dal componente di monitoraggio -->
+        <data id="m_has_fault" expr="false"/>
+        <!-- costanti di ritorno BT -->
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <!-- nessun fault -->
+        <data id="SKILL_FAILURE" expr="1"/>
+        <!-- presente un fault -->
+    </datamodel>
+    <!-- TickCondition server -->
+    <!-- client verso il componente di monitoraggio HW -->
+    <!-- ===========  Stati  =========== -->
+    <state id="idle">
+        <!-- su tick chiedo lo stato al componente -->
+        <transition target="query" event="CMD_TICK">
+            <send event="HardwareMonitorComponent.HasFaults.Call"/>
+        </transition>
+    </state>
+    <state id="query">
+        <!-- ricevo la risposta e passo al decision making -->
+        <transition target="decide" event="HardwareMonitorComponent.HasFaults.Return">
+            <assign location="m_has_fault" expr="_event.data.has_fault"/>
+        </transition>
+    </state>
+    <state id="decide">
+        <transition cond="m_has_fault == false" target="success"/>
+        <transition cond="m_has_fault == true" target="failure"/>
+    </state>
+    <state id="success">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_SUCCESS"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="failure">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_FAILURE"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+</scxml>

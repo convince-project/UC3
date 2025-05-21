@@ -1,85 +1,60 @@
-<scxml 
-  initial="idle" 
-  version="1.0" 
-  name="SetCurrentPoiDoneSkillAction"
-  datamodel="ecmascript"
-  xmlns="http://www.w3.org/2005/07/scxml">
-
+<scxml version="1.0" xmlns="http://www.w3.org/2005/07/scxml" datamodel="ecmascript" name="SetCurrentPoiDoneSkillCondition" initial="idle">
     <datamodel>
-        <data id="m_result"/>
-        <data id="m_value" expr='1'/>
-        <data id="m_field_name_init" expr='"PoiDone"'/>
-        <data id="m_field_name" expr='"PoiDone"'/>
-        <data id="m_poi_number"/>
-        <data id="m_poi_number"/>
+        <data id="poi_number" expr="0"/>
+        <!-- <data id="poi_name" type="string" expr=""/> -->
+        <!-- <data id="field_name" type="string" expr='"PoiDone"'/>
+        <data id="field_name_init" type="string" expr='"PoiDone"'/> -->
+        <data id="value" expr="1"/>
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <data id="SKILL_FAILURE" expr="1"/>
+        <data id="SKILL_RUNNING" expr="2"/>
     </datamodel>
-
+    <!-- SetCurrentPoiDoneSkill is a server for tick from the ROS2Action plugin-->
+    <!-- SetCurrentPoiDoneSkill is a server for halt from the ROS2Action plugin-->
+    <!-- <ros_service_server service_name="/SetCurrentPoiDoneSkill/halt" type ="bt_interfaces_dummy/HaltAction"/> -->
+    <!-- SetCurrentPoiDoneSkill is a client for GetCurrentPoi from the SchedulerComponent -->
+    <!-- SetCurrentPoiDoneSkill is a client for SetInt from the BlackboardComponent -->
     <state id="idle">
-        <transition event="CMD_TICK" target="getCurrentPoi"/>
-        <transition event="CMD_HALT" target="sendHalted"/>
-    </state>
-
-    <state id="getCurrentPoi">
-        <onentry>
+        <transition target="getCurrentPoi" event="CMD_TICK">
             <send event="SchedulerComponent.GetCurrentPoi.Call"/>
-        </onentry>
-        <transition event="SchedulerComponent.GetCurrentPoi.Return" target="getCurrentPoiResult"> 
-            <assign expr="_event.data.poi_number" location="m_poi_number"/>
-            <assign expr="_event.data.result" location="m_result"/>
         </transition>
+        <!-- <ros_service_handle_request name="/SetCurrentPoiDoneSkill/halt" target="idle">
+            <ros_service_send_response name="/SetCurrentPoiDoneSkill/halt"/>
+        </ros_service_handle_request> -->
     </state>
-
-    <state id="getCurrentPoiResult">
-    <transition cond="m_result == 'SUCCESS'" target="setDone" />
-    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
-    </state>
-    
-
-    <state id="setDone">
-        <onentry>
-            <script>
-                m_field_name = m_field_name_init + m_poi_number;
-            </script>
-            <log expr='m_field_name'/>
+    <state id="getCurrentPoi">
+        <transition cond="_event.data.is_ok" target="setInt" event="SchedulerComponent.GetCurrentPoi.Return">
+            <assign location="poi_number" expr="_event.data.poi_number"/>
             <send event="BlackboardComponent.SetInt.Call">
-                <param name="field_name" expr="m_field_name"/>
-                <param name="value" expr="m_value"/>
+                <param name="field_name" expr="poi_number"/>
+                <param name="value" expr="value"/>
             </send>
-        </onentry>
-        <transition event="BlackboardComponent.SetInt.Return" target="setDoneResult"> 
-            <assign expr="_event.data.result" location="m_result"/>
         </transition>
-    </state>
-
-    <state id="setDoneResult">
-        <transition cond="m_result == 'SUCCESS'" target="sendSuccess" />
-        <transition cond="m_result == 'FAILURE'" target="sendFailure" />
-    </state>
-
-    <state id="sendFailure">
-        <onentry>
+        <transition cond="(_event.data.is_ok) == false" target="idle" event="SchedulerComponent.GetCurrentPoi.Return">
             <send event="TICK_RESPONSE">
-                <param name="result" expr='"FAILURE"'/>
+                <param name="status" expr="SKILL_FAILURE"/>
+                <param name="is_ok" expr="true"/>
             </send>
-        </onentry>
-        <transition target="idle" />
+        </transition>
+        <!-- <ros_service_handle_request name="/SetCurrentPoiDoneSkill/halt" target="idle">
+            <ros_service_send_response name="/SetCurrentPoiDoneSkill/halt"/>
+        </ros_service_handle_request> -->
     </state>
-
-    <state id="sendSuccess">
-        <onentry>
+    <state id="setInt">
+        <transition cond="_event.data.is_ok" target="idle" event="BlackboardComponent.SetInt.Return">
             <send event="TICK_RESPONSE">
-                <param name="result" expr='"SUCCESS"'/>
+                <param name="status" expr="SKILL_SUCCESS"/>
+                <param name="is_ok" expr="true"/>
             </send>
-        </onentry>
-        <transition target="idle" />
-    </state>
-
-    <state id="sendHalted">
-        <onentry>
-            <send event="HALT_RESPONSE">
+        </transition>
+        <transition cond="(_event.data.is_ok) == false" target="idle" event="BlackboardComponent.SetInt.Return">
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_FAILURE"/>
+                <param name="is_ok" expr="true"/>
             </send>
-        </onentry>
-        <transition target="idle" />
+        </transition>
+        <!-- <ros_service_handle_request name="/SetCurrentPoiDoneSkill/halt" target="idle">
+            <ros_service_send_response name="/SetCurrentPoiDoneSkill/halt"/>
+        </ros_service_handle_request> -->
     </state>
-
 </scxml>
