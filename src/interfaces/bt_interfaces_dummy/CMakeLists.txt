@@ -18,6 +18,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 "msg/ConditionResponse.msg"
 "srv/HaltAction.srv"
 "srv/TickCondition.srv"
+"srv/ReloadTree.srv"
 LIBRARY_NAME ${PROJECT_NAME}
 )
 
