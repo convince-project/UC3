@@ -8,7 +8,7 @@
   <license>TODO: License declaration</license>
 
   <build_depend>bt_nodes</build_depend>
-  <build_depend>bt_interfaces</build_depend>
+  <build_depend>bt_interfaces_dummy</build_depend>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
