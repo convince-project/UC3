@@ -132,7 +132,7 @@ RUN echo "export PATH=\$PATH:/home/user1/Groot/build" >> ~/.bashrc
 
 ENV PATH=/usr/local/Qt-6.8.3/bin:$PATH
 
-RUN /bin/bash -c "echo 'updated on 202505201540' && \
+RUN /bin/bash -c "echo 'updated on 202505221415' && \
     source /opt/ros/iron/setup.bash && \
     cd /home/user1 && \
     git clone https://github.com/convince-project/UC3.git -b  HardwareFaultSkillTest && \
@@ -149,6 +149,6 @@ ENV LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/src/robot/yarp/build/lib/
 
 ENV LD_LIBRARY_PATH=/usr/local/Qt-6.8.3/lib/:$LD_LIBRARY_PATH 
 
-ENV CYCLONE_DDS_URI=/home/user1/UC3/docker/cyclone_dds_settings.xml
+ENV CYCLONEDDS_URI=/home/user1/UC3/docker/cyclone_dds_settings.xml
 
 ENV YARP_DATA_DIRS=${YARP_DATA_DIRS}:/home/user1/UC3/launch
