@@ -7,7 +7,7 @@
   initial="idle">
 
   <datamodel>
-    <data id="m_result"      type="string" expr="''"/>
+    <data id="m_result"      type="bool" expr="false"/>
     <data id="SKILL_SUCCESS" type="int8"   expr="0"/>
     <data id="SKILL_FAILURE" type="int8"   expr="1"/>
   </datamodel>
@@ -34,7 +34,7 @@
 
   <state id="decide">
     <onentry>
-      <if cond="m_result=='SUCCESS'">
+      <if cond="m_result">
         <ros_service_send_response name="/NotifyChargedSkill/tick">
           <field name="status" expr="SKILL_SUCCESS"/>
         </ros_service_send_response>
