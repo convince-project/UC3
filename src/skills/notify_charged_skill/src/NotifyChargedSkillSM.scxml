@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="NotifyChargedSkillAction" datamodel="ecmascript" initial="idle">
     <datamodel>
-        <data id="m_result" expr="&apos;&apos;"/>
+        <data id="m_result" expr="false"/>
         <data id="SKILL_SUCCESS" expr="0"/>
         <data id="SKILL_FAILURE" expr="1"/>
     </datamodel>
@@ -15,12 +15,14 @@
     </state>
     <state id="startNotify">
         <transition target="decide" event="NotifyUserComponent.NotifyUserCharged.Return">
-            <assign location="m_result" expr="_event.is_ok"/>
+            <assign location="m_result" expr="_event.data.is_ok"/>
+            <log expr="'_event: ' + JSON.stringify(_event)"/>
         </transition>
     </state>
     <state id="decide">
         <onentry>
-            <if cond="m_result==true">
+            <log expr="'m_result value: ' + m_result"/>
+            <if cond="m_result">
                 <send event="TICK_RESPONSE">
                     <param name="status" expr="SKILL_SUCCESS"/>
                 </send>
