@@ -34,6 +34,13 @@ yarp run --server /bt --log
 
 then launch the various files from the application **convince_bt.xml**
 
+## compile the docker with ROS2 IRON
+
+to compile the docker with ros2 iron:
+```
+git checkout iron_docker;
+cd UC3/docker/; docker build -t ste93/convince:ubuntu_22.04_qt_6.8.3_sim  -f Dockerfile.bt --build-arg base_img=ste93/r1images:tourCore2_ubuntu22.04_iron_stable_qt_6.8.3 .
+```
 <!-- 
 <div align="center">
   Journal, vol. X, no. y, pp. abc-def, Month Year
