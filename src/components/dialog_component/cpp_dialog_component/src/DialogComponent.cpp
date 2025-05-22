@@ -695,9 +695,10 @@ bool DialogComponent::SetLanguage(const std::string &newLang)
     {
         if (!rclcpp::ok())
         {
-            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setLangClient'. Exiting.");
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'Scheduler Component SetLanguage'. Exiting.");
             return false;
         }
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Waiting for SchedulerComponent/SetLanguage Service");
     }
     auto result = setLangClient->async_send_request(request);
     if (rclcpp::spin_until_future_complete(setLangClientNode, result) == rclcpp::FutureReturnCode::SUCCESS)
