@@ -23,8 +23,7 @@
 
   <state id="idle">
     <ros_service_handle_request name="/ArePeoplePresentSkill/tick" target="getStatus">
-      <ros_service_send_request
-        name="/TurnBackManagerComponent/IsAllowedToContinue"/>
+      <ros_service_send_request name="/TurnBackManagerComponent/IsAllowedToContinue"/>
     </ros_service_handle_request>
   </state>
 

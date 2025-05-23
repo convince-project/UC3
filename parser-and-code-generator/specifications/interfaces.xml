@@ -588,6 +588,10 @@
                 </ROS2data>
             </protocol>
             <returnValue>
+                <dataType>string</dataType>
+                <dataField>result</dataField>
+            </returnValue>
+            <returnValue>
                 <dataType>bool</dataType>
                 <dataField>is_allowed</dataField>
             </returnValue>
