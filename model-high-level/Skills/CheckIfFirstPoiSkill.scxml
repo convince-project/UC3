@@ -24,8 +24,7 @@
 
   <state id="idle">
     <ros_service_handle_request name="/CheckIfFirstPoiSkill/tick" target="getPoi">
-      <ros_service_send_request
-        name="/SchedulerComponent/GetCurrentPoi"/>
+      <ros_service_send_request name="/SchedulerComponent/GetCurrentPoi"/>
     </ros_service_handle_request>
   </state>
 
