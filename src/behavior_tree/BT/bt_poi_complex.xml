@@ -98,7 +98,7 @@
 
   <BehaviorTree ID="PeopleFollowing">
     <ReactiveFallback>
-      <ROS2Condition name="CheckIfStart2" interface="ROS2SERVICE" isMonitored="false" />
+      <ROS2Condition name="CheckIfStart" interface="ROS2SERVICE" isMonitored="false" />
       <Inverter>
         <ROS2Condition name="IsAllowedToTurnBack" interface="ROS2SERVICE" isMonitored="false" />
       </Inverter>
@@ -114,7 +114,7 @@
         </ReactiveFallback>
         <ROS2Action name="RunTimer" interface="ROS2SERVICE" isMonitored="false" />
         <ROS2Action name="SayFollowMe" interface="ROS2SERVICE" isMonitored="false" />
-        <ROS2Action name="Wait2" interface="ROS2SERVICE" isMonitored="false" />
+        <ROS2Action name="Wait" interface="ROS2SERVICE" isMonitored="false" />
       </ReactiveSequence>
     </ReactiveFallback>
   </BehaviorTree>
@@ -174,7 +174,7 @@
   <BehaviorTree ID="TourDuration">
     <Fallback>
       <ReactiveSequence>
-        <ROS2Condition name="CheckIfStart3" interface="ROS2SERVICE" isMonitored="false" />
+        <ROS2Condition name="CheckIfStart" interface="ROS2SERVICE" isMonitored="false" />
         <ROS2Action name="StopTourTimer" interface="ROS2SERVICE" isMonitored="false" />
       </ReactiveSequence>
       <ReactiveSequence>
