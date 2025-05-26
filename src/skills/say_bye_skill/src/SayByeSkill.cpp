@@ -1,4 +1,4 @@
-#include "SayDurationExceededSkill.h"
+#include "SayByeSkill.h"
 #include <future>
 #include <QTimer>
 #include <QDebug>
@@ -34,19 +34,19 @@ T convert(const std::string& str) {
     }
 }
 
-SayDurationExceededSkill::SayDurationExceededSkill(std::string name ) :
+SayByeSkill::SayByeSkill(std::string name ) :
 		m_name(std::move(name))
 {
     
 }
 
-void SayDurationExceededSkill::spin(std::shared_ptr<rclcpp::Node> node)
+void SayByeSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
 	rclcpp::spin(node);
 	rclcpp::shutdown();
 }
 
-bool SayDurationExceededSkill::start(int argc, char*argv[])
+bool SayByeSkill::start(int argc, char*argv[])
 {
 	if(!rclcpp::ok())
 	{
@@ -54,18 +54,18 @@ bool SayDurationExceededSkill::start(int argc, char*argv[])
 	}
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
-	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "SayDurationExceededSkill::start");
-	std::cout << "SayDurationExceededSkill::start";
+	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "SayByeSkill::start");
+	std::cout << "SayByeSkill::start";
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
-                                                                           	std::bind(&SayDurationExceededSkill::tick,
+                                                                           	std::bind(&SayByeSkill::tick,
                                                                            	this,
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
   
 	m_haltService = m_node->create_service<bt_interfaces_dummy::srv::HaltAction>(m_name + "Skill/halt",
-                                                                            	std::bind(&SayDurationExceededSkill::halt,
+                                                                            	std::bind(&SayByeSkill::halt,
                                                                             	this,
                                                                             	std::placeholders::_1,
                                                                             	std::placeholders::_2));
@@ -258,103 +258,9 @@ bool SayDurationExceededSkill::start(int argc, char*argv[])
       m_stateMachine.submitEvent("SchedulerComponent.GetCurrentAction.Return", data);
       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.GetCurrentAction.Return");
   });
-  m_stateMachine.connectToEvent("BlackboardComponent.SetInt.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
-      std::shared_ptr<rclcpp::Node> nodeSetInt = rclcpp::Node::make_shared(m_name + "SkillNodeSetInt");
-      std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::SetIntBlackboard>> clientSetInt = nodeSetInt->create_client<blackboard_interfaces::srv::SetIntBlackboard>("/BlackboardComponent/SetInt");
-      auto request = std::make_shared<blackboard_interfaces::srv::SetIntBlackboard::Request>();
-      auto eventParams = event.data().toMap();
-      
-      request->value = convert<decltype(request->value)>(eventParams["value"].toString().toStdString());
-      request->field_name = convert<decltype(request->field_name)>(eventParams["field_name"].toString().toStdString());
-      bool wait_succeded{true};
-      int retries = 0;
-      while (!clientSetInt->wait_for_service(std::chrono::seconds(1))) {
-          if (!rclcpp::ok()) {
-              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'SetInt'. Exiting.");
-              wait_succeded = false;
-              break;
-          } 
-          retries++;
-          if(retries == SERVICE_TIMEOUT) {
-              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while waiting for the service 'SetInt'.");
-              wait_succeded = false;
-              break;
-          }
-      }
-      if (wait_succeded) {                                                                   
-          auto result = clientSetInt->async_send_request(request);
-          const std::chrono::seconds timeout_duration(SERVICE_TIMEOUT);
-          auto futureResult = rclcpp::spin_until_future_complete(nodeSetInt, result, timeout_duration);
-          if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
-          {
-              auto response = result.get();
-              if( response->is_ok == true) {
-                  QVariantMap data;
-                  data.insert("is_ok", true);
-                  m_stateMachine.submitEvent("BlackboardComponent.SetInt.Return", data);
-                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.SetInt.Return");
-                  return;
-              }
-          }
-          else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
-              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'SetInt'.");
-          }
-      }
-      QVariantMap data;
-      data.insert("is_ok", false);
-      m_stateMachine.submitEvent("BlackboardComponent.SetInt.Return", data);
-      RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.SetInt.Return");
-  });
-  m_stateMachine.connectToEvent("BlackboardComponent.GetInt.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
-      std::shared_ptr<rclcpp::Node> nodeGetInt = rclcpp::Node::make_shared(m_name + "SkillNodeGetInt");
-      std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::GetIntBlackboard>> clientGetInt = nodeGetInt->create_client<blackboard_interfaces::srv::GetIntBlackboard>("/BlackboardComponent/GetInt");
-      auto request = std::make_shared<blackboard_interfaces::srv::GetIntBlackboard::Request>();
-      auto eventParams = event.data().toMap();
-      
-      request->field_name = convert<decltype(request->field_name)>(eventParams["field_name"].toString().toStdString());
-      bool wait_succeded{true};
-      int retries = 0;
-      while (!clientGetInt->wait_for_service(std::chrono::seconds(1))) {
-          if (!rclcpp::ok()) {
-              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'GetInt'. Exiting.");
-              wait_succeded = false;
-              break;
-          } 
-          retries++;
-          if(retries == SERVICE_TIMEOUT) {
-              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while waiting for the service 'GetInt'.");
-              wait_succeded = false;
-              break;
-          }
-      }
-      if (wait_succeded) {                                                                   
-          auto result = clientGetInt->async_send_request(request);
-          const std::chrono::seconds timeout_duration(SERVICE_TIMEOUT);
-          auto futureResult = rclcpp::spin_until_future_complete(nodeGetInt, result, timeout_duration);
-          if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
-          {
-              auto response = result.get();
-              if( response->is_ok == true) {
-                  QVariantMap data;
-                  data.insert("is_ok", true);
-                  data.insert("value", response->value);
-                  m_stateMachine.submitEvent("BlackboardComponent.GetInt.Return", data);
-                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.GetInt.Return");
-                  return;
-              }
-          }
-          else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
-              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'GetInt'.");
-          }
-      }
-      QVariantMap data;
-      data.insert("is_ok", false);
-      m_stateMachine.submitEvent("BlackboardComponent.GetInt.Return", data);
-      RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.GetInt.Return");
-  });
   
   m_stateMachine.connectToEvent("TICK_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){
-    RCLCPP_INFO(m_node->get_logger(), "SayDurationExceededSkill::tickReturn %s", event.data().toMap()["status"].toString().toStdString().c_str());
+    RCLCPP_INFO(m_node->get_logger(), "SayByeSkill::tickReturn %s", event.data().toMap()["status"].toString().toStdString().c_str());
     std::string result = event.data().toMap()["status"].toString().toStdString();
     if (result == std::to_string(SKILL_SUCCESS) )
     {
@@ -371,7 +277,7 @@ bool SayDurationExceededSkill::start(int argc, char*argv[])
   });
     
   m_stateMachine.connectToEvent("HALT_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){
-    RCLCPP_INFO(m_node->get_logger(), "SayDurationExceededSkill::haltresponse");
+    RCLCPP_INFO(m_node->get_logger(), "SayByeSkill::haltresponse");
     m_haltResult.store(true);
   });
 
@@ -386,11 +292,11 @@ bool SayDurationExceededSkill::start(int argc, char*argv[])
 	return true;
 }
 
-void SayDurationExceededSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Request> request,
+void SayByeSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Request> request,
                                 std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Response>      response)
 {
   std::lock_guard<std::mutex> lock(m_requestMutex);
-  RCLCPP_INFO(m_node->get_logger(), "SayDurationExceededSkill::tick");
+  RCLCPP_INFO(m_node->get_logger(), "SayByeSkill::tick");
   m_tickResult.store(Status::undefined);
   m_stateMachine.submitEvent("CMD_TICK");
   
@@ -407,26 +313,27 @@ void SayDurationExceededSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_i
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;            
-      case Status::undefined:
-          response->status = SKILL_FAILURE; // Default case, should not happen
-          break;
+          break;      
+        case Status::undefined:
+          response->status = SKILL_FAILURE;
+          RCLCPP_ERROR(m_node->get_logger(), "SayByeSkill::tick: Undefined status received.");
+          break;      
   }
-  RCLCPP_INFO(m_node->get_logger(), "SayDurationExceededSkill::tickDone");
+  RCLCPP_INFO(m_node->get_logger(), "SayByeSkill::tickDone");
   response->is_ok = true;
 }
 
-void SayDurationExceededSkill::halt( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::HaltAction::Request> request,
+void SayByeSkill::halt( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::HaltAction::Request> request,
     [[maybe_unused]] std::shared_ptr<bt_interfaces_dummy::srv::HaltAction::Response> response)
 {
   std::lock_guard<std::mutex> lock(m_requestMutex);
-  RCLCPP_INFO(m_node->get_logger(), "SayDurationExceededSkill::halt");
+  RCLCPP_INFO(m_node->get_logger(), "SayByeSkill::halt");
   m_haltResult.store(false);
   m_stateMachine.submitEvent("CMD_HALT");
   while(!m_haltResult.load()) {
       std::this_thread::sleep_for (std::chrono::milliseconds(100));
   }
-  RCLCPP_INFO(m_node->get_logger(), "SayDurationExceededSkill::haltDone");
+  RCLCPP_INFO(m_node->get_logger(), "SayByeSkill::haltDone");
   response->is_ok = true;
 }
 
