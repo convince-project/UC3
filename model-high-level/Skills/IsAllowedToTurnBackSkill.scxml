@@ -6,13 +6,13 @@
   datamodel="ecmascript"
   initial="idle">
 
-
-
   <datamodel>
     <data id="m_result"        type="string"  expr="''"/>
     <data id="m_is_allowed"    type="boolean" expr="false"/>
     <data id="m_value"         type="string"  expr="''"/>
     <data id="m_name"          type="string"  expr="'turnBackState'"/>
+    <data id="SUCCESS_RESULT"  type="string"  expr="'SUCCESS'"/>
+    <data id="NOT_TURNING"     type="string"  expr="'not_turning'"/>
     <data id="SKILL_SUCCESS"   type="int8"    expr="0"/>
     <data id="SKILL_FAILURE"   type="int8"    expr="1"/>
   </datamodel>
@@ -24,12 +24,14 @@
   <ros_service_client service_name="/TurnBackManagerComponent/IsAllowedToTurnBack" type="turnbackmanager_interfaces_dummy/IsAllowedToTurnBack"/>
   <ros_service_client service_name="/BlackboardComponent/GetString" type="blackboard_interfaces_dummy/GetStringBlackboard"/>
 
+  <!-- Check if turn back is allowed by manager -->
   <state id="idle">
     <ros_service_handle_request name="/IsAllowedToTurnBackSkill/tick" target="getAllowed">
       <ros_service_send_request name="/TurnBackManagerComponent/IsAllowedToTurnBack"/>
     </ros_service_handle_request>
   </state>
 
+  <!-- Receive permission response from manager -->
   <state id="getAllowed">
     <ros_service_handle_response name="/TurnBackManagerComponent/IsAllowedToTurnBack" target="evaluateAllowed">
       <assign location="m_result"     expr="_res.result"/>
@@ -37,12 +39,17 @@
     </ros_service_handle_response>
   </state>
 
+  <!-- Evaluate manager's response -->
   <state id="evaluateAllowed">
-    <transition cond="m_result!='SUCCESS'" target="failure"/>
-    <transition cond="m_is_allowed"     target="success"/>
-    <transition                        target="getTurning"/>
+    <!-- Service call failed -->
+    <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+    <!-- Explicitly allowed by manager -->
+    <transition cond="m_is_allowed" target="success"/>
+    <!-- Not explicitly allowed, check current turning state -->
+    <transition target="getTurning"/>
   </state>
 
+  <!-- Query blackboard for current turning state -->
   <state id="getTurning">
     <onentry>
       <ros_service_send_request name="/BlackboardComponent/GetString">
@@ -55,12 +62,17 @@
     </ros_service_handle_response>
   </state>
 
+  <!-- Evaluate blackboard turning state -->
   <state id="evaluateTurning">
-    <transition cond="m_result!='SUCCESS'"         target="failure"/>
-    <transition cond="m_value=='not_turning'"     target="failure"/>
-    <transition                                target="success"/>
+    <!-- Blackboard query failed -->
+    <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+    <!-- Currently not turning, so turn back not allowed -->
+    <transition cond="m_value == NOT_TURNING" target="failure"/>
+    <!-- Currently turning, so turn back is allowed -->
+    <transition target="success"/>
   </state>
 
+  <!-- Return failure result -->
   <state id="failure">
     <onentry>
       <ros_service_send_response name="/IsAllowedToTurnBackSkill/tick">
@@ -71,6 +83,7 @@
     <transition target="idle"/>
   </state>
 
+  <!-- Return success result -->
   <state id="success">
     <onentry>
       <ros_service_send_response name="/IsAllowedToTurnBackSkill/tick">
