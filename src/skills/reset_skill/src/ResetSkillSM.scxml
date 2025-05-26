@@ -2,8 +2,8 @@
 <scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="ResetSkillAction" datamodel="ecmascript" initial="idle">
     <datamodel>
         <data id="poi_number" expr="1"/>
-        <data id="poi_number_1" expr="1"/>
-        <data id="poi_number_2" expr="2"/>
+        <data id="poi_name_1" expr="&apos;1&apos;"/>
+        <data id="poi_name_2" expr="&apos;2&apos;"/>
         <data id="value" expr="0"/>
         <data id="m_result" expr="&apos;&apos;"/>
         <data id="SUCCESS_RESULT" expr="&apos;SUCCESS&apos;"/>
@@ -32,7 +32,7 @@
     <state id="setInt1">
         <onentry>
             <send event="BlackboardComponent.SetInt.Call">
-                <param name="field_name" expr="poi_number_1"/>
+                <param name="field_name" expr="poi_name_1"/>
                 <param name="value" expr="value"/>
             </send>
         </onentry>
@@ -47,7 +47,7 @@
     <state id="setInt2">
         <onentry>
             <send event="BlackboardComponent.SetInt.Call">
-                <param name="field_name" expr="poi_number_2"/>
+                <param name="field_name" expr="poi_name_2"/>
                 <param name="value" expr="value"/>
             </send>
         </onentry>
