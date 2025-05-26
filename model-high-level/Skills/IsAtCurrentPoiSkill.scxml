@@ -54,6 +54,7 @@
       <if cond="_res.result!='SUCCESS' || m_status==NAV_STATUS_MOVING">
         <ros_service_send_response name="/IsAtCurrentPoiSkill/tick">
           <field name="status" expr="SKILL_FAILURE"/>
+          <field name="is_ok" expr="true"/>
         </ros_service_send_response>
       <else/>
         <ros_service_send_request name="/NavigationComponent/CheckNearToPoi">
@@ -76,10 +77,12 @@
       <if cond="m_is_near">
         <ros_service_send_response name="/IsAtCurrentPoiSkill/tick">
           <field name="status" expr="SKILL_SUCCESS"/>
+          <field name="is_ok" expr="true"/>
         </ros_service_send_response>
       <else/>
         <ros_service_send_response name="/IsAtCurrentPoiSkill/tick">
           <field name="status" expr="SKILL_FAILURE"/>
+          <field name="is_ok" expr="true"/>
         </ros_service_send_response>
       </if>
     </onentry>
@@ -90,6 +93,7 @@
     <onentry>
       <ros_service_send_response name="/IsAtCurrentPoiSkill/tick">
         <field name="status" expr="SKILL_FAILURE"/>
+        <field name="is_ok" expr="true"/>
       </ros_service_send_response>
     </onentry>
     <transition target="idle"/>

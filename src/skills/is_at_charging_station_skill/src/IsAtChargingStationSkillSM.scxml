@@ -26,10 +26,12 @@
             <if cond="_res.result!=&apos;SUCCESS&apos;">
                 <send event="TICK_RESPONSE">
                     <param name="status" expr="SKILL_FAILURE"/>
+                    <param name="is_ok" expr="true"/>
                 </send>
                 <elseif cond="m_status == NAV_STATUS_MOVING"/>
                 <send event="TICK_RESPONSE">
                     <param name="status" expr="SKILL_FAILURE"/>
+                    <param name="is_ok" expr="true"/>
                 </send>
                 <else/>
                 <send event="NavigationComponent.CheckNearToPoi.Call">
@@ -50,10 +52,12 @@
             <if cond="m_is_near">
                 <send event="TICK_RESPONSE">
                     <param name="status" expr="SKILL_SUCCESS"/>
+                    <param name="is_ok" expr="true"/>
                 </send>
                 <else/>
                 <send event="TICK_RESPONSE">
                     <param name="status" expr="SKILL_FAILURE"/>
+                    <param name="is_ok" expr="true"/>
                 </send>
             </if>
         </onentry>

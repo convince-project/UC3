@@ -4,10 +4,8 @@
         <data id="NAV_STATUS_MOVING" expr="2"/>
         <data id="distance" expr="0.5"/>
         <data id="m_poi_name" expr="&apos;&apos;"/>
-        <data id="m_poiNumber" expr="-1"/>
         <data id="m_status" expr="0"/>
         <data id="m_is_near" expr="false"/>
-        <data id="m_getPoiSucceded" expr="false"/>
         <data id="SKILL_SUCCESS" expr="0"/>
         <data id="SKILL_FAILURE" expr="1"/>
     </datamodel>
@@ -21,25 +19,15 @@
     <state id="getPoi">
         <transition target="afterPoi" event="SchedulerComponent.GetCurrentPoi.Return">
             <assign location="m_poi_name" expr="_event.data.poi_name"/>
-            <assign location="m_getPoiSucceded" expr="_event.data.is_ok"/>
-            <assign location="m_poiNumber" expr="_event.data.poi_number"/>
-            
         </transition>
     </state>
     <state id="afterPoi">
-        <onentry>
-            <log expr="'afterPoi: m_poi_name: ' + m_poi_name"/>
-        </onentry>
-        <transition cond="m_getPoiSucceded" target="getStatus">
+        <transition cond="_res.result==&apos;SUCCESS&apos;" target="getStatus" event="CMD_TICK">
             <send event="NavigationComponent.GetNavigationStatus.Call"/>
         </transition>
-        <transition cond="!m_getPoiSucceded" target="failure"/>
+        <transition cond="_res.result!=&apos;SUCCESS&apos;" target="failure" event="CMD_TICK"/>
     </state>
     <state id="getStatus">
-        <onentry>
-            <log expr="'getStatus: m_poi_name: ' + m_poi_name"/>
-        </onentry>
-
         <transition target="decideStatus" event="NavigationComponent.GetNavigationStatus.Return">
             <assign location="m_status" expr="_event.data.status"/>
         </transition>
@@ -49,6 +37,7 @@
             <if cond="_res.result!=&apos;SUCCESS&apos; || m_status==NAV_STATUS_MOVING">
                 <send event="TICK_RESPONSE">
                     <param name="status" expr="SKILL_FAILURE"/>
+                    <param name="is_ok" expr="true"/>
                 </send>
                 <else/>
                 <send event="NavigationComponent.CheckNearToPoi.Call">
@@ -69,10 +58,12 @@
             <if cond="m_is_near">
                 <send event="TICK_RESPONSE">
                     <param name="status" expr="SKILL_SUCCESS"/>
+                    <param name="is_ok" expr="true"/>
                 </send>
                 <else/>
                 <send event="TICK_RESPONSE">
                     <param name="status" expr="SKILL_FAILURE"/>
+                    <param name="is_ok" expr="true"/>
                 </send>
             </if>
         </onentry>
@@ -82,6 +73,7 @@
         <onentry>
             <send event="TICK_RESPONSE">
                 <param name="status" expr="SKILL_FAILURE"/>
+                <param name="is_ok" expr="true"/>
             </send>
         </onentry>
         <transition target="idle"/>
