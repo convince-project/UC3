@@ -99,7 +99,7 @@ bool IsAtCurrentPoiSkill::start(int argc, char*argv[])
                   QVariantMap data;
                   data.insert("is_ok", true);
                   data.insert("poi_number", response->poi_number);
-                  data.insert("poi_name", response->poi_name.c_str());
+                  data.insert("poi_name", response->poi_name);
                   m_stateMachine.submitEvent("SchedulerComponent.GetCurrentPoi.Return", data);
                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.GetCurrentPoi.Return");
                   return;

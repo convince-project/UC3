@@ -22,10 +22,12 @@
             <if cond="m_is_closing">
                 <send event="TICK_RESPONSE">
                     <param name="status" expr="SKILL_SUCCESS"/>
+                    <param name="is_ok" expr="true"/>
                 </send>
                 <else/>
                 <send event="TICK_RESPONSE">
                     <param name="status" expr="SKILL_FAILURE"/>
+                    <param name="is_ok" expr="true"/>
                 </send>
             </if>
         </onentry>
