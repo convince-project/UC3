@@ -2,7 +2,6 @@
 
     <datamodel>
         <data id="poi_name" type="string" expr="''"/>
-        <data id="poi_number" type="int32" expr="0"/>
         <data id="status" type="int32" expr="0"/>
         <data id="result" type="bool" expr="true"/>
         <data id="SKILL_SUCCESS" type="int8" expr="0" />
@@ -38,7 +37,7 @@
 
     <state id="goalResponse">
         <ros_action_handle_goal_response name="go_to_poi_action" accept="wait_result" reject="send_failure" />
-        <ros_service_handle_request name="/GoToPoiActionSkill/tick" target="getPoi">
+        <ros_service_handle_request name="/GoToPoiActionSkill/tick" target="goalResponse">
             <ros_service_send_response name="/GoToPoiActionSkill/tick">
                 <field name="is_ok" expr="true"/>
                 <field name="status" expr="SKILL_RUNNING"/>
