@@ -43,9 +43,9 @@ class InteractionService(Node):
             self.saved_embeddings = dict()
             self.get_logger().info("New conversation started, resetting saved interactions and embeddings")
 
-        if request.llm_context not in self.saved_interactions and request.llm_context not in self.saved_embeddings:
-            self.saved_interactions[request.llm_context] = []
-            self.saved_embeddings[request.llm_context] = None
+        if request.context not in self.saved_interactions and request.context not in self.saved_embeddings:
+            self.saved_interactions[request.context] = []
+            self.saved_embeddings[request.context] = None
 
         # self.get_logger().info("Previous interactions: ", self.saved_interactions)
         self.get_logger().info(f"Current interaction: {request.interaction}")
@@ -56,7 +56,7 @@ class InteractionService(Node):
         # self.get_logger().info(embedding.shape)
 
         # start = time.time()
-        similarities = self.model.similarity(embedding, self.saved_embeddings[request.llm_context]) if self.saved_embeddings[request.llm_context] is not None else np.array([[0]])
+        similarities = self.model.similarity(embedding, self.saved_embeddings[request.context]) if self.saved_embeddings[request.context] is not None else np.array([[0]])
         # self.get_logger().info("Similarities calculated in %s seconds" % (time.time() - start))
         # self.get_logger().info(similarities)
         # self.get_logger().info(similarities.shape)
@@ -72,10 +72,10 @@ class InteractionService(Node):
             duplicate_index = int(max_sim_index[1])
         else:
             # start = time.time()
-            self.saved_interactions[request.llm_context].append(request.interaction)
-            self.saved_embeddings[request.llm_context] = np.concatenate(
-                (self.saved_embeddings[request.llm_context], embedding)
-            ) if self.saved_embeddings[request.llm_context] is not None else embedding
+            self.saved_interactions[request.context].append(request.interaction)
+            self.saved_embeddings[request.context] = np.concatenate(
+                (self.saved_embeddings[request.context], embedding)
+            ) if self.saved_embeddings[request.context] is not None else embedding
             # self.get_logger().info("Embeddings concatenated in %s seconds" % (time.time() - start))
             # self.get_logger().info(self.saved_embeddings.shape)
 
@@ -85,7 +85,7 @@ class InteractionService(Node):
         response.index = duplicate_index
         response.is_ok = True
         if duplicate_index != -1:
-            self.get_logger().info(f'Duplicate interaction detected: previous "{self.saved_interactions[request.llm_context][duplicate_index]}" and current "{request.interaction}"')
+            self.get_logger().info(f'Duplicate interaction detected: previous "{self.saved_interactions[request.context][duplicate_index]}" and current "{request.interaction}"')
 
         self.get_logger().info("-" * 50)
 

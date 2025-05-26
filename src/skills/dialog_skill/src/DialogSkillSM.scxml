@@ -16,8 +16,7 @@
     <data id="m_is_beginning_of_conversation"/>
     <data id="m_language"/>
     <data id="topic"/>
-    <data id="m_needs_more_processing"/>
-    <data id="m_llm_context"/>
+    <data id="m_context"/>
     <data id="m_is_poi_ended"/>
   </datamodel>
 
@@ -67,76 +66,6 @@
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
   </state>
 
-
-
-<!-- Added the set language utility at each interaction, so in a future we can handle questions in different languages in the same session -->
-
-
-<state id="getLanguage">
-    <onentry>
-      <send event="SchedulerComponent.GetCurrentLanguage.Call">
-      </send>
-
-      <log label="State getLanguage" expr="m_result"/>
-      <log label="Interaction" expr="m_interaction"/>
-      <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/>
-
-      <!-- <script>
-        topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
-        qDebug() &lt;&lt; "entering getLanguage" &lt;&lt; topic;
-      </script> -->
-    </onentry>
-    <transition event="SchedulerComponent.GetCurrentLanguage.Return" target="getLanguageResult">
-      <assign expr="_event.data.result" location="m_result"/>
-      <assign expr="_event.data.language" location="m_language"/>
-    </transition>
-  </state>
-
-  <state id="getLanguageResult">
-    <onentry>
-
-      <!-- <script>
-        topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
-        qDebug() &lt;&lt; "entering getLanguageResult" &lt;&lt; topic;
-      </script> -->
-    </onentry>
-    <transition cond="m_result == 'SUCCESS'" target="setLanguage" />
-    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
-  </state>
-
-  <state id="setLanguage">
-    <onentry>
-        <send event="DialogComponent.SetLanguage.Call">
-          <param name="new_language" expr="m_language"/>
-        </send>
-
-        <log label="State setLanguage" expr="m_result"/>
-        <log label="Interaction" expr="m_interaction"/>
-        <log label="Language" expr="m_language"/>
-        <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/>
-
-
-        <!-- <script>
-          topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
-          qDebug() &lt;&lt; "entering setLanguage" &lt;&lt; topic;
-        </script> -->
-    </onentry>
-    <transition event="DialogComponent.SetLanguage.Return" target="setLanguageResult">
-      <assign expr="_event.data.result" location="m_result"/>
-    </transition>
-  </state>
-
-  <state id="setLanguageResult">
-    <onentry>
-      <script>
-        topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
-        qDebug() &lt;&lt; "entering setLanguageResult" &lt;&lt; topic;
-      </script>
-    </onentry>
-    <transition cond="m_result == 'SUCCESS'" target="checkDuplicate" />
-    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
-  </state>
-
   <state id="manageContext">
     <onentry>
         <send event="DialogComponent.ManageContext.Call">
@@ -152,8 +81,7 @@
     <transition event="DialogComponent.ManageContext.Return" target="manageContextResult">
       <assign expr="_event.data.result" location="m_result"/>
       <assign expr="_event.data.language" location="m_language"/>
-      <assign expr="_event.data.needsMoreProcessing" location="m_needs_more_processing"/>
-      <assign expr="_event.data.llmContext" location="m_llm_context"/>
+      <assign expr="_event.data.context" location="m_context"/>
       <assign expr="_event.data.isPoIEnded" location="m_is_poi_ended"/>
     </transition>
   </state>
@@ -176,8 +104,7 @@
       <log label="Interaction" expr="m_interaction"/>
       <log label="Language" expr="m_language"/>
       <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/> 
-      <log label="Needs more processing" expr="m_needs_more_processing"/>
-      <log label="LLM context" expr="m_llm_context"/>
+      <log label="LLM context" expr="m_context"/>
       <log label="Is tour ended" expr="m_is_poi_ended"/>
 
       <!-- <script>
@@ -185,16 +112,49 @@
         qDebug() &lt;&lt; "entering evaluateDuplicate" &lt;&lt; topic;
       </script> -->
     </onentry>
-    <!-- <transition cond="m_duplicate_index &gt; 0" target="shortenAndSpeak"/>
-    <transition cond="m_duplicate_index &lt; 0" target="interpret"/> -->
-    <!-- undesirable solution, but I couldn't make the integer comparison work -->
+
+    <!-- If the visitor asked to start/continue/end the tour, we send a success response and end the conversation -->
     <transition cond="m_is_poi_ended == true" target="sendSuccess"/>
-    <transition cond="m_needs_more_processing == true" target="checkDuplicate"/>
-    <transition cond="m_needs_more_processing == false" target="waitForInteraction"/> 
+    <!-- Else, continue the pipeline -->
+    <transition cond="m_is_poi_ended == false" target="setLanguage"/>
+
   </state>
 
+  <state id="setLanguage">
+    <onentry>
 
-<!-- End of the Language setting utility -->
+        <log label="State setLanguage" expr="m_result"/>
+        <log label="Interaction" expr="m_interaction"/>
+        <log label="Language" expr="m_language"/>
+        <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/>
+        <log label="LLM context" expr="m_context"/>
+        <log label="Is tour ended" expr="m_is_poi_ended"/>
+
+        <send event="DialogComponent.SetLanguage.Call">
+          <param name="new_language" expr="m_language"/>
+        </send>
+
+        <!-- <script>
+          topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
+          qDebug() &lt;&lt; "entering setLanguage" &lt;&lt; topic;
+        </script> -->
+    </onentry>
+    <transition event="DialogComponent.SetLanguage.Return" target="setLanguageResult">
+      <assign expr="_event.data.result" location="m_result"/>
+    </transition>
+  </state>
+
+  <state id="setLanguageResult">
+    <onentry>
+      <!-- <script>
+        topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
+        qDebug() &lt;&lt; "entering setLanguageResult" &lt;&lt; topic;
+      </script> -->
+    </onentry>
+    <transition cond="m_result == 'SUCCESS'" target="checkDuplicate" />
+    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+  </state>
+
 
   <state id="checkDuplicate">
     <onentry>
@@ -202,14 +162,13 @@
         <log label="Interaction" expr="m_interaction"/>
         <log label="Language" expr="m_language"/>
         <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/> 
-        <log label="Needs more processing" expr="m_needs_more_processing"/>
-        <log label="LLM context" expr="m_llm_context"/>
+        <log label="LLM context" expr="m_context"/>
         <log label="Is tour ended" expr="m_is_poi_ended"/>
 
         <send event="DialogComponent.CheckDuplicate.Call">
           <param name="interaction" expr="m_interaction"/>
           <param name="is_beginning_of_conversation" expr="m_is_beginning_of_conversation == 'true'"/>
-          <param name="llm_context" expr="m_llm_context"/>
+          <param name="context" expr="m_context"/>
         </send>
         <!-- <assign expr="False" location="m_is_beginning_of_conversation"/> -->
         <script>
@@ -251,8 +210,7 @@
       <log label="Language" expr="m_language"/>
       <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/> 
       <log label="Duplicate index" expr="m_duplicate_index"/>
-      <log label="Needs more processing" expr="m_needs_more_processing"/>
-      <log label="LLM context" expr="m_llm_context"/>
+      <log label="LLM context" expr="m_context"/>
       <log label="Is tour ended" expr="m_is_poi_ended"/>
 
       <!-- <script>
@@ -263,8 +221,11 @@
     <!-- <transition cond="m_duplicate_index &gt; 0" target="shortenAndSpeak"/>
     <transition cond="m_duplicate_index &lt; 0" target="interpret"/> -->
     <!-- undesirable solution, but I couldn't make the integer comparison work -->
-    <transition cond="m_duplicate_index == '-1'" target="answerAndSpeak"/> 
-    <transition target="shortenAndSpeak"/>
+    <transition cond="m_duplicate_index != '-1'" target="shortenAndSpeak"/>
+    <!-- if the context requires a predefined answer, such as for describing something or explaining the function, go in InterpretCommans State -->
+    <transition cond="m_context == 'explainFunction'" target="interpretCommand"/>
+    <transition cond="m_context == 'explainDescription'" target="interpretCommand"/>
+    <transition target="answerAndSpeak"/>
     
   </state>
 
@@ -272,14 +233,18 @@
 
   <state id="shortenAndSpeak">
     <onentry>
+        <log label="State shortenAndSpeak" expr="m_result"/>
+        <log label="Interaction" expr="m_interaction"/>
+        <log label="Language" expr="m_language"/>
+        <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/> 
+        <log label="Duplicate index" expr="m_duplicate_index"/>
+        <log label="LLM context" expr="m_context"/>
+        <log label="Is tour ended" expr="m_is_poi_ended"/>
+
         <send event="DialogComponent.ShortenAndSpeak.Call">
           <param name="index" expr="m_duplicate_index"/>
-          <param name="llm_context" expr="m_llm_context"/>
+          <param name="context" expr="m_context"/>
           <param name="interaction" expr="m_interaction"/>
-          <param name="is_beginning_of_conversation" expr="m_is_beginning_of_conversation == 'true'"/>
-          <param name="language" expr="m_language"/>
-          <param name="is_poi_ended" expr="m_is_poi_ended"/>
-            <!-- Assumes that the last interaction is saved in the state of the Dialog Component, therefore do not pass the interaction as an input -->
         </send>
 
         <!-- <script>
@@ -295,6 +260,7 @@
 
   <state id="shortenAndSpeakResult">
     <onentry>
+
       <!-- <script>
         topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
         qDebug() &lt;&lt; "entering shortenAndSpeakResult" &lt;&lt; topic;
@@ -304,52 +270,38 @@
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
   </state>
 
-  <!-- <state id="interpret">
+  <state id="interpretCommand">
     <onentry>
-        <send event="DialogComponent.Interpret.Call">
+        <send event="DialogComponent.InterpretCommand.Call">
+          <param name="context" expr="m_context"/>
         </send>
 
-      <log label="State Interpret" expr="m_result"/>
+      <log label="State InterpretCommand" expr="m_result"/>
       <log label="Interaction" expr="m_interaction"/>
       <log label="Language" expr="m_language"/>
       <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/> 
       <log label="Duplicate index" expr="m_duplicate_index"/>
 
     </onentry>
-    <transition event="DialogComponent.Interpret.Return" target="interpretResult">
+    <transition event="DialogComponent.InterpretCommand.Return" target="interpretCommandResult">
       <assign expr="_event.data.result" location="m_result"/>
       <assign expr="_event.data.isQuestion" location="m_is_question"/>
     </transition>
-  </state> -->
+  </state>
 
-  <!-- <state id="interpretResult">
+  <state id="interpretCommandResult">
     <onentry>
 
     </onentry>
-    <transition cond="m_result == 'SUCCESS'" target="evaluateInterpretation" />
+    <transition cond="m_result == 'SUCCESS'" target="waitForInteraction" />
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
-  </state> -->
-
-  <!-- <state id="evaluateInterpretation">
-    <onentry>
-
-      <log label="State evaluateInterpretation" expr="m_result"/>
-      <log label="Interaction" expr="m_interaction"/>
-      <log label="Language" expr="m_language"/>
-      <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/> 
-      <log label="Duplicate index" expr="m_duplicate_index"/>
-      <log label="Is question" expr="m_is_question"/>
-
-    </onentry>
-    <transition cond="m_is_question" target="answerAndSpeak"/>
-    <transition cond="!m_is_question" target="idle"/>
-  </state> -->
+  </state>
 
   <state id="answerAndSpeak">
     <onentry>
         <send event="DialogComponent.AnswerAndSpeak.Call">
           <param name="interaction" expr="m_interaction"/>
-          <param name="llm_context" expr="m_llm_context"/>
+          <param name="context" expr="m_context"/>
         </send>
 
         <!-- <script>
@@ -365,6 +317,15 @@
 
   <state id="answerAndSpeakResult">
     <onentry>
+      
+      <log label="State answerAndSpeak" expr="m_result"/>
+      <log label="Interaction" expr="m_interaction"/>
+      <log label="Language" expr="m_language"/>
+      <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/> 
+      <log label="Duplicate index" expr="m_duplicate_index"/>
+      <log label="LLM context" expr="m_context"/>
+      <log label="Is tour ended" expr="m_is_poi_ended"/>
+
       <!-- <script>
         topic = eventData().value(QStringLiteral(&quot;topic&quot;)).toString();
         qDebug() &lt;&lt; "entering answerAndSpeakResult" &lt;&lt; topic;
