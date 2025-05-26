@@ -5,15 +5,16 @@
   name="SayByeSkill"
   datamodel="ecmascript"
   initial="idle">
-<!-- NON HA COMPILATO MODEL2CODE DA VEDERE -->
+
   <datamodel>
-    <data id="m_command"    type="string"  expr="'sayBye'"/>
-    <data id="m_param"      type="string"  expr="''"/>
-    <data id="m_is_speaking"type="boolean" expr="false"/>
-    <data id="m_result"     type="string"  expr="''"/>
-    <data id="SKILL_SUCCESS" type="int8"    expr="0"/>
-    <data id="SKILL_FAILURE" type="int8"    expr="1"/>
-    <data id="SKILL_RUNNING" type="int8"    expr="2"/>
+    <data id="m_command"      type="string"  expr="'sayBye'"/>
+    <data id="m_param"        type="string"  expr="''"/>
+    <data id="m_is_speaking"  type="boolean" expr="false"/>
+    <data id="m_result"       type="string"  expr="''"/>
+    <data id="SUCCESS_RESULT" type="string"  expr="'SUCCESS'"/>
+    <data id="SKILL_SUCCESS"  type="int8"    expr="0"/>
+    <data id="SKILL_FAILURE"  type="int8"    expr="1"/>
+    <data id="SKILL_RUNNING"  type="int8"    expr="2"/>
   </datamodel>
 
   <!-- Action skill: tick + halt servers -->
@@ -36,37 +37,48 @@
   </state>
 
   <state id="setCmd">
-    <ros_service_handle_response name="/SchedulerComponent/SetCommand" target="onSetCmd">
+    <ros_service_handle_response name="/SchedulerComponent/SetCommand" target="evaluateSetCmd">
       <assign location="m_result" expr="_res.result"/>
     </ros_service_handle_response>
   </state>
 
-  <state id="onSetCmd">
-    <onentry>
-      <if cond="m_result=='SUCCESS'">
-        <ros_service_send_request name="/SchedulerComponent/GetCurrentAction"/>
-      <else/>
-        <ros_service_send_response name="/SayByeSkill/tick">
-          <field name="status" expr="SKILL_FAILURE"/>
-        </ros_service_send_response>
-      </if>
-    </onentry>
+  <state id="evaluateSetCmd">
+    <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
     <transition target="getText"/>
   </state>
 
   <state id="getText">
-    <ros_service_handle_response name="/SchedulerComponent/GetCurrentAction" target="talk">
-      <assign location="m_param" expr="_res.param"/>
+    <onentry>
+      <ros_service_send_request name="/SchedulerComponent/GetCurrentAction"/>
+    </onentry>
+    <ros_service_handle_response name="/SchedulerComponent/GetCurrentAction" target="evaluateGetText">
+      <assign location="m_param"  expr="_res.param"/>
+      <assign location="m_result" expr="_res.result"/>
     </ros_service_handle_response>
   </state>
 
-  <state id="talk">
-    <ros_service_send_response name="/SayByeSkill/tick">
-      <field name="status" expr="SKILL_RUNNING"/>
-    </ros_service_send_response>
-    <ros_service_send_request name="/TextToSpeechComponent/Speak">
-      <field name="text" expr="m_param"/>
-    </ros_service_send_request>
+  <state id="evaluateGetText">
+    <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+    <transition target="startSpeak"/>
+  </state>
+
+  <state id="startSpeak">
+    <onentry>
+      <ros_service_send_response name="/SayByeSkill/tick">
+        <field name="status" expr="SKILL_RUNNING"/>
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
+      <ros_service_send_request name="/TextToSpeechComponent/Speak">
+        <field name="text" expr="m_param"/>
+      </ros_service_send_request>
+    </onentry>
+    <ros_service_handle_response name="/TextToSpeechComponent/Speak" target="evaluateSpeak">
+      <assign location="m_result" expr="_res.result"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="evaluateSpeak">
+    <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
     <transition target="waitSpeaking"/>
   </state>
 
@@ -75,40 +87,55 @@
       <ros_service_send_request name="/TextToSpeechComponent/IsSpeaking"/>
     </ros_service_handle_request>
     <ros_service_handle_request name="/SayByeSkill/halt" target="halted"/>
-    <ros_service_handle_response name="/TextToSpeechComponent/Speak" cond="_res.result!='SUCCESS'" target="failure"/>
   </state>
 
   <state id="checkSpeak">
-    <ros_service_handle_response name="/TextToSpeechComponent/IsSpeaking" target="onCheck">
+    <ros_service_handle_response name="/TextToSpeechComponent/IsSpeaking" target="evaluateCheck">
       <assign location="m_is_speaking" expr="_res.is_speaking"/>
+      <assign location="m_result"      expr="_res.result"/>
     </ros_service_handle_response>
   </state>
 
-  <state id="onCheck">
+  <state id="evaluateCheck">
+    <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+    <transition target="decideCheck"/>
+  </state>
+
+  <state id="decideCheck">
     <onentry>
       <if cond="m_is_speaking">
         <ros_service_send_response name="/SayByeSkill/tick">
           <field name="status" expr="SKILL_RUNNING"/>
+          <field name="is_ok" expr="true"/>
         </ros_service_send_response>
-        <send event=""/> <!-- loop -->
       <else/>
         <ros_service_send_response name="/SayByeSkill/tick">
           <field name="status" expr="SKILL_SUCCESS"/>
+          <field name="is_ok" expr="true"/>
         </ros_service_send_response>
       </if>
     </onentry>
+    <transition cond="m_is_speaking" target="waitSpeaking"/>
     <transition target="idle"/>
   </state>
 
   <state id="failure">
-    <ros_service_send_response name="/SayByeSkill/tick">
-      <field name="status" expr="SKILL_FAILURE"/>
-    </ros_service_send_response>
+    <onentry>
+      <ros_service_send_response name="/SayByeSkill/tick">
+        <field name="status" expr="SKILL_FAILURE"/>
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
+    </onentry>
     <transition target="idle"/>
   </state>
 
   <state id="halted">
-    <ros_service_send_response name="/SayByeSkill/halt"/>
+    <onentry>
+      <ros_service_send_response name="/SayByeSkill/halt">
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
+    </onentry>
     <transition target="idle"/>
   </state>
+
 </scxml>
