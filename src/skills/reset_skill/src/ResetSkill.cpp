@@ -220,11 +220,10 @@ void ResetSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dumm
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;  
-      case Status::undefined:   
-          response->status = SKILL_FAILURE;
-          RCLCPP_ERROR(m_node->get_logger(), "ResetSkill::tick - Undefined status received");
-          break;          
+          break;       
+      case Status::undefined:
+          response->status = SKILL_FAILURE; // Default case, should not happen
+          break;     
   }
   RCLCPP_INFO(m_node->get_logger(), "ResetSkill::tickDone");
   response->is_ok = true;
