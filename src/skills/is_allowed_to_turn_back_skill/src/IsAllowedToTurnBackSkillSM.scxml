@@ -5,27 +5,36 @@
         <data id="m_is_allowed" expr="false"/>
         <data id="m_value" expr="&apos;&apos;"/>
         <data id="m_name" expr="&apos;turnBackState&apos;"/>
+        <data id="SUCCESS_RESULT" expr="&apos;SUCCESS&apos;"/>
+        <data id="NOT_TURNING" expr="&apos;not_turning&apos;"/>
         <data id="SKILL_SUCCESS" expr="0"/>
         <data id="SKILL_FAILURE" expr="1"/>
     </datamodel>
     <!-- Condition skill: tick server only -->
     <!-- Clients -->
+    <!-- Check if turn back is allowed by manager -->
     <state id="idle">
         <transition target="getAllowed" event="CMD_TICK">
             <send event="TurnBackManagerComponent.IsAllowedToTurnBack.Call"/>
         </transition>
     </state>
+    <!-- Receive permission response from manager -->
     <state id="getAllowed">
         <transition target="evaluateAllowed" event="TurnBackManagerComponent.IsAllowedToTurnBack.Return">
             <assign location="m_result" expr="_event.data.result"/>
             <assign location="m_is_allowed" expr="_event.data.is_allowed"/>
         </transition>
     </state>
+    <!-- Evaluate manager's response -->
     <state id="evaluateAllowed">
-        <transition cond="m_result!=&apos;SUCCESS&apos;" target="failure"/>
+        <!-- Service call failed -->
+        <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+        <!-- Explicitly allowed by manager -->
         <transition cond="m_is_allowed" target="success"/>
+        <!-- Not explicitly allowed, check current turning state -->
         <transition target="getTurning"/>
     </state>
+    <!-- Query blackboard for current turning state -->
     <state id="getTurning">
         <onentry>
             <send event="BlackboardComponent.GetString.Call">
@@ -37,11 +46,16 @@
             <assign location="m_value" expr="_event.data.value"/>
         </transition>
     </state>
+    <!-- Evaluate blackboard turning state -->
     <state id="evaluateTurning">
-        <transition cond="m_result!=&apos;SUCCESS&apos;" target="failure"/>
-        <transition cond="m_value==&apos;not_turning&apos;" target="failure"/>
+        <!-- Blackboard query failed -->
+        <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+        <!-- Currently not turning, so turn back not allowed -->
+        <transition cond="m_value == NOT_TURNING" target="failure"/>
+        <!-- Currently turning, so turn back is allowed -->
         <transition target="success"/>
     </state>
+    <!-- Return failure result -->
     <state id="failure">
         <onentry>
             <send event="TICK_RESPONSE">
@@ -51,6 +65,7 @@
         </onentry>
         <transition target="idle"/>
     </state>
+    <!-- Return success result -->
     <state id="success">
         <onentry>
             <send event="TICK_RESPONSE">

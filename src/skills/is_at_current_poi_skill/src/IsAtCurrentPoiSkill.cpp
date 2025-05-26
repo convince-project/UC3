@@ -99,7 +99,7 @@ bool IsAtCurrentPoiSkill::start(int argc, char*argv[])
                   QVariantMap data;
                   data.insert("is_ok", true);
                   data.insert("poi_number", response->poi_number);
-                  data.insert("poi_name", response->poi_name);
+                  data.insert("poi_name", response->poi_name.c_str());
                   m_stateMachine.submitEvent("SchedulerComponent.GetCurrentPoi.Return", data);
                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.GetCurrentPoi.Return");
                   return;
@@ -253,7 +253,11 @@ void IsAtCurrentPoiSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interf
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;            
+          break;   
+      case Status::undefined:       
+          response->status = SKILL_FAILURE;
+          RCLCPP_ERROR(m_node->get_logger(), "IsAtCurrentPoiSkill::tick - Status is undefined, returning failure.");
+          break;         
   }
   RCLCPP_INFO(m_node->get_logger(), "IsAtCurrentPoiSkill::tickDone");
   response->is_ok = true;

@@ -4,8 +4,11 @@
         <data id="NAV_STATUS_MOVING" expr="2"/>
         <data id="distance" expr="0.5"/>
         <data id="m_poi_name" expr="&apos;&apos;"/>
+        <data id="m_poi_result" expr="&apos;&apos;"/>
+        <data id="m_nav_result" expr="&apos;&apos;"/>
         <data id="m_status" expr="0"/>
         <data id="m_is_near" expr="false"/>
+        <data id="SUCCESS_RESULT" expr="&apos;SUCCESS&apos;"/>
         <data id="SKILL_SUCCESS" expr="0"/>
         <data id="SKILL_FAILURE" expr="1"/>
     </datamodel>
@@ -17,38 +20,41 @@
         </transition>
     </state>
     <state id="getPoi">
-        <transition target="afterPoi" event="SchedulerComponent.GetCurrentPoi.Return">
+        <transition target="evaluatePoi" event="SchedulerComponent.GetCurrentPoi.Return">
             <assign location="m_poi_name" expr="_event.data.poi_name"/>
+            <assign location="m_poi_result" expr="_event.data.result"/>
         </transition>
     </state>
-    <state id="afterPoi">
-        <transition cond="_res.result==&apos;SUCCESS&apos;" target="getStatus" event="CMD_TICK">
-            <send event="NavigationComponent.GetNavigationStatus.Call"/>
-        </transition>
-        <transition cond="_res.result!=&apos;SUCCESS&apos;" target="failure" event="CMD_TICK"/>
+    <state id="evaluatePoi">
+        <!-- GetCurrentPoi failed -->
+        <transition cond="m_poi_result != SUCCESS_RESULT" target="failure"/>
+        <!-- GetCurrentPoi succeeded, check navigation status -->
+        <transition target="getStatus"/>
     </state>
     <state id="getStatus">
-        <transition target="decideStatus" event="NavigationComponent.GetNavigationStatus.Return">
+        <onentry>
+            <send event="NavigationComponent.GetNavigationStatus.Call"/>
+        </onentry>
+        <transition target="evaluateStatus" event="NavigationComponent.GetNavigationStatus.Return">
             <assign location="m_status" expr="_event.data.status"/>
+            <assign location="m_nav_result" expr="_event.data.result"/>
         </transition>
     </state>
-    <state id="decideStatus">
-        <onentry>
-            <if cond="_res.result!=&apos;SUCCESS&apos; || m_status==NAV_STATUS_MOVING">
-                <send event="TICK_RESPONSE">
-                    <param name="status" expr="SKILL_FAILURE"/>
-                    <param name="is_ok" expr="true"/>
-                </send>
-                <else/>
-                <send event="NavigationComponent.CheckNearToPoi.Call">
-                    <param name="poi_name" expr="m_poi_name"/>
-                    <param name="distance" expr="distance"/>
-                </send>
-            </if>
-        </onentry>
+    <state id="evaluateStatus">
+        <!-- GetNavigationStatus failed -->
+        <transition cond="m_nav_result != SUCCESS_RESULT" target="failure"/>
+        <!-- Robot is moving, not at POI -->
+        <transition cond="m_status == NAV_STATUS_MOVING" target="failure"/>
+        <!-- Robot not moving, check proximity -->
         <transition target="checkNear"/>
     </state>
     <state id="checkNear">
+        <onentry>
+            <send event="NavigationComponent.CheckNearToPoi.Call">
+                <param name="poi_name" expr="m_poi_name"/>
+                <param name="distance" expr="distance"/>
+            </send>
+        </onentry>
         <transition target="finalize" event="NavigationComponent.CheckNearToPoi.Return">
             <assign location="m_is_near" expr="_event.data.is_near"/>
         </transition>
