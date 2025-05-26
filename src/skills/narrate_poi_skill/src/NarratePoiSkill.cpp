@@ -265,6 +265,9 @@ void NarratePoiSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces
       case Status::success:
           response->status = SKILL_SUCCESS;
           break;            
+        case Status::undefined: 
+          response->status = SKILL_FAILURE; // Default case, should not happen
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "NarratePoiSkill::tickDone");
   response->is_ok = true;
