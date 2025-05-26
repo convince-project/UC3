@@ -7,9 +7,10 @@
   initial="idle">
 
   <datamodel>
-    <data id="m_result"      type="string" expr="''"/>
-    <data id="SKILL_SUCCESS" type="int8"   expr="0"/>
-    <data id="SKILL_FAILURE" type="int8"   expr="1"/>
+    <data id="m_result"       type="string" expr="''"/>
+    <data id="SUCCESS_RESULT" type="string" expr="'SUCCESS'"/>
+    <data id="SKILL_SUCCESS"  type="int8"   expr="0"/>
+    <data id="SKILL_FAILURE"  type="int8"   expr="1"/>
   </datamodel>
 
   <!-- Clients for resetting tour, counters, and timer -->
@@ -29,47 +30,69 @@
   </state>
 
   <state id="resetTour">
-    <ros_service_handle_response name="/SchedulerComponent/Reset" target="resetCounters">
+    <ros_service_handle_response name="/SchedulerComponent/Reset" target="evaluateReset">
       <assign location="m_result" expr="_res.result"/>
     </ros_service_handle_response>
+  </state>
+
+  <state id="evaluateReset">
+    <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+    <transition target="resetCounters"/>
   </state>
 
   <state id="resetCounters">
     <onentry>
       <ros_service_send_request name="/TurnBackManagerComponent/ResetCounters"/>
     </onentry>
-    <ros_service_handle_response name="/TurnBackManagerComponent/ResetCounters" target="stopTimer">
+    <ros_service_handle_response name="/TurnBackManagerComponent/ResetCounters" target="evaluateCounters">
       <assign location="m_result" expr="_res.result"/>
     </ros_service_handle_response>
+  </state>
+
+  <state id="evaluateCounters">
+    <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+    <transition target="stopTimer"/>
   </state>
 
   <state id="stopTimer">
     <onentry>
       <ros_service_send_request name="/TimeComponent/StopTourTimer"/>
     </onentry>
-    <ros_service_handle_response name="/TimeComponent/StopTourTimer" target="decide">
+    <ros_service_handle_response name="/TimeComponent/StopTourTimer" target="evaluateTimer">
       <assign location="m_result" expr="_res.result"/>
     </ros_service_handle_response>
   </state>
 
-  <state id="decide">
+  <state id="evaluateTimer">
+    <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+    <transition target="success"/>
+  </state>
+
+  <state id="success">
     <onentry>
-      <if cond="m_result=='SUCCESS'">
-        <ros_service_send_response name="/PeopleLeftSkill/tick">
-          <field name="status" expr="SKILL_SUCCESS"/>
-        </ros_service_send_response>
-      <else/>
-        <ros_service_send_response name="/PeopleLeftSkill/tick">
-          <field name="status" expr="SKILL_FAILURE"/>
-        </ros_service_send_response>
-      </if>
+      <ros_service_send_response name="/PeopleLeftSkill/tick">
+        <field name="status" expr="SKILL_SUCCESS"/>
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="failure">
+    <onentry>
+      <ros_service_send_response name="/PeopleLeftSkill/tick">
+        <field name="status" expr="SKILL_FAILURE"/>
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
   </state>
 
   <state id="halted">
     <onentry>
-      <ros_service_send_response name="/PeopleLeftSkill/halt"/>
+      <ros_service_send_response name="/PeopleLeftSkill/halt">
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
   </state>
