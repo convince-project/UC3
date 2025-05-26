@@ -103,6 +103,7 @@ bool NotifyChargedSkill::start(int argc, char*argv[])
               if( response->is_ok == true) {
                   QVariantMap data;
                   data.insert("is_ok", true);
+                  data.insert("is_ok", response->is_ok);
                   m_stateMachine.submitEvent("NotifyUserComponent.NotifyUserCharged.Return", data);
                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NotifyUserComponent.NotifyUserCharged.Return");
                   return;
@@ -173,6 +174,10 @@ void NotifyChargedSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfa
       case Status::success:
           response->status = SKILL_SUCCESS;
           break;            
+      case Status::undefined:
+          response->status = SKILL_FAILURE;
+          RCLCPP_ERROR(m_node->get_logger(), "NotifyChargedSkill::tick - Status is undefined, returning failure.");
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "NotifyChargedSkill::tickDone");
   response->is_ok = true;

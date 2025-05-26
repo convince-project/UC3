@@ -262,7 +262,11 @@ void PeopleLeftSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;            
+          break;    
+      case Status::undefined:
+          response->status = SKILL_FAILURE;
+          RCLCPP_ERROR(m_node->get_logger(), "PeopleLeftSkill::tick - Status is undefined, returning failure.");
+          break;        
   }
   RCLCPP_INFO(m_node->get_logger(), "PeopleLeftSkill::tickDone");
   response->is_ok = true;

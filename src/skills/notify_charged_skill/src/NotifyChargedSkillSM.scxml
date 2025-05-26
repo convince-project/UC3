@@ -2,6 +2,8 @@
 <scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="NotifyChargedSkillAction" datamodel="ecmascript" initial="idle">
     <datamodel>
         <data id="m_result" expr="false"/>
+        <data id="m_service_result" expr="&apos;&apos;"/>
+        <data id="SUCCESS_RESULT" expr="&apos;SUCCESS&apos;"/>
         <data id="SKILL_SUCCESS" expr="0"/>
         <data id="SKILL_FAILURE" expr="1"/>
     </datamodel>
@@ -14,29 +16,45 @@
         <transition target="halted" event="CMD_HALT"/>
     </state>
     <state id="startNotify">
-        <transition target="decide" event="NotifyUserComponent.NotifyUserCharged.Return">
-            <assign location="m_result" expr="_event.data.is_ok"/>
-            <log expr="'_event: ' + JSON.stringify(_event)"/>
+        <transition target="evaluate" event="NotifyUserComponent.NotifyUserCharged.Return">
+            <assign location="m_result" expr="_event.data.result"/>
+            <assign location="m_service_result" expr="_event.data.service_result"/>
         </transition>
+    </state>
+    <state id="evaluate">
+        <transition cond="m_service_result != SUCCESS_RESULT" target="failure"/>
+        <transition target="decide"/>
     </state>
     <state id="decide">
         <onentry>
-            <log expr="'m_result value: ' + m_result"/>
             <if cond="m_result">
                 <send event="TICK_RESPONSE">
                     <param name="status" expr="SKILL_SUCCESS"/>
+                    <param name="is_ok" expr="true"/>
                 </send>
                 <else/>
                 <send event="TICK_RESPONSE">
                     <param name="status" expr="SKILL_FAILURE"/>
+                    <param name="is_ok" expr="true"/>
                 </send>
             </if>
         </onentry>
         <transition target="idle"/>
     </state>
+    <state id="failure">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_FAILURE"/>
+                <param name="is_ok" expr="true"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
     <state id="halted">
         <onentry>
-            <send event="HALT_RESPONSE"/>
+            <send event="HALT_RESPONSE">
+                <param name="is_ok" expr="true"/>
+            </send>
         </onentry>
         <transition target="idle"/>
     </state>

@@ -2,6 +2,7 @@
 <scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="PeopleLeftSkillAction" datamodel="ecmascript" initial="idle">
     <datamodel>
         <data id="m_result" expr="&apos;&apos;"/>
+        <data id="SUCCESS_RESULT" expr="&apos;SUCCESS&apos;"/>
         <data id="SKILL_SUCCESS" expr="0"/>
         <data id="SKILL_FAILURE" expr="1"/>
     </datamodel>
@@ -14,43 +15,61 @@
         <transition target="halted" event="CMD_HALT"/>
     </state>
     <state id="resetTour">
-        <transition target="resetCounters" event="SchedulerComponent.Reset.Return">
+        <transition target="evaluateReset" event="SchedulerComponent.Reset.Return">
             <assign location="m_result" expr="_event.data.result"/>
         </transition>
+    </state>
+    <state id="evaluateReset">
+        <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+        <transition target="resetCounters"/>
     </state>
     <state id="resetCounters">
         <onentry>
             <send event="TurnBackManagerComponent.ResetCounters.Call"/>
         </onentry>
-        <transition target="stopTimer" event="TurnBackManagerComponent.ResetCounters.Return">
+        <transition target="evaluateCounters" event="TurnBackManagerComponent.ResetCounters.Return">
             <assign location="m_result" expr="_event.data.result"/>
         </transition>
+    </state>
+    <state id="evaluateCounters">
+        <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+        <transition target="stopTimer"/>
     </state>
     <state id="stopTimer">
         <onentry>
             <send event="TimeComponent.StopTourTimer.Call"/>
         </onentry>
-        <transition target="decide" event="TimeComponent.StopTourTimer.Return">
+        <transition target="evaluateTimer" event="TimeComponent.StopTourTimer.Return">
             <assign location="m_result" expr="_event.data.result"/>
         </transition>
     </state>
-    <state id="decide">
+    <state id="evaluateTimer">
+        <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+        <transition target="success"/>
+    </state>
+    <state id="success">
         <onentry>
-            <if cond="m_result==&apos;SUCCESS&apos;">
-                <send event="TICK_RESPONSE">
-                    <param name="status" expr="SKILL_SUCCESS"/>
-                </send>
-                <else/>
-                <send event="TICK_RESPONSE">
-                    <param name="status" expr="SKILL_FAILURE"/>
-                </send>
-            </if>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_SUCCESS"/>
+                <param name="is_ok" expr="true"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="failure">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_FAILURE"/>
+                <param name="is_ok" expr="true"/>
+            </send>
         </onentry>
         <transition target="idle"/>
     </state>
     <state id="halted">
         <onentry>
-            <send event="HALT_RESPONSE"/>
+            <send event="HALT_RESPONSE">
+                <param name="is_ok" expr="true"/>
+            </send>
         </onentry>
         <transition target="idle"/>
     </state>
