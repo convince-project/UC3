@@ -69,8 +69,8 @@ bool IsMaximumDurationSkill::start(int argc, char*argv[])
   
   m_stateMachine.connectToEvent("BlackboardComponent.GetInt.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
       std::shared_ptr<rclcpp::Node> nodeGetInt = rclcpp::Node::make_shared(m_name + "SkillNodeGetInt");
-      std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::GetInt>> clientGetInt = nodeGetInt->create_client<blackboard_interfaces::srv::GetInt>("/BlackboardComponent/GetInt");
-      auto request = std::make_shared<blackboard_interfaces::srv::GetInt::Request>();
+      std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::GetIntBlackboard>> clientGetInt = nodeGetInt->create_client<blackboard_interfaces::srv::GetIntBlackboard>("/BlackboardComponent/GetInt");
+      auto request = std::make_shared<blackboard_interfaces::srv::GetIntBlackboard::Request>();
       auto eventParams = event.data().toMap();
       
       request->field_name = convert<decltype(request->field_name)>(eventParams["field_name"].toString().toStdString());
@@ -160,6 +160,9 @@ void IsMaximumDurationSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_int
       case Status::success:
           response->status = SKILL_SUCCESS;
           break;            
+      case Status::undefined:
+          response->status = SKILL_FAILURE;
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "IsMaximumDurationSkill::tickDone");
   response->is_ok = true;
