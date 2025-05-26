@@ -8,8 +8,8 @@
 
   <datamodel>
     <data id="poi_number"     type="int32"  expr="1"/>
-    <data id="poi_number_1"   type="int32"  expr="1"/>
-    <data id="poi_number_2"   type="int32"  expr="2"/>
+    <data id="poi_name_1"     type="string" expr="'1'"/>
+    <data id="poi_name_2"     type="string" expr="'2'"/>
     <data id="value"          type="int32"  expr="0"/>
     <data id="m_result"       type="string" expr="''"/>
     <data id="SUCCESS_RESULT" type="string" expr="'SUCCESS'"/>
@@ -48,7 +48,7 @@
   <state id="setInt1">
     <onentry>
       <ros_service_send_request name="/BlackboardComponent/SetInt">
-        <field name="field_name" expr="poi_number_1"/>
+        <field name="field_name" expr="poi_name_1"/>
         <field name="value" expr="value"/>
       </ros_service_send_request>
     </onentry>
@@ -65,7 +65,7 @@
   <state id="setInt2">
     <onentry>
       <ros_service_send_request name="/BlackboardComponent/SetInt">
-        <field name="field_name" expr="poi_number_2"/>
+        <field name="field_name" expr="poi_name_2"/>
         <field name="value" expr="value"/>
       </ros_service_send_request>
     </onentry>
