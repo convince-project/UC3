@@ -172,7 +172,11 @@ void ResetCountersSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfa
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;            
+          break;    
+      case Status::undefined:   
+          response->status = SKILL_FAILURE;
+          RCLCPP_ERROR(m_node->get_logger(), "ResetCountersSkill::tick - Status is undefined, returning failure.");
+          break;        
   }
   RCLCPP_INFO(m_node->get_logger(), "ResetCountersSkill::tickDone");
   response->is_ok = true;
