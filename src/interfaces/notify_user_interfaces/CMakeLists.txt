@@ -13,6 +13,8 @@ find_package(ament_cmake REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(notify_user_interfaces
 "srv/NotifyUserCharged.srv"
+"srv/StartAlarm.srv"
+"srv/StopAlarm.srv"
 LIBRARY_NAME notify_user_interfaces 
 )
 
