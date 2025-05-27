@@ -124,31 +124,6 @@
         </function>
     </interface>
 
-    <interface id="alarm_interfaces">
-        <function id="StartAlarm">
-            <protocol>
-                <ROS2data>
-                    <interface type="sync-service" />
-                </ROS2data>
-            </protocol>
-            <returnValue>
-                <dataType>bool</dataType>
-                <dataField>is_ok</dataField>
-            </returnValue>
-        </function>
-        <function id="StopAlarm">
-            <protocol>
-                <ROS2data>
-                    <interface type="sync-service" />
-                </ROS2data>
-            </protocol>
-            <returnValue>
-                <dataType>bool</dataType>
-                <dataField>is_ok</dataField>
-            </returnValue>
-        </function>
-    </interface>
-
     <interface id="timer_check_for_people_interfaces">
         <function id="StartTimer">
             <protocol>
@@ -172,6 +147,28 @@
     </interface>
     <interface id="notify_user_interfaces">
         <function id="NotifyUserCharged">
+            <protocol>
+                <ROS2data>
+                    <interface type="sync-service" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>bool</dataType>
+                <dataField>is_ok</dataField>
+            </returnValue>
+        </function>
+    <function id="StartAlarm">
+            <protocol>
+                <ROS2data>
+                    <interface type="sync-service" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>bool</dataType>
+                <dataField>is_ok</dataField>
+            </returnValue>
+        </function>
+        <function id="StopAlarm">
             <protocol>
                 <ROS2data>
                     <interface type="sync-service" />
