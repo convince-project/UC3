@@ -25,6 +25,9 @@
       <componentDeclaration id="NotifyUserComponent" interface="notify_user_interfaces">
         <componentDefinition moc="fsm" path = "…/NotifyUserComponent.scxml"/>
       </componentDeclaration>
+      <componentDeclaration id="NotifyUserComponent" interface="alarm_interfaces">
+        <componentDefinition />
+      </componentDeclaration>
       <componentDeclaration id="RobotComponent" interface="robot_interfaces">
         <componentDefinition moc="fsm" path="../../environment-XML/museum-guide/robot_interfaces.scxml" />
       </componentDeclaration>
@@ -59,9 +62,6 @@
         <componentDefinition />
       </componentDeclaration>
       <componentDeclaration id="TimerCheckForPeopleComponent" interface="timer_check_for_people_interfaces">
-        <componentDefinition />
-      </componentDeclaration>
-      <componentDeclaration id="NotifyUserComponent" interface="alarm_interfaces">
         <componentDefinition />
       </componentDeclaration>
       <componentDeclaration id="AllowedToMoveComponent" interface="allowed_to_move_interfaces">
