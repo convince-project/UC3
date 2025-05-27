@@ -1,4 +1,4 @@
-#include "IsAllowedToMoveSkill.h"
+#include "AlarmBatteryLowSkill.h"
 #include <future>
 #include <QTimer>
 #include <QDebug>
@@ -34,19 +34,19 @@ T convert(const std::string& str) {
     }
 }
 
-IsAllowedToMoveSkill::IsAllowedToMoveSkill(std::string name ) :
+AlarmBatteryLowSkill::AlarmBatteryLowSkill(std::string name ) :
 		m_name(std::move(name))
 {
     
 }
 
-void IsAllowedToMoveSkill::spin(std::shared_ptr<rclcpp::Node> node)
+void AlarmBatteryLowSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
 	rclcpp::spin(node);
 	rclcpp::shutdown();
 }
 
-bool IsAllowedToMoveSkill::start(int argc, char*argv[])
+bool AlarmBatteryLowSkill::start(int argc, char*argv[])
 {
 	if(!rclcpp::ok())
 	{
@@ -54,12 +54,12 @@ bool IsAllowedToMoveSkill::start(int argc, char*argv[])
 	}
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
-	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "IsAllowedToMoveSkill::start");
-	std::cout << "IsAllowedToMoveSkill::start";
+	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "AlarmBatteryLowSkill::start");
+	std::cout << "AlarmBatteryLowSkill::start";
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickCondition>(m_name + "Skill/tick",
-                                                                           	std::bind(&IsAllowedToMoveSkill::tick,
+                                                                           	std::bind(&AlarmBatteryLowSkill::tick,
                                                                            	this,
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
@@ -67,55 +67,55 @@ bool IsAllowedToMoveSkill::start(int argc, char*argv[])
   
   
   
-  m_stateMachine.connectToEvent("AllowedToMoveComponent.IsAllowedToMove.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
-      std::shared_ptr<rclcpp::Node> nodeIsAllowedToMove = rclcpp::Node::make_shared(m_name + "SkillNodeIsAllowedToMove");
-      std::shared_ptr<rclcpp::Client<allowed_to_move_interfaces::srv::IsAllowedToMove>> clientIsAllowedToMove = nodeIsAllowedToMove->create_client<allowed_to_move_interfaces::srv::IsAllowedToMove>("/AllowedToMoveComponent/IsAllowedToMove");
-      auto request = std::make_shared<allowed_to_move_interfaces::srv::IsAllowedToMove::Request>();
+  m_stateMachine.connectToEvent("NotifyUserComponent.StartAlarm.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
+      std::shared_ptr<rclcpp::Node> nodeStartAlarm = rclcpp::Node::make_shared(m_name + "SkillNodeStartAlarm");
+      std::shared_ptr<rclcpp::Client<notify_user_interfaces::srv::StartAlarm>> clientStartAlarm = nodeStartAlarm->create_client<notify_user_interfaces::srv::StartAlarm>("/NotifyUserComponent/StartAlarm");
+      auto request = std::make_shared<notify_user_interfaces::srv::StartAlarm::Request>();
       auto eventParams = event.data().toMap();
       
       bool wait_succeded{true};
       int retries = 0;
-      while (!clientIsAllowedToMove->wait_for_service(std::chrono::seconds(1))) {
+      while (!clientStartAlarm->wait_for_service(std::chrono::seconds(1))) {
           if (!rclcpp::ok()) {
-              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'IsAllowedToMove'. Exiting.");
+              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'StartAlarm'. Exiting.");
               wait_succeded = false;
               break;
           } 
           retries++;
           if(retries == SERVICE_TIMEOUT) {
-              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while waiting for the service 'IsAllowedToMove'.");
+              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while waiting for the service 'StartAlarm'.");
               wait_succeded = false;
               break;
           }
       }
       if (wait_succeded) {                                                                   
-          auto result = clientIsAllowedToMove->async_send_request(request);
+          auto result = clientStartAlarm->async_send_request(request);
           const std::chrono::seconds timeout_duration(SERVICE_TIMEOUT);
-          auto futureResult = rclcpp::spin_until_future_complete(nodeIsAllowedToMove, result, timeout_duration);
+          auto futureResult = rclcpp::spin_until_future_complete(nodeStartAlarm, result, timeout_duration);
           if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
           {
               auto response = result.get();
               if( response->is_ok == true) {
                   QVariantMap data;
                   data.insert("is_ok", true);
-                  data.insert("is_allowed_to_move", response->is_allowed_to_move);
-                  m_stateMachine.submitEvent("AllowedToMoveComponent.IsAllowedToMove.Return", data);
-                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "AllowedToMoveComponent.IsAllowedToMove.Return");
+                  data.insert("is_ok", response->is_ok);
+                  m_stateMachine.submitEvent("NotifyUserComponent.StartAlarm.Return", data);
+                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NotifyUserComponent.StartAlarm.Return");
                   return;
               }
           }
           else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
-              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'IsAllowedToMove'.");
+              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'StartAlarm'.");
           }
       }
       QVariantMap data;
       data.insert("is_ok", false);
-      m_stateMachine.submitEvent("AllowedToMoveComponent.IsAllowedToMove.Return", data);
-      RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "AllowedToMoveComponent.IsAllowedToMove.Return");
+      m_stateMachine.submitEvent("NotifyUserComponent.StartAlarm.Return", data);
+      RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NotifyUserComponent.StartAlarm.Return");
   });
   
   m_stateMachine.connectToEvent("TICK_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){
-    RCLCPP_INFO(m_node->get_logger(), "IsAllowedToMoveSkill::tickReturn %s", event.data().toMap()["status"].toString().toStdString().c_str());
+    RCLCPP_INFO(m_node->get_logger(), "AlarmBatteryLowSkill::tickReturn %s", event.data().toMap()["status"].toString().toStdString().c_str());
     std::string result = event.data().toMap()["status"].toString().toStdString();
     if (result == std::to_string(SKILL_SUCCESS) )
     {
@@ -139,11 +139,11 @@ bool IsAllowedToMoveSkill::start(int argc, char*argv[])
 	return true;
 }
 
-void IsAllowedToMoveSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Request> request,
+void AlarmBatteryLowSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Request> request,
                                 std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Response>      response)
 {
   std::lock_guard<std::mutex> lock(m_requestMutex);
-  RCLCPP_INFO(m_node->get_logger(), "IsAllowedToMoveSkill::tick");
+  RCLCPP_INFO(m_node->get_logger(), "AlarmBatteryLowSkill::tick");
   m_tickResult.store(Status::undefined);
   m_stateMachine.submitEvent("CMD_TICK");
   
@@ -159,8 +159,11 @@ void IsAllowedToMoveSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_inter
       case Status::success:
           response->status = SKILL_SUCCESS;
           break;            
+        case Status::undefined:
+          response->status = SKILL_FAILURE;
+          break;
   }
-  RCLCPP_INFO(m_node->get_logger(), "IsAllowedToMoveSkill::tickDone");
+  RCLCPP_INFO(m_node->get_logger(), "AlarmBatteryLowSkill::tickDone");
   response->is_ok = true;
 }
 
