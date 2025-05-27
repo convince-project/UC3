@@ -34,12 +34,14 @@
                 </send>
             </if>
         </onentry>
-        <transition target="getText"/>
+        <transition cond="m_result==&apos;SUCCESS&apos;" target="getText"/>
+        <transition cond="m_result!=&apos;SUCCESS&apos;" target="idle"/>
     </state>
     <state id="getText">
         <transition target="talk" event="SchedulerComponent.GetCurrentAction.Return">
             <assign location="m_param" expr="_event.data.param"/>
         </transition>
+        <transition cond="_event.data.result!=&apos;SUCCESS&apos;" target="failure" event="SchedulerComponent.GetCurrentAction.Return"/>
     </state>
     <state id="talk">
         <onentry>
@@ -63,6 +65,7 @@
         <transition target="onCheck" event="TextToSpeechComponent.IsSpeaking.Return">
             <assign location="m_is_speaking" expr="_event.data.is_speaking"/>
         </transition>
+        <transition cond="_event.data.result!=&apos;SUCCESS&apos;" target="failure" event="TextToSpeechComponent.IsSpeaking.Return"/>
     </state>
     <state id="onCheck">
         <onentry>
@@ -88,6 +91,9 @@
     </state>
     <state id="halted">
         <onentry>
+            <assign location="m_is_speaking" expr="false"/>
+            <assign location="m_result" expr="&apos;&apos;"/>
+            <assign location="m_param" expr="&apos;&apos;"/>
             <send event="HALT_RESPONSE"/>
         </onentry>
         <transition target="idle"/>
