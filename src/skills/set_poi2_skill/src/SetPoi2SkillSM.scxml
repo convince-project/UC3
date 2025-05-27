@@ -1,4 +1,4 @@
-<scxml version="1.0" xmlns="http://www.w3.org/2005/07/scxml" datamodel="ecmascript" name="SetPoi2SkillCondition" initial="idle">
+<scxml version="1.0" xmlns="http://www.w3.org/2005/07/scxml" datamodel="ecmascript" name="SetPoi2SkillAction" initial="idle">
     <datamodel>
         <data id="poi_number" expr="2"/>
         <data id="SKILL_SUCCESS" expr="0"/>
@@ -7,7 +7,6 @@
     </datamodel>
     <!-- SetPoiSkill is a server for tick from the ROS2Action plugin-->
     <!-- SetPoiSkill is a server for halt from the ROS2Action plugin-->
-    <!-- <ros_service_server service_name="/SetPoiSkill/halt" type ="bt_interfaces_dummy/HaltAction"/> -->
     <!-- SetPoiSkill is a client for SetPoi from the SchedulerComponent -->
     <state id="idle">
         <transition target="setPoi" event="CMD_TICK">
@@ -15,9 +14,8 @@
                 <param name="poi_number" expr="poi_number"/>
             </send>
         </transition>
-        <!-- <ros_service_handle_request name="/SetPoiSkill/halt" target="idle">
-            <ros_service_send_response name="/SetPoiSkill/halt"/>
-        </ros_service_handle_request> -->
+        <!-- Decommentare e correggere -->
+        <transition target="halted" event="CMD_HALT"/>
     </state>
     <state id="setPoi">
         <transition cond="_event.data.is_ok" target="idle" event="SchedulerComponent.SetPoi.Return">
@@ -35,5 +33,14 @@
         <!-- <ros_service_handle_request name="/SetPoiSkill/halt" target="idle">
             <ros_service_send_response name="/SetPoiSkill/halt"/>
         </ros_service_handle_request> -->
+        <!-- Aggiungere gestione halt -->
+        <transition target="halted" event="CMD_HALT"/>
+    </state>
+    <state id="halted">
+        <onentry>
+            <assign location="poi_number" expr="2"/>
+            <send event="HALT_RESPONSE"/>
+        </onentry>
+        <transition target="idle"/>
     </state>
 </scxml>
