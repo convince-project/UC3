@@ -10,6 +10,7 @@
         <data id="SKILL_FAILURE" expr="1"/>
         <data id="SKILL_RUNNING" expr="2"/>
     </datamodel>
+    <!-- Corretti i nomi dei servizi -->
     <!-- Clients -->
     <state id="idle">
         <transition target="callTurnBack" event="CMD_TICK">
@@ -35,6 +36,9 @@
         <transition target="evalStatus" event="NavigationComponent.GetNavigationStatus.Return">
             <assign location="status" expr="_event.data.status"/>
         </transition>
+        <transition target="callStopNav" event="CMD_HALT">
+            <send event="NavigationComponent.StopNavigation.Call"/>
+        </transition>
     </state>
     <state id="evalStatus">
         <transition cond="status == NAV_MOVING" target="runningReply"/>
@@ -58,6 +62,9 @@
         </onentry>
         <transition target="done" event="BlackboardComponent.SetInt.Return">
             <assign location="result" expr="_event.data.result"/>
+        </transition>
+        <transition target="callStopNav" event="CMD_HALT">
+            <send event="NavigationComponent.StopNavigation.Call"/>
         </transition>
     </state>
     <state id="done">

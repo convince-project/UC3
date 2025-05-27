@@ -16,8 +16,9 @@
     <data id="SKILL_RUNNING" expr="2"/>
   </datamodel>
 
-  <ros_service_server service_name="/StopAndTurnBackSkillAction/tick"  type="bt_interfaces_dummy/TickAction"/>
-  <ros_service_server service_name="/StopAndTurnBackSkillAction/halt"  type="bt_interfaces_dummy/HaltAction"/>
+  <!-- Corretti i nomi dei servizi -->
+  <ros_service_server service_name="/StopAndTurnBackSkill/tick"  type="bt_interfaces_dummy/TickAction"/>
+  <ros_service_server service_name="/StopAndTurnBackSkill/halt"  type="bt_interfaces_dummy/HaltAction"/>
 
   <!-- Clients -->
   <ros_service_client service_name="/NavigationComponent/TurnBack"          type="navigation_interfaces_dummy/TurnBack"/>
@@ -26,10 +27,10 @@
   <ros_service_client service_name="/BlackboardComponent/SetInt"            type="blackboard_interfaces_dummy/SetInt"/>
 
   <state id="idle">
-    <ros_service_handle_request name="/StopAndTurnBackSkillAction/tick" target="callTurnBack">
+    <ros_service_handle_request name="/StopAndTurnBackSkill/tick" target="callTurnBack">
       <ros_service_send_request name="/NavigationComponent/TurnBack"/>
     </ros_service_handle_request>
-    <ros_service_handle_request name="/StopAndTurnBackSkillAction/halt" target="callStopNav">
+    <ros_service_handle_request name="/StopAndTurnBackSkill/halt" target="callStopNav">
       <ros_service_send_request name="/NavigationComponent/StopNavigation"/>
     </ros_service_handle_request>
   </state>
@@ -52,6 +53,9 @@
     <ros_service_handle_response name="/NavigationComponent/GetNavigationStatus" target="evalStatus">
       <assign location="status" expr="_res.status"/>
     </ros_service_handle_response>
+    <ros_service_handle_request name="/StopAndTurnBackSkill/halt" target="callStopNav">
+      <ros_service_send_request name="/NavigationComponent/StopNavigation"/>
+    </ros_service_handle_request>
   </state>
 
   <state id="evalStatus">
@@ -62,7 +66,7 @@
 
   <state id="runningReply">
     <onentry>
-      <ros_service_send_response name="/StopAndTurnBackSkillAction/tick">
+      <ros_service_send_response name="/StopAndTurnBackSkill/tick">
         <field name="status" expr="SKILL_RUNNING"/>
       </ros_service_send_response>
     </onentry>
@@ -79,11 +83,14 @@
     <ros_service_handle_response name="/BlackboardComponent/SetInt" target="done">
       <assign location="result" expr="_res.result"/>
     </ros_service_handle_response>
+    <ros_service_handle_request name="/StopAndTurnBackSkill/halt" target="callStopNav">
+      <ros_service_send_request name="/NavigationComponent/StopNavigation"/>
+    </ros_service_handle_request>
   </state>
 
   <state id="done">
     <onentry>
-      <ros_service_send_response name="/StopAndTurnBackSkillAction/tick">
+      <ros_service_send_response name="/StopAndTurnBackSkill/tick">
         <field name="status" expr="result == 'SUCCESS' ? SKILL_SUCCESS : SKILL_FAILURE"/>
       </ros_service_send_response>
     </onentry>
@@ -92,7 +99,7 @@
 
   <state id="failReply">
     <onentry>
-      <ros_service_send_response name="/StopAndTurnBackSkillAction/tick">
+      <ros_service_send_response name="/StopAndTurnBackSkill/tick">
         <field name="status" expr="SKILL_FAILURE"/>
       </ros_service_send_response>
     </onentry>
@@ -105,7 +112,7 @@
 
   <state id="halted">
     <onentry>
-      <ros_service_send_response name="/StopAndTurnBackSkillAction/halt"/>
+      <ros_service_send_response name="/StopAndTurnBackSkill/halt"/>
     </onentry>
     <transition target="idle"/>
   </state>
