@@ -213,7 +213,10 @@ void $className$::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dum
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;            
+          break;  
+      case Status::undefined:
+          response->status = SKILL_FAILURE;
+          break;          
   }
   RCLCPP_INFO(m_node->get_logger(), "$className$::tickDone");
   response->is_ok = true;
