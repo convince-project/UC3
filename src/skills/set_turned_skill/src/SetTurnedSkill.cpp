@@ -219,7 +219,10 @@ void SetTurnedSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;            
+          break;  
+      case Status::undefined:
+          response->status = SKILL_FAILURE;
+          break;          
   }
   RCLCPP_INFO(m_node->get_logger(), "SetTurnedSkill::tickDone");
   response->is_ok = true;

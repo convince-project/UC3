@@ -50,7 +50,8 @@
                 <param name="command" expr="m_command"/>
             </send>
         </onentry>
-        <transition target="running"/>
+        <transition cond="_event.data.result==&apos;SUCCESS&apos;" target="running" event="NarrateComponent.Narrate.Return"/>
+        <transition cond="_event.data.result!=&apos;SUCCESS&apos;" target="fail" event="NarrateComponent.Narrate.Return"/>
     </state>
     <state id="running">
         <onentry>
@@ -67,6 +68,7 @@
         <transition target="onCheck" event="NarrateComponent.IsDone.Return">
             <assign location="m_is_done" expr="_event.data.is_done"/>
         </transition>
+        <transition cond="_event.data.result!=&apos;SUCCESS&apos;" target="fail" event="NarrateComponent.IsDone.Return"/>
     </state>
     <state id="onCheck">
         <transition cond="m_is_done" target="success"/>
@@ -76,10 +78,14 @@
         <onentry>
             <send event="NarrateComponent.Stop.Call"/>
         </onentry>
-        <transition target="halted"/>
+        <transition target="halted" event="NarrateComponent.Stop.Return"/>
+        <!-- Gestire anche il caso di errore se necessario -->
     </state>
     <state id="halted">
         <onentry>
+            <assign location="m_counter" expr="0"/>
+            <assign location="m_is_done" expr="false"/>
+            <assign location="m_result" expr="&apos;&apos;"/>
             <send event="HALT_RESPONSE"/>
         </onentry>
         <transition target="idle"/>

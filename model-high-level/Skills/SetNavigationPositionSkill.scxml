@@ -41,6 +41,8 @@
     <ros_service_handle_response name="/ExecuteDanceComponent/ExecuteDance" target="afterExecute">
       <assign location="result" expr="_res.result"/>
     </ros_service_handle_response>
+    <!-- Aggiungere gestione halt -->
+    <ros_service_handle_request name="/SetNavigationPositionSkill/halt" target="halted"/>
   </state>
 
   <state id="afterExecute">
@@ -72,6 +74,9 @@
     <ros_service_handle_response name="/ExecuteDanceComponent/IsDancing" target="onQuery">
       <assign location="is_dancing" expr="_res.is_dancing"/>
     </ros_service_handle_response>
+    <ros_service_handle_response name="/ExecuteDanceComponent/IsDancing" cond="_res.result!='SUCCESS'" target="failure"/>
+    <!-- Aggiungere gestione halt -->
+    <ros_service_handle_request name="/SetNavigationPositionSkill/halt" target="halted"/>
   </state>
 
   <state id="onQuery">
@@ -95,7 +100,18 @@
   <!-- Halt simply acknowledges -->
   <state id="halted">
     <onentry>
+      <assign location="is_dancing" expr="false"/>
+      <assign location="result" expr="''"/>
       <ros_service_send_response name="/SetNavigationPositionSkill/halt"/>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="failure">
+    <onentry>
+      <ros_service_send_response name="/SetNavigationPositionSkill/tick">
+        <field name="status" expr="SKILL_FAILURE"/>
+      </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
   </state>
