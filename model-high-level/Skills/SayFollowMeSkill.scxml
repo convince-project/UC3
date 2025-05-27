@@ -51,13 +51,15 @@
         </ros_service_send_response>
       </if>
     </onentry>
-    <transition target="getText"/>
+    <transition cond="m_result=='SUCCESS'" target="getText"/>
+    <transition cond="m_result!='SUCCESS'" target="idle"/>
   </state>
 
   <state id="getText">
     <ros_service_handle_response name="/SchedulerComponent/GetCurrentAction" target="talk">
       <assign location="m_param" expr="_res.param"/>
     </ros_service_handle_response>
+    <ros_service_handle_response name="/SchedulerComponent/GetCurrentAction" cond="_res.result!='SUCCESS'" target="failure"/>
   </state>
 
   <state id="talk">
@@ -84,6 +86,7 @@
     <ros_service_handle_response name="/TextToSpeechComponent/IsSpeaking" target="onCheck">
       <assign location="m_is_speaking" expr="_res.is_speaking"/>
     </ros_service_handle_response>
+    <ros_service_handle_response name="/TextToSpeechComponent/IsSpeaking" cond="_res.result!='SUCCESS'" target="failure"/>
   </state>
 
   <state id="onCheck">
@@ -112,6 +115,9 @@
 
   <state id="halted">
     <onentry>
+      <assign location="m_is_speaking" expr="false"/>
+      <assign location="m_result" expr="''"/>
+      <assign location="m_param" expr="''"/>
       <ros_service_send_response name="/SayFollowMeSkill/halt"/>
     </onentry>
     <transition target="idle"/>

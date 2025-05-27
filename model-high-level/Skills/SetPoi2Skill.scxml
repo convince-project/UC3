@@ -15,7 +15,7 @@
     <!-- SetPoiSkill is a server for tick from the ROS2Action plugin-->
     <ros_service_server service_name="/SetPoi2Skill/tick" type ="bt_interfaces_dummy/TickAction"/>
     <!-- SetPoiSkill is a server for halt from the ROS2Action plugin-->
-    <!-- <ros_service_server service_name="/SetPoiSkill/halt" type ="bt_interfaces_dummy/HaltAction"/> -->
+    <ros_service_server service_name="/SetPoi2Skill/halt" type="bt_interfaces_dummy/HaltAction"/>
     <!-- SetPoiSkill is a client for SetPoi from the SchedulerComponent -->
     <ros_service_client service_name="/SchedulerComponent/SetPoi" type ="scheduler_interfaces_dummy/SetPoi"/>
 
@@ -25,9 +25,8 @@
                 <field name="poi_number" expr="poi_number"/>
             </ros_service_send_request>
         </ros_service_handle_request>
-        <!-- <ros_service_handle_request name="/SetPoiSkill/halt" target="idle">
-            <ros_service_send_response name="/SetPoiSkill/halt"/>
-        </ros_service_handle_request> -->
+        <!-- Decommentare e correggere -->
+        <ros_service_handle_request name="/SetPoi2Skill/halt" target="halted"/>
     </state>
 
     <state id="setPoi">
@@ -46,5 +45,15 @@
         <!-- <ros_service_handle_request name="/SetPoiSkill/halt" target="idle">
             <ros_service_send_response name="/SetPoiSkill/halt"/>
         </ros_service_handle_request> -->
+        <!-- Aggiungere gestione halt -->
+        <ros_service_handle_request name="/SetPoi2Skill/halt" target="halted"/>
+    </state>
+
+    <state id="halted">
+        <onentry>
+            <assign location="poi_number" expr="2"/>
+            <ros_service_send_response name="/SetPoi2Skill/halt"/>
+        </onentry>
+        <transition target="idle"/>
     </state>
 </scxml>

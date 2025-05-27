@@ -58,12 +58,17 @@ bool SetCurrentPoiDoneSkill::start(int argc, char*argv[])
 	std::cout << "SetCurrentPoiDoneSkill::start";
 
   
-	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickCondition>(m_name + "Skill/tick",
+	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
                                                                            	std::bind(&SetCurrentPoiDoneSkill::tick,
                                                                            	this,
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
   
+	m_haltService = m_node->create_service<bt_interfaces_dummy::srv::HaltAction>(m_name + "Skill/halt",
+                                                                            	std::bind(&SetCurrentPoiDoneSkill::halt,
+                                                                            	this,
+                                                                            	std::placeholders::_1,
+                                                                            	std::placeholders::_2));
   
   
   
@@ -169,12 +174,20 @@ bool SetCurrentPoiDoneSkill::start(int argc, char*argv[])
     {
       m_tickResult.store(Status::success);
     }
+    else if (result == std::to_string(SKILL_RUNNING) )
+    {
+      m_tickResult.store(Status::running);
+    }
     else if (result == std::to_string(SKILL_FAILURE) )
     { 
       m_tickResult.store(Status::failure);
     }
   });
     
+  m_stateMachine.connectToEvent("HALT_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){
+    RCLCPP_INFO(m_node->get_logger(), "SetCurrentPoiDoneSkill::haltresponse");
+    m_haltResult.store(true);
+  });
 
   
   
@@ -187,8 +200,8 @@ bool SetCurrentPoiDoneSkill::start(int argc, char*argv[])
 	return true;
 }
 
-void SetCurrentPoiDoneSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Request> request,
-                                std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Response>      response)
+void SetCurrentPoiDoneSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Request> request,
+                                std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Response>      response)
 {
   std::lock_guard<std::mutex> lock(m_requestMutex);
   RCLCPP_INFO(m_node->get_logger(), "SetCurrentPoiDoneSkill::tick");
@@ -200,15 +213,34 @@ void SetCurrentPoiDoneSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_int
   }
   switch(m_tickResult.load()) 
   {
-      
+      case Status::running:
+          response->status = SKILL_RUNNING;
+          break;
       case Status::failure:
           response->status = SKILL_FAILURE;
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;            
+          break;  
+      case Status::undefined:
+          response->status = SKILL_FAILURE;
+          break;          
   }
   RCLCPP_INFO(m_node->get_logger(), "SetCurrentPoiDoneSkill::tickDone");
+  response->is_ok = true;
+}
+
+void SetCurrentPoiDoneSkill::halt( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::HaltAction::Request> request,
+    [[maybe_unused]] std::shared_ptr<bt_interfaces_dummy::srv::HaltAction::Response> response)
+{
+  std::lock_guard<std::mutex> lock(m_requestMutex);
+  RCLCPP_INFO(m_node->get_logger(), "SetCurrentPoiDoneSkill::halt");
+  m_haltResult.store(false);
+  m_stateMachine.submitEvent("CMD_HALT");
+  while(!m_haltResult.load()) {
+      std::this_thread::sleep_for (std::chrono::milliseconds(100));
+  }
+  RCLCPP_INFO(m_node->get_logger(), "SetCurrentPoiDoneSkill::haltDone");
   response->is_ok = true;
 }
 

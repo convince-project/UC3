@@ -1,4 +1,4 @@
-<scxml version="1.0" xmlns="http://www.w3.org/2005/07/scxml" datamodel="ecmascript" name="SetCurrentPoiDoneSkillCondition" initial="idle">
+<scxml version="1.0" xmlns="http://www.w3.org/2005/07/scxml" datamodel="ecmascript" name="SetCurrentPoiDoneSkillAction" initial="idle">
     <datamodel>
         <data id="poi_number" expr="0"/>
         <!-- <data id="poi_name" type="string" expr=""/> -->
@@ -11,22 +11,20 @@
     </datamodel>
     <!-- SetCurrentPoiDoneSkill is a server for tick from the ROS2Action plugin-->
     <!-- SetCurrentPoiDoneSkill is a server for halt from the ROS2Action plugin-->
-    <!-- <ros_service_server service_name="/SetCurrentPoiDoneSkill/halt" type ="bt_interfaces_dummy/HaltAction"/> -->
     <!-- SetCurrentPoiDoneSkill is a client for GetCurrentPoi from the SchedulerComponent -->
     <!-- SetCurrentPoiDoneSkill is a client for SetInt from the BlackboardComponent -->
     <state id="idle">
         <transition target="getCurrentPoi" event="CMD_TICK">
             <send event="SchedulerComponent.GetCurrentPoi.Call"/>
         </transition>
-        <!-- <ros_service_handle_request name="/SetCurrentPoiDoneSkill/halt" target="idle">
-            <ros_service_send_response name="/SetCurrentPoiDoneSkill/halt"/>
-        </ros_service_handle_request> -->
+        <!-- Decommentare e correggere -->
+        <transition target="halted" event="CMD_HALT"/>
     </state>
     <state id="getCurrentPoi">
         <transition cond="_event.data.is_ok" target="setInt" event="SchedulerComponent.GetCurrentPoi.Return">
             <assign location="poi_number" expr="_event.data.poi_number"/>
             <send event="BlackboardComponent.SetInt.Call">
-                <param name="field_name" expr="poi_number"/>
+                <param name="field_name" expr="&apos;PoiDone&apos; + poi_number"/>
                 <param name="value" expr="value"/>
             </send>
         </transition>
@@ -36,9 +34,8 @@
                 <param name="is_ok" expr="true"/>
             </send>
         </transition>
-        <!-- <ros_service_handle_request name="/SetCurrentPoiDoneSkill/halt" target="idle">
-            <ros_service_send_response name="/SetCurrentPoiDoneSkill/halt"/>
-        </ros_service_handle_request> -->
+        <!-- Aggiungere gestione halt -->
+        <transition target="halted" event="CMD_HALT"/>
     </state>
     <state id="setInt">
         <transition cond="_event.data.is_ok" target="idle" event="BlackboardComponent.SetInt.Return">
@@ -53,8 +50,15 @@
                 <param name="is_ok" expr="true"/>
             </send>
         </transition>
-        <!-- <ros_service_handle_request name="/SetCurrentPoiDoneSkill/halt" target="idle">
-            <ros_service_send_response name="/SetCurrentPoiDoneSkill/halt"/>
-        </ros_service_handle_request> -->
+        <!-- Aggiungere gestione halt -->
+        <transition target="halted" event="CMD_HALT"/>
+    </state>
+    <state id="halted">
+        <onentry>
+            <assign location="poi_number" expr="0"/>
+            <assign location="value" expr="1"/>
+            <send event="HALT_RESPONSE"/>
+        </onentry>
+        <transition target="idle"/>
     </state>
 </scxml>

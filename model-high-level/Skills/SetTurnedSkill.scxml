@@ -12,6 +12,7 @@
     <data id="result"     expr="''"/>
     <data id="SKILL_SUCCESS" type="int8" expr="0"/>
     <data id="SKILL_FAILURE" type="int8" expr="1"/>
+    <data id="SKILL_RUNNING" type="int8" expr="2"/>
   </datamodel>
 
   <ros_service_server service_name="/SetTurnedSkill/tick"  type="bt_interfaces_dummy/TickAction"/>
@@ -34,6 +35,8 @@
     <ros_service_handle_response name="/BlackboardComponent/SetString" target="afterSet">
       <assign location="result" expr="_res.result"/>
     </ros_service_handle_response>
+    <!-- Aggiungere gestione halt -->
+    <ros_service_handle_request name="/SetTurnedSkill/halt" target="halted"/>
   </state>
 
   <state id="afterSet">
@@ -48,12 +51,16 @@
     </onentry>
     <transition cond="result=='SUCCESS'" target="waitInc"/>
     <transition cond="result!='SUCCESS'" target="idle"/>
+    <!-- Aggiungere gestione halt -->
+    <ros_service_handle_request name="/SetTurnedSkill/halt" target="halted"/>
   </state>
 
   <state id="waitInc">
     <ros_service_handle_response name="/TurnBackManagerComponent/IncreaseTurnBacksCounter" target="reply">
       <assign location="result" expr="_res.result"/>
     </ros_service_handle_response>
+    <!-- Aggiungere gestione halt -->
+    <ros_service_handle_request name="/SetTurnedSkill/halt" target="halted"/>
   </state>
 
   <state id="reply">
@@ -73,6 +80,7 @@
 
   <state id="halted">
     <onentry>
+      <assign location="result" expr="''"/>
       <ros_service_send_response name="/SetTurnedSkill/halt"/>
     </onentry>
     <transition target="idle"/>

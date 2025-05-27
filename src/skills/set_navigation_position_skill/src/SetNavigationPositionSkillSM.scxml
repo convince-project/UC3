@@ -25,6 +25,8 @@
         <transition target="afterExecute" event="ExecuteDanceComponent.ExecuteDance.Return">
             <assign location="result" expr="_event.data.result"/>
         </transition>
+        <!-- Aggiungere gestione halt -->
+        <transition target="halted" event="CMD_HALT"/>
     </state>
     <state id="afterExecute">
         <onentry>
@@ -53,6 +55,9 @@
         <transition target="onQuery" event="ExecuteDanceComponent.IsDancing.Return">
             <assign location="is_dancing" expr="_event.data.is_dancing"/>
         </transition>
+        <transition cond="_event.data.result!=&apos;SUCCESS&apos;" target="failure" event="ExecuteDanceComponent.IsDancing.Return"/>
+        <!-- Aggiungere gestione halt -->
+        <transition target="halted" event="CMD_HALT"/>
     </state>
     <state id="onQuery">
         <onentry>
@@ -74,7 +79,17 @@
     <!-- Halt simply acknowledges -->
     <state id="halted">
         <onentry>
+            <assign location="is_dancing" expr="false"/>
+            <assign location="result" expr="&apos;&apos;"/>
             <send event="HALT_RESPONSE"/>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="failure">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_FAILURE"/>
+            </send>
         </onentry>
         <transition target="idle"/>
     </state>

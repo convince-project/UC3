@@ -70,7 +70,8 @@
         <field name="command" expr="m_command"/>
       </ros_service_send_request>
     </onentry>
-    <transition target="running"/>
+    <ros_service_handle_response name="/NarrateComponent/Narrate" cond="_res.result=='SUCCESS'" target="running"/>
+    <ros_service_handle_response name="/NarrateComponent/Narrate" cond="_res.result!='SUCCESS'" target="fail"/>
   </state>
 
   <state id="running">
@@ -89,6 +90,7 @@
     <ros_service_handle_response name="/NarrateComponent/IsDone" target="onCheck">
       <assign location="m_is_done" expr="_res.is_done"/>
     </ros_service_handle_response>
+    <ros_service_handle_response name="/NarrateComponent/IsDone" cond="_res.result!='SUCCESS'" target="fail"/>
   </state>
 
   <state id="onCheck">
@@ -100,11 +102,15 @@
     <onentry>
       <ros_service_send_request name="/NarrateComponent/Stop"/>
     </onentry>
-    <transition target="halted"/>
+    <ros_service_handle_response name="/NarrateComponent/Stop" target="halted"/>
+    <!-- Gestire anche il caso di errore se necessario -->
   </state>
 
   <state id="halted">
     <onentry>
+      <assign location="m_counter" expr="0"/>
+      <assign location="m_is_done" expr="false"/>
+      <assign location="m_result" expr="''"/>
       <ros_service_send_response name="/SayWhileNavigatingSkill/halt"/>
     </onentry>
     <transition target="idle"/>
