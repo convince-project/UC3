@@ -313,11 +313,10 @@ void SayPeopleLeftSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfa
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;
-      default:
-          // Optionally handle undefined or unexpected values
+          break;  
+      case Status::undefined:
           response->status = SKILL_FAILURE;
-          break;
+          break;          
   }
   RCLCPP_INFO(m_node->get_logger(), "SayPeopleLeftSkill::tickDone");
   response->is_ok = true;

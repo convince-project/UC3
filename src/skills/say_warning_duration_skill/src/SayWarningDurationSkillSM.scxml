@@ -45,15 +45,17 @@
                 <param name="command" expr="m_command"/>
             </send>
         </onentry>
-        <transition event="SchedulerComponent.SetCommand.Return" target="getText"/>
+        <transition event="SchedulerComponent.SetCommand.Return" cond="_event.data.result==&apos;SUCCESS&apos;" target="getText"/>
+        <transition event="SchedulerComponent.SetCommand.Return" cond="_event.data.result!=&apos;SUCCESS&apos;" target="finalize_failure"/>
     </state>
     <state id="getText">
         <onentry>
             <send event="SchedulerComponent.GetCurrentAction.Call"/>
         </onentry>
-        <transition event="SchedulerComponent.GetCurrentAction.Return" target="talk">
+        <transition event="SchedulerComponent.GetCurrentAction.Return" cond="_event.data.result==&apos;SUCCESS&apos;" target="talk">
             <assign location="m_param" expr="_event.data.param"/>
         </transition>
+        <transition event="SchedulerComponent.GetCurrentAction.Return" cond="_event.data.result!=&apos;SUCCESS&apos;" target="finalize_failure"/>
     </state>
     <state id="talk">
         <onentry>
@@ -103,6 +105,14 @@
         <onentry>
             <send event="TICK_RESPONSE">
                 <param name="status" expr="SKILL_RUNNING"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="finalize_failure">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_FAILURE"/>
             </send>
         </onentry>
         <transition target="idle"/>
