@@ -6,11 +6,11 @@ The dialog pipeline is supposed to define the sequences of actions of a generic 
 <!-- ![Dialog Flow Chart](images/Dialog_pipeline.drawio.svg) -->
 <figure>
     <p align="center">
-        <img src="images/Dialog_pipeline.drawio.svg" alt="Alt Text" width="75%"><br>
+        <img src="images/Dialog_pipeline.drawio.svg" alt="Alt Text" width="100%"><br>
         <em>
             Dialog Flow Chart (made with 
             <a href="https://app.diagrams.net/" target="_blank">diagrams.net</a>, 
-            last update: May 14th 2025)
+            last update: May 27th, 2025)
         </em>
     </p>
 </figure>
@@ -18,10 +18,14 @@ The dialog pipeline is supposed to define the sequences of actions of a generic 
 The dialog skill behavior follows the flow chart presented above:
 - The starting state is `IDLE`
 - If a tick is received, then the `WaitForInteract` state is supposed to wait for the interaction of the user and to pass it to the next state. If nothing is received, wait. When an interaction is received, go to the next state.
-- The `ManageContext` state receives the interaction and based on the context. There are some predefined replies, it delivers the request to a specific LLM, or directly replies with predefined actions. If the context requires a specific LLM, then go to the `CheckDuplicate` state; if it needs a predefined reply, speak and at the end of the speech come back to the state `WaitForInteraction`; if it is an invite to start/end/continue the tour, get back to the `IDLE` state.
-- The `CheckDuplicate` state is supposed to recognize if the semantical meaning of the received question sentence has already been heard within the dialog.
-- If it's the first time that the question has been asked, then go to the `AnswerAndSpeak` state. This state provides LLMs that generate replies based on the context of the interaction. Until now, there are 2 LLMs: one that is specialized for questions related to Palazzo Madama and to the CONVINCE project, and another one that is specialized to manage questions related to R1 itself, as well as general questions. This design choice has been made to avoid allucinations and long execution times due to the length of the prompt that needs to be processed to include all the relevant information. After generating the answer, speak and at the end of the speech, come back to the state `WaitForInteraction`,
-- If a similar question has already been asked within the dialog session, the `ShortenAndSpeak` state is supposed to provide a resumed version of the previous answer, rather than replying the same information. After generating the answer, speak and at the end of the speech, come back to the state `WaitForInteraction`,
+- The `ManageContext` state receives the interaction and extract information about the context. Based on this information, the pipeline may return some predefined replies, or deliver the request to a specific LLM. In order to understand the context, this state extract the language of the interaction and the type of the interaction. If the type of the interaction is an invite to start/end/continue the tour, get back to the `IDLE` state. Otherwise, go to the `SetLanguage` state.
+- The `SetLanguage` state is supposed to set the language of the conversation, based on the language of the interaction. Here we set the language for both the text-to-speech and the scheduler components. After setting the language, go to the `CheckDuplicate` state.
+- The `CheckDuplicate` state is supposed to recognize if the semantical meaning of the received question sentence has already been heard within the dialog:
+
+    - If a similar question has previously been asked within the dialog session, the `ShortenAndSpeak` state is supposed to provide a resumed version of the previous answer, rather than replying the same information. After generating the answer, speak and at the end of the speech, come back to the state `WaitForInteraction`. 
+    - If it's the first time that the question has been asked, then:
+        - if the question is an invite to describe the room or to talk about the function of the room, then go to the `InterpretCommand` state, which is supposed to interpret the command and to provide a predefined answer. After generating the answer, speak and at the end of the speech, come back to the state `WaitForInteraction`.
+        - otherwise, go to the `AnswerAndSpeak` state. This state provides LLMs that generate replies based on the context of the interaction. Until now, there are 2 LLMs: one that is specialized for questions related to Palazzo Madama and to the CONVINCE project, and another one that is specialized to manage questions related to R1 itself, as well as general questions. This design choice has been made to avoid allucinations and long execution times due to the length of the prompt that needs to be processed to include all the relevant information. After generating the answer, speak and at the end of the speech, come back to the state `WaitForInteraction`.
 
 # Components
 The dialog skill represents a ROS2 node acting as a ROS2 Service Client, which interacts with the following components, implementing ROS2 Service Servers:
@@ -55,7 +59,7 @@ Below is a graphical representation of the communication between the component, 
         <em>
             Sequence Diagram representing the communication among the Dialog Component, Skill and State Machine (made with 
             <a href="https://app.diagrams.net/" target="_blank" style="color: #007acc; text-decoration: none;">diagrams.net</a>
-            , last update: May 14th 2025)
+            , last update: May 14th, 2025)
         </em>
     </p>
 </figure>
