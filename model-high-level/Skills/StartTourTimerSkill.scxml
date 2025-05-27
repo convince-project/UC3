@@ -54,9 +54,14 @@
         <field name="value"      expr="0"/>
       </ros_service_send_request>
     </onentry>
-    <ros_service_handle_response name="/BlackboardComponent/SetInt" target="successReply">
+    <ros_service_handle_response name="/BlackboardComponent/SetInt" target="checkResetResult">
       <assign location="result" expr="_res.result"/>
     </ros_service_handle_response>
+  </state>
+
+  <state id="checkResetResult">
+    <transition cond="result == 'SUCCESS'" target="successReply"/>
+    <transition cond="result != 'SUCCESS'" target="failReply"/>
   </state>
 
   <state id="successReply">
