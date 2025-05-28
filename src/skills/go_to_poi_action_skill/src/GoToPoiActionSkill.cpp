@@ -58,12 +58,17 @@ bool GoToPoiActionSkill::start(int argc, char*argv[])
 	std::cout << "GoToPoiActionSkill::start";
 
   
-	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickCondition>(m_name + "Skill/tick",
+	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
                                                                            	std::bind(&GoToPoiActionSkill::tick,
                                                                            	this,
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
   
+	m_haltService = m_node->create_service<bt_interfaces_dummy::srv::HaltAction>(m_name + "Skill/halt",
+                                                                            	std::bind(&GoToPoiActionSkill::halt,
+                                                                            	this,
+                                                                            	std::placeholders::_1,
+                                                                            	std::placeholders::_2));
   
   m_actionClient = rclcpp_action::create_client<navigation_interfaces::action::GoToPoi>(m_node, "/NavigationComponent/GoToPoi");
   m_send_goal_options.goal_response_callback = std::bind(&GoToPoiActionSkill::goal_response_callback, this, std::placeholders::_1);
@@ -127,12 +132,20 @@ bool GoToPoiActionSkill::start(int argc, char*argv[])
     {
       m_tickResult.store(Status::success);
     }
+    else if (result == std::to_string(SKILL_RUNNING) )
+    {
+      m_tickResult.store(Status::running);
+    }
     else if (result == std::to_string(SKILL_FAILURE) )
     { 
       m_tickResult.store(Status::failure);
     }
   });
     
+  m_stateMachine.connectToEvent("HALT_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){
+    RCLCPP_INFO(m_node->get_logger(), "GoToPoiActionSkill::haltresponse");
+    m_haltResult.store(true);
+  });
 
   m_stateMachine.connectToEvent("NavigationComponent.GoToPoi.SendGoal", [this]([[maybe_unused]]const QScxmlEvent & event){
     RCLCPP_INFO(m_node->get_logger(), "GoToPoiActionSkill::NavigationComponent.GoToPoi.SendGoal");
@@ -174,8 +187,8 @@ bool GoToPoiActionSkill::start(int argc, char*argv[])
 	return true;
 }
 
-void GoToPoiActionSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Request> request,
-                                std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Response>      response)
+void GoToPoiActionSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Request> request,
+                                std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Response>      response)
 {
   std::lock_guard<std::mutex> lock(m_requestMutex);
   RCLCPP_INFO(m_node->get_logger(), "GoToPoiActionSkill::tick");
@@ -187,15 +200,34 @@ void GoToPoiActionSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfa
   }
   switch(m_tickResult.load()) 
   {
-      
+      case Status::running:
+          response->status = SKILL_RUNNING;
+          break;
       case Status::failure:
           response->status = SKILL_FAILURE;
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;            
+          break;  
+      case Status::undefined:
+          response->status = SKILL_FAILURE;
+          break;          
   }
   RCLCPP_INFO(m_node->get_logger(), "GoToPoiActionSkill::tickDone");
+  response->is_ok = true;
+}
+
+void GoToPoiActionSkill::halt( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::HaltAction::Request> request,
+    [[maybe_unused]] std::shared_ptr<bt_interfaces_dummy::srv::HaltAction::Response> response)
+{
+  std::lock_guard<std::mutex> lock(m_requestMutex);
+  RCLCPP_INFO(m_node->get_logger(), "GoToPoiActionSkill::halt");
+  m_haltResult.store(false);
+  m_stateMachine.submitEvent("CMD_HALT");
+  while(!m_haltResult.load()) {
+      std::this_thread::sleep_for (std::chrono::milliseconds(100));
+  }
+  RCLCPP_INFO(m_node->get_logger(), "GoToPoiActionSkill::haltDone");
   response->is_ok = true;
 }
 
@@ -275,11 +307,10 @@ void GoToPoiActionSkill::goal_response_callback(const rclcpp_action::ClientGoalH
 }
 
 void GoToPoiActionSkill::feedback_callback(
-    rclcpp_action::ClientGoalHandle<navigation_interfaces::action::GoToPoi>::SharedPtr goal_handle,
-    const std::shared_ptr<const navigation_interfaces::action::GoToPoi::Feedback> feedback)
+    rclcpp_action::ClientGoalHandle<navigation_interfaces::action::GoToPoi>::SharedPtr,
+    [[maybe_unused]] const std::shared_ptr<const navigation_interfaces::action::GoToPoi::Feedback> feedback)
 {
-    (void)goal_handle;
-    (void)feedback;
+  
 }
 
 
