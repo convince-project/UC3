@@ -9,22 +9,32 @@
     <!-- Action skill: tick + halt servers -->
     <!-- Client for NotifyUserComponent.NotifyUserCharged -->
     <state id="idle">
+        <onentry>
+            <log expr="'[IDLE] m_result: ' + m_result"/>
+        </onentry>
         <transition target="startNotify" event="CMD_TICK">
             <send event="NotifyUserComponent.NotifyUserCharged.Call"/>
         </transition>
         <transition target="halted" event="CMD_HALT"/>
     </state>
     <state id="startNotify">
+        <onentry>
+            <log expr="'[STARTNOTIFY] m_result: ' + m_result"/>
+        </onentry>
         <transition target="evaluate" event="NotifyUserComponent.NotifyUserCharged.Return">
             <assign location="m_result" expr="_event.data.is_ok"/>
         </transition>
     </state>
     <state id="evaluate">
+        <onentry>
+            <log expr="'[EVALUATE] m_result: ' + m_result"/>
+        </onentry>
         <transition cond="!m_result" target="failure"/>
         <transition target="decide"/>
     </state>
     <state id="decide">
         <onentry>
+            <log expr="'[DECIDE] m_result: ' + m_result"/>
             <send event="TICK_RESPONSE">
                 <param name="status" expr="m_result ? SKILL_SUCCESS : SKILL_FAILURE"/>
                 <param name="is_ok" expr="true"/>
@@ -34,6 +44,7 @@
     </state>
     <state id="failure">
         <onentry>
+            <log expr="'[FAILURE] m_result: ' + m_result"/>
             <send event="TICK_RESPONSE">
                 <param name="status" expr="SKILL_FAILURE"/>
                 <param name="is_ok" expr="true"/>
@@ -43,6 +54,7 @@
     </state>
     <state id="halted">
         <onentry>
+            <log expr="'[HALTED] m_result: ' + m_result"/>
             <send event="HALT_RESPONSE">
                 <param name="is_ok" expr="true"/>
             </send>
