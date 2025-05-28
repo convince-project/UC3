@@ -9,7 +9,6 @@
   <datamodel>
     <data id="FIELD_NAME" expr="'turnBackState'"/>
     <data id="VALUE_STR"  expr="'not_turning'"/>
-    <data id="result" type="string" expr="''"/>
     <data id="SKILL_SUCCESS" type="int8" expr="0"/>
     <data id="SKILL_FAILURE" type="int8" expr="1"/>
     <data id="SKILL_RUNNING" type="int8" expr="2"/>
@@ -31,32 +30,21 @@
   </state>
 
   <state id="setString">
-    <ros_service_handle_response name="/BlackboardComponent/SetString" target="reply">
-      <assign location="result" expr="_res.result"/>
-    </ros_service_handle_response>
-    <!-- Aggiungere gestione errore se la risposta non arriva -->
-    <ros_service_handle_response name="/BlackboardComponent/SetString" cond="_res.result!='SUCCESS'" target="reply"/>
+    <ros_service_handle_response name="/BlackboardComponent/SetString" target="reply"/>
     <ros_service_handle_request name="/SetNotTurningSkill/halt" target="halted"/>
   </state>
 
   <state id="reply">
     <onentry>
-      <if cond="result=='SUCCESS'">
-        <ros_service_send_response name="/SetNotTurningSkill/tick">
-          <field name="status" expr="SKILL_SUCCESS"/>
-        </ros_service_send_response>
-      <else/>
-        <ros_service_send_response name="/SetNotTurningSkill/tick">
-          <field name="status" expr="SKILL_FAILURE"/>
-        </ros_service_send_response>
-      </if>
+      <ros_service_send_response name="/SetNotTurningSkill/tick">
+        <field name="status" expr="SKILL_SUCCESS"/>
+      </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
   </state>
 
   <state id="halted">
     <onentry>
-      <assign location="result" expr="''"/>
       <ros_service_send_response name="/SetNotTurningSkill/halt"/>
     </onentry>
     <transition target="idle"/>
