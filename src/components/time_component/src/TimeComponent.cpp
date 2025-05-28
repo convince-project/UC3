@@ -168,14 +168,29 @@ void TimeComponent::publisher(std::string text)
 
 std::string TimeComponent::getCurrentTime()
 {
-    auto now = std::chrono::system_clock::now();
-    std::time_t now_time = std::chrono::system_clock::to_time_t(now);
-    std::tm* now_tm = std::localtime(&now_time);
+    // auto now = std::chrono::system_clock::now();
+    // std::time_t now_time = std::chrono::system_clock::to_time_t(now);
+    // std::tm* now_tm = std::localtime(&now_time);
+    // std::ostringstream oss;
+    // oss << std::put_time(now_tm, "%H:%M");
+    // std::string time = oss.str();
+    // std::cout << "Current time: " << time << std::endl;
+    // return time;
+    const auto tp_utc{std::chrono::system_clock::now()};
+    std::cout << "Current time 'UTC' is: " << tp_utc << "\n"
+                 "Current time 'Local' is: "
+              << std::chrono::current_zone()->to_local(tp_utc) << '\n';
+    std::time_t now = std::chrono::system_clock::to_time_t(tp_utc);
+    std::tm* now_tm = std::localtime(&now);
     std::ostringstream oss;
     oss << std::put_time(now_tm, "%H:%M");
     std::string time = oss.str();
     std::cout << "Current time: " << time << std::endl;
     return time;
+    // return std::chrono::current_zone()->to_local(tp_utc);
+    // return std::chrono::current_zone()->to_local(tp_utc).time_since_epoch().count();
+    // return std::chrono::current_zone()->to_local(tp_utc).time_since_epoch().count() / 60; // in minutes
+    // return std::chrono::current_zone()->to_local(tp_utc).time_since_epoch().count() / 3600; // in hours
 }
 
 void TimeComponent::timerTask()
