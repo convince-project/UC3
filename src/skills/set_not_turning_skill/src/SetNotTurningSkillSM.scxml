@@ -3,7 +3,6 @@
     <datamodel>
         <data id="FIELD_NAME" expr="&apos;turnBackState&apos;"/>
         <data id="VALUE_STR" expr="&apos;not_turning&apos;"/>
-        <data id="result" expr="&apos;&apos;"/>
         <data id="SKILL_SUCCESS" expr="0"/>
         <data id="SKILL_FAILURE" expr="1"/>
         <data id="SKILL_RUNNING" expr="2"/>
@@ -18,30 +17,19 @@
         <transition target="halted" event="CMD_HALT"/>
     </state>
     <state id="setString">
-        <transition target="reply" event="BlackboardComponent.SetString.Return">
-            <assign location="result" expr="_event.data.result"/>
-        </transition>
-        <!-- Aggiungere gestione errore se la risposta non arriva -->
-        <transition cond="_event.data.result!=&apos;SUCCESS&apos;" target="reply" event="BlackboardComponent.SetString.Return"/>
+        <transition target="reply" event="BlackboardComponent.SetString.Return"/>
         <transition target="halted" event="CMD_HALT"/>
     </state>
     <state id="reply">
         <onentry>
-            <if cond="result==&apos;SUCCESS&apos;">
-                <send event="TICK_RESPONSE">
-                    <param name="status" expr="SKILL_SUCCESS"/>
-                </send>
-                <else/>
-                <send event="TICK_RESPONSE">
-                    <param name="status" expr="SKILL_FAILURE"/>
-                </send>
-            </if>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_SUCCESS"/>
+            </send>
         </onentry>
         <transition target="idle"/>
     </state>
     <state id="halted">
         <onentry>
-            <assign location="result" expr="&apos;&apos;"/>
             <send event="HALT_RESPONSE"/>
         </onentry>
         <transition target="idle"/>
