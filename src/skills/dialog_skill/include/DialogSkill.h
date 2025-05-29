@@ -11,11 +11,11 @@
 #include <thread>
 #include <rclcpp/rclcpp.hpp>
 #include "DialogSkillSM.h"
-#include <bt_interfaces/msg/action_response.hpp>
+#include <bt_interfaces_dummy/msg/action_response.hpp>
 #include <scheduler_interfaces/srv/get_current_language.hpp>
 
-#include <bt_interfaces/srv/tick_action.hpp>
-#include <bt_interfaces/srv/halt_action.hpp>
+#include <bt_interfaces_dummy/srv/tick_action.hpp>
+#include <bt_interfaces_dummy/srv/halt_action.hpp>
 
 #include <dialog_interfaces/srv/manage_context.hpp>
 #include <dialog_interfaces/srv/remember_interactions.hpp> // auto-generated from the .srv file
