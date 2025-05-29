@@ -40,10 +40,10 @@ public:
 	DialogSkill(std::string name );
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
-	void tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::TickAction::Request> request,
-			   std::shared_ptr<bt_interfaces::srv::TickAction::Response>      response);
-	void halt( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::HaltAction::Request> request,
-			   [[maybe_unused]] std::shared_ptr<bt_interfaces::srv::HaltAction::Response> response);
+	void tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Request> request,
+			   std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Response>      response);
+	void halt( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::HaltAction::Request> request,
+			   [[maybe_unused]] std::shared_ptr<bt_interfaces_dummy::srv::HaltAction::Response> response);
 
 private:
 	void EnableMicrophone();
@@ -57,9 +57,9 @@ private:
 	DialogSkillAction m_stateMachine;
 	
 	std::atomic<Status> m_tickResult{Status::undefined};
-	rclcpp::Service<bt_interfaces::srv::TickAction>::SharedPtr m_tickService;
+	rclcpp::Service<bt_interfaces_dummy::srv::TickAction>::SharedPtr m_tickService;
 	std::atomic<bool> m_haltResult{false};
-	rclcpp::Service<bt_interfaces::srv::HaltAction>::SharedPtr m_haltService;
+	rclcpp::Service<bt_interfaces_dummy::srv::HaltAction>::SharedPtr m_haltService;
 	
 };
 
