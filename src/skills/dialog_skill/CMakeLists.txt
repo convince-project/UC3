@@ -24,7 +24,7 @@ endif()
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-ament_target_dependencies(${PROJECT_NAME} bt_interfaces rclcpp dialog_interfaces scheduler_interfaces text_to_speech_interfaces)
+ament_target_dependencies(${PROJECT_NAME} bt_interfaces_dummy rclcpp dialog_interfaces scheduler_interfaces text_to_speech_interfaces)
 target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Scxml Qt6::StateMachine)
 target_include_directories(${PROJECT_NAME}
   PUBLIC
