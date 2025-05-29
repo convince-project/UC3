@@ -1,4 +1,3 @@
-string new_language
+string language # the language to set
 ---
 bool is_ok
-string error_msg

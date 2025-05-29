@@ -10,3 +10,4 @@ test_sm/log/
 test_sm/install/
 launch/__pycache__/
 bak/
+sbert
