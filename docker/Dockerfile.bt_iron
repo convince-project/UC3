@@ -6,7 +6,12 @@ USER root
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update 
-RUN apt-get install -y libczmq-dev ros-jazzy-zmqpp-vendor-dbgsym ros-jazzy-zmqpp-vendor libczmq-dev libczmq4 curl 
+RUN apt install curl gnupg2 lsb-release -y 
+RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key  -o /usr/share/keyrings/ros-archive-keyring.gpg
+# RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(source /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null
+RUN apt update
+RUN apt-cache policy | grep universe && apt-get install -y libczmq-dev ros-iron-zmqpp-vendor-dbgsym ros-iron-zmqpp-vendor libczmq-dev libczmq4 curl 
 
 RUN apt install qtbase5-dev libqt5svg5-dev libzmq3-dev libdw-dev libboost-all-dev -y
 
@@ -74,19 +79,19 @@ RUN cd yarp && \
     make -j11
 
 
-RUN cd yarp-devices-ros2/ros2_interfaces_ws && /bin/bash -c "source /opt/ros/jazzy/setup.bash; colcon build"
-RUN cd yarp-devices-ros2 && cd build && /bin/bash -c "source /opt/ros/jazzy/setup.bash; source ${robotology_install_folder}/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash; cmake .. -DYARP_ROS2_USE_SYSTEM_map2d_nws_ros2_msgs=ON -DYARP_ROS2_USE_SYSTEM_yarp_control_msgs=ON; make -j11"
+RUN cd yarp-devices-ros2/ros2_interfaces_ws && /bin/bash -c "source /opt/ros/iron/setup.bash; colcon build"
+RUN cd yarp-devices-ros2 && cd build && /bin/bash -c "source /opt/ros/iron/setup.bash; source ${robotology_install_folder}/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash; cmake .. -DYARP_ROS2_USE_SYSTEM_map2d_nws_ros2_msgs=ON -DYARP_ROS2_USE_SYSTEM_yarp_control_msgs=ON; make -j11"
     
 WORKDIR /home/user1 
 
 RUN /bin/bash -c "cd /home/user1 && rm -rf ROSMonitoring"
 
-RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
+RUN /bin/bash -c "source /opt/ros/iron/setup.bash && \
     cd /home/user1 && git clone https://github.com/ste93/ROSMonitoring.git -b ros2"
 
 # installing as2fm
 # RUN /bin/bash -c "/home/user1/convince-python-env/bin/pip install --upgrade pip"
-# RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
+# RUN /bin/bash -c "source /opt/ros/iron/setup.bash && \
 #     cd /home/user1 && \
 #     git clone https://github.com/convince-project/AS2FM.git && /home/user1/convince-python-env/bin/python -m pip install AS2FM/"
 
@@ -102,18 +107,38 @@ USER user1
 # /home/user1/monitoring-python-env/bin/pip install --upgrade pip && \
 # /home/user1/monitoring-python-env/bin/pip install websocket_client rospy_message_converter pyyaml reelay jedi pycairo PyGObject==3.50.0 prompt_toolkit"
 
+# model2code
+
+RUN /bin/bash -c "cd /home/user1 && \
+    git clone https://github.com/Microsoft/vcpkg.git && \
+    cd vcpkg && \
+    ./bootstrap-vcpkg.sh    && \
+    ./vcpkg integrate install && \
+    ./vcpkg install tinyxml2" 
+
+ENV LD_LIBRARY_PATH=/home/user1/vcpkg/installed/x64-linux/share/tinyxml2/:${LD_LIBRARY_PATH}
+ENV CMAKE_PREFIX_PATH=/home/user1/vcpkg/installed/x64-linux/share/tinyxml2/:${CMAKE_PREFIX_PATH}
+
+
+RUN /bin/bash -c " cd /home/user1 && \
+    git clone https://github.com/convince-project/model2code.git && \
+    cd model2code && \
+    mkdir build && \
+    cd build && \
+    cmake .. && \
+    sudo make install"
 
 RUN echo "export PATH=\$PATH:/home/user1/Groot/build" >> ~/.bashrc
 
 ENV PATH=/usr/local/Qt-6.8.3/bin:$PATH
 
-RUN /bin/bash -c "echo 'updated on 202503250921' && \
-    source /opt/ros/jazzy/setup.bash && \
+RUN /bin/bash -c "echo 'updated on 202505301005' && \
+    source /opt/ros/iron/setup.bash && \
     cd /home/user1 && \
-    git clone https://github.com/convince-project/UC3.git -b HardwareFaultSkillTest && \
-    source /opt/ros/jazzy/setup.bash && \
+    git clone https://github.com/convince-project/UC3.git -b  HardwareFaultSkillTest && \
+    source /opt/ros/iron/setup.bash && \
     cd /home/user1/UC3/ && \
-    colcon build --base-paths src/* --packages-ignore face_expressions_wrapper dialog_component"
+    colcon build --base-paths src/* --packages-ignore face_expressions_wrapper dialog_component dance_component is_timer_done_skill"
 
 
 RUN echo "source /home/user1/UC3/install/setup.bash" >> ~/.bashrc
