@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="3" project_name="Project">
+    <include path="bt_poi_complex_no_dialog.xml"/>
+    <!-- Description of Node Models (used by Groot) -->
+    <TreeNodesModel>
+        <Action ID="ROS2Action">
+            <input_port name="interface" type="std::string"/>
+            <input_port name="isMonitored" type="std::string"/>
+        </Action>
+        <Condition ID="ROS2Condition">
+            <input_port name="interface" type="std::string"/>
+            <input_port name="isMonitored" type="std::string"/>
+        </Condition>
+    </TreeNodesModel>
+</root>
