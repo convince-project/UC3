@@ -110,7 +110,7 @@ ENV PATH=/usr/local/Qt-6.8.3/bin:$PATH
 RUN /bin/bash -c "echo 'updated on 202503250921' && \
     source /opt/ros/jazzy/setup.bash && \
     cd /home/user1 && \
-    git clone https://github.com/convince-project/UC3.git && \
+    git clone https://github.com/convince-project/UC3.git -b HardwareFaultSkillTest && \
     source /opt/ros/jazzy/setup.bash && \
     cd /home/user1/UC3/ && \
     colcon build --base-paths src/* --packages-ignore face_expressions_wrapper dialog_component"
@@ -127,3 +127,5 @@ ENV LD_LIBRARY_PATH=/usr/local/Qt-6.8.3/lib/:$LD_LIBRARY_PATH
 ENV CYCLONEDDS_URI=/home/user1/UC3/docker/cyclone_dds_settings.xml
 
 ENV YARP_DATA_DIRS=${YARP_DATA_DIRS}:/home/user1/UC3/launch
+
+ENV TZ=Europe/Rome
