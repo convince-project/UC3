@@ -17,7 +17,6 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(alarm_interfaces REQUIRED)
 find_package(notify_user_interfaces REQUIRED)
 # find_package(nlohmann_json 3.10.5 REQUIRED)
 add_executable(${PROJECT_NAME} )
@@ -30,7 +29,7 @@ include(FetchContent)
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-ament_target_dependencies(${PROJECT_NAME} alarm_interfaces notify_user_interfaces rclcpp)
+ament_target_dependencies(${PROJECT_NAME} notify_user_interfaces rclcpp)
 
 target_include_directories(${PROJECT_NAME}
   PUBLIC
