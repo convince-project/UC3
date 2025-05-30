@@ -25,17 +25,11 @@
       <componentDeclaration id="NotifyUserComponent" interface="notify_user_interfaces">
         <componentDefinition moc="fsm" path = "…/NotifyUserComponent.scxml"/>
       </componentDeclaration>
-      <componentDeclaration id="NotifyUserComponent" interface="alarm_interfaces">
-        <componentDefinition />
-      </componentDeclaration>
       <componentDeclaration id="RobotComponent" interface="robot_interfaces">
         <componentDefinition moc="fsm" path="../../environment-XML/museum-guide/robot_interfaces.scxml" />
       </componentDeclaration>
       <componentDeclaration id="BatteryDriverCmp" interface="drain_interfaces">
         <componentDefinition moc="fsm" path="../../environment-XML/museum-guide/BatteryDriverCmp.scxml" />
-      </componentDeclaration>
-      <componentDeclaration id="AlarmCmp" interface="alarm_interfaces">
-        <componentDefinition moc="fsm" path="../../environment-XML/museum-guide/AlarmCmp.scxml" />
       </componentDeclaration>
       <componentDeclaration id="NavigationComponent" interface="navigation_interfaces">
         <componentDefinition />
