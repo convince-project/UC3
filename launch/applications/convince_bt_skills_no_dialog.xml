@@ -292,5 +292,12 @@
          <node>bt</node>
     </module>
 
+    <module>
+         <name>yarprobotinterface</name>
+         <parameters> --config /home/user1/UC3/src/components/fake_battery_component/robotinterface.xml</parameters>
+         <workdir />
+         <node>bt</node>
+    </module>
+
 
 </application>
