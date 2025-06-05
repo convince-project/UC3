@@ -1,40 +1,205 @@
-<scxml
-  version="1.0"
-  xmlns="..."
-  datamodel="ecmascript"
-  name="SchedulerComponent"
-  initial="idle">
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml"
+       version="1.0"
+       name="SchedulerComponent"
+       initial="idle"
+       datamodel="ecmascript">
 
-	<datamodel>
-    <data id="current_poi_number" type="int32" expr="1" />
-		<!-- <data id="current_poi_name" type="string" expr="poi1" /> -->
-	</datamodel>
+  <datamodel>
+    <!-- request and response placeholders -->
+    <data id="req_poi_number"        type="number"  expr="0"/>
+    <data id="req_command"           type="string"  expr="''"/>
+    <data id="req_language"          type="string"  expr="''"/>
+    <!-- response fields -->
+    <data id="res_poi_name"          type="string"  expr="''"/>
+    <data id="res_poi_number"        type="number"  expr="0"/>
+    <data id="res_is_blocking"       type="boolean" expr="false"/>
+    <data id="res_param"             type="string"  expr="''"/>
+    <data id="res_type"              type="string"  expr="''"/>
+    <data id="res_language"          type="string"  expr="''"/>
+    <data id="res_command"           type="string"  expr="''"/>
+    <data id="res_commands"          type="array"   expr="[]"/>
+    <data id="res_done_with_poi"     type="boolean" expr="false"/>
+    <data id="res_error_msg"         type="string"  expr="''"/>
+    <data id="res_is_ok"             type="boolean" expr="false"/>
+  </datamodel>
 
-  <ros_service_server service_name="/SchedulerComponent/GetCurrentPoi" type="scheduler_interfaces_dummy/GetCurrentPoi"/>
-  <ros_service_server service_name="/SchedulerComponent/SetPoi" type="scheduler_interfaces_dummy/SetPoi"/>
-  <ros_topic_publisher topic="/SchedulerComponent/PoiNumber" type="std_msgs/Int32" />
+  <!-- service servers -->
+  <ros_service_server service_name="/SchedulerComponent/Reset"
+                      type="scheduler_interfaces/srv/Reset"/>
+  <ros_service_server service_name="/SchedulerComponent/EndTour"
+                      type="scheduler_interfaces/srv/EndTour"/>
+  <ros_service_server service_name="/SchedulerComponent/UpdatePoi"
+                      type="scheduler_interfaces/srv/UpdatePoi"/>
+  <ros_service_server service_name="/SchedulerComponent/SetPoi"
+                      type="scheduler_interfaces/srv/SetPoi"/>
+  <ros_service_server service_name="/SchedulerComponent/GetCurrentPoi"
+                      type="scheduler_interfaces/srv/GetCurrentPoi"/>
+  <ros_service_server service_name="/SchedulerComponent/UpdateAction"
+                      type="scheduler_interfaces/srv/UpdateAction"/>
+  <ros_service_server service_name="/SchedulerComponent/GetCurrentAction"
+                      type="scheduler_interfaces/srv/GetCurrentAction"/>
+  <ros_service_server service_name="/SchedulerComponent/GetCurrentLanguage"
+                      type="scheduler_interfaces/srv/GetCurrentLanguage"/>
+  <ros_service_server service_name="/SchedulerComponent/SetLanguage"
+                      type="scheduler_interfaces/srv/SetLanguage"/>
+  <ros_service_server service_name="/SchedulerComponent/GetCurrentCommand"
+                      type="scheduler_interfaces/srv/GetCurrentCommand"/>
+  <ros_service_server service_name="/SchedulerComponent/SetCommand"
+                      type="scheduler_interfaces/srv/SetCommand"/>
+  <ros_service_server service_name="/SchedulerComponent/GetAvailableCommands"
+                      type="scheduler_interfaces/srv/GetAvailableCommands"/>
 
   <state id="idle">
+    <ros_service_handle_request name="/SchedulerComponent/Reset"
+                                target="HandleReset"/>
+    <ros_service_handle_request name="/SchedulerComponent/EndTour"
+                                target="HandleEndTour"/>
+    <ros_service_handle_request name="/SchedulerComponent/UpdatePoi"
+                                target="HandleUpdatePoi"/>
+    <ros_service_handle_request name="/SchedulerComponent/SetPoi"
+                                target="HandleSetPoi">
+      <assign location="req_poi_number" expr="_req.poi_number"/>
+    </ros_service_handle_request>
+    <ros_service_handle_request name="/SchedulerComponent/GetCurrentPoi"
+                                target="HandleGetCurrentPoi"/>
+    <ros_service_handle_request name="/SchedulerComponent/UpdateAction"
+                                target="HandleUpdateAction"/>
+    <ros_service_handle_request name="/SchedulerComponent/GetCurrentAction"
+                                target="HandleGetCurrentAction"/>
+    <ros_service_handle_request name="/SchedulerComponent/GetCurrentLanguage"
+                                target="HandleGetCurrentLanguage"/>
+    <ros_service_handle_request name="/SchedulerComponent/SetLanguage"
+                                target="HandleSetLanguage">
+      <assign location="req_language" expr="_req.language"/>
+    </ros_service_handle_request>
+    <ros_service_handle_request name="/SchedulerComponent/GetCurrentCommand"
+                                target="HandleGetCurrentCommand"/>
+    <ros_service_handle_request name="/SchedulerComponent/SetCommand"
+                                target="HandleSetCommand">
+      <assign location="req_command" expr="_req.command"/>
+    </ros_service_handle_request>
+    <ros_service_handle_request name="/SchedulerComponent/GetAvailableCommands"
+                                target="HandleGetAvailableCommands"/>
+  </state>
+
+  <state id="HandleReset">
     <onentry>
-      <ros_topic_publish name="/SchedulerComponent/PoiNumber">
-        <field name="data" expr="current_poi_number"/>
-      </ros_topic_publish>
+      <ros_service_send_response name="/SchedulerComponent/Reset">
+        <field name="is_ok" expr="_result.is_ok"/>
+      </ros_service_send_response>
     </onentry>
-    <ros_service_handle_request name="/SchedulerComponent/GetCurrentPoi" target="idle">
-      <ros_service_send_response name="/SchedulerComponent/GetCurrentPoi">
-        <field name="poi_number" expr="current_poi_number"/>
-        <!-- <field name="poi_name" expr="current_poi_name"/> -->
-        <field name="is_ok" expr="true"/>
-      </ros_service_send_response>
-    </ros_service_handle_request>
+    <transition target="idle"/>
+  </state>
 
-    <ros_service_handle_request name="/SchedulerComponent/SetPoi" target="idle">
-      <assign location="current_poi_number" expr="_req.poi_number"/>
+  <state id="HandleEndTour">
+    <onentry>
+      <ros_service_send_response name="/SchedulerComponent/EndTour">
+        <field name="is_ok" expr="_result.is_ok"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="HandleUpdatePoi">
+    <onentry>
+      <ros_service_send_response name="/SchedulerComponent/UpdatePoi">
+        <field name="is_ok" expr="_result.is_ok"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="HandleSetPoi">
+    <onentry>
       <ros_service_send_response name="/SchedulerComponent/SetPoi">
-        <field name="is_ok" expr="true"/>
+        <field name="is_ok" expr="_result.is_ok"/>
       </ros_service_send_response>
-    </ros_service_handle_request>
+    </onentry>
+    <transition target="idle"/>
+  </state>
 
+  <state id="HandleGetCurrentPoi">
+    <onentry>
+      <ros_service_send_response name="/SchedulerComponent/GetCurrentPoi">
+        <field name="poi_name"   expr="_result.poi_name"/>
+        <field name="poi_number" expr="_result.poi_number"/>
+        <field name="is_ok"      expr="_result.is_ok"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="HandleUpdateAction">
+    <onentry>
+      <ros_service_send_response name="/SchedulerComponent/UpdateAction">
+        <field name="is_ok"           expr="_result.is_ok"/>
+        <field name="done_with_poi"   expr="_result.done_with_poi"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="HandleGetCurrentAction">
+    <onentry>
+      <ros_service_send_response name="/SchedulerComponent/GetCurrentAction">
+        <field name="type"        expr="_result.type"/>
+        <field name="param"       expr="_result.param"/>
+        <field name="is_blocking" expr="_result.is_blocking"/>
+        <field name="is_ok"       expr="_result.is_ok"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="HandleGetCurrentLanguage">
+    <onentry>
+      <ros_service_send_response name="/SchedulerComponent/GetCurrentLanguage">
+        <field name="language" expr="_result.language"/>
+        <field name="is_ok"    expr="_result.is_ok"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="HandleSetLanguage">
+    <onentry>
+      <ros_service_send_response name="/SchedulerComponent/SetLanguage">
+        <field name="is_ok"      expr="_result.is_ok"/>
+        <field name="error_msg"  expr="_result.error_msg"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="HandleGetCurrentCommand">
+    <onentry>
+      <ros_service_send_response name="/SchedulerComponent/GetCurrentCommand">
+        <field name="command" expr="_result.command"/>
+        <field name="is_ok"   expr="_result.is_ok"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="HandleSetCommand">
+    <onentry>
+      <ros_service_send_response name="/SchedulerComponent/SetCommand">
+        <field name="is_ok"      expr="_result.is_ok"/>
+        <field name="error_msg"  expr="_result.error_msg"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="HandleGetAvailableCommands">
+    <onentry>
+      <ros_service_send_response name="/SchedulerComponent/GetAvailableCommands">
+        <field name="commands" expr="_result.commands"/>
+        <field name="is_ok"    expr="_result.is_ok"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
   </state>
 
 </scxml>
