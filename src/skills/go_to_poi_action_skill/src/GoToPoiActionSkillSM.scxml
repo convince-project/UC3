@@ -32,7 +32,11 @@
         <transition target="getCurrentPoiResponseHalt" event="CMD_HALT"/>
     </state>
     <state id="getCurrentPoiResponseHalt">
-        <transition target="idle" event="SchedulerComponent.GetCurrentPoi.Return"/>
+        <transition target="idle" event="SchedulerComponent.GetCurrentPoi.Return">
+            <send event="HALT_RESPONSE">
+                <param name="is_ok" expr="true"/>
+            </send>
+        </transition>
     </state>
     <state id="goalResponse">
         <transition event="NavigationComponent.GoToPoi.GoalResponse" cond="_event.data.is_ok" target="wait_result"/>
@@ -41,6 +45,12 @@
             <send event="TICK_RESPONSE">
                 <param name="is_ok" expr="true"/>
                 <param name="status" expr="SKILL_RUNNING"/>
+            </send>
+        </transition>
+        <transition target="idle" event="CMD_HALT">
+            <ros_action_cancel_goal name="go_to_poi_action"/>
+            <send event="HALT_RESPONSE">
+                <param name="is_ok" expr="true"/>
             </send>
         </transition>
     </state>
@@ -57,12 +67,24 @@
         <transition target="goal_done" event="NavigationComponent.GoToPoi.ResultResponse">
             <assign location="result" expr="_event.data.is_ok"/>
         </transition>
+        <ros_action_handle_failure_result name="go_to_poi_action" target="send_failure"/>
+        <transition target="idle" event="CMD_HALT">
+            <ros_action_cancel_goal name="go_to_poi_action"/>
+            <send event="HALT_RESPONSE">
+                <param name="is_ok" expr="true"/>
+            </send>
+        </transition>
     </state>
     <state id="goal_done">
         <transition target="idle" event="CMD_TICK">
             <send event="TICK_RESPONSE">
                 <param name="is_ok" expr="true"/>
                 <param name="status" expr="SKILL_SUCCESS"/>
+            </send>
+        </transition>
+        <transition target="idle" event="CMD_HALT">
+            <send event="HALT_RESPONSE">
+                <param name="is_ok" expr="true"/>
             </send>
         </transition>
     </state>

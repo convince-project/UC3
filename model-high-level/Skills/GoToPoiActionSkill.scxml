@@ -45,6 +45,9 @@
     
     <state id = "getCurrentPoiResponseHalt" >
         <ros_service_handle_response name="/SchedulerComponent/GetCurrentPoi" target="idle">
+            <ros_service_send_response name="/GoToPoiActionSkill/halt">
+                <field name="is_ok" expr="true"/>
+            </ros_service_send_response>
         </ros_service_handle_response>
     </state>
     
@@ -54,6 +57,12 @@
             <ros_service_send_response name="/GoToPoiActionSkill/tick">
                 <field name="is_ok" expr="true"/>
                 <field name="status" expr="SKILL_RUNNING"/>
+            </ros_service_send_response>
+        </ros_service_handle_request>
+        <ros_service_handle_request name="/GoToPoiActionSkill/halt" target="idle">
+            <ros_action_cancel_goal name="go_to_poi_action"/>
+            <ros_service_send_response name="/GoToPoiActionSkill/halt">
+                <field name="is_ok" expr="true"/>
             </ros_service_send_response>
         </ros_service_handle_request>
     </state>
@@ -71,6 +80,13 @@
         <ros_action_handle_success_result name="go_to_poi_action" target="goal_done">
             <assign location="result" expr="_wrapped_result.result.is_ok" />
         </ros_action_handle_success_result>
+        <ros_action_handle_failure_result name="go_to_poi_action" target="send_failure"/>
+        <ros_service_handle_request name="/GoToPoiActionSkill/halt" target="idle">
+            <ros_action_cancel_goal name="go_to_poi_action"/>
+            <ros_service_send_response name="/GoToPoiActionSkill/halt">
+                <field name="is_ok" expr="true"/>
+            </ros_service_send_response>
+        </ros_service_handle_request>
     </state>
 
     <state id="goal_done">
@@ -78,6 +94,11 @@
             <ros_service_send_response name="/GoToPoiActionSkill/tick">
                 <field name="is_ok" expr="true"/>
                 <field name="status" expr="SKILL_SUCCESS"/>
+            </ros_service_send_response>
+        </ros_service_handle_request>
+        <ros_service_handle_request name="/GoToPoiActionSkill/halt" target="idle">
+            <ros_service_send_response name="/GoToPoiActionSkill/halt">
+                <field name="is_ok" expr="true"/>
             </ros_service_send_response>
         </ros_service_handle_request>
     </state>  
