@@ -89,51 +89,137 @@ bool DialogSkill::start(int argc, char *argv[])
                                                                                      std::placeholders::_1,
                                                                                      std::placeholders::_2));
 
+    nodeWaitForInteraction = rclcpp::Node::make_shared(m_name + "SkillNodeWaitForInteraction");
+    this->clientWaitForInteraction =
+        rclcpp_action::create_client<dialog_interfaces::action::WaitForInteraction>(this->nodeWaitForInteraction, "/DialogComponent/WaitForInteractionAction");
+
+    m_executor = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
+    m_executor->add_node(nodeWaitForInteraction);
+
+    // m_stateMachine.connectToEvent("DialogComponent.WaitForInteraction.Call", [this]([[maybe_unused]] const QScxmlEvent &event)
+    //                               {
+    //     std::shared_ptr<rclcpp::Node> nodeWaitForInteraction = rclcpp::Node::make_shared(m_name + "SkillNodeWaitForInteraction");
+
+    //     // add the client to remember the interactions
+    //     std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::WaitForInteraction>> clientWaitForInteraction = nodeWaitForInteraction->create_client<dialog_interfaces::srv::WaitForInteraction>("/DialogComponent/WaitForInteraction");
+
+    //     auto request = std::make_shared<dialog_interfaces::srv::WaitForInteraction::Request>();
+    //     // get the optional input from keyboard and save the interaction into request->keyboard_interaction;
+    //     auto eventParams = event.data().toMap();
+    //     request->is_beginning_of_conversation = convert<decltype(request->is_beginning_of_conversation)>(eventParams["is_beginning_of_conversation"].toString().toStdString());
+    //     std::cout << "[OPTIONAL] Please enter the interaction from keyboard: ";
+    //     getline (std::cin, request->keyboard_interaction);
+    //     bool wait_succeded{true};
+    //     while (!clientWaitForInteraction->wait_for_service(std::chrono::seconds(1))) {
+    //         if (!rclcpp::ok()) {
+    //             RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'WaitForInteraction'. Exiting.");
+    //             wait_succeded = false;
+    //             m_stateMachine.submitEvent("DialogComponent.WaitForInteraction.Return");
+    //         }
+    //         else {
+    //             RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Waiting for the service 'WaitForInteraction' to be available...");
+    //         }
+    //     }
+    //     if (wait_succeded) {
+    //         // send the request
+    //         auto result = clientWaitForInteraction->async_send_request(request);
+    //         auto futureResult = rclcpp::spin_until_future_complete(nodeWaitForInteraction, result);
+    //         auto response = result.get();
+    //         if (futureResult == rclcpp::FutureReturnCode::SUCCESS)
+    //         {
+    //             if( response->is_ok == true) {
+    //                 QVariantMap data;
+    //                 data.insert("result", "SUCCESS");
+    //                 data.insert("interaction", response->interaction.c_str());
+    //                 m_stateMachine.submitEvent("DialogComponent.WaitForInteraction.Return", data);
+    //                 RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.WaitForInteraction.Return");
+    //             } else {
+    //                 QVariantMap data;
+    //                 data.insert("result", "FAILURE");
+    //                 m_stateMachine.submitEvent("DialogComponent.WaitForInteraction.Return", data);
+    //                 RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.WaitForInteraction.Return Failure");
+    //             }
+    //         }
+    //     } });
+
+    // WaitForInteraction action fragment of code start
+
     m_stateMachine.connectToEvent("DialogComponent.WaitForInteraction.Call", [this]([[maybe_unused]] const QScxmlEvent &event)
+
+        
                                   {
-        std::shared_ptr<rclcpp::Node> nodeWaitForInteraction = rclcpp::Node::make_shared(m_name + "SkillNodeWaitForInteraction");
+        m_thread = QThread::create([event, this]() {
 
-        // add the client to remember the interactions
-        std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::WaitForInteraction>> clientWaitForInteraction = nodeWaitForInteraction->create_client<dialog_interfaces::srv::WaitForInteraction>("/DialogComponent/WaitForInteraction");
-
-        auto request = std::make_shared<dialog_interfaces::srv::WaitForInteraction::Request>();
-        // get the optional input from keyboard and save the interaction into request->keyboard_interaction;
-        auto eventParams = event.data().toMap();
-        request->is_beginning_of_conversation = convert<decltype(request->is_beginning_of_conversation)>(eventParams["is_beginning_of_conversation"].toString().toStdString());
-        std::cout << "[OPTIONAL] Please enter the interaction from keyboard: ";
-        getline (std::cin, request->keyboard_interaction);
-        bool wait_succeded{true};
-        while (!clientWaitForInteraction->wait_for_service(std::chrono::seconds(1))) {
-            if (!rclcpp::ok()) {
-                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'WaitForInteraction'. Exiting.");
-                wait_succeded = false;
-                m_stateMachine.submitEvent("DialogComponent.WaitForInteraction.Return");
-            }
-            else {
-                RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Waiting for the service 'WaitForInteraction' to be available...");
-            }
-        }
-        if (wait_succeded) {
-            // send the request
-            auto result = clientWaitForInteraction->async_send_request(request);
-            auto futureResult = rclcpp::spin_until_future_complete(nodeWaitForInteraction, result);
-            auto response = result.get();
-            if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
+            if (!clientWaitForInteraction->wait_for_action_server())
             {
-                if( response->is_ok == true) {
+                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Action server not available after waiting");
+                rclcpp::shutdown();
+            }
+
+            auto goal_msg = dialog_interfaces::action::WaitForInteraction::Goal();
+            auto eventParams = event.data().toMap();
+            goal_msg.is_beginning_of_conversation = convert<decltype(goal_msg.is_beginning_of_conversation)>(eventParams["is_beginning_of_conversation"].toString().toStdString());
+            // std::cout << "[OPTIONAL] Please enter the interaction from keyboard: ";
+            // getline (std::cin, goal_msg.keyboard_interaction);
+
+            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.WaitForInteraction.Call received with is_beginning_of_conversation: %s and keyboard_interaction: %s",
+                        goal_msg.is_beginning_of_conversation ? "true" : "false", goal_msg.keyboard_interaction.c_str());
+            auto send_goal_options = rclcpp_action::Client<dialog_interfaces::action::WaitForInteraction>::SendGoalOptions();
+            send_goal_options.goal_response_callback =
+                [this](rclcpp_action::ClientGoalHandle<dialog_interfaces::action::WaitForInteraction>::SharedPtr goal_handle)
+            {
+                if (!goal_handle)
+                {
+                    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Goal was rejected by server");
+                }
+                else
+                {
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Goal accepted by server, waiting for result");
+                }
+            };
+            send_goal_options.feedback_callback =
+                [this](rclcpp_action::ClientGoalHandle<dialog_interfaces::action::WaitForInteraction>::SharedPtr,
+                        const std::shared_ptr<const dialog_interfaces::action::WaitForInteraction::Feedback> feedback)
+            {
+                RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Received feedback: %s", feedback->status.c_str());
+            };
+            send_goal_options.result_callback =
+                [this](const rclcpp_action::ClientGoalHandle<dialog_interfaces::action::WaitForInteraction>::WrappedResult &result)
+            {
+                if (result.code == rclcpp_action::ResultCode::SUCCEEDED)
+                {
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Goal succeeded");
                     QVariantMap data;
                     data.insert("result", "SUCCESS");
-                    data.insert("interaction", response->interaction.c_str());
+                    data.insert("interaction", QString::fromStdString(result.result->interaction));
                     m_stateMachine.submitEvent("DialogComponent.WaitForInteraction.Return", data);
-                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.WaitForInteraction.Return");
-                } else {
+                }
+                else if (result.code == rclcpp_action::ResultCode::CANCELED) {
+                    QVariantMap data;
+                    RCLCPP_WARN(rclcpp::get_logger("rclcpp"), "Goal was halted (canceled)");
+                    data.insert("result", "HALTED");
+                    m_stateMachine.submitEvent("DialogComponent.WaitForInteraction.Return", data);
+                } else
+                {
+                    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Goal failed");
                     QVariantMap data;
                     data.insert("result", "FAILURE");
                     m_stateMachine.submitEvent("DialogComponent.WaitForInteraction.Return", data);
-                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.WaitForInteraction.Return Failure");
                 }
-            }
-        } });
+
+                // Stop executor if needed:
+                m_executor->cancel();
+
+            };
+            clientWaitForInteraction->async_send_goal(goal_msg, send_goal_options);
+
+            m_executor->spin();
+        });
+
+        m_thread->start();
+    });
+
+    // WaitForInteraction action fragment of code end
 
     m_stateMachine.connectToEvent("DialogComponent.ManageContext.Call", [this]([[maybe_unused]] const QScxmlEvent &event)
                                   {
@@ -299,7 +385,8 @@ bool DialogSkill::start(int argc, char *argv[])
             }
         } });
 
-    m_stateMachine.connectToEvent("DialogComponent.InterpretCommand.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
+    m_stateMachine.connectToEvent("DialogComponent.InterpretCommand.Call", [this]([[maybe_unused]] const QScxmlEvent &event)
+                                  {
         std::cout << "DialogComponent::InterpretCommand.Call 0" << std::endl;
         std::shared_ptr<rclcpp::Node> nodeInterpretCommand = rclcpp::Node::make_shared(m_name + "SkillInterpretCommand");
         std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::InterpretCommand>> clientInterpretCommand = nodeInterpretCommand->create_client<dialog_interfaces::srv::InterpretCommand>("/DialogComponent/InterpretCommand");
@@ -337,8 +424,7 @@ bool DialogSkill::start(int argc, char *argv[])
                     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.InterpretCommand.Return");
                 }
             }
-        }
-    });
+        } });
 
     m_stateMachine.connectToEvent("DialogComponent.AnswerAndSpeak.Call", [this]([[maybe_unused]] const QScxmlEvent &event)
                                   {
@@ -461,7 +547,7 @@ void DialogSkill::tick([[maybe_unused]] const std::shared_ptr<bt_interfaces::srv
         // qInfo() <<  "active names" << m_stateMachine.activeStateNames();
     }
 
-    DisableMicrophone();
+    // DisableMicrophone();
 
     switch (m_tickResult.load())
     {
@@ -483,10 +569,15 @@ void DialogSkill::tick([[maybe_unused]] const std::shared_ptr<bt_interfaces::srv
 void DialogSkill::halt([[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::HaltAction::Request> request,
                        [[maybe_unused]] std::shared_ptr<bt_interfaces::srv::HaltAction::Response> response)
 {
+
     std::lock_guard<std::mutex> lock(m_requestMutex);
     RCLCPP_INFO(m_node->get_logger(), "DialogSkill::halt");
+
+    clientWaitForInteraction->async_cancel_all_goals();
+
     m_haltResult.store(false); // here we can put a struct
     m_stateMachine.submitEvent("CMD_HALT");
+
 
     while (!m_haltResult.load())
     {

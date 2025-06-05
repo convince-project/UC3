@@ -15,6 +15,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclcpp_action REQUIRED)
 find_package(dialog_interfaces REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(text_to_speech_interfaces REQUIRED)
@@ -61,6 +62,7 @@ add_executable(${PROJECT_NAME}  src/DialogComponent.cpp
 ament_target_dependencies(${PROJECT_NAME} 
 "YARP"
 "rclcpp"
+"rclcpp_action"
 "dialog_interfaces"
 "nlohmann_json"
 "text_to_speech_interfaces"

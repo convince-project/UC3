@@ -321,42 +321,49 @@ bool DialogComponent::start(int argc, char *argv[])
     m_node = rclcpp::Node::make_shared("DialogComponentNode");
 
     m_manageContextService = m_node->create_service<dialog_interfaces::srv::ManageContext>("/DialogComponent/ManageContext",
-                                                                                            std::bind(&DialogComponent::ManageContext,
-                                                                                                        this,
-                                                                                                        std::placeholders::_1,
-                                                                                                        std::placeholders::_2));
+                                                                                           std::bind(&DialogComponent::ManageContext,
+                                                                                                     this,
+                                                                                                     std::placeholders::_1,
+                                                                                                     std::placeholders::_2));
 
-    m_WaitForInteractionService = m_node->create_service<dialog_interfaces::srv::WaitForInteraction>("/DialogComponent/WaitForInteraction",
-                                                                                                    std::bind(&DialogComponent::WaitForInteraction,
-                                                                                                            this,
-                                                                                                            std::placeholders::_1,
-                                                                                                            std::placeholders::_2));
+    // m_WaitForInteractionService = m_node->create_service<dialog_interfaces::srv::WaitForInteraction>("/DialogComponent/WaitForInteraction",
+    //                                                                                                  std::bind(&DialogComponent::WaitForInteraction,
+    //                                                                                                            this,
+    //                                                                                                            std::placeholders::_1,
+    //                                                                                                            std::placeholders::_2));
 
     m_ShortenAndSpeakService = m_node->create_service<dialog_interfaces::srv::ShortenAndSpeak>("/DialogComponent/ShortenAndSpeak",
-                                                                                            std::bind(&DialogComponent::ShortenAndSpeak,
-                                                                                                        this,
-                                                                                                        std::placeholders::_1,
-                                                                                                        std::placeholders::_2));
+                                                                                               std::bind(&DialogComponent::ShortenAndSpeak,
+                                                                                                         this,
+                                                                                                         std::placeholders::_1,
+                                                                                                         std::placeholders::_2));
 
     m_AnswerAndSpeakService = m_node->create_service<dialog_interfaces::srv::AnswerAndSpeak>("/DialogComponent/AnswerAndSpeak",
-                                                                                            std::bind(&DialogComponent::AnswerAndSpeak,
-                                                                                                    this,
-                                                                                                    std::placeholders::_1,
-                                                                                                    std::placeholders::_2));
+                                                                                             std::bind(&DialogComponent::AnswerAndSpeak,
+                                                                                                       this,
+                                                                                                       std::placeholders::_1,
+                                                                                                       std::placeholders::_2));
 
     m_SetLanguageService = m_node->create_service<dialog_interfaces::srv::SetLanguage>("/DialogComponent/SetLanguage",
-                                                                                            std::bind(&DialogComponent::SetLanguage,
-                                                                                                    this,
-                                                                                                    std::placeholders::_1,
-                                                                                                    std::placeholders::_2));
+                                                                                       std::bind(&DialogComponent::SetLanguage,
+                                                                                                 this,
+                                                                                                 std::placeholders::_1,
+                                                                                                 std::placeholders::_2));
 
     m_InterpretCommandService = m_node->create_service<dialog_interfaces::srv::InterpretCommand>("/DialogComponent/InterpretCommand",
-                                                                                            std::bind(&DialogComponent::InterpretCommand,
-                                                                                                    this,
-                                                                                                    std::placeholders::_1,
-                                                                                                    std::placeholders::_2));
-   
-    if (!UpdatePoILLMPrompt())   
+                                                                                                 std::bind(&DialogComponent::InterpretCommand,
+                                                                                                           this,
+                                                                                                           std::placeholders::_1,
+                                                                                                           std::placeholders::_2));
+
+    m_WaitForInteractionAction = rclcpp_action::create_server<dialog_interfaces::action::WaitForInteraction>(
+        m_node,
+        "/DialogComponent/WaitForInteractionAction",
+        std::bind(&DialogComponent::handle_goal, this, std::placeholders::_1, std::placeholders::_2),
+        std::bind(&DialogComponent::handle_cancel, this, std::placeholders::_1),
+        std::bind(&DialogComponent::handle_accepted, this, std::placeholders::_1));
+
+    if (!UpdatePoILLMPrompt())
     {
         yError() << "[DialogComponent::ConfigureYarp] Error in UpdatePoILLMPrompt";
         return false;
@@ -485,7 +492,6 @@ bool DialogComponent::CommandManager(const std::string &command, std::shared_ptr
         {
             response->context = "explainFunction";
             response->is_ok = true;
-            
         }
         else if (topic == "description" || topic == "descriptions" ||
                  topic == "decoration" || topic == "decorations")
@@ -623,7 +629,6 @@ bool DialogComponent::CommandManager(const std::string &command, std::shared_ptr
     return true;
 }
 
-
 bool DialogComponent::UpdatePoILLMPrompt()
 {
     std::shared_ptr<rclcpp::Node> nodeGetCurrentPoi = rclcpp::Node::make_shared("DialogComponentNodeGetCurrentPoi");
@@ -675,8 +680,8 @@ bool DialogComponent::UpdatePoILLMPrompt()
 }
 
 void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::SetLanguage::Request> request,
-                                    std::shared_ptr<dialog_interfaces::srv::SetLanguage::Response> response)
-{   
+                                  std::shared_ptr<dialog_interfaces::srv::SetLanguage::Response> response)
+{
     // Assume everything is going to be ok
     // If something goes wrong, we will set is_ok to false
     response->is_ok = true;
@@ -768,7 +773,6 @@ void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::
         response->is_ok = false;
         return;
     }
-
 }
 
 void DialogComponent::WaitForSpeakEnd()
@@ -798,7 +802,7 @@ void DialogComponent::WaitForSpeakEnd()
 
 void DialogComponent::InterpretCommand(const std::shared_ptr<dialog_interfaces::srv::InterpretCommand::Request> request,
                                        std::shared_ptr<dialog_interfaces::srv::InterpretCommand::Response> response)
-{   
+{
     // Assume everything is going to be ok
     // If something goes wrong, we will set is_ok to false
     response->is_ok = true;
@@ -821,7 +825,6 @@ void DialogComponent::InterpretCommand(const std::shared_ptr<dialog_interfaces::
         response->is_ok = false;
         return;
     }
-
 
     bool isOk = false;
     std::vector<Action> actions;
@@ -925,13 +928,12 @@ void DialogComponent::InterpretCommand(const std::shared_ptr<dialog_interfaces::
 
             std::string speakAction = "";
 
-
             for (Action action : tempActions) // Loops through all the actions until the blocking one. Execute all of them
-            {    
+            {
                 switch (action.getType())
                 {
                 case ActionTypes::SPEAK:
-                {   
+                {
                     speakAction += action.getParam() + " "; // Concatenate all the speak actions
 
                     // Synthesize the text
@@ -1047,15 +1049,46 @@ void DialogComponent::InterpretCommand(const std::shared_ptr<dialog_interfaces::
         }
         */
     }
-
-    
 }
 
-void DialogComponent::WaitForInteraction(const std::shared_ptr<dialog_interfaces::srv::WaitForInteraction::Request> request,
-                                         std::shared_ptr<dialog_interfaces::srv::WaitForInteraction::Response> response)
+// WaitForInteraction action fragment of code start
+
+rclcpp_action::GoalResponse DialogComponent::handle_goal(
+    const rclcpp_action::GoalUUID &uuid,
+    std::shared_ptr<const dialog_interfaces::action::WaitForInteraction::Goal> goal)
+{
+    RCLCPP_INFO(m_node->get_logger(), "Received goal request");
+    return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
+}
+
+rclcpp_action::CancelResponse DialogComponent::handle_cancel(
+    const std::shared_ptr<GoalHandleWaitForInteraction> goal_handle)
+{
+    RCLCPP_INFO(m_node->get_logger(), "Received request to cancel goal");
+
+    // Let's stop the current interaction and reset the state of the component
+
+    return rclcpp_action::CancelResponse::ACCEPT;
+}
+
+void DialogComponent::handle_accepted(const std::shared_ptr<GoalHandleWaitForInteraction> goal_handle)
+{
+    RCLCPP_INFO(m_node->get_logger(), "Accepted goal");
+    std::thread([this, goal_handle]()
+                { this->WaitForInteraction(goal_handle); })
+        .detach();
+}
+
+void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitForInteraction> goal_handle)
 {
 
-    if (request->is_beginning_of_conversation)
+    RCLCPP_INFO(m_node->get_logger(), "Waiting for interaction");
+    auto goal = goal_handle->get_goal();
+    auto feedback = std::make_shared<dialog_interfaces::action::WaitForInteraction::Feedback>();
+    feedback->status = "Waiting for interaction";
+    auto result = std::make_shared<dialog_interfaces::action::WaitForInteraction::Result>();
+
+    if (goal->is_beginning_of_conversation)
     {
         m_replies.clear();
         m_last_received_interaction = "";
@@ -1064,14 +1097,39 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<dialog_interfaces
 
     std::string questionText = "";
 
-    if (request->keyboard_interaction == "")
+    // added a keyboard interaction to the goal request for debugging purposes
+    // when goal->keyboard_interaction is not empty, it means that the interaction is coming from the keyboard
+    if (goal->keyboard_interaction == "")
     {
         yInfo() << "[DialogComponent::WaitForInteraction] Trying to read from speechToText Port" << __LINE__;
 
-        yarp::os::Bottle *result = m_speechToTextPort.read();
-        if (result)
-        {   
-            questionText = result->toString();
+        yarp::os::Bottle *vocalInteraction = nullptr;
+
+        do
+        {
+            vocalInteraction = m_speechToTextPort.read(false); // Read from the port without blocking
+
+            if (goal_handle->is_canceling())
+            {
+                result->is_ok = false;
+                result->interaction = "";
+                goal_handle->canceled(result);
+                RCLCPP_INFO(m_node->get_logger(), "Goal canceled");
+                return;
+            }
+
+            // Publish feedback
+            goal_handle->publish_feedback(feedback);
+            RCLCPP_INFO(m_node->get_logger(), "Publish feedback");
+
+            // wait for a while before trying to read again
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+        } while (vocalInteraction == nullptr);
+
+        if (vocalInteraction)
+        {
+            questionText = vocalInteraction->toString();
             yInfo() << "[DialogComponent::WaitForInteraction] Transcribed text:" << questionText << __LINE__;
         }
         else
@@ -1083,14 +1141,18 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<dialog_interfaces
     }
     else
     {
-        yInfo() << "[DialogComponent::WaitForInteraction] call received: " << request->keyboard_interaction << __LINE__;
-        questionText = request->keyboard_interaction;
+        yInfo() << "[DialogComponent::WaitForInteraction] call received: " << goal->keyboard_interaction << __LINE__;
+        questionText = goal->keyboard_interaction;
     }
 
     m_last_received_interaction = questionText;
-    response->is_ok = true;
-    response->interaction = questionText;
+    result->is_ok = true;
+    result->interaction = questionText;
+    goal_handle->succeed(result);
+    RCLCPP_INFO(m_node->get_logger(), "Goal succeeded");
 }
+
+// WaitForInteraction action fragment of code end
 
 // Protected function to actually speak given the text
 void DialogComponent::SpeakFromText(std::string text)
