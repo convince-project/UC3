@@ -10,6 +10,7 @@
 #include <mutex>
 #include <thread>
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_action/rclcpp_action.hpp>
 #include "DialogSkillSM.h"
 #include <bt_interfaces/msg/action_response.hpp>
 #include <scheduler_interfaces/srv/get_current_language.hpp>
@@ -19,13 +20,17 @@
 
 #include <dialog_interfaces/srv/manage_context.hpp>
 #include <dialog_interfaces/srv/remember_interactions.hpp> // auto-generated from the .srv file
-#include <dialog_interfaces/srv/wait_for_interaction.hpp>
 #include <dialog_interfaces/srv/shorten_and_speak.hpp>
 #include <dialog_interfaces/srv/answer_and_speak.hpp>
 #include <dialog_interfaces/srv/set_language.hpp>
 #include <dialog_interfaces/srv/interpret_command.hpp>
 
+// #include <dialog_interfaces/srv/wait_for_interaction.hpp>
+#include <dialog_interfaces/action/wait_for_interaction.hpp>
+
 #include <text_to_speech_interfaces/srv/set_microphone.hpp>
+
+#include <QThread>
 
 enum class Status{
 	undefined,
@@ -45,6 +50,9 @@ public:
 	void halt( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::HaltAction::Request> request,
 			   [[maybe_unused]] std::shared_ptr<bt_interfaces::srv::HaltAction::Response> response);
 
+	using ActionWaitForInteraction = dialog_interfaces::action::WaitForInteraction;
+	using GoalHandleWaitForInteraction = rclcpp_action::ClientGoalHandle<ActionWaitForInteraction>;
+
 private:
 	void EnableMicrophone();
     void DisableMicrophone();
@@ -60,6 +68,14 @@ private:
 	rclcpp::Service<bt_interfaces::srv::TickAction>::SharedPtr m_tickService;
 	std::atomic<bool> m_haltResult{false};
 	rclcpp::Service<bt_interfaces::srv::HaltAction>::SharedPtr m_haltService;
-	
+
+	std::shared_ptr<rclcpp::Node> nodeWaitForInteraction;
+	std::shared_ptr<rclcpp_action::Client<dialog_interfaces::action::WaitForInteraction>> clientWaitForInteraction;
+
+	// Members
+	std::shared_ptr<rclcpp::executors::SingleThreadedExecutor> m_executor;
+	QThread* m_thread = nullptr;
+
+
 };
 

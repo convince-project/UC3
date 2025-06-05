@@ -11,6 +11,7 @@
 #include <mutex>
 #include <thread>
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_action/rclcpp_action.hpp>
 #include <std_msgs/msg/bool.hpp>
 #include <yarp/os/Network.h>
 #include <yarp/os/LogStream.h>
@@ -24,11 +25,13 @@
 // Dialog Component Interfaces
 #include <dialog_interfaces/srv/manage_context.hpp>
 #include <dialog_interfaces/srv/remember_interactions.hpp> // auto-generated from the .srv file
-#include <dialog_interfaces/srv/wait_for_interaction.hpp>
 #include <dialog_interfaces/srv/shorten_and_speak.hpp>
 #include <dialog_interfaces/srv/answer_and_speak.hpp>
 #include <dialog_interfaces/srv/set_language.hpp>
 #include <dialog_interfaces/srv/interpret_command.hpp>
+
+// #include <dialog_interfaces/srv/wait_for_interaction.hpp>
+#include <dialog_interfaces/action/wait_for_interaction.hpp>
 
 // YARP modules
 #include <yarp/sig/AudioPlayerStatus.h>
@@ -58,6 +61,9 @@
 class DialogComponent
 {
 public:
+    using actionWaitForInteraction = dialog_interfaces::action::WaitForInteraction;
+    using GoalHandleWaitForInteraction = rclcpp_action::ServerGoalHandle<actionWaitForInteraction>;
+
     DialogComponent();
 
     bool start(int argc, char*argv[]);
@@ -68,8 +74,7 @@ public:
     void ManageContext(const std::shared_ptr<dialog_interfaces::srv::ManageContext::Request> request,
                         std::shared_ptr<dialog_interfaces::srv::ManageContext::Response> response);
 
-    void WaitForInteraction(const std::shared_ptr<dialog_interfaces::srv::WaitForInteraction::Request> request,
-                        std::shared_ptr<dialog_interfaces::srv::WaitForInteraction::Response> response);
+    void WaitForInteraction(const std::shared_ptr<GoalHandleWaitForInteraction> goal_handle);
 
     void ShortenAndSpeak(const std::shared_ptr<dialog_interfaces::srv::ShortenAndSpeak::Request> request,
                         std::shared_ptr<dialog_interfaces::srv::ShortenAndSpeak::Response> response);
@@ -117,12 +122,23 @@ private:
 
     /* ROS2 Services Servers provided by this component */
     rclcpp::Node::SharedPtr m_node;
-    rclcpp::Service<dialog_interfaces::srv::WaitForInteraction>::SharedPtr m_WaitForInteractionService;
+    
     rclcpp::Service<dialog_interfaces::srv::ManageContext>::SharedPtr m_manageContextService;
     rclcpp::Service<dialog_interfaces::srv::ShortenAndSpeak>::SharedPtr m_ShortenAndSpeakService;
     rclcpp::Service<dialog_interfaces::srv::AnswerAndSpeak>::SharedPtr m_AnswerAndSpeakService;
     rclcpp::Service<dialog_interfaces::srv::SetLanguage>::SharedPtr m_SetLanguageService;
     rclcpp::Service<dialog_interfaces::srv::InterpretCommand>::SharedPtr m_InterpretCommandService;
+    
+    // rclcpp::Service<dialog_interfaces::srv::WaitForInteraction>::SharedPtr m_WaitForInteractionService;
+    // ROS2 Action Server for WaitForInteraction
+    rclcpp_action::Server<dialog_interfaces::action::WaitForInteraction>::SharedPtr m_WaitForInteractionAction;
+    rclcpp_action::GoalResponse handle_goal(
+        const rclcpp_action::GoalUUID &uuid,
+        std::shared_ptr<const dialog_interfaces::action::WaitForInteraction::Goal> goal);
+    rclcpp_action::CancelResponse handle_cancel(
+        const std::shared_ptr<GoalHandleWaitForInteraction> goal_handle);
+    void handle_accepted(
+        const std::shared_ptr<GoalHandleWaitForInteraction> goal_handle);
 
 
     /*Dialog JSON*/

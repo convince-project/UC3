@@ -118,17 +118,20 @@ This repository is maintained by:
 | [<img src="assets/image.png" width="40">](https://github.com/hsp-iit) | [@hsp-iit](https://github.com/hsp-iit) |
 
 ## Prerequisites
-The source code is heavily based on the concept of ROS2 services, if you are not familiar with this subject, here are some useful references to get started:
+The source code is heavily based on the concept of ROS2 services and actions, if you are not familiar with this subject, here are some useful references to get started:
 - [Understanding services](https://docs.ros.org/en/jazzy/Tutorials/Beginner-CLI-Tools/Understanding-ROS2-Services/Understanding-ROS2-Services.html)
+- [Understanding actions](https://docs.ros.org/en/jazzy/Tutorials/Beginner-CLI-Tools/Understanding-ROS2-Actions/Understanding-ROS2-Actions.html)
 - [Ros2 Interfaces](https://docs.ros.org/en/jazzy/Concepts/Basic/About-Interfaces.html)
 - [Writing a simple C++ service and client](https://docs.ros.org/en/jazzy/Tutorials/Beginner-Client-Libraries/Writing-A-Simple-Cpp-Service-And-Client.html)
+- [Writing an action server and client (C++)](https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Writing-an-Action-Server-Client/Cpp.html)
 - [Writing a simple Python service and client](https://docs.ros.org/en/jazzy/Tutorials/Beginner-Client-Libraries/Writing-A-Simple-Py-Service-And-Client.html)
+- [Writing an action server and client (Python)](https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Writing-an-Action-Server-Client/Py.html)
 
 ## Structure of the code
 The software architecture is composed by 3 main software entities:
 - [**Components**](src/components/): software entities which collect a series of ROS2 services. Components are responsible to directly interact with the environment and to manage the actual computational load. Components are actually not monitorable, therefore they fail silently. In order to maintain a log in the component execution, there come to hand skills, which act as interfaces between components and the rest of the system. Components are supposed to implement the functional logic of the services, therefore they should execute the majority of the computational load of the functionality. 
 - [**Skills**](src/skills/): software entities that reflect the processing logic of each leaf inside the main behavior tree. Each skill is characterized by its state machine, that represents the functional pipeline of the leaf behavior. The main responsibility of each skill is acting as an intermediate actor between its own state machine and the components. Analyzing the scheme bottom-up, in component-skill communication, skills implement ROS2 nodes that act as service clients and communicate with components that implement ROS2 service servers. Here components are responsible to provide the computational logic, while skills act as controllers, allowing to monitor the state of the pipeline. In skill-state machine communication, skills directly interact with their state machine, which is an attribute of the skill. The state machine is responsible to manage the state of the skill and to provide the logic for the transitions between states. The purpose of the skills is monitoring the state of the pipeline thanks to their state machine, and to accordingly interact with the components to provide the correct service for that specific state. As opposed to the components which manage the majority of the computational load, the skills should be as light as possible. Their main purpose is just monitoring the state of the execution. 
-- [**Interfaces**](src/interfaces/): For each component implementing service servers, there's a `srv` folder defining the interface type. If you are not familiar with this concepts, take a look to the ROS2 Interfaces in the [Prerequisites](#prerequisites) section. The interfaces are used to define the messages exchanged between the components and the skills.
+- [**Interfaces**](src/interfaces/): For each component implementing service servers/clients and action servers/client, there are respectively a `srv` and `action` folders defining the interface type. If you are not familiar with this concepts, take a look to the ROS2 Interfaces in the [Prerequisites](#prerequisites) section. The interfaces are used to define the messages exchanged between the components and the skills.
 
 ## Description of the functionalities
 The code is structured in a modular way, allowing to easily add new functionalities. All the functionalities are characterized by dedicated components, skills and interfaces. The main functionalities are:
