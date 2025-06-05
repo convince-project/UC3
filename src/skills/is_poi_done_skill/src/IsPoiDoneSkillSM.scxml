@@ -31,7 +31,7 @@
     <onentry>
       <log expr="'State getCurrentPoiResult'"/>
     </onentry>
-    <transition cond="m_result == 'SUCCESS'" target="checkPoi" />
+    <transition cond="m_result == 'SKILL_SUCCESS'" target="checkPoi" />
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
   </state>
 

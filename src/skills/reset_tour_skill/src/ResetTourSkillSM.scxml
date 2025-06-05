@@ -20,7 +20,7 @@
     </state>
     <state id="decide">
         <onentry>
-            <if cond="m_result==&apos;SUCCESS&apos;">
+            <if cond="m_result==&apos;SKILL_SUCCESS&apos;">
                 <send event="TICK_RESPONSE">
                     <param name="status" expr="SKILL_SUCCESS"/>
                 </send>

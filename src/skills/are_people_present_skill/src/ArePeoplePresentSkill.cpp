@@ -98,6 +98,7 @@ bool ArePeoplePresentSkill::start(int argc, char*argv[])
               if( response->is_ok == true) {
                   QVariantMap data;
                   data.insert("is_ok", true);
+                  data.insert("result", response->result);
                   data.insert("is_allowed", response->is_allowed);
                   m_stateMachine.submitEvent("TurnBackManagerComponent.IsAllowedToContinue.Return", data);
                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TurnBackManagerComponent.IsAllowedToContinue.Return");
@@ -158,7 +159,10 @@ void ArePeoplePresentSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_inte
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;            
+          break;  
+      case Status::undefined:
+          response->status = SKILL_FAILURE;
+          break;          
   }
   RCLCPP_INFO(m_node->get_logger(), "ArePeoplePresentSkill::tickDone");
   response->is_ok = true;

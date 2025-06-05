@@ -41,9 +41,9 @@
   </state>
 
   <state id="decideCount">
-    <transition cond="m_result!='SUCCESS'" target="fail"/>
+    <transition cond="m_result!='SKILL_SUCCESS'" target="fail"/>
     <transition cond="m_counter!=0" target="success"/>
-    <transition cond="m_result=='SUCCESS' && m_counter==0" target="startNarration"/>
+    <transition cond="m_result=='SKILL_SUCCESS' && m_counter==0" target="startNarration"/>
   </state>
 
   <state id="fail">
@@ -70,8 +70,8 @@
         <field name="command" expr="m_command"/>
       </ros_service_send_request>
     </onentry>
-    <ros_service_handle_response name="/NarrateComponent/Narrate" cond="_res.result=='SUCCESS'" target="running"/>
-    <ros_service_handle_response name="/NarrateComponent/Narrate" cond="_res.result!='SUCCESS'" target="fail"/>
+    <ros_service_handle_response name="/NarrateComponent/Narrate" cond="_res.result=='SKILL_SUCCESS'" target="running"/>
+    <ros_service_handle_response name="/NarrateComponent/Narrate" cond="_res.result!='SKILL_SUCCESS'" target="fail"/>
   </state>
 
   <state id="running">
@@ -90,7 +90,7 @@
     <ros_service_handle_response name="/NarrateComponent/IsDone" target="onCheck">
       <assign location="m_is_done" expr="_res.is_done"/>
     </ros_service_handle_response>
-    <ros_service_handle_response name="/NarrateComponent/IsDone" cond="_res.result!='SUCCESS'" target="fail"/>
+    <ros_service_handle_response name="/NarrateComponent/IsDone" cond="_res.result!='SKILL_SUCCESS'" target="fail"/>
   </state>
 
   <state id="onCheck">
