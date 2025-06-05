@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml
+  version="1.0"
+  xmlns="http://www.w3.org/2005/07/scxml"
+  datamodel="ecmascript"
+  name="CheckNetworkComponent"
+  initial="idle">
+
+  <datamodel>
+    <data id="is_connected" type="boolean" expr="false" />
+    <data id="changed" type="boolean" expr="false" />
+    <data id="previous_status_connected" type="boolean" expr="true" />
+    <data id="last_status" type="array" expr="[]" />
+    <data id="address_name" type="string" expr="'192.168.100.103'" />
+    <data id="network_is_currently_up" type="boolean" expr="true" />
+  </datamodel>
+
+  <!-- ROS publisher topics -->
+  <ros_topic_publisher topic="/CheckNetworkComponent/NetworkStatus" type="std_msgs/Bool" />
+  <ros_topic_publisher topic="/CheckNetworkComponent/NetworkChanged" type="std_msgs/Bool" />
+  
+  <!-- Timer for status publishing -->
+  <ros_time_rate name="status_timer" rate_hz="1.0" />
+  
+  <!-- Timer for connection check -->
+  <ros_time_rate name="check_timer" rate_hz="2.0" /> <!-- 500ms = 2Hz -->
+
+  <state id="idle">
+    <onentry>
+      <!-- Initialize the component -->
+    </onentry>
+    
+    <!-- Handle status publishing timer -->
+    <ros_rate_callback name="status_timer" target="publishStatus" />
+    
+    <!-- Handle check connection timer -->
+    <ros_rate_callback name="check_timer" target="checkConnection" />
+  </state>
+  
+  <!-- State for publishing status -->
+  <state id="publishStatus">
+    <onentry>
+      <!-- Publish network changed status -->
+      <ros_topic_publish name="/CheckNetworkComponent/NetworkChanged">
+        <field name="data" expr="changed" />
+      </ros_topic_publish>
+      
+      <!-- Publish network connection status -->
+      <ros_topic_publish name="/CheckNetworkComponent/NetworkStatus">
+        <field name="data" expr="is_connected" />
+      </ros_topic_publish>
+    </onentry>
+    <transition target="idle" />
+  </state>
+  
+  <!-- State for checking connection status -->
+  <state id="checkConnection">
+    <onentry>
+      <!-- Here we would simulate the network check - in reality this would use an external call -->
+      <script>
+        /* 
+         * In the real implementation, we would need to call an external function to perform the ping
+         * Since SCXML doesn't support that directly, we're using a simplified model
+         */
+        
+        // Simulating ping result (would be result of isNetworkConnected in C++ code)
+        is_connected = Math.random() > 0.2; // 80% chance of being connected
+        
+        // Process the status samples like in the C++ code
+        if (last_status.length < 5) {
+          changed = false;
+          last_status.push(is_connected);
+        } else {
+          var countFalse = 0;
+          for (var i = 0; i < last_status.length; i++) {
+            if (last_status[i] === false) {
+              countFalse++;
+            }
+          }
+          
+          if (countFalse > 3) {
+            network_is_currently_up = false;
+          } else {
+            network_is_currently_up = true;
+          }
+          
+          // Clear the status queue
+          last_status = [];
+          
+          // Check if status changed
+          if (previous_status_connected !== network_is_currently_up) {
+            changed = true;
+          } else {
+            changed = false;
+          }
+          
+          previous_status_connected = network_is_currently_up;
+        }
+      </script>
+    </onentry>
+    <transition target="idle" />
+  </state>
+
+</scxml>
