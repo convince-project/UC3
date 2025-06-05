@@ -30,7 +30,7 @@
     </state>
     <state id="afterExecute">
         <onentry>
-            <if cond="result == &apos;SUCCESS&apos;">
+            <if cond="result == &apos;SKILL_SUCCESS&apos;">
                 <!-- Tell BT this skill is running -->
                 <send event="TICK_RESPONSE">
                     <param name="status" expr="SKILL_RUNNING"/>
@@ -41,8 +41,8 @@
                 </send>
             </if>
         </onentry>
-        <transition cond="result == &apos;SUCCESS&apos;" target="wait_dance_done"/>
-        <transition cond="result != &apos;SUCCESS&apos;" target="idle"/>
+        <transition cond="result == &apos;SKILL_SUCCESS&apos;" target="wait_dance_done"/>
+        <transition cond="result != &apos;SKILL_SUCCESS&apos;" target="idle"/>
     </state>
     <!-- Running loop: check IsDancing until finished -->
     <state id="wait_dance_done">
@@ -55,7 +55,7 @@
         <transition target="onQuery" event="ExecuteDanceComponent.IsDancing.Return">
             <assign location="is_dancing" expr="_event.data.is_dancing"/>
         </transition>
-        <transition cond="_event.data.result!=&apos;SUCCESS&apos;" target="failure" event="ExecuteDanceComponent.IsDancing.Return"/>
+        <transition cond="_event.data.result!=&apos;SKILL_SUCCESS&apos;" target="failure" event="ExecuteDanceComponent.IsDancing.Return"/>
         <!-- Aggiungere gestione halt -->
         <transition target="halted" event="CMD_HALT"/>
     </state>

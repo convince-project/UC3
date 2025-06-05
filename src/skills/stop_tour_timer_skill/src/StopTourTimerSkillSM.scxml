@@ -17,8 +17,8 @@
         </transition>
     </state>
     <state id="checkResult">
-        <transition cond="result == &apos;SUCCESS&apos;" target="replySuccess"/>
-        <transition cond="result != &apos;SUCCESS&apos;" target="replyFailure"/>
+        <transition cond="result == &apos;SKILL_SUCCESS&apos;" target="replySuccess"/>
+        <transition cond="result != &apos;SKILL_SUCCESS&apos;" target="replyFailure"/>
     </state>
     <state id="replySuccess">
         <onentry>

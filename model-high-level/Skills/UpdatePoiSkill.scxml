@@ -30,8 +30,8 @@
   </state>
 
   <state id="decideResult">
-    <transition cond="result == 'SUCCESS'" target="success"/>
-    <transition cond="result != 'SUCCESS'" target="failure"/>
+    <transition cond="result == 'SKILL_SUCCESS'" target="success"/>
+    <transition cond="result != 'SKILL_SUCCESS'" target="failure"/>
   </state>
 
   <state id="success">

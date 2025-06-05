@@ -33,8 +33,8 @@
   </state>
 
   <state id="afterTimer">
-    <transition cond="result == 'SUCCESS'" target="resetWarn"/>
-    <transition cond="result != 'SUCCESS'" target="failReply"/>
+    <transition cond="result == 'SKILL_SUCCESS'" target="resetWarn"/>
+    <transition cond="result != 'SKILL_SUCCESS'" target="failReply"/>
   </state>
 
   <state id="resetWarn">
@@ -60,8 +60,8 @@
   </state>
 
   <state id="checkResetResult">
-    <transition cond="result == 'SUCCESS'" target="successReply"/>
-    <transition cond="result != 'SUCCESS'" target="failReply"/>
+    <transition cond="result == 'SKILL_SUCCESS'" target="successReply"/>
+    <transition cond="result != 'SKILL_SUCCESS'" target="failReply"/>
   </state>
 
   <state id="successReply">

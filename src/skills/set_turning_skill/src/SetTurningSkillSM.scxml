@@ -25,7 +25,7 @@
     </state>
     <state id="reply">
         <onentry>
-            <if cond="result==&apos;SUCCESS&apos;">
+            <if cond="result==&apos;SKILL_SUCCESS&apos;">
                 <send event="TICK_RESPONSE">
                     <param name="status" expr="SKILL_SUCCESS"/>
                 </send>

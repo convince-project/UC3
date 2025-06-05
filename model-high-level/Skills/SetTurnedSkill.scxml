@@ -41,7 +41,7 @@
 
   <state id="afterSet">
     <onentry>
-      <if cond="result=='SUCCESS'">
+      <if cond="result=='SKILL_SUCCESS'">
         <ros_service_send_request name="/TurnBackManagerComponent/IncreaseTurnBacksCounter"/>
       <else/>
         <ros_service_send_response name="/SetTurnedSkill/tick">
@@ -49,8 +49,8 @@
         </ros_service_send_response>
       </if>
     </onentry>
-    <transition cond="result=='SUCCESS'" target="waitInc"/>
-    <transition cond="result!='SUCCESS'" target="idle"/>
+    <transition cond="result=='SKILL_SUCCESS'" target="waitInc"/>
+    <transition cond="result!='SKILL_SUCCESS'" target="idle"/>
     <!-- Aggiungere gestione halt -->
     <ros_service_handle_request name="/SetTurnedSkill/halt" target="halted"/>
   </state>
@@ -65,7 +65,7 @@
 
   <state id="reply">
     <onentry>
-      <if cond="result=='SUCCESS'">
+      <if cond="result=='SKILL_SUCCESS'">
         <ros_service_send_response name="/SetTurnedSkill/tick">
           <field name="status" expr="SKILL_SUCCESS"/>
         </ros_service_send_response>

@@ -31,12 +31,12 @@
     <state id="checkFlag">
         <onentry>
             <if cond="m_value!=0">
-                <assign location="m_result" expr="&apos;SUCCESS&apos;"/>
+                <assign location="m_result" expr="&apos;SKILL_SUCCESS&apos;"/>
                 <else/>
                 <assign location="m_result" expr="&apos;SETCMD&apos;"/>
             </if>
         </onentry>
-        <transition cond="m_result==&apos;SUCCESS&apos;" target="finalize_success"/>
+        <transition cond="m_result==&apos;SKILL_SUCCESS&apos;" target="finalize_success"/>
         <transition cond="m_result==&apos;SETCMD&apos;" target="setCommand"/>
     </state>
     <state id="setCommand">
@@ -45,17 +45,17 @@
                 <param name="command" expr="m_command"/>
             </send>
         </onentry>
-        <transition event="SchedulerComponent.SetCommand.Return" cond="_event.data.result==&apos;SUCCESS&apos;" target="getText"/>
-        <transition event="SchedulerComponent.SetCommand.Return" cond="_event.data.result!=&apos;SUCCESS&apos;" target="finalize_failure"/>
+        <transition event="SchedulerComponent.SetCommand.Return" cond="_event.data.result==&apos;SKILL_SUCCESS&apos;" target="getText"/>
+        <transition event="SchedulerComponent.SetCommand.Return" cond="_event.data.result!=&apos;SKILL_SUCCESS&apos;" target="finalize_failure"/>
     </state>
     <state id="getText">
         <onentry>
             <send event="SchedulerComponent.GetCurrentAction.Call"/>
         </onentry>
-        <transition event="SchedulerComponent.GetCurrentAction.Return" cond="_event.data.result==&apos;SUCCESS&apos;" target="talk">
+        <transition event="SchedulerComponent.GetCurrentAction.Return" cond="_event.data.result==&apos;SKILL_SUCCESS&apos;" target="talk">
             <assign location="m_param" expr="_event.data.param"/>
         </transition>
-        <transition event="SchedulerComponent.GetCurrentAction.Return" cond="_event.data.result!=&apos;SUCCESS&apos;" target="finalize_failure"/>
+        <transition event="SchedulerComponent.GetCurrentAction.Return" cond="_event.data.result!=&apos;SKILL_SUCCESS&apos;" target="finalize_failure"/>
     </state>
     <state id="talk">
         <onentry>
@@ -87,11 +87,11 @@
             <if cond="m_is_speaking">
                 <assign location="m_result" expr="&apos;RUNNING&apos;"/>
                 <else/>
-                <assign location="m_result" expr="&apos;SUCCESS&apos;"/>
+                <assign location="m_result" expr="&apos;SKILL_SUCCESS&apos;"/>
             </if>
         </onentry>
         <transition cond="m_result==&apos;RUNNING&apos;" target="finalize_running"/>
-        <transition cond="m_result==&apos;SUCCESS&apos;" target="finalize_success"/>
+        <transition cond="m_result==&apos;SKILL_SUCCESS&apos;" target="finalize_success"/>
     </state>
     <state id="finalize_success">
         <onentry>

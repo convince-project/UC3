@@ -26,8 +26,8 @@
         </transition>
     </state>
     <state id="afterTurnBack">
-        <transition cond="result == &apos;SUCCESS&apos;" target="getStatus"/>
-        <transition cond="result != &apos;SUCCESS&apos;" target="failReply"/>
+        <transition cond="result == &apos;SKILL_SUCCESS&apos;" target="getStatus"/>
+        <transition cond="result != &apos;SKILL_SUCCESS&apos;" target="failReply"/>
     </state>
     <state id="getStatus">
         <onentry>
@@ -70,7 +70,7 @@
     <state id="done">
         <onentry>
             <send event="TICK_RESPONSE">
-                <param name="status" expr="result == &apos;SUCCESS&apos; ? SKILL_SUCCESS : SKILL_FAILURE"/>
+                <param name="status" expr="result == &apos;SKILL_SUCCESS&apos; ? SKILL_SUCCESS : SKILL_FAILURE"/>
             </send>
         </onentry>
         <transition target="idle"/>

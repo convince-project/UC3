@@ -37,7 +37,7 @@
 
   <state id="decideStatus">
     <onentry>
-      <if cond="_res.result!='SUCCESS'">
+      <if cond="_res.result!='SKILL_SUCCESS'">
         <ros_service_send_response name="/IsAtChargingStationSkill/tick">
           <field name="status" expr="SKILL_FAILURE"/>
           <field name="is_ok" expr="true"/>
