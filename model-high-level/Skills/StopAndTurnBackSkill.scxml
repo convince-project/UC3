@@ -42,8 +42,8 @@
   </state>
 
   <state id="afterTurnBack">
-    <transition cond="result == 'SUCCESS'" target="getStatus"/>
-    <transition cond="result != 'SUCCESS'" target="failReply"/>
+    <transition cond="result == 'SKILL_SUCCESS'" target="getStatus"/>
+    <transition cond="result != 'SKILL_SUCCESS'" target="failReply"/>
   </state>
 
   <state id="getStatus">
@@ -91,7 +91,7 @@
   <state id="done">
     <onentry>
       <ros_service_send_response name="/StopAndTurnBackSkill/tick">
-        <field name="status" expr="result == 'SUCCESS' ? SKILL_SUCCESS : SKILL_FAILURE"/>
+        <field name="status" expr="result == 'SKILL_SUCCESS' ? SKILL_SUCCESS : SKILL_FAILURE"/>
       </ros_service_send_response>
     </onentry>
     <transition target="idle"/>

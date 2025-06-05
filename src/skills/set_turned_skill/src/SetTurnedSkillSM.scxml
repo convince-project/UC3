@@ -26,7 +26,7 @@
     </state>
     <state id="afterSet">
         <onentry>
-            <if cond="result==&apos;SUCCESS&apos;">
+            <if cond="result==&apos;SKILL_SUCCESS&apos;">
                 <send event="TurnBackManagerComponent.IncreaseTurnBacksCounter.Call"/>
                 <else/>
                 <send event="TICK_RESPONSE">
@@ -34,8 +34,8 @@
                 </send>
             </if>
         </onentry>
-        <transition cond="result==&apos;SUCCESS&apos;" target="waitInc"/>
-        <transition cond="result!=&apos;SUCCESS&apos;" target="idle"/>
+        <transition cond="result==&apos;SKILL_SUCCESS&apos;" target="waitInc"/>
+        <transition cond="result!=&apos;SKILL_SUCCESS&apos;" target="idle"/>
         <!-- Aggiungere gestione halt -->
         <transition target="halted" event="CMD_HALT"/>
     </state>
@@ -48,7 +48,7 @@
     </state>
     <state id="reply">
         <onentry>
-            <if cond="result==&apos;SUCCESS&apos;">
+            <if cond="result==&apos;SKILL_SUCCESS&apos;">
                 <send event="TICK_RESPONSE">
                     <param name="status" expr="SKILL_SUCCESS"/>
                 </send>

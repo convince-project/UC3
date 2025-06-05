@@ -35,7 +35,7 @@
 
   <state id="reply">
     <onentry>
-      <if cond="result == 'SUCCESS'">
+      <if cond="result == 'SKILL_SUCCESS'">
         <ros_service_send_response name="/StartServiceSkill/tick">
           <field name="status" expr="SKILL_SUCCESS"/>
         </ros_service_send_response>

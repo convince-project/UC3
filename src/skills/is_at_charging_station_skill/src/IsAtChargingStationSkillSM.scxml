@@ -23,7 +23,7 @@
     </state>
     <state id="decideStatus">
         <onentry>
-            <if cond="_res.result!=&apos;SUCCESS&apos;">
+            <if cond="_res.result!=&apos;SKILL_SUCCESS&apos;">
                 <send event="TICK_RESPONSE">
                     <param name="status" expr="SKILL_FAILURE"/>
                     <param name="is_ok" expr="true"/>
