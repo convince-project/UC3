@@ -49,7 +49,7 @@
 
   <state id="decide">
     <onentry>
-      <if cond="m_result=='SUCCESS'">
+      <if cond="m_result=='SKILL_SUCCESS'">
         <ros_service_send_response name="/ResetTourAndFlagsSkill/tick">
           <field name="status" expr="SKILL_SUCCESS"/> 
         </ros_service_send_response>

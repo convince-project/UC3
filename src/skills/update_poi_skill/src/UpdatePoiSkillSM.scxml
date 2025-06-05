@@ -17,8 +17,8 @@
         </transition>
     </state>
     <state id="decideResult">
-        <transition cond="result == &apos;SUCCESS&apos;" target="success"/>
-        <transition cond="result != &apos;SUCCESS&apos;" target="failure"/>
+        <transition cond="result == &apos;SKILL_SUCCESS&apos;" target="success"/>
+        <transition cond="result != &apos;SKILL_SUCCESS&apos;" target="failure"/>
     </state>
     <state id="success">
         <onentry>
