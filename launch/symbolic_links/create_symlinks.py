@@ -13,8 +13,9 @@ def create_symlinks_from_xml(xml_file):
             params_split = parameters.split()
             if len(params_split) > 1:
                 symlink_name = f"{name_elem.text}"
-                target = "$(which ros2)"
+                # target = "$(which ros2)"
                 # symlink = symlink_name
+                target = f"/home/user1/UC3/launch/ros2_yarp.sh" 
                 symlink = f"/usr/local/bin/{symlink_name}"
                 command = f"sudo ln -s {target} {symlink}"
                 print(command)
