@@ -15,50 +15,36 @@
   </datamodel>
 
   <!-- Service servers -->
-  <ros_service_server service_name="/NavigationComponent/GoToPoiByName"
-                      type="navigation_interfaces/srv/GoToPoiByName"/>
-  <ros_service_server service_name="/NavigationComponent/GetNavigationStatus"
-                      type="navigation_interfaces/srv/GetNavigationStatus"/>
-  <ros_service_server service_name="/NavigationComponent/StopNavigation"
-                      type="navigation_interfaces/srv/StopNavigation"/>
-  <ros_service_server service_name="/NavigationComponent/CheckNearToPoi"
-                      type="navigation_interfaces/srv/CheckNearToPoi"/>
-  <ros_service_server service_name="/NavigationComponent/TurnBack"
-                      type="navigation_interfaces/srv/TurnBack"/>
+  <ros_service_server service_name="/NavigationComponent/GoToPoiByName" type="navigation_interfaces/srv/GoToPoiByName"/>
+  <ros_service_server service_name="/NavigationComponent/GetNavigationStatus" type="navigation_interfaces/srv/GetNavigationStatus"/>
+  <ros_service_server service_name="/NavigationComponent/StopNavigation" type="navigation_interfaces/srv/StopNavigation"/>
+  <ros_service_server service_name="/NavigationComponent/CheckNearToPoi" type="navigation_interfaces/srv/CheckNearToPoi"/>
+  <ros_service_server service_name="/NavigationComponent/TurnBack" type="navigation_interfaces/srv/TurnBack"/>
 
   <!-- Action server -->
-  <ros_action_server name="goto_act"
-                     action_name="/NavigationComponent/GoToPoi"
-                     type="navigation_interfaces/action/GoToPoi"/>
+  <ros_action_server name="goto_act" action_name="/NavigationComponent/GoToPoi" type="navigation_interfaces/action/GoToPoi"/>
 
   <state id="idle">
     <!-- GoToPoiByName -->
-    <ros_service_handle_request name="/NavigationComponent/GoToPoiByName"
-                                target="HandleGoToPoiByName">
+    <ros_service_handle_request name="/NavigationComponent/GoToPoiByName" target="HandleGoToPoiByName">
       <assign location="temp_poi_name" expr="_req.poi_name"/>
     </ros_service_handle_request>
     <!-- GetNavigationStatus -->
-    <ros_service_handle_request name="/NavigationComponent/GetNavigationStatus"
-                                target="HandleGetNavigationStatus"/>
+    <ros_service_handle_request name="/NavigationComponent/GetNavigationStatus" target="HandleGetNavigationStatus"/>
     <!-- StopNavigation -->
-    <ros_service_handle_request name="/NavigationComponent/StopNavigation"
-                                target="HandleStopNavigation"/>
+    <ros_service_handle_request name="/NavigationComponent/StopNavigation" target="HandleStopNavigation"/>
     <!-- CheckNearToPoi -->
-    <ros_service_handle_request name="/NavigationComponent/CheckNearToPoi"
-                                target="HandleCheckNearToPoi">
+    <ros_service_handle_request name="/NavigationComponent/CheckNearToPoi" target="HandleCheckNearToPoi">
       <assign location="temp_poi_name"  expr="_req.poi_name"/>
       <assign location="temp_distance"  expr="_req.distance"/>
     </ros_service_handle_request>
     <!-- TurnBack -->
-    <ros_service_handle_request name="/NavigationComponent/TurnBack"
-                                target="HandleTurnBack"/>
+    <ros_service_handle_request name="/NavigationComponent/TurnBack" target="HandleTurnBack"/>
     <!-- Action‐goal -->
-    <ros_action_handle_goal name="/NavigationComponent/GoToPoi"
-                            target="HandleActionGoal">
+    <ros_action_handle_goal name="/NavigationComponent/GoToPoi" target="HandleActionGoal">
       <assign location="temp_goal" expr="_req.poi_name"/>
     </ros_action_handle_goal>
-    <ros_action_handle_cancel name="/NavigationComponent/GoToPoi"
-                              target="HandleActionCancel"/>
+    <ros_action_handle_cancel name="/NavigationComponent/GoToPoi" target="HandleActionCancel"/>
   </state>
 
   <state id="HandleGoToPoiByName">
@@ -76,7 +62,7 @@
       <ros_service_send_response name="/NavigationComponent/GetNavigationStatus">
         <field name="is_ok"         expr="_callSucceeded()"/>
         <field name="current_goal"  expr="_result.target || ''"/>
-        <field name="status.status" expr="_result.status_code || 0"/>
+        <field name="status.xcld.,status" expr="_result.status_code || 0"/>
         <field name="error_msg"     expr="_callSucceeded() ? '' : _errorMessage()"/>
       </ros_service_send_response>
     </onentry>

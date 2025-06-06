@@ -19,53 +19,40 @@
   </datamodel>
 
   <!-- ROS service servers -->
-  <ros_service_server service_name="/TextToSpeechComponent/SetLanguage"
-                      type="text_to_speech_interfaces/srv/SetLanguage"/>
-  <ros_service_server service_name="/TextToSpeechComponent/GetLanguage"
-                      type="text_to_speech_interfaces/srv/GetLanguage"/>
-  <ros_service_server service_name="/TextToSpeechComponent/Speak"
-                      type="text_to_speech_interfaces/srv/Speak"/>
-  <ros_service_server service_name="/TextToSpeechComponent/IsSpeaking"
-                      type="text_to_speech_interfaces/srv/IsSpeaking"/>
-  <ros_service_server service_name="/TextToSpeechComponent/SetMicrophone"
-                      type="text_to_speech_interfaces/srv/SetMicrophone"/>
-  <ros_service_server service_name="/TextToSpeechComponent/SetVoice"
-                      type="text_to_speech_interfaces/srv/SetVoice"/>
+  <ros_service_server service_name="/TextToSpeechComponent/SetLanguage" type="text_to_speech_interfaces/srv/SetLanguage"/>
+  <ros_service_server service_name="/TextToSpeechComponent/GetLanguage" type="text_to_speech_interfaces/srv/GetLanguage"/>
+  <ros_service_server service_name="/TextToSpeechComponent/Speak" type="text_to_speech_interfaces/srv/Speak"/>
+  <ros_service_server service_name="/TextToSpeechComponent/IsSpeaking" type="text_to_speech_interfaces/srv/IsSpeaking"/>
+  <ros_service_server service_name="/TextToSpeechComponent/SetMicrophone" type="text_to_speech_interfaces/srv/SetMicrophone"/>
+  <ros_service_server service_name="/TextToSpeechComponent/SetVoice" type="text_to_speech_interfaces/srv/SetVoice"/>
 
   <!-- publisher for speaking status -->
-  <ros_topic_publisher topic_name="/TextToSpeechComponent/is_speaking"
-                       type="std_msgs/Bool"/>
+  <ros_topic_publisher topic_name="/TextToSpeechComponent/is_speaking" type="std_msgs/Bool"/>
 
   <state id="idle">
     <!-- handle SetLanguage -->
-    <ros_service_handle_request name="/TextToSpeechComponent/SetLanguage"
-                                target="HandleSetLanguage">
+    <ros_service_handle_request name="/TextToSpeechComponent/SetLanguage" target="HandleSetLanguage">
       <assign location="req_new_language" expr="_req.new_language"/>
     </ros_service_handle_request>
 
     <!-- handle GetLanguage -->
-    <ros_service_handle_request name="/TextToSpeechComponent/GetLanguage"
-                                target="HandleGetLanguage"/>
+    <ros_service_handle_request name="/TextToSpeechComponent/GetLanguage" target="HandleGetLanguage"/>
 
     <!-- handle Speak -->
-    <ros_service_handle_request name="/TextToSpeechComponent/Speak"
-                                target="HandleSpeak">
+    <ros_service_handle_request name="/TextToSpeechComponent/Speak" target="HandleSpeak">
       <assign location="req_text" expr="_req.text"/>
     </ros_service_handle_request>
 
     <!-- handle IsSpeaking -->
-    <ros_service_handle_request name="/TextToSpeechComponent/IsSpeaking"
-                                target="HandleIsSpeaking"/>
+    <ros_service_handle_request name="/TextToSpeechComponent/IsSpeaking" target="HandleIsSpeaking"/>
 
     <!-- handle SetMicrophone -->
-    <ros_service_handle_request name="/TextToSpeechComponent/SetMicrophone"
-                                target="HandleSetMicrophone">
+    <ros_service_handle_request name="/TextToSpeechComponent/SetMicrophone" target="HandleSetMicrophone">
       <assign location="req_enabled" expr="_req.enabled"/>
     </ros_service_handle_request>
 
     <!-- handle SetVoice -->
-    <ros_service_handle_request name="/TextToSpeechComponent/SetVoice"
-                                target="HandleSetVoice"/>
+    <ros_service_handle_request name="/TextToSpeechComponent/SetVoice" target="HandleSetVoice"/>
   </state>
 
   <state id="HandleSetLanguage">
