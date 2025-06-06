@@ -14,10 +14,8 @@
   </datamodel>
 
   <!-- publish two Bool topics -->
-  <ros_topic_publisher topic="/CheckNetworkComponent/NetworkStatus"
-                       type="std_msgs/Bool"/>
-  <ros_topic_publisher topic="/CheckNetworkComponent/NetworkChanged"
-                       type="std_msgs/Bool"/>
+  <ros_topic_publisher topic="/CheckNetworkComponent/NetworkStatus" type="std_msgs/Bool"/>
+  <ros_topic_publisher topic="/CheckNetworkComponent/NetworkChanged" type="std_msgs/Bool"/>
 
   <!-- fire at 1 Hz -->
   <ros_time_rate name="status_timer" rate_hz="1.0"/>
@@ -29,8 +27,7 @@
   <state id="evaluate">
     <onentry>
       <!-- call runtime ping helper -->
-      <assign location="current_status"
-              expr="checkNetwork(address, threshold_ms)"/>
+      <assign location="current_status" expr="checkNetwork(address, threshold_ms)"/>
       <!-- detect change -->
       <if cond="current_status != previous_status">
         <assign location="changed" expr="true"/>

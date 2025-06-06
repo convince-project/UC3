@@ -15,27 +15,21 @@
   </datamodel>
 
   <!-- ROS service servers -->
-  <ros_service_server service_name="/NarrateComponent/Narrate"
-                      type="narrate_interfaces/srv/Narrate"/>
-  <ros_service_server service_name="/NarrateComponent/IsDone"
-                      type="narrate_interfaces/srv/IsDone"/>
-  <ros_service_server service_name="/NarrateComponent/Stop"
-                      type="narrate_interfaces/srv/Stop"/>
+  <ros_service_server service_name="/NarrateComponent/Narrate" type="narrate_interfaces/srv/Narrate"/>
+  <ros_service_server service_name="/NarrateComponent/IsDone" type="narrate_interfaces/srv/IsDone"/>
+  <ros_service_server service_name="/NarrateComponent/Stop" type="narrate_interfaces/srv/Stop"/>
 
   <state id="idle">
     <!-- handle a new narrate request -->
-    <ros_service_handle_request name="/NarrateComponent/Narrate"
-                                target="HandleNarrate">
+    <ros_service_handle_request name="/NarrateComponent/Narrate" target="HandleNarrate">
       <assign location="temp_command" expr="_req.command"/>
     </ros_service_handle_request>
 
     <!-- handle an is_done query -->
-    <ros_service_handle_request name="/NarrateComponent/IsDone"
-                                target="HandleIsDone"/>
+    <ros_service_handle_request name="/NarrateComponent/IsDone" target="HandleIsDone"/>
 
     <!-- handle a stop request -->
-    <ros_service_handle_request name="/NarrateComponent/Stop"
-                                target="HandleStop">
+    <ros_service_handle_request name="/NarrateComponent/Stop" target="HandleStop">
       <assign location="stopped" expr="true"/>
     </ros_service_handle_request>
   </state>

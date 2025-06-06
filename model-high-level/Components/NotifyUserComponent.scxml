@@ -11,26 +11,21 @@
   </datamodel>
 
   <!-- ROS services -->
-  <ros_service_server service_name="/NotifyUserComponent/StartAlarm"
-                      type="notify_user_interfaces/srv/StartAlarm"/>
-  <ros_service_server service_name="/NotifyUserComponent/StopAlarm"
-                      type="notify_user_interfaces/srv/StopAlarm"/>
-  <ros_service_server service_name="/NotifyUserComponent/NotifyUserCharged"
-                      type="notify_user_interfaces/srv/NotifyUserCharged"/>
+  <ros_service_server service_name="/NotifyUserComponent/StartAlarm" type="notify_user_interfaces/srv/StartAlarm"/>
+  <ros_service_server service_name="/NotifyUserComponent/StopAlarm" type="notify_user_interfaces/srv/StopAlarm"/>
+  <ros_service_server service_name="/NotifyUserComponent/NotifyUserCharged" type="notify_user_interfaces/srv/NotifyUserCharged"/>
 
   <!-- timer to drive the 2 Hz alarm prints -->
   <ros_time_rate name="alarm_timer" rate_hz="2.0"/>
 
   <state id="idle">
     <!-- start the alarm -->
-    <ros_service_handle_request name="/NotifyUserComponent/StartAlarm"
-                                target="HandleStartAlarm"/>
+    <ros_service_handle_request name="/NotifyUserComponent/StartAlarm" target="HandleStartAlarm"/>
     <!-- stop the alarm -->
-    <ros_service_handle_request name="/NotifyUserComponent/StopAlarm"
-                                target="HandleStopAlarm"/>
+
+    <ros_service_handle_request name="/NotifyUserComponent/StopAlarm" target="HandleStopAlarm"/>
     <!-- notify that user is charged -->
-    <ros_service_handle_request name="/NotifyUserComponent/NotifyUserCharged"
-                                target="HandleNotifyUserCharged"/>
+    <ros_service_handle_request name="/NotifyUserComponent/NotifyUserCharged" target="HandleNotifyUserCharged"/>
     <!-- if alarm is active, fire every tick -->
     <transition event="alarm_timer.tick" cond="alarmActive" target="AlarmTick"/>
   </state>
@@ -62,8 +57,6 @@
       <ros_service_send_response name="/NotifyUserComponent/NotifyUserCharged">
         <field name="is_ok" expr="true"/>
       </ros_service_send_response>
-      <log label="info"
-           expr="'I\\'m charged ======================================================================================================='"/>
     </onentry>
     <transition target="idle"/>
   </state>

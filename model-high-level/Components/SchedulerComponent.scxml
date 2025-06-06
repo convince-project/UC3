@@ -25,62 +25,38 @@
   </datamodel>
 
   <!-- service servers -->
-  <ros_service_server service_name="/SchedulerComponent/Reset"
-                      type="scheduler_interfaces/srv/Reset"/>
-  <ros_service_server service_name="/SchedulerComponent/EndTour"
-                      type="scheduler_interfaces/srv/EndTour"/>
-  <ros_service_server service_name="/SchedulerComponent/UpdatePoi"
-                      type="scheduler_interfaces/srv/UpdatePoi"/>
-  <ros_service_server service_name="/SchedulerComponent/SetPoi"
-                      type="scheduler_interfaces/srv/SetPoi"/>
-  <ros_service_server service_name="/SchedulerComponent/GetCurrentPoi"
-                      type="scheduler_interfaces/srv/GetCurrentPoi"/>
-  <ros_service_server service_name="/SchedulerComponent/UpdateAction"
-                      type="scheduler_interfaces/srv/UpdateAction"/>
-  <ros_service_server service_name="/SchedulerComponent/GetCurrentAction"
-                      type="scheduler_interfaces/srv/GetCurrentAction"/>
-  <ros_service_server service_name="/SchedulerComponent/GetCurrentLanguage"
-                      type="scheduler_interfaces/srv/GetCurrentLanguage"/>
-  <ros_service_server service_name="/SchedulerComponent/SetLanguage"
-                      type="scheduler_interfaces/srv/SetLanguage"/>
-  <ros_service_server service_name="/SchedulerComponent/GetCurrentCommand"
-                      type="scheduler_interfaces/srv/GetCurrentCommand"/>
-  <ros_service_server service_name="/SchedulerComponent/SetCommand"
-                      type="scheduler_interfaces/srv/SetCommand"/>
-  <ros_service_server service_name="/SchedulerComponent/GetAvailableCommands"
-                      type="scheduler_interfaces/srv/GetAvailableCommands"/>
+  <ros_service_server service_name="/SchedulerComponent/Reset" type="scheduler_interfaces/srv/Reset"/>
+  <ros_service_server service_name="/SchedulerComponent/EndTour" type="scheduler_interfaces/srv/EndTour"/>
+  <ros_service_server service_name="/SchedulerComponent/UpdatePoi" type="scheduler_interfaces/srv/UpdatePoi"/>
+  <ros_service_server service_name="/SchedulerComponent/SetPoi" type="scheduler_interfaces/srv/SetPoi"/>
+  <ros_service_server service_name="/SchedulerComponent/GetCurrentPoi" type="scheduler_interfaces/srv/GetCurrentPoi"/>
+  <ros_service_server service_name="/SchedulerComponent/UpdateAction" type="scheduler_interfaces/srv/UpdateAction"/>
+  <ros_service_server service_name="/SchedulerComponent/GetCurrentAction" type="scheduler_interfaces/srv/GetCurrentAction"/>
+  <ros_service_server service_name="/SchedulerComponent/GetCurrentLanguage" type="scheduler_interfaces/srv/GetCurrentLanguage"/>
+  <ros_service_server service_name="/SchedulerComponent/SetLanguage"  type="scheduler_interfaces/srv/SetLanguage"/>
+  <ros_service_server service_name="/SchedulerComponent/GetCurrentCommand" type="scheduler_interfaces/srv/GetCurrentCommand"/>
+  <ros_service_server service_name="/SchedulerComponent/SetCommand" type="scheduler_interfaces/srv/SetCommand"/>
+  <ros_service_server service_name="/SchedulerComponent/GetAvailableCommands" type="scheduler_interfaces/srv/GetAvailableCommands"/>
 
   <state id="idle">
-    <ros_service_handle_request name="/SchedulerComponent/Reset"
-                                target="HandleReset"/>
-    <ros_service_handle_request name="/SchedulerComponent/EndTour"
-                                target="HandleEndTour"/>
-    <ros_service_handle_request name="/SchedulerComponent/UpdatePoi"
-                                target="HandleUpdatePoi"/>
-    <ros_service_handle_request name="/SchedulerComponent/SetPoi"
-                                target="HandleSetPoi">
+    <ros_service_handle_request name="/SchedulerComponent/Reset" target="HandleReset"/>
+    <ros_service_handle_request name="/SchedulerComponent/EndTour" target="HandleEndTour"/>
+    <ros_service_handle_request name="/SchedulerComponent/UpdatePoi" target="HandleUpdatePoi"/>
+    <ros_service_handle_request name="/SchedulerComponent/SetPoi" target="HandleSetPoi">
       <assign location="req_poi_number" expr="_req.poi_number"/>
     </ros_service_handle_request>
-    <ros_service_handle_request name="/SchedulerComponent/GetCurrentPoi"
-                                target="HandleGetCurrentPoi"/>
-    <ros_service_handle_request name="/SchedulerComponent/UpdateAction"
-                                target="HandleUpdateAction"/>
-    <ros_service_handle_request name="/SchedulerComponent/GetCurrentAction"
-                                target="HandleGetCurrentAction"/>
-    <ros_service_handle_request name="/SchedulerComponent/GetCurrentLanguage"
-                                target="HandleGetCurrentLanguage"/>
-    <ros_service_handle_request name="/SchedulerComponent/SetLanguage"
-                                target="HandleSetLanguage">
+    <ros_service_handle_request name="/SchedulerComponent/GetCurrentPoi" target="HandleGetCurrentPoi"/>
+    <ros_service_handle_request name="/SchedulerComponent/UpdateAction" target="HandleUpdateAction"/>
+    <ros_service_handle_request name="/SchedulerComponent/GetCurrentAction" target="HandleGetCurrentAction"/>
+    <ros_service_handle_request name="/SchedulerComponent/GetCurrentLanguage" target="HandleGetCurrentLanguage"/>
+    <ros_service_handle_request name="/SchedulerComponent/SetLanguage" target="HandleSetLanguage">
       <assign location="req_language" expr="_req.language"/>
     </ros_service_handle_request>
-    <ros_service_handle_request name="/SchedulerComponent/GetCurrentCommand"
-                                target="HandleGetCurrentCommand"/>
-    <ros_service_handle_request name="/SchedulerComponent/SetCommand"
-                                target="HandleSetCommand">
+    <ros_service_handle_request name="/SchedulerComponent/GetCurrentCommand" target="HandleGetCurrentCommand"/>
+    <ros_service_handle_request name="/SchedulerComponent/SetCommand" target="HandleSetCommand">
       <assign location="req_command" expr="_req.command"/>
     </ros_service_handle_request>
-    <ros_service_handle_request name="/SchedulerComponent/GetAvailableCommands"
-                                target="HandleGetAvailableCommands"/>
+    <ros_service_handle_request name="/SchedulerComponent/GetAvailableCommands" target="HandleGetAvailableCommands"/>
   </state>
 
   <state id="HandleReset">
