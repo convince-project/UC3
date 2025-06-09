@@ -51,7 +51,7 @@ Below is a graphical representation of the components and their interactions. He
 </figure>
 
 # Component-Skill-State Machine Communication
-Below is a graphical representation of the communication between the component, the skill and the state machine. The arrows represent the communication between the entities. When a state of the state machine presents multiple input-output arrows, the green arrows represent the sequential input-output flow of the state machine's communication with the skill.
+Below is a graphical representation of the communication between the component, the skill and the state machine. The arrows represent the communication between the entities. When a state of the state machine presents multiple input-output arrows, the arrows with the same color represent the sequential input-output flow of the state machine's communication with the skill.
 
 <figure>
     <p align="center">
