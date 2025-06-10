@@ -242,7 +242,6 @@ bool SayByeSkill::start(int argc, char*argv[])
                   QVariantMap data;
                   data.insert("is_ok", true);
                   data.insert("type", response->type.c_str());
-                  data.insert("param", response->param.c_str());
                   data.insert("is_blocking", response->is_blocking);
                   m_stateMachine.submitEvent("SchedulerComponent.GetCurrentAction.Return", data);
                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.GetCurrentAction.Return");
@@ -313,11 +312,10 @@ void SayByeSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dum
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;      
-        case Status::undefined:
+          break;  
+      case Status::undefined:
           response->status = SKILL_FAILURE;
-          RCLCPP_ERROR(m_node->get_logger(), "SayByeSkill::tick: Undefined status received.");
-          break;      
+          break;          
   }
   RCLCPP_INFO(m_node->get_logger(), "SayByeSkill::tickDone");
   response->is_ok = true;
