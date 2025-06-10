@@ -59,6 +59,28 @@ RUN /bin/bash -c "echo 'updated on 2025023061457' && \
     cd /home/user1/MOON/ModelMonitor/modeloracle && \
     mvn install"
 
+RUN /bin/bash -c "mkdir smc_storm_executable && \
+    curl -O -L https://github.com/convince-project/smc_storm/releases/latest/download/smc_storm_executable.tar.gz && \
+    tar -xzf smc_storm_executable.tar.gz -C smc_storm_executable && \
+    cd /smc_storm_executable && \
+    ./install.sh --install-dependencies && \
+    rm -rf /var/lib/apt/lists/* && \
+    ln /smc_storm_executable/bin/smc_storm /usr/local/bin && \
+    rm -rf smc_storm_executable.tar.gz"
+
+# Add AS2FM
+RUN /bin/bash -c "mkdir -p /colcon_ws/src
+COPY . /colcon_ws/src/as2fm
+RUN pip3 uninstall -y --break-system-packages js2py && \
+    pip3 install --break-system-packages git+https://github.com/felixonmars/Js2Py.git@py3.12  # Temporary fix for js2py
+RUN pip3 install --break-system-packages /colcon_ws/src/as2fm# RUN /bin/bash -c "/home/user1/convince-python-env/bin/pip install --upgrade pip"
+RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
+    cd /home/user1 && \
+    pip3 uninstall -y --break-system-packages js2py && \
+    pip3 install --break-system-packages git+https://github.com/felixonmars/Js2Py.git@py3.12 && \
+    git clone https://github.com/convince-project/AS2FM.git && \
+    /home/user1/convince-python-env/bin/python -m pip install AS2FM/"
+    # pip3 install --break-system-packages /colcon_ws/src/as2fm"
 
 RUN /bin/bash -c "echo 'updated on 202503250921' && \
     source /opt/ros/jazzy/setup.bash && \
@@ -67,6 +89,17 @@ RUN /bin/bash -c "echo 'updated on 202503250921' && \
     source /opt/ros/jazzy/setup.bash && \
     cd /home/user1/UC3/ && \
     colcon build --base-paths src/* --packages-ignore face_expressions_wrapper dialog_component"
+
+
+RUN /bin/bash -c "curl https://sh.rustup.rs -sSf | sh -s -- -y"
+RUN /bin/bash -c "source /home/user1/.cargo/env && cargo install --git https://github.com/convince-project/scan"
+
+RUN /bin/bash -c "sudo apt install gobject-introspection libgirepository1.0-dev -y"
+RUN /bin/bash -c "cd /home/user1/ && \
+python3 -m venv monitoring-python-env && \
+/home/user1/monitoring-python-env/bin/pip install --upgrade pip && \
+/home/user1/monitoring-python-env/bin/pip install websocket_client rospy_message_converter pyyaml reelay jedi pycairo PyGObject==3.50.0 prompt_toolkit"
+
 
 
 RUN echo "source /home/user1/UC3/install/setup.bash" >> ~/.bashrc
