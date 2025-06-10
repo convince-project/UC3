@@ -14,9 +14,9 @@
     <!-- GoToPoiActionSkill is a client for GetCurrentPoi from the SchedulerComponent -->
     <ros_service_server service_name="/GoToPoiActionSkill/halt" type="bt_interfaces_dummy/HaltAction"/>
 
-    <ros_service_client service_name="/SchedulerComponent/GetCurrentPoi" type ="scheduler_interfaces_dummy/GetCurrentPoi"/>
+    <ros_service_client service_name="/SchedulerComponent/GetCurrentPoi" type ="scheduler_interfaces/GetCurrentPoi"/>
     <!-- GoToPoiActionSkill is a client for GoToPoi action from the Navigation Component -->
-    <ros_action_client name="go_to_poi_action" action_name="/NavigationComponent/GoToPoi" type="navigation_interfaces_dummy/GoToPoi" />
+    <ros_action_client name="go_to_poi_action" action_name="/NavigationComponent/GoToPoi" type="navigation_interfaces/GoToPoi" />
 
     <state id="idle">
         <ros_service_handle_request name="/GoToPoiActionSkill/tick" target="getPoi">
@@ -39,7 +39,7 @@
                 <field name="status" expr="SKILL_RUNNING"/>
             </ros_service_send_response>
         </ros_service_handle_response>
-        <ros_service_handle_request name="/GoToPoiActionSkill/halt" target="getCurrentPoiResponseHalt">
+            <ros_service_handle_request name="/GoToPoiActionSkill/halt" target="getCurrentPoiResponseHalt">
         </ros_service_handle_request>
     </state>
     
