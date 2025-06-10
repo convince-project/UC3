@@ -8,44 +8,44 @@
     <!-- RunTimerSkill is a server for tick from the ROS2Action plugin-->
     <!-- RunTimerSkill is a server for halt from the ROS2Action plugin-->
     <!-- <ros_service_server service_name="/RunTimerSkill/halt" type ="bt_interface/HaltAction"/> -->
-    <!-- RunTimerSkill is a client for IsTimerActive from the TimerComponent -->
-    <!-- RunTimerSkill is a client for StartTimer from the TimerComponent -->
+    <!-- RunTimerSkill is a client for IsTimerActive from the TimerCheckForPeopleComponent -->
+    <!-- RunTimerSkill is a client for StartTimer from the TimerCheckForPeopleComponent -->
     <state id="idle">
         <transition target="isTimerActive" event="CMD_TICK">
-            <send event="TimerComponent.IsTimerActive.Call"/>
+            <send event="TimerCheckForPeopleComponent.IsTimerActive.Call"/>
         </transition>
         <!-- <ros_service_handle_request name="/RunTimerSkill/halt" target="idle">
             <ros_service_send_response name="/RunTimerSkill/halt"/>
         </ros_service_handle_request> -->
     </state>
     <state id="isTimerActive">
-        <transition cond="(_event.data.is_ok) == false " target="idle" event="TimerComponent.IsTimerActive.Return">
+        <transition cond="(_event.data.is_ok) == false " target="idle" event="TimerCheckForPeopleComponent.IsTimerActive.Return">
             <send event="TICK_RESPONSE">
                 <param name="status" expr="SKILL_FAILURE"/>
                 <param name="is_ok" expr="true"/>
             </send>
         </transition>
-        <transition cond="_event.data.is_active " target="idle" event="TimerComponent.IsTimerActive.Return">
+        <transition cond="_event.data.is_active " target="idle" event="TimerCheckForPeopleComponent.IsTimerActive.Return">
             <send event="TICK_RESPONSE">
                 <param name="status" expr="SKILL_RUNNING"/>
                 <param name="is_ok" expr="true"/>
             </send>
         </transition>
-        <transition cond="(_event.data.is_active) == false" target="startTimer" event="TimerComponent.IsTimerActive.Return">
-            <send event="TimerComponent.StartTimer.Call"/>
+        <transition cond="(_event.data.is_active) == false" target="startTimer" event="TimerCheckForPeopleComponent.IsTimerActive.Return">
+            <send event="TimerCheckForPeopleComponent.StartTimer.Call"/>
         </transition>
         <!-- <ros_service_handle_request name="/RunTimerSkill/halt" target="idle">
             <ros_service_send_response name="/RunTimerSkill/halt"/>
         </ros_service_handle_request> -->
     </state>
     <state id="startTimer">
-        <transition cond="_event.data.is_ok" target="idle" event="TimerComponent.StartTimer.Return">
+        <transition cond="_event.data.is_ok" target="idle" event="TimerCheckForPeopleComponent.StartTimer.Return">
             <send event="TICK_RESPONSE">
                 <param name="status" expr="SKILL_SUCCESS"/>
                 <param name="is_ok" expr="true"/>
             </send>
         </transition>
-        <transition cond="(_event.data.is_ok) == false" target="idle" event="TimerComponent.StartTimer.Return">
+        <transition cond="(_event.data.is_ok) == false" target="idle" event="TimerCheckForPeopleComponent.StartTimer.Return">
             <send event="TICK_RESPONSE">
                 <param name="status" expr="SKILL_FAILURE"/>
                 <param name="is_ok" expr="true"/>
