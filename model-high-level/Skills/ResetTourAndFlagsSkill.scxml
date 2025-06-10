@@ -11,8 +11,8 @@
   <ros_service_server service_name="/ResetTourAndFlagsSkill/halt" type="bt_interfaces_dummy/HaltAction"/>
 
   <!-- Clients for Reset and Blackboard set-all-ints -->
-  <ros_service_client service_name="/SchedulerComponent/Reset" type="scheduler_interfaces_dummy/Reset"/>
-  <ros_service_client service_name="/BlackboardComponent/SetAllIntsWithPrefix" type="blackboard_interfaces_dummy/SetAllIntsWithPrefix"/>
+  <ros_service_client service_name="/SchedulerComponent/Reset" type="scheduler_interfaces/Reset"/>
+  <ros_service_client service_name="/BlackboardComponent/SetAllIntsWithPrefix" type="blackboard_interfaces/SetAllIntsWithPrefix"/>
 
   <datamodel>
     <data id="m_name"        type="string" expr="'PoiDone'"/>

@@ -14,7 +14,7 @@
   <ros_service_server service_name="/StopServiceSkill/tick"  type="bt_interfaces_dummy/TickAction"/>
   <ros_service_server service_name="/StopServiceSkill/halt"  type="bt_interfaces_dummy/HaltAction"/>
 
-  <ros_service_client service_name="/ManagePeopleDetectorComponent/StopService" type="manage_people_detector_interfaces_dummy/StopService"/>
+  <ros_service_client service_name="/ManagePeopleDetectorComponent/StopService" type="manage_people_detector_interfaces/StopService"/>
 
   <state id="idle">
     <ros_service_handle_request name="/StopServiceSkill/tick" target="callStop">

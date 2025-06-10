@@ -17,7 +17,7 @@
   <ros_service_server service_name="/ResetTourSkill/halt" type="bt_interfaces_dummy/HaltAction"/>
 
   <!-- Client for Reset -->
-  <ros_service_client service_name="/SchedulerComponent/Reset" type="scheduler_interfaces_dummy/Reset"/>
+  <ros_service_client service_name="/SchedulerComponent/Reset" type="scheduler_interfaces/Reset"/>
 
   <state id="idle">
     <ros_service_handle_request name="/ResetTourSkill/tick" target="resetTour">

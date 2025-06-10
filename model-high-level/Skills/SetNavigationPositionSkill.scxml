@@ -20,8 +20,8 @@
   <ros_service_server service_name="/SetNavigationPositionSkill/halt" type="bt_interfaces_dummy/HaltAction"/>
 
   <!-- Clients used by this skill -->
-  <ros_service_client service_name="/ExecuteDanceComponent/ExecuteDance" type="execute_dance_interfaces_dummy/ExecuteDance"/>
-  <ros_service_client service_name="/ExecuteDanceComponent/IsDancing"   type="execute_dance_interfaces_dummy/IsDancing"/>
+  <ros_service_client service_name="/ExecuteDanceComponent/ExecuteDance" type="execute_dance_interfaces/ExecuteDance"/>
+  <ros_service_client service_name="/ExecuteDanceComponent/IsDancing"   type="execute_dance_interfaces/IsDancing"/>
 
   <!-- ============ STATES ============ -->
 

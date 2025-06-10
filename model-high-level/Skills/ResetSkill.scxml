@@ -22,8 +22,8 @@
   <ros_service_server service_name="/ResetSkill/halt" type="bt_interfaces_dummy/HaltAction"/>
 
   <!-- Clients -->
-  <ros_service_client service_name="/SchedulerComponent/SetPoi" type="scheduler_interfaces_dummy/SetPoi"/>
-  <ros_service_client service_name="/BlackboardComponent/SetInt" type="blackboard_interfaces_dummy/SetIntBlackboard"/>
+  <ros_service_client service_name="/SchedulerComponent/SetPoi" type="scheduler_interfaces/SetPoi"/>
+  <ros_service_client service_name="/BlackboardComponent/SetInt" type="blackboard_interfaces/SetIntBlackboard"/>
 
   <state id="idle">
     <ros_service_handle_request name="/ResetSkill/tick" target="setCurrentPoi">

@@ -21,10 +21,10 @@
   <ros_service_server service_name="/StopAndTurnBackSkill/halt"  type="bt_interfaces_dummy/HaltAction"/>
 
   <!-- Clients -->
-  <ros_service_client service_name="/NavigationComponent/TurnBack"          type="navigation_interfaces_dummy/TurnBack"/>
-  <ros_service_client service_name="/NavigationComponent/GetNavigationStatus" type="navigation_interfaces_dummy/GetNavigationStatus"/>
-  <ros_service_client service_name="/NavigationComponent/StopNavigation"    type="navigation_interfaces_dummy/StopNavigation"/>
-  <ros_service_client service_name="/BlackboardComponent/SetInt"            type="blackboard_interfaces_dummy/SetInt"/>
+  <ros_service_client service_name="/NavigationComponent/TurnBack"          type="navigation_interfaces/TurnBack"/>
+  <ros_service_client service_name="/NavigationComponent/GetNavigationStatus" type="navigation_interfaces/GetNavigationStatus"/>
+  <ros_service_client service_name="/NavigationComponent/StopNavigation"    type="navigation_interfaces/StopNavigation"/>
+  <ros_service_client service_name="/BlackboardComponent/SetInt"            type="blackboard_interfaces/SetInt"/>
 
   <state id="idle">
     <ros_service_handle_request name="/StopAndTurnBackSkill/tick" target="callTurnBack">

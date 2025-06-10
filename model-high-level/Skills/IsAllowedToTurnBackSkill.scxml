@@ -21,8 +21,8 @@
   <ros_service_server service_name="/IsAllowedToTurnBackSkill/tick" type="bt_interfaces_dummy/TickCondition"/>
 
   <!-- Clients -->
-  <ros_service_client service_name="/TurnBackManagerComponent/IsAllowedToTurnBack" type="turnbackmanager_interfaces_dummy/IsAllowedToTurnBack"/>
-  <ros_service_client service_name="/BlackboardComponent/GetString" type="blackboard_interfaces_dummy/GetStringBlackboard"/>
+  <ros_service_client service_name="/TurnBackManagerComponent/IsAllowedToTurnBack" type="turnbackmanager_interfaces/IsAllowedToTurnBack"/>
+  <ros_service_client service_name="/BlackboardComponent/GetString" type="blackboard_interfaces/GetStringBlackboard"/>
 
   <!-- Check if turn back is allowed by manager -->
   <state id="idle">

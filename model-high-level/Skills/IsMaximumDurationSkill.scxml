@@ -10,7 +10,7 @@
   <ros_service_server service_name="/IsMaximumDurationSkill/tick" type="bt_interfaces_dummy/TickCondition"/>
 
   <!-- Client for Blackboard GetInt -->
-  <ros_service_client service_name="/BlackboardComponent/GetInt" type="blackboard_interfaces_dummy/GetIntBlackboard"/>
+  <ros_service_client service_name="/BlackboardComponent/GetInt" type="blackboard_interfaces/GetIntBlackboard"/>
 
   <datamodel>
     <data id="m_name"         type="string" expr="'TourDurationExceededFlag'"/>

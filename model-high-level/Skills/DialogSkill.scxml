@@ -23,10 +23,10 @@
   <ros_service_server service_name="/DialogSkill/halt" type="bt_interfaces_dummy/HaltAction"/>
 
   <!-- ROS2 service clients - allineati con dialog_interfaces -->
-  <ros_service_client service_name="/SchedulerComponent/GetCurrentLanguage" type="scheduler_interfaces_dummy/GetCurrentLanguage"/>
-  <ros_service_client service_name="/DialogComponent/SetLanguage" type="dialog_interfaces_dummy/SetLanguage"/>
-  <ros_service_client service_name="/DialogComponent/EnableDialog" type="dialog_interfaces_dummy/EnableDialog"/>
-  <ros_service_client service_name="/DialogComponent/GetState" type="dialog_interfaces_dummy/GetState"/>
+  <ros_service_client service_name="/SchedulerComponent/GetCurrentLanguage" type="scheduler_interfaces/GetCurrentLanguage"/>
+  <ros_service_client service_name="/DialogComponent/SetLanguage" type="dialog_interfaces/SetLanguage"/>
+  <ros_service_client service_name="/DialogComponent/EnableDialog" type="dialog_interfaces/EnableDialog"/>
+  <ros_service_client service_name="/DialogComponent/GetState" type="dialog_interfaces/GetState"/>
 
   <state id="idle">
     <onentry>

@@ -19,7 +19,7 @@
   <ros_service_server service_name="/CheckIfFirstPoiSkill/tick" type="bt_interfaces_dummy/TickCondition"/>
 
   <!-- Client for SchedulerComponent.GetCurrentPoi -->
-  <ros_service_server service_name="/SchedulerComponent/GetCurrentPoi" type="scheduler_interfaces_dummy/GetCurrentPoi"/>
+  <ros_service_server service_name="/SchedulerComponent/GetCurrentPoi" type="scheduler_interfaces/GetCurrentPoi"/>
 
 
   <state id="idle">
