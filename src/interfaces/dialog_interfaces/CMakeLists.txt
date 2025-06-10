@@ -16,13 +16,13 @@ find_package(sensor_msgs REQUIRED)
 # find_package(<dependency> REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(dialog_interfaces
+                            "srv/ManageContext.srv"
                             "srv/SetLanguage.srv"
-                            "srv/GetLanguage.srv"
-                            "srv/EnableDialog.srv"
-                            "srv/SetPoi.srv"
-                            "srv/GetState.srv"
-                            "srv/IsSpeaking.srv"
-                            "srv/SkipExplanation.srv"
+                            "srv/RememberInteractions.srv"
+                            "srv/InterpretCommand.srv"
+                            "srv/AnswerAndSpeak.srv"
+                            "srv/ShortenAndSpeak.srv"
+                            "action/WaitForInteraction.action"
                             DEPENDENCIES sensor_msgs
                             LIBRARY_NAME dialog_interfaces
 )

@@ -1010,7 +1010,7 @@
               },
               {
                 "m_isBlocking": false,
-                "m_param": "Hai altre domande? Se non ricordi le domande disponibili chiedi pure chiarmenti, altrimenti possiamo continuare il tour se vuoi.",
+                "m_param": "Hai altre domande? Se non ricordi le domande disponibili chiedi pure chiarimenti, altrimenti possiamo continuare il tour se vuoi.",
                 "m_type": "speak"
               }
             ],
