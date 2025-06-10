@@ -17,7 +17,7 @@
   <ros_service_server service_name="/IsMuseumClosingSkill/tick" type="bt_interfaces_dummy/TickCondition"/>
 
   <!-- Client for TimeComponent.IsMuseumClosing -->
-  <ros_service_client service_name="/TimeComponent/IsMuseumClosing" type="time_interfaces_dummy/IsMuseumClosing"/>
+  <ros_service_client service_name="/TimeComponent/IsMuseumClosing" type="time_interfaces/IsMuseumClosing"/>
 
   <state id="idle">
     <ros_service_handle_request name="/IsMuseumClosingSkill/tick" target="queryClosing">

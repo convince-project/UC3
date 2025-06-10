@@ -19,7 +19,7 @@
   <ros_service_server service_name="/IsWarningDurationSkill/tick" type="bt_interfaces_dummy/TickCondition"/>
 
   <!-- Client for Blackboard GetInt -->
-  <ros_service_client service_name="/BlackboardComponent/GetInt" type="blackboard_interfaces_dummy/GetIntBlackboard"/>
+  <ros_service_client service_name="/BlackboardComponent/GetInt" type="blackboard_interfaces/GetIntBlackboard"/>
   
   <state id="idle">
     <ros_service_handle_request name="/IsWarningDurationSkill/tick" target="queryFlag">

@@ -18,7 +18,7 @@
   <ros_service_server service_name="/CheckNetworkSkill/tick" type="bt_interfaces_dummy/TickCondition"/>
 
   <!-- Add network status subscriber -->
-  <ros_topic_subscriber topic="/NetworkComponent/status" type="network_interfaces_dummy/NetworkStatus"/>
+  <ros_topic_subscriber topic="/NetworkComponent/status" type="network_interfaces/NetworkStatus"/>
 
   <state id="idle">
     <!-- Update network status when message arrives -->

@@ -14,7 +14,7 @@
   <ros_service_server service_name="/StopTourTimerSkill/tick"  type="bt_interfaces_dummy/TickAction"/>
   <ros_service_server service_name="/StopTourTimerSkill/halt"  type="bt_interfaces_dummy/HaltAction"/>
 
-  <ros_service_client service_name="/TimeComponent/StopTourTimer" type="time_interfaces_dummy/StopTourTimer"/>
+  <ros_service_client service_name="/TimeComponent/StopTourTimer" type="time_interfaces/StopTourTimer"/>
 
   <state id="idle">
     <ros_service_handle_request name="/StopTourTimerSkill/tick" target="callStop">

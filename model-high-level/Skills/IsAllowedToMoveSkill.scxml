@@ -16,7 +16,7 @@
   <ros_service_server service_name="/IsAllowedToMoveSkill/tick" type="bt_interfaces_dummy/TickCondition"/>
 
   <!-- Client for AllowedToMoveComponent.IsAllowedToMove -->
-  <ros_service_client service_name="/AllowedToMoveComponent/IsAllowedToMove" type="allowed_to_move_interfaces_dummy/IsAllowedToMove"/>
+  <ros_service_client service_name="/AllowedToMoveComponent/IsAllowedToMove" type="allowed_to_move_interfaces/IsAllowedToMove"/>
 
   <state id="idle">
     <ros_service_handle_request name="/IsAllowedToMoveSkill/tick" target="query">

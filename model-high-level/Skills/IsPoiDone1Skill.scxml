@@ -16,7 +16,7 @@
   </datamodel>
 
   <ros_service_server service_name="/IsPoiDone1Skill/tick" type="bt_interfaces_dummy/TickCondition"/>
-  <ros_service_client service_name="/BlackboardComponent/GetInt" type="blackboard_interfaces_dummy/GetIntBlackboard"/>
+  <ros_service_client service_name="/BlackboardComponent/GetInt" type="blackboard_interfaces/GetIntBlackboard"/>
 
   <state id="idle">
     <ros_service_handle_request name="/IsPoiDone1Skill/tick" target="checkInt">

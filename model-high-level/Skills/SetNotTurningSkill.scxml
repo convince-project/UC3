@@ -17,7 +17,7 @@
   <ros_service_server service_name="/SetNotTurningSkill/tick"  type="bt_interfaces_dummy/TickAction"/>
   <ros_service_server service_name="/SetNotTurningSkill/halt"  type="bt_interfaces_dummy/HaltAction"/>
 
-  <ros_service_client service_name="/BlackboardComponent/SetString" type="blackboard_interfaces_dummy/SetString"/>
+  <ros_service_client service_name="/BlackboardComponent/SetString" type="blackboard_interfaces/SetString"/>
 
   <state id="idle">
     <ros_service_handle_request name="/SetNotTurningSkill/tick" target="setString">

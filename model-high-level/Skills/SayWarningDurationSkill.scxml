@@ -22,11 +22,11 @@
   <ros_service_server service_name="/SayWarningDurationSkill/halt" type="bt_interfaces_dummy/HaltAction"/>
 
   <!-- Clients -->
-  <ros_service_client service_name="/BlackboardComponent/GetInt" type="blackboard_interfaces_dummy/GetIntBlackboard"/>
-  <ros_service_client service_name="/SchedulerComponent/SetCommand" type="scheduler_interfaces_dummy/SetCommand"/>
-  <ros_service_client service_name="/SchedulerComponent/GetCurrentAction" type="scheduler_interfaces_dummy/GetCurrentAction"/>
-  <ros_service_client service_name="/TextToSpeechComponent/Speak" type="text_to_speech_interfaces_dummy/Speak"/>
-  <ros_service_client service_name="/TextToSpeechComponent/IsSpeaking" type="text_to_speech_interfaces_dummy/IsSpeaking"/>
+  <ros_service_client service_name="/BlackboardComponent/GetInt" type="blackboard_interfaces/GetIntBlackboard"/>
+  <ros_service_client service_name="/SchedulerComponent/SetCommand" type="scheduler_interfaces/SetCommand"/>
+  <ros_service_client service_name="/SchedulerComponent/GetCurrentAction" type="scheduler_interfaces/GetCurrentAction"/>
+  <ros_service_client service_name="/TextToSpeechComponent/Speak" type="text_to_speech_interfaces/Speak"/>
+  <ros_service_client service_name="/TextToSpeechComponent/IsSpeaking" type="text_to_speech_interfaces/IsSpeaking"/>
 
   <state id="idle">
     <onentry/>

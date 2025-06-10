@@ -18,8 +18,8 @@
   <ros_service_server service_name="/SetTurnedSkill/tick"  type="bt_interfaces_dummy/TickAction"/>
   <ros_service_server service_name="/SetTurnedSkill/halt"  type="bt_interfaces_dummy/HaltAction"/>
 
-  <ros_service_client service_name="/BlackboardComponent/SetString" type="blackboard_interfaces_dummy/SetString"/>
-  <ros_service_client service_name="/TurnBackManagerComponent/IncreaseTurnBacksCounter" type="turn_back_manager_interfaces_dummy/IncreaseTurnBacksCounter"/>
+  <ros_service_client service_name="/BlackboardComponent/SetString" type="blackboard_interfaces/SetString"/>
+  <ros_service_client service_name="/TurnBackManagerComponent/IncreaseTurnBacksCounter" type="turn_back_manager_interfaces/IncreaseTurnBacksCounter"/>
 
   <state id="idle">
     <ros_service_handle_request name="/SetTurnedSkill/tick" target="setString">

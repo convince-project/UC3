@@ -14,7 +14,7 @@
   <ros_service_server service_name="/UpdatePoiSkill/tick"  type="bt_interfaces_dummy/TickAction"/>
   <ros_service_server service_name="/UpdatePoiSkill/halt"  type="bt_interfaces_dummy/HaltAction"/>
 
-  <ros_service_client service_name="/SchedulerComponent/UpdatePoi" type="scheduler_interfaces_dummy/UpdatePoi"/>
+  <ros_service_client service_name="/SchedulerComponent/UpdatePoi" type="scheduler_interfaces/UpdatePoi"/>
 
   <state id="idle">
     <ros_service_handle_request name="/UpdatePoiSkill/tick" target="callUpdate">

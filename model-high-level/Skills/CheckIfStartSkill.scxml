@@ -16,7 +16,7 @@
   <ros_service_server service_name="/CheckIfStartSkill/tick" type="bt_interfaces_dummy/TickCondition"/>
 
   <!-- Client for SchedulerComponent.GetCurrentPoi -->
-  <ros_service_client service_name="/SchedulerComponent/GetCurrentPoi" type="scheduler_interfaces_dummy/GetCurrentPoi"/>
+  <ros_service_client service_name="/SchedulerComponent/GetCurrentPoi" type="scheduler_interfaces/GetCurrentPoi"/>
 
   <state id="idle">
     <ros_service_handle_request name="/CheckIfStartSkill/tick" target="getPoi">

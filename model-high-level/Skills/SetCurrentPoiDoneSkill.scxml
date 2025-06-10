@@ -16,9 +16,9 @@
     <!-- SetCurrentPoiDoneSkill is a server for halt from the ROS2Action plugin-->
     <ros_service_server service_name="/SetCurrentPoiDoneSkill/halt" type="bt_interfaces_dummy/HaltAction"/>
     <!-- SetCurrentPoiDoneSkill is a client for GetCurrentPoi from the SchedulerComponent -->
-    <ros_service_client service_name="/SchedulerComponent/GetCurrentPoi" type ="scheduler_interfaces_dummy/GetCurrentPoi"/>
+    <ros_service_client service_name="/SchedulerComponent/GetCurrentPoi" type ="scheduler_interfaces/GetCurrentPoi"/>
     <!-- SetCurrentPoiDoneSkill is a client for SetInt from the BlackboardComponent -->
-    <ros_service_client service_name="/BlackboardComponent/SetInt" type ="blackboard_interfaces_dummy/SetIntBlackboard"/>
+    <ros_service_client service_name="/BlackboardComponent/SetInt" type ="blackboard_interfaces/SetIntBlackboard"/>
 
     <state id="idle">
         <ros_service_handle_request name="/SetCurrentPoiDoneSkill/tick" target="getCurrentPoi">

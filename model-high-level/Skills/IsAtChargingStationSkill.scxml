@@ -20,8 +20,8 @@
   <ros_service_server service_name="/IsAtChargingStationSkill/tick" type="bt_interfaces_dummy/TickCondition"/>
 
   <!-- Clients for navigation -->
-  <ros_service_client service_name="/NavigationComponent/GetNavigationStatus" type="navigation_interfaces_dummy/GetNavigationStatus"/>
-  <ros_service_client service_name="/NavigationComponent/CheckNearToPoi" type="navigation_interfaces_dummy/CheckNearToPoi"/>
+  <ros_service_client service_name="/NavigationComponent/GetNavigationStatus" type="navigation_interfaces/GetNavigationStatus"/>
+  <ros_service_client service_name="/NavigationComponent/CheckNearToPoi" type="navigation_interfaces/CheckNearToPoi"/>
 
   <state id="idle">
     <ros_service_handle_request name="/IsAtChargingStationSkill/tick" target="getStatus">

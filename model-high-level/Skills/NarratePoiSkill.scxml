@@ -21,9 +21,9 @@
   <ros_service_server service_name="/NarratePoiSkill/halt" type="bt_interfaces_dummy/HaltAction"/>
 
   <!-- Clients for NarrateComponent -->
-  <ros_service_client service_name="/NarrateComponent/Narrate" type="narrate_interfaces_dummy/Narrate"/>
-  <ros_service_client service_name="/NarrateComponent/Stop" type="narrate_interfaces_dummy/Stop"/>
-  <ros_service_client service_name="/NarrateComponent/IsDone" type="narrate_interfaces_dummy/IsDone"/>
+  <ros_service_client service_name="/NarrateComponent/Narrate" type="narrate_interfaces/Narrate"/>
+  <ros_service_client service_name="/NarrateComponent/Stop" type="narrate_interfaces/Stop"/>
+  <ros_service_client service_name="/NarrateComponent/IsDone" type="narrate_interfaces/IsDone"/>
 
   <state id="idle">
     <ros_service_handle_request name="/NarratePoiSkill/tick" target="start">

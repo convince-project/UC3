@@ -18,7 +18,7 @@
   <ros_service_server service_name="/ResetCountersSkill/halt" type="bt_interfaces_dummy/HaltAction"/>
 
   <!-- Client for TurnBackManagerComponent.ResetCounters -->
-  <ros_service_client service_name="/TurnBackManagerComponent/ResetCounters" type="turnbackmanager_interfaces_dummy/ResetCounters"/>
+  <ros_service_client service_name="/TurnBackManagerComponent/ResetCounters" type="turnbackmanager_interfaces/ResetCounters"/>
 
   <state id="idle">
     <ros_service_handle_request name="/ResetCountersSkill/tick" target="resetCounters">

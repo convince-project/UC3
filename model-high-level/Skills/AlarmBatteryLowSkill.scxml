@@ -13,7 +13,7 @@
     <!-- AlarmSkill is a client for StartAlarm from the NotifyUserComponent -->
     <ros_service_client service_name="/NotifyUserComponent/StartAlarm" type ="notify_user_interfaces/StartAlarm"/>
     <!-- AlarmSkill is a client for StopAlarm from the NotifyUserComponent -->
-    <ros_service_client service_name="/NotifyUserComponent/StopAlarm" type ="notify_user_interfaces_dummy/StopAlarm"/>
+    <ros_service_client service_name="/NotifyUserComponent/StopAlarm" type ="notify_user_interfaces/StopAlarm"/>
 
     <datamodel>
         <data id="SKILL_SUCCESS" type="int8" expr="0" />
