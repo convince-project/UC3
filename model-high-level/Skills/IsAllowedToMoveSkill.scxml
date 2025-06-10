@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml
+  xmlns="http://www.w3.org/2005/07/scxml"
+  version="1.0"
+  name="IsAllowedToMoveSkill"
+  datamodel="ecmascript"
+  initial="idle">
+
+  <datamodel>
+    <data id="m_is_allowed_to_move" type="boolean" expr="false"/>
+    <data id="SKILL_SUCCESS"        type="int8"   expr="0"/>
+    <data id="SKILL_FAILURE"        type="int8"   expr="1"/>
+  </datamodel>
+
+  <!-- Condition skill: tick server only -->
+  <ros_service_server service_name="/IsAllowedToMoveSkill/tick" type="bt_interfaces_dummy/TickCondition"/>
+
+  <!-- Client for AllowedToMoveComponent.IsAllowedToMove -->
+  <ros_service_client service_name="/AllowedToMoveComponent/IsAllowedToMove" type="allowed_to_move_interfaces/IsAllowedToMove"/>
+
+  <state id="idle">
+    <ros_service_handle_request name="/IsAllowedToMoveSkill/tick" target="query">
+      <ros_service_send_request name="/AllowedToMoveComponent/IsAllowedToMove"/>
+    </ros_service_handle_request>
+  </state>
+
+  <state id="query">
+    <ros_service_handle_response name="/AllowedToMoveComponent/IsAllowedToMove" target="decide">
+      <assign location="m_is_allowed_to_move" expr="_res.is_allowed_to_move"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="decide">
+    <onentry>
+      <if cond="m_is_allowed_to_move">
+        <ros_service_send_response name="/IsAllowedToMoveSkill/tick">
+          <field name="status" expr="SKILL_SUCCESS"/>
+          <field name="is_ok" expr="true"/>
+        </ros_service_send_response>
+      <else/>
+        <ros_service_send_response name="/IsAllowedToMoveSkill/tick">
+          <field name="status" expr="SKILL_FAILURE"/>
+          <field name="is_ok" expr="true"/>
+        </ros_service_send_response>
+      </if>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+</scxml>

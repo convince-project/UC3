@@ -9,8 +9,8 @@
 
 #include <thread>
 #include <rclcpp/rclcpp.hpp>
-#include <bt_interfaces/msg/condition_response.hpp>
-#include <bt_interfaces/srv/tick_condition.hpp>
+#include <bt_interfaces_dummy/msg/condition_response.hpp>
+#include <bt_interfaces_dummy/srv/tick_condition.hpp>
 #include <mutex>
 
 #include <yarp/os/Network.h>
@@ -27,8 +27,8 @@ public:
     DummyCondition(std::string name, std::string default_status);
     ~DummyCondition();
 
-    void tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::TickCondition::Request> request,
-               std::shared_ptr<bt_interfaces::srv::TickCondition::Response> response);
+    void tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Request> request,
+               std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Response> response);
     bool read(yarp::os::ConnectionReader& connection) override;
 
 private:
@@ -36,6 +36,6 @@ private:
     std::string      m_name;
     std::mutex       m_mutex;
     yarp::os::Port   m_changeStatusPort;
-    rclcpp::Service<bt_interfaces::srv::TickCondition>::SharedPtr m_tickService;
+    rclcpp::Service<bt_interfaces_dummy::srv::TickCondition>::SharedPtr m_tickService;
 
 };

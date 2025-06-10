@@ -1,82 +1,66 @@
-<scxml 
-  initial="idle" 
-  version="1.0" 
-  name="IsAtChargingStationSkillCondition"
-  datamodel="ecmascript"
-  xmlns="http://www.w3.org/2005/07/scxml">
-
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="IsAtChargingStationSkillCondition" datamodel="ecmascript" initial="idle">
     <datamodel>
-        <data id="m_is_near"/>
-        <data id="m_status"/>
-        <data id="m_result"/>
-        <data id="NAVIGATION_STATUS_MOVING" expr="2"/>
-        <data id="chargingStation" expr='"charging_station"'/>
-        <data id="distance" expr='0.5'/>
+        <data id="NAV_STATUS_MOVING" expr="2"/>
+        <data id="charging_station" expr="&apos;charging_station&apos;"/>
+        <data id="distance" expr="0.5"/>
+        <data id="m_status" expr="0"/>
+        <data id="m_is_near" expr="false"/>
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <data id="SKILL_FAILURE" expr="1"/>
     </datamodel>
-
+    <!-- Condition skill: tick server only -->
+    <!-- Clients for navigation -->
     <state id="idle">
-        <transition event="CMD_TICK" target="getStatus"/>
-    </state>
-
-    <state id="getStatus">
-        <onentry>
+        <transition target="getStatus" event="CMD_TICK">
             <send event="NavigationComponent.GetNavigationStatus.Call"/>
-        </onentry>
-        <transition event="NavigationComponent.GetNavigationStatus.Return" target="getNavigationStatusResult"> 
-            <assign expr="_event.data.status" location="m_status"/>
-            <assign expr="_event.data.result" location="m_result"/>
         </transition>
     </state>
-
-    <state id="getNavigationStatusResult">
-        <transition cond="m_result == 'SUCCESS'" target="checkStatus" />
-        <transition cond="m_result == 'FAILURE'" target="sendFailure" />
-    </state>
-    
-    <state id="checkStatus">
-        <transition cond="m_status != NAVIGATION_STATUS_MOVING" target="getPosition" /> 
-		<transition target="sendFailure" /> 
-    </state> 
-
-    <state id="getPosition">
-        <onentry>
-            <send event="NavigationComponent.CheckNearToPoi.Call">
-                <param name="poi_name" expr="chargingStation"/>  <!--ChargingStation-->
-                <param name="distance" expr="distance"/>
-            </send>
-        </onentry>
-        <transition event="NavigationComponent.CheckNearToPoi.Return" target="getPositionResult" > 
-            <assign expr="_event.data.is_near" location="m_is_near"/>
-            <assign expr="_event.data.result" location="m_result"/>
+    <state id="getStatus">
+        <transition target="decideStatus" event="NavigationComponent.GetNavigationStatus.Return">
+            <assign location="m_status" expr="_event.data.status"/>
         </transition>
     </state>
-
-    <state id="getPositionResult">
-        <transition cond="m_result == 'SUCCESS'" target="checkPosition" />
-        <transition cond="m_result == 'FAILURE'" target="sendFailure" />
-    </state>
-
-    <state id="checkPosition">
-        <transition cond="m_is_near" target="sendSuccess" />
-        <transition target="sendFailure" /> 
-    </state> 
-
-    <state id="sendFailure">
+    <state id="decideStatus">
         <onentry>
-          <send event="TICK_RESPONSE">
-            <param name="result" expr='"FAILURE"'/>
-          </send>
+            <if cond="_res.result!=&apos;SKILL_SUCCESS&apos;">
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_FAILURE"/>
+                    <param name="is_ok" expr="true"/>
+                </send>
+                <elseif cond="m_status == NAV_STATUS_MOVING"/>
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_FAILURE"/>
+                    <param name="is_ok" expr="true"/>
+                </send>
+                <else/>
+                <send event="NavigationComponent.CheckNearToPoi.Call">
+                    <param name="poi_name" expr="charging_station"/>
+                    <param name="distance" expr="distance"/>
+                </send>
+            </if>
         </onentry>
-        <transition target="idle" />
+        <transition target="checkProximity"/>
     </state>
-
-    <state id="sendSuccess">
+    <state id="checkProximity">
+        <transition target="finalize" event="NavigationComponent.CheckNearToPoi.Return">
+            <assign location="m_is_near" expr="_event.data.is_near"/>
+        </transition>
+    </state>
+    <state id="finalize">
         <onentry>
-          <send event="TICK_RESPONSE">
-            <param name="result" expr='"SUCCESS"'/>
-          </send>
+            <if cond="m_is_near">
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_SUCCESS"/>
+                    <param name="is_ok" expr="true"/>
+                </send>
+                <else/>
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_FAILURE"/>
+                    <param name="is_ok" expr="true"/>
+                </send>
+            </if>
         </onentry>
-        <transition target="idle" />
+        <transition target="idle"/>
     </state>
-
 </scxml>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml
+  xmlns="http://www.w3.org/2005/07/scxml"
+  version="1.0"
+  name="IsMuseumClosingSkill"
+  datamodel="ecmascript"
+  initial="idle">
+
+
+  <datamodel>
+    <data id="m_is_closing"  type="boolean" expr="false"/>
+    <data id="SKILL_SUCCESS" type="int8"   expr="0"/>
+    <data id="SKILL_FAILURE" type="int8"   expr="1"/>
+  </datamodel>
+
+  <!-- Condition skill: tick server only -->
+  <ros_service_server service_name="/IsMuseumClosingSkill/tick" type="bt_interfaces_dummy/TickCondition"/>
+
+  <!-- Client for TimeComponent.IsMuseumClosing -->
+  <ros_service_client service_name="/TimeComponent/IsMuseumClosing" type="time_interfaces/IsMuseumClosing"/>
+
+  <state id="idle">
+    <ros_service_handle_request name="/IsMuseumClosingSkill/tick" target="queryClosing">
+      <ros_service_send_request name="/TimeComponent/IsMuseumClosing"/>
+    </ros_service_handle_request>
+  </state>
+
+  <state id="queryClosing">
+    <ros_service_handle_response name="/TimeComponent/IsMuseumClosing" target="decide">
+      <assign location="m_is_closing" expr="_res.is_closing"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="decide">
+    <onentry>
+      <if cond="m_is_closing">
+        <ros_service_send_response name="/IsMuseumClosingSkill/tick">
+          <field name="status" expr="SKILL_SUCCESS"/>
+          <field name="is_ok" expr="true"/>
+        </ros_service_send_response>
+      <else/>
+        <ros_service_send_response name="/IsMuseumClosingSkill/tick">
+          <field name="status" expr="SKILL_FAILURE"/>
+          <field name="is_ok" expr="true"/>
+        </ros_service_send_response>
+      </if>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+</scxml>

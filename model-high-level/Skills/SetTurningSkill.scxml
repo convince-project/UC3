@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml
+  xmlns="http://www.w3.org/2005/07/scxml"
+  version="1.0"
+  name="SetTurningSkill"
+  datamodel="ecmascript"
+  initial="idle">
+
+  <datamodel>
+    <data id="FIELD_NAME" expr="'turnBackState'"/>
+    <data id="VALUE_STR"  expr="'turning'"/>
+    <data id="result"     expr="''"/>
+    <data id="SKILL_SUCCESS" type="int8" expr="0"/>
+    <data id="SKILL_FAILURE" type="int8" expr="1"/>
+    <data id="SKILL_RUNNING" type="int8" expr="2"/>
+  </datamodel>
+
+  <ros_service_server service_name="/SetTurningSkill/tick"  type="bt_interfaces_dummy/TickAction"/>
+  <ros_service_server service_name="/SetTurningSkill/halt"  type="bt_interfaces_dummy/HaltAction"/>
+
+  <ros_service_client service_name="/BlackboardComponent/SetString" type="blackboard_interfaces/SetString"/>
+
+  <state id="idle">
+    <ros_service_handle_request name="/SetTurningSkill/tick" target="setString">
+      <ros_service_send_request name="/BlackboardComponent/SetString">
+        <field name="field_name" expr="FIELD_NAME"/>
+        <field name="value"      expr="VALUE_STR"/>
+      </ros_service_send_request>
+    </ros_service_handle_request>
+    <ros_service_handle_request name="/SetTurningSkill/halt" target="halted"/>
+  </state>
+
+  <state id="setString">
+    <ros_service_handle_response name="/BlackboardComponent/SetString" target="reply">
+      <assign location="result" expr="_res.result"/>
+    </ros_service_handle_response>
+    <ros_service_handle_request name="/SetTurningSkill/halt" target="halted"/>
+  </state>
+
+  <state id="reply">
+    <onentry>
+      <if cond="result=='SKILL_SUCCESS'">
+        <ros_service_send_response name="/SetTurningSkill/tick">
+          <field name="status" expr="SKILL_SUCCESS"/>
+        </ros_service_send_response>
+      <else/>
+        <ros_service_send_response name="/SetTurningSkill/tick">
+          <field name="status" expr="SKILL_FAILURE"/>
+        </ros_service_send_response>
+      </if>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="halted">
+    <onentry>
+      <assign location="result" expr="''"/>
+      <ros_service_send_response name="/SetTurningSkill/halt"/>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+</scxml>

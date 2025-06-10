@@ -1,172 +1,154 @@
-<scxml 
-  initial="idle" 
-  version="1.0" 
-  name="SayDurationExceededSkillAction"
-  datamodel="ecmascript"
-  xmlns="http://www.w3.org/2005/07/scxml">
-
-  <datamodel>
-    <data id="m_param"/>
-    <data id="m_command" expr="'sayDurationExceeded'"/>
-    <data id="m_is_speaking"/>
-    <data id="m_result"/>
-    <data id="m_value"/>
-    <data id="m_name" expr='"SaidExceededFlag"'/>
-  </datamodel>
-
-  <state id="idle">
-      <transition event="CMD_TICK" target="getStatus" />
-      <transition event="CMD_HALT" target="sendHalted" /> 
-  </state>
-
-  <state id="getStatus">
-    <onentry>
-        <send event="BlackboardComponent.GetInt.Call">
-            <param name="field_name" expr="m_name"/>
-        </send>
-    </onentry>
-    <transition event="BlackboardComponent.GetInt.Return" target="getStatusResult"> 
-        <assign expr="_event.data.value" location="m_value"/>
-        <assign expr="_event.data.result" location="m_result"/>
-    </transition>
-</state>
-
-<state id="getStatusResult">
-    <transition cond="m_result == 'SUCCESS'" target="checkStatus" />
-    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
-</state>
-
-<state id="checkStatus">
-    <transition cond="m_value" target="sendSuccess" /> 
-    <transition target="setCommand" /> 
-</state> 
-
-  <state id="setCommand">
-    <onentry>
-        <send event="SchedulerComponent.SetCommand.Call">
-          <param name="command" expr="m_command"/>
-        </send>
-    </onentry>
-    <transition event="SchedulerComponent.SetCommand.Return" target="setCommandResult">
-      <assign expr="_event.data.result" location="m_result"/>
-  </transition>
-</state>
-
-<state id="setCommandResult">
-  <transition cond="m_result == 'SUCCESS'" target="getText" />
-  <transition cond="m_result == 'FAILURE'" target="sendFailure" />
-</state>
-
-<state id="getText">
-  <onentry>
-      <send event="SchedulerComponent.GetCurrentAction.Call">
-      </send>
-  </onentry>
-  <transition event="SchedulerComponent.GetCurrentAction.Return" target="getTextResult">
-    <assign expr="_event.data.result" location="m_result"/>
-    <assign expr="_event.data.param" location="m_param"/>
-</transition>
-</state>
-
-<state id="getTextResult">
-  <transition cond="m_result == 'SUCCESS'" target="talk" />
-  <transition cond="m_result == 'FAILURE'" target="sendFailure" />
-</state>
-
-  <state id="talk">
-      <onentry>
-        <log expr="m_param"/>
-          <send event="TextToSpeechComponent.Speak.Call">
-            <param name="text" expr="m_param"/>
-          </send>
-      </onentry>
-      <transition event="TextToSpeechComponent.Speak.Return" target="talkResult">
-        <assign expr="_event.data.result" location="m_result"/>
-    </transition>
-  </state>
-
-  <state id="talkResult">
-    <transition cond="m_result == 'SUCCESS'" target="sendRunning" />
-    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
-  </state>
-
-  <state id="talking">
-    <transition event="CMD_TICK" target="isSpeaking" />
-    <transition event="CMD_HALT" target="sendHalted" /> 
-  </state>
-
-  <state id="isSpeaking">
-    <onentry>
-        <send event="TextToSpeechComponent.IsSpeaking.Call">
-        </send>
-    </onentry>
-    <transition event="TextToSpeechComponent.IsSpeaking.Return" target="isSpeakingResult">
-        <assign expr="_event.data.result" location="m_result"/>
-        <assign expr="_event.data.is_speaking" location="m_is_speaking"/>
-  </transition>
-  </state>
-
-  <state id="isSpeakingResult">
-    <transition cond="m_result == 'SUCCESS'" target="checkIfSpeaking" />
-    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
-  </state>
-
-  <state id="checkIfSpeaking"> 
-    <transition cond="m_is_speaking" target="sendRunning" />
-    <transition target="setStatus"/>
-  </state>
-
-  <state id="setStatus">
-    <onentry>
-        <send event="BlackboardComponent.SetInt.Call">
-            <param name="field_name" expr="m_name"/>
-            <param name="value" expr="1"/>
-        </send>
-    </onentry>
-    <transition event="BlackboardComponent.SetInt.Return" target="setStatusResult"> 
-        <assign expr="_event.data.result" location="m_result"/>
-    </transition>
-</state>
-
-<state id="setStatusResult">
-    <transition cond="m_result == 'SUCCESS'" target="sendSuccess" />
-    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
-</state>
-
-  <state id="sendFailure">
-    <onentry>
-      <send event="TICK_RESPONSE">
-        <param name="result" expr='"FAILURE"'/>
-      </send>
-    </onentry>
-    <transition target="idle" />
-</state>
-
-<state id="sendSuccess">
-    <onentry>
-      <send event="TICK_RESPONSE">
-        <param name="result" expr='"SUCCESS"'/>
-      </send>
-    </onentry>
-    <transition target="idle" />
-</state>
-
-<state id="sendRunning">
-  <onentry>
-    <send event="TICK_RESPONSE">
-      <param name="result" expr='"RUNNING"'/>
-    </send>
-  </onentry>
-  <transition target="talking" />
-</state>
-
-  <state id="sendHalted">
-      <onentry>
-          <send event="HALT_RESPONSE">
-          </send>
-      </onentry>
-      <transition target="idle" />
-  </state>
-
-
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="SayDurationExceededSkillAction" datamodel="ecmascript" initial="idle">
+    <datamodel>
+        <data id="m_name" expr="&apos;SaidExceededFlag&apos;"/>
+        <data id="m_value" expr="0"/>
+        <data id="m_command" expr="&apos;sayDurationExceeded&apos;"/>
+        <data id="m_param" expr="&apos;&apos;"/>
+        <data id="m_is_speaking" expr="false"/>
+        <data id="m_result" expr="&apos;&apos;"/>
+        <data id="SUCCESS_RESULT" expr="&apos;SUCCESS&apos;"/>
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <data id="SKILL_FAILURE" expr="1"/>
+        <data id="SKILL_RUNNING" expr="2"/>
+    </datamodel>
+    <!-- Action skill: tick + halt servers -->
+    <!-- Clients -->
+    <state id="idle">
+        <transition target="queryFlag" event="CMD_TICK">
+            <send event="BlackboardComponent.GetInt.Call">
+                <param name="field_name" expr="m_name"/>
+            </send>
+        </transition>
+        <transition target="halted" event="CMD_HALT"/>
+    </state>
+    <state id="queryFlag">
+        <transition target="evaluateQuery" event="BlackboardComponent.GetInt.Return">
+            <assign location="m_value" expr="_event.data.value"/>
+            <assign location="m_result" expr="_event.data.result"/>
+        </transition>
+    </state>
+    <state id="evaluateQuery">
+        <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+        <transition target="checkFlag"/>
+    </state>
+    <state id="checkFlag">
+        <transition cond="m_value != 0" target="success"/>
+        <transition target="setCmd"/>
+    </state>
+    <state id="setCmd">
+        <onentry>
+            <send event="SchedulerComponent.SetCommand.Call">
+                <param name="command" expr="m_command"/>
+            </send>
+        </onentry>
+        <transition target="evaluateSetCmd" event="SchedulerComponent.SetCommand.Return">
+            <assign location="m_result" expr="_event.data.result"/>
+        </transition>
+    </state>
+    <state id="evaluateSetCmd">
+        <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+        <transition target="getText"/>
+    </state>
+    <state id="getText">
+        <onentry>
+            <send event="SchedulerComponent.GetCurrentAction.Call"/>
+        </onentry>
+        <transition target="evaluateGetText" event="SchedulerComponent.GetCurrentAction.Return">
+            <assign location="m_param" expr="_event.data.param"/>
+            <assign location="m_result" expr="_event.data.result"/>
+        </transition>
+    </state>
+    <state id="evaluateGetText">
+        <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+        <transition target="startSpeak"/>
+    </state>
+    <state id="startSpeak">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_RUNNING"/>
+                <param name="is_ok" expr="true"/>
+            </send>
+            <send event="TextToSpeechComponent.Speak.Call">
+                <param name="text" expr="m_param"/>
+            </send>
+        </onentry>
+        <transition target="evaluateSpeak" event="TextToSpeechComponent.Speak.Return">
+            <assign location="m_result" expr="_event.data.result"/>
+        </transition>
+    </state>
+    <state id="evaluateSpeak">
+        <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+        <transition target="waitSpeak"/>
+    </state>
+    <state id="waitSpeak">
+        <transition target="checkSpeak" event="CMD_TICK">
+            <send event="TextToSpeechComponent.IsSpeaking.Call"/>
+        </transition>
+        <transition target="halted" event="CMD_HALT"/>
+    </state>
+    <state id="checkSpeak">
+        <transition target="evaluateCheck" event="TextToSpeechComponent.IsSpeaking.Return">
+            <assign location="m_is_speaking" expr="_event.data.is_speaking"/>
+            <assign location="m_result" expr="_event.data.result"/>
+        </transition>
+    </state>
+    <state id="evaluateCheck">
+        <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+        <transition target="decideCheck"/>
+    </state>
+    <state id="decideCheck">
+        <transition cond="m_is_speaking" target="running"/>
+        <transition target="setFlag"/>
+    </state>
+    <state id="running">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_RUNNING"/>
+                <param name="is_ok" expr="true"/>
+            </send>
+        </onentry>
+        <transition target="waitSpeak"/>
+    </state>
+    <state id="setFlag">
+        <onentry>
+            <send event="BlackboardComponent.SetInt.Call">
+                <param name="field_name" expr="m_name"/>
+                <param name="value" expr="1"/>
+            </send>
+        </onentry>
+        <transition target="evaluateSetFlag" event="BlackboardComponent.SetInt.Return">
+            <assign location="m_result" expr="_event.data.result"/>
+        </transition>
+    </state>
+    <state id="evaluateSetFlag">
+        <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+        <transition target="success"/>
+    </state>
+    <state id="success">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_SUCCESS"/>
+                <param name="is_ok" expr="true"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="failure">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_FAILURE"/>
+                <param name="is_ok" expr="true"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="halted">
+        <onentry>
+            <send event="HALT_RESPONSE">
+                <param name="is_ok" expr="true"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
 </scxml>

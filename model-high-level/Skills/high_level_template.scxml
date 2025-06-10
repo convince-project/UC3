@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml
+  xmlns="http://www.w3.org/2005/07/scxml"
+  initial="idle"
+  version="1.0"
+  name="{{SkillName}}"
+  datamodel="ecmascript">
+
+  <!-- DATAMODEL -->
+  <datamodel>
+    <data id="{{var}}" type="{{type}}" expr="{{initial_value}}"/>
+    <data id="SKILL_SUCCESS" type="int8" expr="0"/>
+    <data id="SKILL_FAILURE" type="int8" expr="1"/>
+  </datamodel>
+
+  <!-- ROS2 service server / topic subscriber -->
+  <ros_service_server
+    service_name="/{{SkillName}}/tick"
+    type="bt_interfaces_dummy/TickCondition"/>
+  <ros_topic_subscriber
+    topic="{{topic}}"
+    type="{{msg_type}}"/>
+
+  <!-- stato idle: raccoglie messaggi e salva in {{var}} -->
+  <state id="idle">
+    <ros_service_handle_request
+      name="/{{SkillName}}/tick"
+      target="check"/>
+    <ros_topic_callback
+      name="{{topic}}"
+      target="idle">
+      <assign location="{{var}}" expr="{{msg_expr}}"/>
+    </ros_topic_callback>
+  </state>
+
+  <!-- stato check: onentry esegue il test e invia la risposta -->
+  <state id="check">
+    <onentry>
+      <if cond="{{var}} {{op}} {{threshold}}">
+        <ros_service_send_response name="/{{SkillName}}/tick">
+          <field name="status" expr="SKILL_SUCCESS"/>
+          <field name="is_ok" expr="true"/>
+        </ros_service_send_response>
+      <else/>
+        <ros_service_send_response name="/{{SkillName}}/tick">
+          <field name="status" expr="SKILL_FAILURE"/>
+          <field name="is_ok" expr="true"/>
+        </ros_service_send_response>
+      </if>
+    </onentry>
+    <ros_service_handle_request
+      name="/{{SkillName}}/tick"
+      target="check"/>
+    <transition target="idle"/>
+  </state>
+
+</scxml>
+
+
+<!-- Example about how to run model2code -->
+<!-- model2code   --input_filename /workspace/UC3/model-high-level/Skills/AlarmBatteryLowSkill.scxml   --model_filename /workspace/UC3/parser-and-code-generator/specifications/full-model.xml   --interface_filename /workspace/UC3/parser-and-code-generator/specifications/interfaces.xml   --template_path /workspace/UC3/template_skill   --output_path /workspace/UC3/temp-test/skills/alarm_battery_low_skill/generated   --verbose_mode -->
+
+model2code \
+  --input_filename /home/user1/UC3/model-high-level/Skills/AlarmBatteryLowSkill.scxml \
+  --model_filename /home/user1/UC3/parser-and-code-generator/specifications/full-model.xml \
+  --interface_filename /home/user1/UC3/parser-and-code-generator/specifications/interfaces.xml \
+  --template_path /home/user1/UC3/template_skill \
+  --output_path /home/user1/UC3/src/skills/alarm_battery_low_skill/ \
+  --verbose_mode
+

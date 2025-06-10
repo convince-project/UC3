@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml"
+       version="1.0"
+       name="CheckNetworkComponent"
+       initial="waiting"
+       datamodel="ecmascript">
+
+  <datamodel>
+    <data id="address"            type="string"  expr="'192.168.100.103'"/>
+    <data id="threshold_ms"       type="number"  expr="3000"/>
+    <data id="current_status"     type="boolean" expr="true"/>
+    <data id="previous_status"    type="boolean" expr="true"/>
+    <data id="changed"            type="boolean" expr="false"/>
+  </datamodel>
+
+  <!-- publish two Bool topics -->
+  <ros_topic_publisher topic="/CheckNetworkComponent/NetworkStatus" type="std_msgs/Bool"/>
+  <ros_topic_publisher topic="/CheckNetworkComponent/NetworkChanged" type="std_msgs/Bool"/>
+
+  <!-- fire at 1 Hz -->
+  <ros_time_rate name="status_timer" rate_hz="1.0"/>
+
+  <state id="waiting">
+    <transition event="status_timer.tick" target="evaluate"/>
+  </state>
+
+  <state id="evaluate">
+    <onentry>
+      <!-- call runtime ping helper -->
+      <assign location="current_status" expr="checkNetwork(address, threshold_ms)"/>
+      <!-- detect change -->
+      <if cond="current_status != previous_status">
+        <assign location="changed" expr="true"/>
+      <else/>
+        <assign location="changed" expr="false"/>
+      </if>
+      <!-- remember for next tick -->
+      <assign location="previous_status" expr="current_status"/>
+    </onentry>
+    <transition target="publish"/>
+  </state>
+
+  <state id="publish">
+    <onentry>
+      <ros_topic_publish name="/CheckNetworkComponent/NetworkChanged">
+        <field name="data" expr="changed"/>
+      </ros_topic_publish>
+      <ros_topic_publish name="/CheckNetworkComponent/NetworkStatus">
+        <field name="data" expr="current_status"/>
+      </ros_topic_publish>
+    </onentry>
+    <transition target="waiting"/>
+  </state>
+
+</scxml>

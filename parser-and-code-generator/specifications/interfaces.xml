@@ -2,6 +2,60 @@
 
     <types path="./types.xml" />
 
+    <interface id="battery_interfaces">
+        <function id="battery_low">
+            <protocol>
+                <ROS2data>
+                    <interface type="topic" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>std_msgs::msg::Int8</dataType>
+                <dataField>data</dataField>
+            </returnValue>
+        </function>
+        <function id="battery_level">
+            <protocol>
+                <ROS2data>
+                    <interface type="topic" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>sensor_msgs::msg::BatteryState</dataType>
+                <dataField>percentage</dataField>
+            </returnValue>
+        </function>
+        <function id="hardwareStatus">
+            <protocol>
+                <ROS2data>
+                    <interface type="topic" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>std_msgs::msg::Int8MultiArray</dataType>
+                <dataField>data</dataField>
+            </returnValue>
+        </function>
+    </interface>
+
+    <!-- ──────────────────────────────────────────────────────────────── -->
+    <interface id="hardware_monitor_interfaces">
+    <function id="HasFaults">
+        <protocol>
+        <ROS2data>
+            <interface type="sync-service"/>
+        </ROS2data>
+        </protocol>
+        <returnValue>
+        <dataType>bool</dataType>
+        <dataField>has_fault</dataField>
+        </returnValue>
+    </function>
+    </interface>
+    <!-- ──────────────────────────────────────────────────────────────── -->
+
+
+
     <interface id="robot_interfaces">
         <function id="readBatteryStatus">
             <protocol>
@@ -45,7 +99,7 @@
                     <interface type="async-service" />
                 </ROS2data>
             </protocol>
-        </function>     
+        </function>
         <function id="readLevel">
             <protocol>
                 <ROS2data>
@@ -70,23 +124,6 @@
         </function>
     </interface>
 
-    <interface id="alarm_interfaces">
-        <function id="StartAlarm">
-            <protocol>
-                <ROS2data>
-                    <interface type="sync-service" />
-                </ROS2data>
-            </protocol>
-        </function>
-        <function id="StopAlarm">
-            <protocol>
-                <ROS2data>
-                    <interface type="sync-service" />
-                </ROS2data>
-            </protocol>
-        </function>
-    </interface>
-
     <interface id="timer_check_for_people_interfaces">
         <function id="StartTimer">
             <protocol>
@@ -105,7 +142,7 @@
                 <dataType>bool</dataType>
                 <dataField>is_active</dataField>
             </returnValue>
-            
+
         </function>
     </interface>
     <interface id="notify_user_interfaces">
@@ -115,6 +152,32 @@
                     <interface type="sync-service" />
                 </ROS2data>
             </protocol>
+            <returnValue>
+                <dataType>bool</dataType>
+                <dataField>is_ok</dataField>
+            </returnValue>
+        </function>
+    <function id="StartAlarm">
+            <protocol>
+                <ROS2data>
+                    <interface type="sync-service" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>bool</dataType>
+                <dataField>is_ok</dataField>
+            </returnValue>
+        </function>
+        <function id="StopAlarm">
+            <protocol>
+                <ROS2data>
+                    <interface type="sync-service" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>bool</dataType>
+                <dataField>is_ok</dataField>
+            </returnValue>
         </function>
     </interface>
     <interface id="allowed_to_move_interfaces">
@@ -176,6 +239,13 @@
             </protocol>
             <returnValue>
             </returnValue>
+        </function>
+        <function id="GoToPoi">
+            <protocol>
+                <ROS2data>
+                    <interface type="action" />
+                </ROS2data>
+            </protocol>
         </function>
     </interface>
     <interface id="network_interfaces">
@@ -468,7 +538,7 @@
                 <ROS2data>
                     <interface type="async-service" />
                 </ROS2data>
-            </protocol> 
+            </protocol>
         </function>
         <function id="IsDancing">
             <protocol>
@@ -499,21 +569,25 @@
                 <ROS2data>
                     <interface type="async-service" />
                 </ROS2data>
-            </protocol> 
+            </protocol>
         </function>
         <function id="ResetCounters">
             <protocol>
                 <ROS2data>
                     <interface type="async-service" />
                 </ROS2data>
-            </protocol> 
+            </protocol>
         </function>
         <function id="IsAllowedToContinue">
             <protocol>
                 <ROS2data>
                     <interface type="async-service" />
                 </ROS2data>
-            </protocol> 
+            </protocol>
+            <returnValue>
+                <dataType>string</dataType>
+                <dataField>result</dataField>
+            </returnValue>
             <returnValue>
                 <dataType>bool</dataType>
                 <dataField>is_allowed</dataField>
@@ -524,7 +598,7 @@
                 <ROS2data>
                     <interface type="async-service" />
                 </ROS2data>
-            </protocol> 
+            </protocol>
             <returnValue>
                 <dataType>bool</dataType>
                 <dataField>is_allowed</dataField>
@@ -535,13 +609,33 @@
                 <ROS2data>
                     <interface type="async-service" />
                 </ROS2data>
-            </protocol> 
+            </protocol>
             <returnValue>
                 <dataType>int32</dataType>
                 <dataField>counter</dataField>
             </returnValue>
         </function>
-        
+
     </interface>
 
+    <interface id="people_detector_filter_interfaces">
+        <function id="FilterPeople">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+        </function>
+        <function id="is_followed">
+            <protocol>
+                <ROS2data>
+                    <interface type="async-service" />
+                </ROS2data>
+            </protocol>
+            <returnValue>
+                <dataType>bool</dataType>
+                <dataField>is_followed</dataField>
+            </returnValue>
+        </function>
+    </interface>
 </interfaces>

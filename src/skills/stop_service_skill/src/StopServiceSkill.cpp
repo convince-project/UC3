@@ -1,10 +1,3 @@
-/******************************************************************************
- *                                                                            *
- * Copyright (C) 2020 Fondazione Istituto Italiano di Tecnologia (IIT)        *
- * All Rights Reserved.                                                       *
- *                                                                            *
- ******************************************************************************/
-
 #include "StopServiceSkill.h"
 #include <future>
 #include <QTimer>
@@ -37,7 +30,6 @@ T convert(const std::string& str) {
         return str;
     }
     else {
-        // Handle unsupported types
         throw std::invalid_argument("Unsupported type conversion");
     }
 }
@@ -45,6 +37,7 @@ T convert(const std::string& str) {
 StopServiceSkill::StopServiceSkill(std::string name ) :
 		m_name(std::move(name))
 {
+    
 }
 
 void StopServiceSkill::spin(std::shared_ptr<rclcpp::Node> node)
@@ -64,73 +57,93 @@ bool StopServiceSkill::start(int argc, char*argv[])
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "StopServiceSkill::start");
 	std::cout << "StopServiceSkill::start";
 
-	m_tickService = m_node->create_service<bt_interfaces::srv::TickAction>(m_name + "Skill/tick",
+  
+	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
                                                                            	std::bind(&StopServiceSkill::tick,
                                                                            	this,
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
-
-	m_haltService = m_node->create_service<bt_interfaces::srv::HaltAction>(m_name + "Skill/halt",
+  
+	m_haltService = m_node->create_service<bt_interfaces_dummy::srv::HaltAction>(m_name + "Skill/halt",
                                                                             	std::bind(&StopServiceSkill::halt,
                                                                             	this,
                                                                             	std::placeholders::_1,
                                                                             	std::placeholders::_2));
+  
+  
+  
+  m_stateMachine.connectToEvent("ManagePeopleDetectorComponent.StopService.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
+      std::shared_ptr<rclcpp::Node> nodeStopService = rclcpp::Node::make_shared(m_name + "SkillNodeStopService");
+      std::shared_ptr<rclcpp::Client<manage_service_interfaces::srv::StopService>> clientStopService = nodeStopService->create_client<manage_service_interfaces::srv::StopService>("/ManagePeopleDetectorComponent/StopService");
+      auto request = std::make_shared<manage_service_interfaces::srv::StopService::Request>();
+      auto eventParams = event.data().toMap();
+      
+      bool wait_succeded{true};
+      int retries = 0;
+      while (!clientStopService->wait_for_service(std::chrono::seconds(1))) {
+          if (!rclcpp::ok()) {
+              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'StopService'. Exiting.");
+              wait_succeded = false;
+              break;
+          } 
+          retries++;
+          if(retries == SERVICE_TIMEOUT) {
+              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while waiting for the service 'StopService'.");
+              wait_succeded = false;
+              break;
+          }
+      }
+      if (wait_succeded) {                                                                   
+          auto result = clientStopService->async_send_request(request);
+          const std::chrono::seconds timeout_duration(SERVICE_TIMEOUT);
+          auto futureResult = rclcpp::spin_until_future_complete(nodeStopService, result, timeout_duration);
+          if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
+          {
+              auto response = result.get();
+              if( response->is_ok == true) {
+                  QVariantMap data;
+                  data.insert("is_ok", true);
+                  m_stateMachine.submitEvent("ManagePeopleDetectorComponent.StopService.Return", data);
+                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "ManagePeopleDetectorComponent.StopService.Return");
+                  return;
+              }
+          }
+          else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
+              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'StopService'.");
+          }
+      }
+      QVariantMap data;
+      data.insert("is_ok", false);
+      m_stateMachine.submitEvent("ManagePeopleDetectorComponent.StopService.Return", data);
+      RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "ManagePeopleDetectorComponent.StopService.Return");
+  });
+  
+  m_stateMachine.connectToEvent("TICK_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){
+    RCLCPP_INFO(m_node->get_logger(), "StopServiceSkill::tickReturn %s", event.data().toMap()["status"].toString().toStdString().c_str());
+    std::string result = event.data().toMap()["status"].toString().toStdString();
+    if (result == std::to_string(SKILL_SUCCESS) )
+    {
+      m_tickResult.store(Status::success);
+    }
+    else if (result == std::to_string(SKILL_RUNNING) )
+    {
+      m_tickResult.store(Status::running);
+    }
+    else if (result == std::to_string(SKILL_FAILURE) )
+    { 
+      m_tickResult.store(Status::failure);
+    }
+  });
+    
+  m_stateMachine.connectToEvent("HALT_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){
+    RCLCPP_INFO(m_node->get_logger(), "StopServiceSkill::haltresponse");
+    m_haltResult.store(true);
+  });
 
-    m_stateMachine.connectToEvent("ManagePeopleDetectorComponent.StopService.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
-        std::shared_ptr<rclcpp::Node> nodeStopService = rclcpp::Node::make_shared(m_name + "SkillNodeStopService");
-        std::shared_ptr<rclcpp::Client<manage_service_interfaces::srv::StopService>> clientStopService = nodeStopService->create_client<manage_service_interfaces::srv::StopService>("/ManagePeopleDetectorComponent/StopService");
-        auto request = std::make_shared<manage_service_interfaces::srv::StopService::Request>();
-        bool wait_succeded{true};
-        while (!clientStopService->wait_for_service(std::chrono::seconds(1))) {
-            if (!rclcpp::ok()) {
-                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'StopService'. Exiting.");
-                wait_succeded = false;
-                m_stateMachine.submitEvent("ManagePeopleDetectorComponent.StopService.Return");
-            } 
-        }
-        if (wait_succeded) {
-            // send the request                                                                    
-            auto result = clientStopService->async_send_request(request);
-            auto futureResult = rclcpp::spin_until_future_complete(nodeStopService, result);
-            auto response = result.get();
-            if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
-            {
-                if( response->is_ok ==true) {
-                    QVariantMap data;
-                    data.insert("result", "SUCCESS");
-                    m_stateMachine.submitEvent("ManagePeopleDetectorComponent.StopService.Return", data);
-                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "ManagePeopleDetectorComponent.StopService.Return");
-                } else {
-                    QVariantMap data;
-                    data.insert("result", "FAILURE");
-                    m_stateMachine.submitEvent("ManagePeopleDetectorComponent.StopService.Return", data);
-                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "ManagePeopleDetectorComponent.StopService.Return");
-                }
-            }
-        }
-    });
-
-	m_stateMachine.connectToEvent("TICK_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){
-		RCLCPP_INFO(m_node->get_logger(), "StopServiceSkill::tickReturn %s", event.data().toMap()["result"].toString().toStdString().c_str());
-		std::string result = event.data().toMap()["result"].toString().toStdString();
-		if (result == "SUCCESS" )
-		{
-			m_tickResult.store(Status::success);
-		}
-		else if (result == "RUNNING" )
-		{
-			m_tickResult.store(Status::running);
-		}
-		else if (result == "FAILURE" )
-		{ 
-			m_tickResult.store(Status::failure);
-		}
-	});
-
-	m_stateMachine.connectToEvent("HALT_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){
-		RCLCPP_INFO(m_node->get_logger(), "StopServiceSkill::haltresponse");
-		m_haltResult.store(true);
-	});
+  
+  
+  
+  
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
@@ -138,51 +151,54 @@ bool StopServiceSkill::start(int argc, char*argv[])
 	return true;
 }
 
-void StopServiceSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::TickAction::Request> request,
-                                std::shared_ptr<bt_interfaces::srv::TickAction::Response>      response)
+void StopServiceSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Request> request,
+                                std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Response>      response)
 {
-    std::lock_guard<std::mutex> lock(m_requestMutex);
-    RCLCPP_INFO(m_node->get_logger(), "StopServiceSkill::tick");
-    auto message = bt_interfaces::msg::ActionResponse();
-    m_tickResult.store(Status::undefined); //here we can put a struct
-    m_stateMachine.submitEvent("CMD_TICK");
-   
-    while(m_tickResult.load()== Status::undefined) 
-    {
-        std::this_thread::sleep_for (std::chrono::milliseconds(100));
-        // qInfo() <<  "active names" << m_stateMachine.activeStateNames();
-    }
-    switch(m_tickResult.load()) 
-    {
-        case Status::running:
-            response->status.status = message.SKILL_RUNNING;
-            break;
-        case Status::failure:
-            response->status.status = message.SKILL_FAILURE;
-            break;
-        case Status::success:
-            response->status.status = message.SKILL_SUCCESS;
-            break;            
-    }
-    RCLCPP_INFO(m_node->get_logger(), "StopServiceSkill::tickDone");
-   
-    response->is_ok = true;
+  std::lock_guard<std::mutex> lock(m_requestMutex);
+  RCLCPP_INFO(m_node->get_logger(), "StopServiceSkill::tick");
+  m_tickResult.store(Status::undefined);
+  m_stateMachine.submitEvent("CMD_TICK");
+  
+  while(m_tickResult.load()== Status::undefined) {
+      std::this_thread::sleep_for (std::chrono::milliseconds(100));
+  }
+  switch(m_tickResult.load()) 
+  {
+      case Status::running:
+          response->status = SKILL_RUNNING;
+          break;
+      case Status::failure:
+          response->status = SKILL_FAILURE;
+          break;
+      case Status::success:
+          response->status = SKILL_SUCCESS;
+          break;  
+      case Status::undefined:
+          response->status = SKILL_FAILURE;
+          break;          
+  }
+  RCLCPP_INFO(m_node->get_logger(), "StopServiceSkill::tickDone");
+  response->is_ok = true;
 }
 
-void StopServiceSkill::halt( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::HaltAction::Request> request,
-    [[maybe_unused]] std::shared_ptr<bt_interfaces::srv::HaltAction::Response> response)
+void StopServiceSkill::halt( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::HaltAction::Request> request,
+    [[maybe_unused]] std::shared_ptr<bt_interfaces_dummy::srv::HaltAction::Response> response)
 {
-    std::lock_guard<std::mutex> lock(m_requestMutex);
-    RCLCPP_INFO(m_node->get_logger(), "StopServiceSkill::halt");
-    m_haltResult.store(false); //here we can put a struct
-    m_stateMachine.submitEvent("CMD_HALT");
-   
-    while(!m_haltResult.load()) 
-    {
-        std::this_thread::sleep_for (std::chrono::milliseconds(100));
-        // qInfo() <<  "active names" << m_stateMachine.activeStateNames();
-    }
-    RCLCPP_INFO(m_node->get_logger(), "StopServiceSkill::haltDone");
-   
-    response->is_ok = true;
+  std::lock_guard<std::mutex> lock(m_requestMutex);
+  RCLCPP_INFO(m_node->get_logger(), "StopServiceSkill::halt");
+  m_haltResult.store(false);
+  m_stateMachine.submitEvent("CMD_HALT");
+  while(!m_haltResult.load()) {
+      std::this_thread::sleep_for (std::chrono::milliseconds(100));
+  }
+  RCLCPP_INFO(m_node->get_logger(), "StopServiceSkill::haltDone");
+  response->is_ok = true;
 }
+
+
+
+
+
+
+
+

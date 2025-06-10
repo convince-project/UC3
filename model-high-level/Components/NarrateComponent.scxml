@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml"
+       version="1.0"
+       initial="idle"
+       name="NarrateComponent"
+       datamodel="ecmascript">
+
+  <datamodel>
+    <!-- store the requested command text -->
+    <data id="temp_command"    type="string"  expr="''"/>
+    <!-- track whether the narration has completed -->
+    <data id="is_done"         type="boolean" expr="true"/>
+    <!-- track whether a stop was requested -->
+    <data id="stopped"         type="boolean" expr="false"/>
+  </datamodel>
+
+  <!-- ROS service servers -->
+  <ros_service_server service_name="/NarrateComponent/Narrate" type="narrate_interfaces/srv/Narrate"/>
+  <ros_service_server service_name="/NarrateComponent/IsDone" type="narrate_interfaces/srv/IsDone"/>
+  <ros_service_server service_name="/NarrateComponent/Stop" type="narrate_interfaces/srv/Stop"/>
+
+  <state id="idle">
+    <!-- handle a new narrate request -->
+    <ros_service_handle_request name="/NarrateComponent/Narrate" target="HandleNarrate">
+      <assign location="temp_command" expr="_req.command"/>
+    </ros_service_handle_request>
+
+    <!-- handle an is_done query -->
+    <ros_service_handle_request name="/NarrateComponent/IsDone" target="HandleIsDone"/>
+
+    <!-- handle a stop request -->
+    <ros_service_handle_request name="/NarrateComponent/Stop" target="HandleStop">
+      <assign location="stopped" expr="true"/>
+    </ros_service_handle_request>
+  </state>
+
+  <state id="HandleNarrate">
+    <onentry>
+      <!-- respond OK to the client -->
+      <ros_service_send_response name="/NarrateComponent/Narrate">
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
+      <!-- reset flags for a new narration cycle -->
+      <assign location="is_done" expr="false"/>
+      <assign location="stopped" expr="false"/>
+      <!-- here you could <send> an internal event to start the thread/task -->
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="HandleIsDone">
+    <onentry>
+      <!-- reply with the current completion flag -->
+      <ros_service_send_response name="/NarrateComponent/IsDone">
+        <field name="is_ok"   expr="true"/>
+        <field name="is_done" expr="is_done"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="HandleStop">
+    <onentry>
+      <!-- acknowledge the stop command -->
+      <ros_service_send_response name="/NarrateComponent/Stop">
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
+      <!-- set the stopped flag so the running task can observe it -->
+      <assign location="stopped" expr="true"/>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+</scxml>

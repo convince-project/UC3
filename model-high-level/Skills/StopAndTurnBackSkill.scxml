@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml"
+       version="1.0"
+       name="StopAndTurnBackSkill"
+       datamodel="ecmascript"
+       initial="idle">
+
+  <datamodel>
+    <data id="status"        expr="0"/>
+    <data id="result"        expr="''"/>
+    <data id="NAV_MOVING"    expr="2"/>
+    <data id="NAV_REACHED"   expr="4"/>
+    <data id="BB_FIELD"      expr="'isCheckingForPeople'"/>
+    <data id="SKILL_SUCCESS" expr="0"/>
+    <data id="SKILL_FAILURE" expr="1"/>
+    <data id="SKILL_RUNNING" expr="2"/>
+  </datamodel>
+
+  <!-- Corretti i nomi dei servizi -->
+  <ros_service_server service_name="/StopAndTurnBackSkill/tick"  type="bt_interfaces_dummy/TickAction"/>
+  <ros_service_server service_name="/StopAndTurnBackSkill/halt"  type="bt_interfaces_dummy/HaltAction"/>
+
+  <!-- Clients -->
+  <ros_service_client service_name="/NavigationComponent/TurnBack"          type="navigation_interfaces/TurnBack"/>
+  <ros_service_client service_name="/NavigationComponent/GetNavigationStatus" type="navigation_interfaces/GetNavigationStatus"/>
+  <ros_service_client service_name="/NavigationComponent/StopNavigation"    type="navigation_interfaces/StopNavigation"/>
+  <ros_service_client service_name="/BlackboardComponent/SetInt"            type="blackboard_interfaces/SetInt"/>
+
+  <state id="idle">
+    <ros_service_handle_request name="/StopAndTurnBackSkill/tick" target="callTurnBack">
+      <ros_service_send_request name="/NavigationComponent/TurnBack"/>
+    </ros_service_handle_request>
+    <ros_service_handle_request name="/StopAndTurnBackSkill/halt" target="callStopNav">
+      <ros_service_send_request name="/NavigationComponent/StopNavigation"/>
+    </ros_service_handle_request>
+  </state>
+
+  <state id="callTurnBack">
+    <ros_service_handle_response name="/NavigationComponent/TurnBack" target="afterTurnBack">
+      <assign location="result" expr="_res.result"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="afterTurnBack">
+    <transition cond="result == 'SKILL_SUCCESS'" target="getStatus"/>
+    <transition cond="result != 'SKILL_SUCCESS'" target="failReply"/>
+  </state>
+
+  <state id="getStatus">
+    <onentry>
+      <ros_service_send_request name="/NavigationComponent/GetNavigationStatus"/>
+    </onentry>
+    <ros_service_handle_response name="/NavigationComponent/GetNavigationStatus" target="evalStatus">
+      <assign location="status" expr="_res.status"/>
+    </ros_service_handle_response>
+    <ros_service_handle_request name="/StopAndTurnBackSkill/halt" target="callStopNav">
+      <ros_service_send_request name="/NavigationComponent/StopNavigation"/>
+    </ros_service_handle_request>
+  </state>
+
+  <state id="evalStatus">
+    <transition cond="status == NAV_MOVING" target="runningReply"/>
+    <transition cond="status == NAV_REACHED" target="setBBFlag"/>
+    <transition cond="status != NAV_MOVING && status != NAV_REACHED" target="failReply"/>
+  </state>
+
+  <state id="runningReply">
+    <onentry>
+      <ros_service_send_response name="/StopAndTurnBackSkill/tick">
+        <field name="status" expr="SKILL_RUNNING"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="setBBFlag">
+    <onentry>
+      <ros_service_send_request name="/BlackboardComponent/SetInt">
+        <field name="field_name" expr="BB_FIELD"/>
+        <field name="value"      expr="1"/>
+      </ros_service_send_request>
+    </onentry>
+    <ros_service_handle_response name="/BlackboardComponent/SetInt" target="done">
+      <assign location="result" expr="_res.result"/>
+    </ros_service_handle_response>
+    <ros_service_handle_request name="/StopAndTurnBackSkill/halt" target="callStopNav">
+      <ros_service_send_request name="/NavigationComponent/StopNavigation"/>
+    </ros_service_handle_request>
+  </state>
+
+  <state id="done">
+    <onentry>
+      <ros_service_send_response name="/StopAndTurnBackSkill/tick">
+        <field name="status" expr="result == 'SKILL_SUCCESS' ? SKILL_SUCCESS : SKILL_FAILURE"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="failReply">
+    <onentry>
+      <ros_service_send_response name="/StopAndTurnBackSkill/tick">
+        <field name="status" expr="SKILL_FAILURE"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="callStopNav">
+    <ros_service_handle_response name="/NavigationComponent/StopNavigation" target="halted"/>
+  </state>
+
+  <state id="halted">
+    <onentry>
+      <ros_service_send_response name="/StopAndTurnBackSkill/halt"/>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+</scxml>

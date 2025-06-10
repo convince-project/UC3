@@ -28,7 +28,7 @@
 #include <behaviortree_cpp_v3/loggers/bt_file_logger.h>
 
 #include <rclcpp/rclcpp.hpp>
-#include <bt_interfaces/srv/reload_tree.hpp>
+#include <bt_interfaces_dummy/srv/reload_tree.hpp>
 
 
 using namespace std;
@@ -88,8 +88,8 @@ private:
     }
 };
 
-void ReloadTree(const std::shared_ptr<bt_interfaces::srv::ReloadTree::Request> request,
-                std::shared_ptr<bt_interfaces::srv::ReloadTree::Response> response,
+void ReloadTree(const std::shared_ptr<bt_interfaces_dummy::srv::ReloadTree::Request> request,
+                std::shared_ptr<bt_interfaces_dummy::srv::ReloadTree::Response> response,
                 std::unique_ptr<BT::Tree>& tree, const std::string file_path, bool halt, BehaviorTreeFactory bt_factory, std::unique_ptr<PublisherZMQ>& publisher_zmq)
 {
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Reloading the behavior tree...");
@@ -137,11 +137,11 @@ int main(int argc, char* argv[])
 #endif
     printTreeRecursively((*tree).rootNode());
     // Create the reload service and pass the tree by reference
-    rclcpp::Service<bt_interfaces::srv::ReloadTree>::SharedPtr m_reloadTreeService = 
-        m_node->create_service<bt_interfaces::srv::ReloadTree>(
+    rclcpp::Service<bt_interfaces_dummy::srv::ReloadTree>::SharedPtr m_reloadTreeService = 
+        m_node->create_service<bt_interfaces_dummy::srv::ReloadTree>(
             "/BtExecutable/ReloadTree",
-            [&tree, &path, &halt, &bt_factory, &publisher_zmq](const std::shared_ptr<bt_interfaces::srv::ReloadTree::Request> request,
-                    std::shared_ptr<bt_interfaces::srv::ReloadTree::Response> response)
+            [&tree, &path, &halt, &bt_factory, &publisher_zmq](const std::shared_ptr<bt_interfaces_dummy::srv::ReloadTree::Request> request,
+                    std::shared_ptr<bt_interfaces_dummy::srv::ReloadTree::Response> response)
             {
                 ReloadTree(request, response, tree, path, halt, bt_factory, publisher_zmq);
             });

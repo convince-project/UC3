@@ -1,6 +1,6 @@
 <scxml
     version="1.0"
-    xmlns="..."
+    xmlns="http://www.w3.org/2005/07/scxml"
     datamodel="ecmascript"
     name="WaitSkill"
     initial="idle"> 
@@ -9,23 +9,50 @@
         <data id="SKILL_SUCCESS" type="int8" expr="0" />
         <data id="SKILL_FAILURE" type="int8" expr="1" />
         <data id="SKILL_RUNNING" type="int8" expr="2" />
+        <data id="wait_time_ms" expr="5000" />
+        <data id="start_time" expr="0" />
     </datamodel>
 
     <!-- WaitSkill is a server for tick from the ROS2Action plugin-->
-    <ros_service_server service_name="/WaitSkill/tick" type ="bt_interfaces_dummy/TickAction"/>
+    <ros_service_server service_name="/WaitSkill/tick" type="bt_interfaces_dummy/TickAction"/>
     <!-- WaitSkill is a server for halt from the ROS2Action plugin-->
-    <!-- <ros_service_server service="/WaitSkill/halt" type ="bt_interfaces_dummy/HaltAction"/> -->
+    <ros_service_server service_name="/WaitSkill/halt" type="bt_interfaces_dummy/HaltAction"/>
 
     <state id="idle">
-        <ros_service_handle_request name="/WaitSkill/tick" target="idle">
-            <ros_service_send_response name="/WaitSkill/tick">
-                <field name="status" expr="SKILL_RUNNING"/>
-                <field name="is_ok" expr="true"/>
-            </ros_service_send_response>
-        </ros_service_handle_request>
-        <!-- <ros_service_handle_request name="/WaitSkill/halt" target="idle">
+        <ros_service_handle_request name="/WaitSkill/tick" target="startWait"/>
+        <ros_service_handle_request name="/WaitSkill/halt" target="halted"/>
+    </state>
+
+    <state id="startWait">
+        <onentry>
+            <assign location="start_time" expr="Date.now()"/>
+        </onentry>
+        <ros_service_handle_request name="/WaitSkill/tick" target="checkWait"/>
+        <ros_service_handle_request name="/WaitSkill/halt" target="halted"/>
+    </state>
+
+    <state id="checkWait">
+        <onentry>
+            <if cond="(Date.now() - start_time) >= wait_time_ms">
+                <ros_service_send_response name="/WaitSkill/tick">
+                    <field name="status" expr="SKILL_SUCCESS"/>
+                    <field name="is_ok" expr="true"/>
+                </ros_service_send_response>
+            <else/>
+                <ros_service_send_response name="/WaitSkill/tick">
+                    <field name="status" expr="SKILL_RUNNING"/>
+                    <field name="is_ok" expr="true"/>
+                </ros_service_send_response>
+            </if>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+
+    <state id="halted">
+        <onentry>
             <ros_service_send_response name="/WaitSkill/halt"/>
-        </ros_service_handle_request> -->
+        </onentry>
+        <transition target="idle"/>
     </state>
 
 </scxml>

@@ -20,7 +20,7 @@ DummyAction::DummyAction(std::string name, std::string default_status ) : Node(n
     m_changeStatusPort.setReader(*this);
 
     RCLCPP_DEBUG(this->get_logger(), "%s::start",m_name.c_str());
-        auto message = bt_interfaces::msg::ActionResponse();
+        auto message = bt_interfaces_dummy::msg::ActionResponse();
     if(default_status=="SUCCESS")
     {
         m_status = message.SKILL_SUCCESS;
@@ -34,27 +34,27 @@ DummyAction::DummyAction(std::string name, std::string default_status ) : Node(n
         m_status = message.SKILL_FAILURE;
     }
 
-    m_tickService = this->create_service<bt_interfaces::srv::TickAction>(m_name + "Skill/tick",  std::bind(&DummyAction::tick,
+    m_tickService = this->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",  std::bind(&DummyAction::tick,
                                                                                                                  this,
                                                                                                                  std::placeholders::_1,
                                                                                                                  std::placeholders::_2));
-    m_haltService = this->create_service<bt_interfaces::srv::HaltAction>(m_name + "Skill/halt",  std::bind(&DummyAction::halt,
+    m_haltService = this->create_service<bt_interfaces_dummy::srv::HaltAction>(m_name + "Skill/halt",  std::bind(&DummyAction::halt,
                                                                                                                  this,
                                                                                                                  std::placeholders::_1,
                                                                                                                  std::placeholders::_2));
 }
 
-void DummyAction::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::TickAction::Request> request,
-                                       std::shared_ptr<bt_interfaces::srv::TickAction::Response>      response)
+void DummyAction::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Request> request,
+                                       std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Response>      response)
 {
     RCLCPP_DEBUG(this->get_logger(), "%s::request_ack",m_name.c_str());
-    response->status.status = m_status;
+    response->status = m_status;
     response->is_ok = true;
 }
 
 
-void DummyAction::halt( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::HaltAction::Request> request,
-                                       [[maybe_unused]] std::shared_ptr<bt_interfaces::srv::HaltAction::Response>      response)
+void DummyAction::halt( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::HaltAction::Request> request,
+                                       [[maybe_unused]] std::shared_ptr<bt_interfaces_dummy::srv::HaltAction::Response>      response)
 {
 
     RCLCPP_DEBUG(this->get_logger(), "%s::send_stop",m_name.c_str());
@@ -73,7 +73,7 @@ bool DummyAction::read(yarp::os::ConnectionReader& connection)
     if(in.get(0).isString())
     {
         std::string cmd = in.get(0).asString();
-        auto message = bt_interfaces::msg::ActionResponse();
+        auto message = bt_interfaces_dummy::msg::ActionResponse();
         if(cmd=="help")
         {
             out.addVocab32("many");

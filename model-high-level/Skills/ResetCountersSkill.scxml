@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml
+  xmlns="http://www.w3.org/2005/07/scxml"
+  version="1.0"
+  name="ResetCountersSkill"
+  datamodel="ecmascript"
+  initial="idle">
+
+  <datamodel>
+    <data id="m_result"       type="string" expr="''"/>
+    <data id="SUCCESS_RESULT" type="string" expr="'SUCCESS'"/>
+    <data id="SKILL_SUCCESS"  type="int8"   expr="0"/>
+    <data id="SKILL_FAILURE"  type="int8"   expr="1"/>
+  </datamodel>
+
+  <!-- Action skill: tick + halt servers -->
+  <ros_service_server service_name="/ResetCountersSkill/tick" type="bt_interfaces_dummy/TickAction"/>
+  <ros_service_server service_name="/ResetCountersSkill/halt" type="bt_interfaces_dummy/HaltAction"/>
+
+  <!-- Client for TurnBackManagerComponent.ResetCounters -->
+  <ros_service_client service_name="/TurnBackManagerComponent/ResetCounters" type="turnbackmanager_interfaces/ResetCounters"/>
+
+  <state id="idle">
+    <ros_service_handle_request name="/ResetCountersSkill/tick" target="resetCounters">
+      <ros_service_send_request name="/TurnBackManagerComponent/ResetCounters"/>
+    </ros_service_handle_request>
+    <ros_service_handle_request name="/ResetCountersSkill/halt" target="halted"/>
+  </state>
+
+  <state id="resetCounters">
+    <ros_service_handle_response name="/TurnBackManagerComponent/ResetCounters" target="evaluate">
+      <assign location="m_result" expr="_res.result"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="evaluate">
+    <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+    <transition target="success"/>
+  </state>
+
+  <state id="success">
+    <onentry>
+      <ros_service_send_response name="/ResetCountersSkill/tick">
+        <field name="status" expr="SKILL_SUCCESS"/>
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="failure">
+    <onentry>
+      <ros_service_send_response name="/ResetCountersSkill/tick">
+        <field name="status" expr="SKILL_FAILURE"/>
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="halted">
+    <onentry>
+      <ros_service_send_response name="/ResetCountersSkill/halt">
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+</scxml>

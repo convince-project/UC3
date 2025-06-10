@@ -1,58 +1,57 @@
-<scxml 
-  initial="idle" 
-  version="1.0" 
-  name="IsMaximumDurationSkillCondition"
-  datamodel="ecmascript"
-  xmlns="http://www.w3.org/2005/07/scxml">
-
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="IsMaximumDurationSkillCondition" datamodel="ecmascript" initial="idle">
+    <!-- Condition skill: tick server only -->
+    <!-- Client for Blackboard GetInt -->
     <datamodel>
-        <data id="m_result"/>
-        <data id="m_value"/>
-        <data id="m_name" expr='"TourDurationExceededFlag"'/>
+        <data id="m_name" expr="&apos;TourDurationExceededFlag&apos;"/>
+        <data id="m_value" expr="0"/>
+        <data id="m_result" expr="&apos;&apos;"/>
+        <data id="SUCCESS_RESULT" expr="&apos;SUCCESS&apos;"/>
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <data id="SKILL_FAILURE" expr="1"/>
     </datamodel>
-
     <state id="idle">
-        <transition event="CMD_TICK" target="getStatus"/>
-    </state>
-
-    <state id="getStatus">
-        <onentry>
+        <transition target="queryFlag" event="CMD_TICK">
             <send event="BlackboardComponent.GetInt.Call">
                 <param name="field_name" expr="m_name"/>
             </send>
-        </onentry>
-        <transition event="BlackboardComponent.GetInt.Return" target="getStatusResult"> 
-            <assign expr="_event.data.value" location="m_value"/>
-            <assign expr="_event.data.result" location="m_result"/>
         </transition>
     </state>
-
-    <state id="getStatusResult">
-        <transition cond="m_result == 'SUCCESS'" target="checkStatus" />
-        <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+    <state id="queryFlag">
+        <transition target="evaluate" event="BlackboardComponent.GetInt.Return">
+            <assign location="m_value" expr="_event.data.value"/>
+            <assign location="m_result" expr="_event.data.result"/>
+        </transition>
     </state>
-
-    <state id="checkStatus">
-        <transition cond="m_value" target="sendSuccess" /> 
-        <transition target="sendFailure" /> 
-    </state> 
-
-    <state id="sendFailure">
+    <state id="evaluate">
+        <!-- Service call failed -->
+        <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+        <!-- Service succeeded, check the flag value -->
+        <transition target="decide"/>
+    </state>
+    <state id="decide">
+        <onentry>
+            <if cond="m_value != 0">
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_SUCCESS"/>
+                    <param name="is_ok" expr="true"/>
+                </send>
+                <else/>
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_FAILURE"/>
+                    <param name="is_ok" expr="true"/>
+                </send>
+            </if>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="failure">
         <onentry>
             <send event="TICK_RESPONSE">
-                <param name="result" expr='"FAILURE"'/>
+                <param name="status" expr="SKILL_FAILURE"/>
+                <param name="is_ok" expr="true"/>
             </send>
         </onentry>
-        <transition target="idle" />
+        <transition target="idle"/>
     </state>
-
-    <state id="sendSuccess">
-        <onentry>
-            <send event="TICK_RESPONSE">
-                <param name="result" expr='"SUCCESS"'/>
-            </send>
-        </onentry>
-        <transition target="idle" />
-    </state>
-
 </scxml>

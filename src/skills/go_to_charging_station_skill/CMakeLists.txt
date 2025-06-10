@@ -6,12 +6,16 @@ project(go_to_charging_station_skill)
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
+
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(bt_interfaces REQUIRED)
+find_package(rclcpp_action REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(bt_interfaces_dummy REQUIRED)
+
 find_package(navigation_interfaces REQUIRED)
-find_package(sensor_msgs REQUIRED)
 find_package(Qt6 COMPONENTS Core Scxml StateMachine  REQUIRED)
+
 add_executable(${PROJECT_NAME} )
 
 if (NOT Qt6_FOUND)
@@ -23,7 +27,14 @@ endif()
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-ament_target_dependencies(${PROJECT_NAME} bt_interfaces sensor_msgs rclcpp navigation_interfaces)
+ament_target_dependencies(${PROJECT_NAME} 
+  std_msgs
+  bt_interfaces_dummy 
+  rclcpp 
+  rclcpp_action 
+  navigation_interfaces 
+  
+  )
 target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Scxml Qt6::StateMachine)
 target_include_directories(${PROJECT_NAME}
   PUBLIC
@@ -33,8 +44,6 @@ target_sources( ${PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp 
   ${CMAKE_CURRENT_SOURCE_DIR}/src/GoToChargingStationSkill.cpp 
   ${CMAKE_CURRENT_SOURCE_DIR}/include/GoToChargingStationSkill.h
-  #${CMAKE_CURRENT_SOURCE_DIR}/src/GoToChargingStationDataModel.cpp 
-  #${CMAKE_CURRENT_SOURCE_DIR}/include/GoToChargingStationDataModel.h
   )
 
 

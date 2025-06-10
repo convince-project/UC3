@@ -1,30 +1,29 @@
-<!--This skill checks from the battery component if it is charging or not, 
-    it return success if it is charging, failure otherwise-->
-<scxml 
-  initial="idle" 
-  version="1.0" 
-  name="NetworkUpSkillCondition"
-  datamodel="cplusplus:NetworkUpSkillDataModel:NetworkUpSkillDataModel.h"
-  xmlns="http://www.w3.org/2005/07/scxml">
-
-
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="NetworkUpSkillCondition" datamodel="ecmascript" initial="idle">
+    <datamodel>
+        <!-- Provided by C++ DataModel -->
+        <data id="m_status" expr="false"/>
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <data id="SKILL_FAILURE" expr="1"/>
+    </datamodel>
+    <!-- Condition skill: tick server only -->
     <state id="idle">
-        <transition event="CMD_TICK" target="edgeDetected" />
+        <transition target="decide" event="CMD_TICK"/>
     </state>
-
-    <state id="edgeDetected">
+    <state id="decide">
         <onentry>
-            <if cond="m_status"> 
+            <if cond="m_status">
                 <send event="TICK_RESPONSE">
-                    <param name="result" expr='"SUCCESS"'/>
+                    <param name="status" expr="SKILL_SUCCESS"/>
+                    <param name="is_ok" expr="true"/>
                 </send>
-            <else/>
+                <else/>
                 <send event="TICK_RESPONSE">
-                    <param name="result" expr='"FAILURE"'/>
+                    <param name="status" expr="SKILL_FAILURE"/>
+                    <param name="is_ok" expr="true"/>
                 </send>
             </if>
         </onentry>
-        <transition target="idle" />
+        <transition target="idle"/>
     </state>
-
 </scxml>

@@ -71,13 +71,13 @@ bool SetPoiSkill::start(int argc, char*argv[])
 	std::cout << "SetPoiSkill::start";
 
     
-	m_tickService = m_node->create_service<bt_interfaces::srv::TickAction>(m_name + "Skill/tick",
+	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
                                                                            	std::bind(&SetPoiSkill::tick,
                                                                            	this,
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
     
-	m_haltService = m_node->create_service<bt_interfaces::srv::HaltAction>(m_name + "Skill/halt",
+	m_haltService = m_node->create_service<bt_interfaces_dummy::srv::HaltAction>(m_name + "Skill/halt",
                                                                             	std::bind(&SetPoiSkill::halt,
                                                                             	this,
                                                                             	std::placeholders::_1,
@@ -157,12 +157,12 @@ bool SetPoiSkill::start(int argc, char*argv[])
 	return true;
 }
 
-void SetPoiSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::TickAction::Request> request,
-                                std::shared_ptr<bt_interfaces::srv::TickAction::Response>      response)
+void SetPoiSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Request> request,
+                                std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Response>      response)
 {
     std::lock_guard<std::mutex> lock(m_requestMutex);
     RCLCPP_INFO(m_node->get_logger(), "SetPoiSkill::tick");
-    auto message = bt_interfaces::msg::ActionResponse();
+    auto message = bt_interfaces_dummy::msg::ActionResponse();
     m_tickResult.store(Status::undefined);
     m_stateMachine.submitEvent("CMD_TICK");
    
@@ -172,21 +172,21 @@ void SetPoiSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces::sr
     switch(m_tickResult.load()) 
     {
         case Status::running:
-            response->status.status = message.SKILL_RUNNING;
+            response->status = message.SKILL_RUNNING;
             break;
         case Status::failure:
-            response->status.status = message.SKILL_FAILURE;
+            response->status = message.SKILL_FAILURE;
             break;
         case Status::success:
-            response->status.status = message.SKILL_SUCCESS;
+            response->status = message.SKILL_SUCCESS;
             break;            
     }
     RCLCPP_INFO(m_node->get_logger(), "SetPoiSkill::tickDone");
     response->is_ok = true;
 }
 
-void SetPoiSkill::halt( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::HaltAction::Request> request,
-    [[maybe_unused]] std::shared_ptr<bt_interfaces::srv::HaltAction::Response> response)
+void SetPoiSkill::halt( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::HaltAction::Request> request,
+    [[maybe_unused]] std::shared_ptr<bt_interfaces_dummy::srv::HaltAction::Response> response)
 {
     std::lock_guard<std::mutex> lock(m_requestMutex);
     RCLCPP_INFO(m_node->get_logger(), "SetPoiSkill::halt");

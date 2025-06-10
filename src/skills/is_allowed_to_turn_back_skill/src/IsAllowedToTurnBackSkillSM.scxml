@@ -1,88 +1,78 @@
-<!-- To prevent from skipping the rest of the TurnBack SubTree -->
-<!-- It is allowed to turn back (and execute the rest of the TurnBack SubTree) only when  -->
-<!-- (A) the maximum number of turn backs is not reached or (B) it is turning back at the moment  -->
-<!-- If A is true, B is not checked. If A is false, B is checked  -->
-
-<scxml 
-  initial="idle" 
-  version="1.0" 
-  name="IsAllowedToTurnBackSkillCondition"
-  datamodel="ecmascript"
-  xmlns="http://www.w3.org/2005/07/scxml">
-
-  <datamodel>
-    <data id="m_result"/>
-    <data id="m_value"/>
-    <data id="m_is_allowed"/>
-    <data id="m_is_allowed"/>
-    <data id="m_name" expr='"turnBackState"'/>
-  </datamodel>
-
-  <state id="idle">
-      <transition event="CMD_TICK" target="getIsAllowed" />
-  </state>
-
-  <state id="getIsAllowed">
-    <onentry>
-        <send event="TurnBackManagerComponent.IsAllowedToTurnBack.Call"/>
-    </onentry>
-    <transition event="TurnBackManagerComponent.IsAllowedToTurnBack.Return" target="getIsAllowedResult"> 
-        <assign expr="_event.data.result" location="m_result"/>
-        <assign expr="_event.data.is_allowed" location="m_is_allowed"/>
-    </transition>
-  </state>
-
-  <state id="getIsAllowedResult">
-    <transition cond="m_result == 'SUCCESS'" target="checkIsAllowed" />
-    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
-  </state>
-
-  <state id="checkIsAllowed">
-    <transition cond="m_is_allowed" target="sendSuccess" />
-    <transition target="getTurning" />
-  </state>
-
-  <state id="getTurning">
-    <onentry>
-      <send event="BlackboardComponent.GetString.Call">
-        <param name="field_name" expr="m_name"/>
-      </send>
-    </onentry>
-    <transition event="BlackboardComponent.GetString.Return" target="getIsNotTurningResult"> 
-        <assign expr="_event.data.result" location="m_result"/>
-        <assign expr="_event.data.value" location="m_value"/>
-    </transition>
-  </state>
-
-  <state id="getIsNotTurningResult">
-    <transition cond="m_result == 'SUCCESS'" target="checkIsNotTurning" />
-    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
-  </state>
-
-  <state id="checkIsNotTurning">
-    <onentry>
-      <log expr="m_value"/>
-    </onentry>
-    <transition cond="m_value == 'not_turning'" target="sendFailure" />
-    <transition target="sendSuccess" />
-  </state>
-
-  <state id="sendFailure">
-    <onentry>
-      <send event="TICK_RESPONSE">
-        <param name="result" expr='"FAILURE"'/>
-      </send>
-    </onentry>
-    <transition target="idle" />
-  </state>
-
-  <state id="sendSuccess">
-      <onentry>
-        <send event="TICK_RESPONSE">
-          <param name="result" expr='"SUCCESS"'/>
-        </send>
-      </onentry>
-      <transition target="idle" />
-  </state>
-
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="IsAllowedToTurnBackSkillCondition" datamodel="ecmascript" initial="idle">
+    <datamodel>
+        <data id="m_result" expr="&apos;&apos;"/>
+        <data id="m_is_allowed" expr="false"/>
+        <data id="m_value" expr="&apos;&apos;"/>
+        <data id="m_name" expr="&apos;turnBackState&apos;"/>
+        <data id="SUCCESS_RESULT" expr="&apos;SUCCESS&apos;"/>
+        <data id="NOT_TURNING" expr="&apos;not_turning&apos;"/>
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <data id="SKILL_FAILURE" expr="1"/>
+    </datamodel>
+    <!-- Condition skill: tick server only -->
+    <!-- Clients -->
+    <!-- Check if turn back is allowed by manager -->
+    <state id="idle">
+        <transition target="getAllowed" event="CMD_TICK">
+            <send event="TurnBackManagerComponent.IsAllowedToTurnBack.Call"/>
+        </transition>
+    </state>
+    <!-- Receive permission response from manager -->
+    <state id="getAllowed">
+        <transition target="evaluateAllowed" event="TurnBackManagerComponent.IsAllowedToTurnBack.Return">
+            <assign location="m_result" expr="_event.data.result"/>
+            <assign location="m_is_allowed" expr="_event.data.is_allowed"/>
+        </transition>
+    </state>
+    <!-- Evaluate manager's response -->
+    <state id="evaluateAllowed">
+        <!-- Service call failed -->
+        <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+        <!-- Explicitly allowed by manager -->
+        <transition cond="m_is_allowed" target="success"/>
+        <!-- Not explicitly allowed, check current turning state -->
+        <transition target="getTurning"/>
+    </state>
+    <!-- Query blackboard for current turning state -->
+    <state id="getTurning">
+        <onentry>
+            <send event="BlackboardComponent.GetString.Call">
+                <param name="field_name" expr="m_name"/>
+            </send>
+        </onentry>
+        <transition target="evaluateTurning" event="BlackboardComponent.GetString.Return">
+            <assign location="m_result" expr="_event.data.result"/>
+            <assign location="m_value" expr="_event.data.value"/>
+        </transition>
+    </state>
+    <!-- Evaluate blackboard turning state -->
+    <state id="evaluateTurning">
+        <!-- Blackboard query failed -->
+        <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+        <!-- Currently not turning, so turn back not allowed -->
+        <transition cond="m_value == NOT_TURNING" target="failure"/>
+        <!-- Currently turning, so turn back is allowed -->
+        <transition target="success"/>
+    </state>
+    <!-- Return failure result -->
+    <state id="failure">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_FAILURE"/>
+                <param name="is_ok" expr="true"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <!-- Return success result -->
+    <state id="success">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_SUCCESS"/>
+                <param name="is_ok" expr="true"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
 </scxml>

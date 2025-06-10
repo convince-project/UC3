@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml
+  xmlns="http://www.w3.org/2005/07/scxml"
+  version="1.0"
+  name="IsAtCurrentPoiSkill"
+  datamodel="ecmascript"
+  initial="idle">
+
+  <datamodel>
+    <data id="NAV_STATUS_MOVING" type="int8"    expr="2"/>
+    <data id="distance"          type="float32" expr="0.5"/>
+    <data id="m_poi_name"        type="string"  expr="''"/>
+    <data id="m_poi_result"      type="string"  expr="''"/>
+    <data id="m_nav_result"      type="string"  expr="''"/>
+    <data id="m_status"          type="int8"    expr="0"/>
+    <data id="m_is_near"         type="boolean" expr="false"/>
+    <data id="SUCCESS_RESULT"    type="string"  expr="'SUCCESS'"/>
+    <data id="SKILL_SUCCESS"     type="int8"    expr="0"/>
+    <data id="SKILL_FAILURE"     type="int8"    expr="1"/>
+  </datamodel>
+
+  <!-- Condition skill: tick server only -->
+  <ros_service_server service_name="/IsAtCurrentPoiSkill/tick" type="bt_interfaces_dummy/TickCondition"/>
+
+  <!-- Clients -->
+  <ros_service_client service_name="/SchedulerComponent/GetCurrentPoi" type="scheduler_interfaces/GetCurrentPoi"/>
+  <ros_service_client service_name="/NavigationComponent/GetNavigationStatus" type="navigation_interfaces/GetNavigationStatus"/>
+  <ros_service_client service_name="/NavigationComponent/CheckNearToPoi" type="navigation_interfaces/CheckNearToPoi"/>
+
+  <state id="idle">
+    <ros_service_handle_request name="/IsAtCurrentPoiSkill/tick" target="getPoi">
+      <ros_service_send_request name="/SchedulerComponent/GetCurrentPoi"/>
+    </ros_service_handle_request>
+  </state>
+
+  <state id="getPoi">
+    <ros_service_handle_response name="/SchedulerComponent/GetCurrentPoi" target="evaluatePoi">
+      <assign location="m_poi_name"   expr="_res.poi_name"/>
+      <assign location="m_poi_result" expr="_res.result"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="evaluatePoi">
+    <!-- GetCurrentPoi failed -->
+    <transition cond="m_poi_result != SUCCESS_RESULT" target="failure"/>
+    <!-- GetCurrentPoi succeeded, check navigation status -->
+    <transition target="getStatus"/>
+  </state>
+
+  <state id="getStatus">
+    <onentry>
+      <ros_service_send_request name="/NavigationComponent/GetNavigationStatus"/>
+    </onentry>
+    <ros_service_handle_response name="/NavigationComponent/GetNavigationStatus" target="evaluateStatus">
+      <assign location="m_status"     expr="_res.status"/>
+      <assign location="m_nav_result" expr="_res.result"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="evaluateStatus">
+    <!-- GetNavigationStatus failed -->
+    <transition cond="m_nav_result != SUCCESS_RESULT" target="failure"/>
+    <!-- Robot is moving, not at POI -->
+    <transition cond="m_status == NAV_STATUS_MOVING" target="failure"/>
+    <!-- Robot not moving, check proximity -->
+    <transition target="checkNear"/>
+  </state>
+
+  <state id="checkNear">
+    <onentry>
+      <ros_service_send_request name="/NavigationComponent/CheckNearToPoi">
+        <field name="poi_name" expr="m_poi_name"/>
+        <field name="distance" expr="distance"/>
+      </ros_service_send_request>
+    </onentry>
+    <ros_service_handle_response name="/NavigationComponent/CheckNearToPoi" target="finalize">
+      <assign location="m_is_near" expr="_res.is_near"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="finalize">
+    <onentry>
+      <if cond="m_is_near">
+        <ros_service_send_response name="/IsAtCurrentPoiSkill/tick">
+          <field name="status" expr="SKILL_SUCCESS"/>
+          <field name="is_ok" expr="true"/>
+        </ros_service_send_response>
+      <else/>
+        <ros_service_send_response name="/IsAtCurrentPoiSkill/tick">
+          <field name="status" expr="SKILL_FAILURE"/>
+          <field name="is_ok" expr="true"/>
+        </ros_service_send_response>
+      </if>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="failure">
+    <onentry>
+      <ros_service_send_response name="/IsAtCurrentPoiSkill/tick">
+        <field name="status" expr="SKILL_FAILURE"/>
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+</scxml>

@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml"
+       version="1.0"
+       name="SayWarningDurationSkill"
+       datamodel="ecmascript"
+       initial="idle">
+
+  <datamodel>
+    <data id="m_name"        type="string"  expr="'SaidWarningFlag'"/>
+    <data id="m_value"       type="int32"   expr="0"/>
+    <data id="m_command"     type="string"  expr="'sayDurationWarning'"/>
+    <data id="m_param"       type="string"  expr="''"/>
+    <data id="m_is_speaking" type="boolean" expr="false"/>
+    <data id="m_result"      type="string"  expr="''"/>
+    <data id="SKILL_SUCCESS" type="int8"    expr="0"/>
+    <data id="SKILL_FAILURE" type="int8"    expr="1"/>
+    <data id="SKILL_RUNNING" type="int8"    expr="2"/>
+  </datamodel>
+
+  <!-- Action skill: tick + halt servers -->
+  <ros_service_server service_name="/SayWarningDurationSkill/tick" type="bt_interfaces_dummy/TickAction"/>
+  <ros_service_server service_name="/SayWarningDurationSkill/halt" type="bt_interfaces_dummy/HaltAction"/>
+
+  <!-- Clients -->
+  <ros_service_client service_name="/BlackboardComponent/GetInt" type="blackboard_interfaces/GetIntBlackboard"/>
+  <ros_service_client service_name="/SchedulerComponent/SetCommand" type="scheduler_interfaces/SetCommand"/>
+  <ros_service_client service_name="/SchedulerComponent/GetCurrentAction" type="scheduler_interfaces/GetCurrentAction"/>
+  <ros_service_client service_name="/TextToSpeechComponent/Speak" type="text_to_speech_interfaces/Speak"/>
+  <ros_service_client service_name="/TextToSpeechComponent/IsSpeaking" type="text_to_speech_interfaces/IsSpeaking"/>
+
+  <state id="idle">
+    <onentry/>
+    <transition event="CMD_TICK" target="getFlag"/>
+    <transition event="CMD_HALT" target="halted"/>
+  </state>
+
+  <state id="getFlag">
+    <onentry>
+      <send event="BlackboardComponent.GetInt.Call">
+        <param name="field_name" expr="m_name"/>
+      </send>
+    </onentry>
+    <transition event="BlackboardComponent.GetInt.Return" target="checkFlag">
+      <assign location="m_value"  expr="_event.data.value"/>
+    </transition>
+  </state>
+
+  <state id="checkFlag">
+    <onentry>
+      <if cond="m_value!=0">
+        <assign location="m_result" expr="'SKILL_SUCCESS'"/>
+      <else/>
+        <assign location="m_result" expr="'SETCMD'"/>
+      </if>
+    </onentry>
+    <transition cond="m_result=='SKILL_SUCCESS'" target="finalize_success"/>
+    <transition cond="m_result=='SETCMD'" target="setCommand"/>
+  </state>
+
+  <state id="setCommand">
+    <onentry>
+      <send event="SchedulerComponent.SetCommand.Call">
+        <param name="command" expr="m_command"/>
+      </send>
+    </onentry>
+    <transition event="SchedulerComponent.SetCommand.Return" cond="_event.data.result=='SKILL_SUCCESS'" target="getText"/>
+    <transition event="SchedulerComponent.SetCommand.Return" cond="_event.data.result!='SKILL_SUCCESS'" target="finalize_failure"/>
+  </state>
+
+  <state id="getText">
+    <onentry>
+      <send event="SchedulerComponent.GetCurrentAction.Call"/>
+    </onentry>
+    <transition event="SchedulerComponent.GetCurrentAction.Return" cond="_event.data.result=='SKILL_SUCCESS'" target="talk">
+      <assign location="m_param" expr="_event.data.param"/>
+    </transition>
+    <transition event="SchedulerComponent.GetCurrentAction.Return" cond="_event.data.result!='SKILL_SUCCESS'" target="finalize_failure"/>
+  </state>
+
+  <state id="talk">
+    <onentry>
+      <send event="TextToSpeechComponent.Speak.Call">
+        <param name="text" expr="m_param"/>
+      </send>
+    </onentry>
+    <transition event="TextToSpeechComponent.Speak.Return" target="speaking"/>
+  </state>
+
+  <state id="speaking">
+    <onentry>
+      <send event="TICK_RESPONSE"><param name="status" expr="SKILL_RUNNING"/></send>
+    </onentry>
+    <transition event="CMD_TICK" target="checkSpeaking"/>
+    <transition event="CMD_HALT" target="halted"/>
+  </state>
+
+  <state id="checkSpeaking">
+    <onentry>
+      <send event="TextToSpeechComponent.IsSpeaking.Call"/>
+    </onentry>
+    <transition event="TextToSpeechComponent.IsSpeaking.Return" target="onCheck">
+      <assign location="m_is_speaking" expr="_event.data.is_speaking"/>
+    </transition>
+  </state>
+
+  <state id="onCheck">
+    <onentry>
+      <if cond="m_is_speaking">
+        <assign location="m_result" expr="'RUNNING'"/>
+      <else/>
+        <assign location="m_result" expr="'SKILL_SUCCESS'"/>
+      </if>
+    </onentry>
+    <transition cond="m_result=='RUNNING'" target="finalize_running"/>
+    <transition cond="m_result=='SKILL_SUCCESS'" target="finalize_success"/>
+  </state>
+
+  <state id="finalize_success">
+    <onentry>
+      <send event="TICK_RESPONSE"><param name="status" expr="SKILL_SUCCESS"/></send>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="finalize_running">
+    <onentry>
+      <send event="TICK_RESPONSE"><param name="status" expr="SKILL_RUNNING"/></send>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="finalize_failure">
+    <onentry>
+      <send event="TICK_RESPONSE"><param name="status" expr="SKILL_FAILURE"/></send>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="halted">
+    <onentry>
+      <send event="HALT_RESPONSE"/>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+</scxml>

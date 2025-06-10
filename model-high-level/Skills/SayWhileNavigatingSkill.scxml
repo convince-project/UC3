@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml
+  xmlns="http://www.w3.org/2005/07/scxml"
+  version="1.0"
+  name="SayWhileNavigatingSkill"
+  datamodel="ecmascript"
+  initial="idle">
+
+  <datamodel>
+    <data id="m_command"    type="string"  expr="'sayWhileNavigating'"/>
+    <data id="m_counter"    type="int32"   expr="0"/>
+    <data id="m_is_done"    type="boolean" expr="false"/>
+    <data id="m_result"     type="string"  expr="''"/>
+    <data id="SKILL_SUCCESS" type="int8"   expr="0"/>
+    <data id="SKILL_FAILURE" type="int8"   expr="1"/>
+    <data id="SKILL_RUNNING" type="int8"   expr="2"/>
+  </datamodel>
+
+  <!-- Action skill: tick + halt servers -->
+  <ros_service_server service_name="/SayWhileNavigatingSkill/tick" type="bt_interfaces_dummy/TickAction"/>
+  <ros_service_server service_name="/SayWhileNavigatingSkill/halt" type="bt_interfaces_dummy/HaltAction"/>
+
+  <!-- Clients -->
+  <ros_service_client service_name="/TurnBackManagerComponent/GetTurnBacksCounter" type="turnbackmanager_interfaces/GetTurnBacksCounter"/>
+  <ros_service_client service_name="/NarrateComponent/Narrate" type="narrate_interfaces/Narrate"/>
+  <ros_service_client service_name="/NarrateComponent/IsDone" type="narrate_interfaces/IsDone"/>
+  <ros_service_client service_name="/NarrateComponent/Stop" type="narrate_interfaces/Stop"/>
+
+  <state id="idle">
+    <ros_service_handle_request name="/SayWhileNavigatingSkill/tick" target="getCount">
+      <ros_service_send_request name="/TurnBackManagerComponent/GetTurnBacksCounter"/>
+    </ros_service_handle_request>
+    <ros_service_handle_request name="/SayWhileNavigatingSkill/halt" target="stopNarration"/>
+  </state>
+
+  <state id="getCount">
+    <ros_service_handle_response name="/TurnBackManagerComponent/GetTurnBacksCounter" target="decideCount">
+      <assign location="m_counter" expr="_res.counter"/>
+      <assign location="m_result" expr="_res.result"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="decideCount">
+    <transition cond="m_result!='SKILL_SUCCESS'" target="fail"/>
+    <transition cond="m_counter!=0" target="success"/>
+    <transition cond="m_result=='SKILL_SUCCESS' && m_counter==0" target="startNarration"/>
+  </state>
+
+  <state id="fail">
+    <onentry>
+      <ros_service_send_response name="/SayWhileNavigatingSkill/tick">
+        <field name="status" expr="SKILL_FAILURE"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="success">
+    <onentry>
+      <ros_service_send_response name="/SayWhileNavigatingSkill/tick">
+        <field name="status" expr="SKILL_SUCCESS"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="startNarration">
+    <onentry>
+      <ros_service_send_request name="/NarrateComponent/Narrate">
+        <field name="command" expr="m_command"/>
+      </ros_service_send_request>
+    </onentry>
+    <ros_service_handle_response name="/NarrateComponent/Narrate" cond="_res.result=='SKILL_SUCCESS'" target="running"/>
+    <ros_service_handle_response name="/NarrateComponent/Narrate" cond="_res.result!='SKILL_SUCCESS'" target="fail"/>
+  </state>
+
+  <state id="running">
+    <onentry>
+      <ros_service_send_response name="/SayWhileNavigatingSkill/tick">
+        <field name="status" expr="SKILL_RUNNING"/>
+      </ros_service_send_response>
+    </onentry>
+    <ros_service_handle_request name="/SayWhileNavigatingSkill/tick" target="checkDone">
+      <ros_service_send_request name="/NarrateComponent/IsDone"/>
+    </ros_service_handle_request>
+    <ros_service_handle_request name="/SayWhileNavigatingSkill/halt" target="stopNarration"/>
+  </state>
+
+  <state id="checkDone">
+    <ros_service_handle_response name="/NarrateComponent/IsDone" target="onCheck">
+      <assign location="m_is_done" expr="_res.is_done"/>
+    </ros_service_handle_response>
+    <ros_service_handle_response name="/NarrateComponent/IsDone" cond="_res.result!='SKILL_SUCCESS'" target="fail"/>
+  </state>
+
+  <state id="onCheck">
+    <transition cond="m_is_done" target="success"/>
+    <transition cond="!m_is_done" target="running"/>
+  </state>
+
+  <state id="stopNarration">
+    <onentry>
+      <ros_service_send_request name="/NarrateComponent/Stop"/>
+    </onentry>
+    <ros_service_handle_response name="/NarrateComponent/Stop" target="halted"/>
+    <!-- Gestire anche il caso di errore se necessario -->
+  </state>
+
+  <state id="halted">
+    <onentry>
+      <assign location="m_counter" expr="0"/>
+      <assign location="m_is_done" expr="false"/>
+      <assign location="m_result" expr="''"/>
+      <ros_service_send_response name="/SayWhileNavigatingSkill/halt"/>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+</scxml>

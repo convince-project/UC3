@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml"
+       version="1.0"
+       name="HardwareFaultSkill"
+       datamodel="ecmascript"
+       initial="idle">
+
+  <datamodel>
+    <!-- Value returned by the hardware monitoring component -->
+    <data id="m_has_fault"   type="boolean" expr="false"/>
+
+    <!-- Behavior Tree return constants -->
+    <data id="SKILL_SUCCESS" type="int8"    expr="0"/> <!-- No fault detected -->
+    <data id="SKILL_FAILURE" type="int8"    expr="1"/> <!-- Fault detected -->
+  </datamodel>
+
+  <!-- TickCondition server - provides the skill interface to the behavior tree -->
+  <ros_service_server service_name="/HardwareFaultSkill/tick" type="bt_interfaces_dummy/TickCondition"/>
+
+  <!-- Client to the hardware monitoring component -->
+  <ros_service_client service_name="/HardwareMonitorComponent/HasFaults" type="hardware_monitor_interfaces/HasFaults"/>
+
+  <!-- =========== States =========== -->
+
+  <state id="idle">
+    <!-- On tick request, query the hardware monitoring component -->
+    <ros_service_handle_request name="/HardwareFaultSkill/tick" target="query">
+      <ros_service_send_request name="/HardwareMonitorComponent/HasFaults"/>
+    </ros_service_handle_request>
+  </state>
+
+  <state id="query">
+    <!-- Receive response and proceed to decision making -->
+    <ros_service_handle_response name="/HardwareMonitorComponent/HasFaults" target="decide">
+        <assign location="m_has_fault" expr="_res.has_fault"/>
+        <!-- Debug logging -->
+        <log expr="'Hardware fault status: ' + m_has_fault"/>
+    </ros_service_handle_response>
+    <!-- Handle service errors (e.g., component not available) -->
+    <ros_service_handle_error name="/HardwareMonitorComponent/HasFaults" target="service_error"/>
+    <!-- Timeout protection - fail after 5 seconds if no response -->
+    <transition target="timeout_error" after="5s"/>
+  </state>
+
+  <state id="timeout_error">
+    <onentry>
+        <!-- Return failure due to timeout -->
+        <ros_service_send_response name="/HardwareFaultSkill/tick">
+            <field name="status" expr="SKILL_FAILURE"/>
+        </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="decide">
+    <!-- Decision logic based on fault status -->
+    <transition cond="m_has_fault == false" target="success"/>
+    <transition cond="m_has_fault == true" target="failure"/>
+  </state>
+
+  <state id="success">
+    <onentry>
+      <!-- No hardware faults detected - return success -->
+      <ros_service_send_response name="/HardwareFaultSkill/tick">
+        <field name="status" expr="SKILL_SUCCESS"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="failure">
+    <onentry>
+      <!-- Hardware fault detected - return failure -->
+      <ros_service_send_response name="/HardwareFaultSkill/tick">
+        <field name="status" expr="SKILL_FAILURE"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="service_error">
+    <onentry>
+      <!-- Service communication error - treat as failure for safety -->
+      <ros_service_send_response name="/HardwareFaultSkill/tick">
+        <field name="status" expr="SKILL_FAILURE"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+
+
+
+</scxml>  </state>  </state>
+
+</scxml>

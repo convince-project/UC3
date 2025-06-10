@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml
+  xmlns="http://www.w3.org/2005/07/scxml"
+  version="1.0"
+  name="NetworkUpSkill"
+  datamodel="ecmascript"
+  initial="idle">
+
+
+  <datamodel>
+    <!-- Provided by C++ DataModel -->
+    <data id="m_status"      type="boolean" expr="false"/>
+    <data id="SKILL_SUCCESS" type="int8"    expr="0"/>
+    <data id="SKILL_FAILURE" type="int8"    expr="1"/>
+  </datamodel>
+
+  <!-- Condition skill: tick server only -->
+  <ros_service_server service_name="/NetworkUpSkill/tick" type="bt_interfaces_dummy/TickCondition"/>
+
+  <state id="idle">
+    <ros_service_handle_request name="/NetworkUpSkill/tick" target="decide"/>
+  </state>
+
+  <state id="decide">
+    <onentry>
+      <if cond="m_status">
+        <ros_service_send_response name="/NetworkUpSkill/tick">
+          <field name="status" expr="SKILL_SUCCESS"/>
+          <field name="is_ok" expr="true"/>
+        </ros_service_send_response>
+      <else/>
+        <ros_service_send_response name="/NetworkUpSkill/tick">
+          <field name="status" expr="SKILL_FAILURE"/>
+          <field name="is_ok" expr="true"/>
+        </ros_service_send_response>
+      </if>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+</scxml>

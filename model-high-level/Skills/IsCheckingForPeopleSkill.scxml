@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml
+  xmlns="http://www.w3.org/2005/07/scxml"
+  version="1.0"
+  name="IsCheckingForPeopleSkill"
+  datamodel="ecmascript"
+  initial="idle">
+
+  <datamodel>
+    <data id="m_name"         type="string"  expr="'isCheckingForPeople'"/>
+    <data id="m_value"        type="int32"   expr="0"/>
+    <data id="m_result"       type="string"  expr="''"/>
+    <data id="SUCCESS_RESULT" type="string"  expr="'SUCCESS'"/>
+    <data id="SKILL_SUCCESS"  type="int8"    expr="0"/>
+    <data id="SKILL_FAILURE"  type="int8"    expr="1"/>
+  </datamodel>
+
+  <!-- Condition skill: tick server only -->
+  <ros_service_server service_name="/IsCheckingForPeopleSkill/tick" type="bt_interfaces_dummy/TickCondition"/>
+
+  <!-- Client for Blackboard GetInt -->
+  <ros_service_client service_name="/BlackboardComponent/GetInt" type="blackboard_interfaces/GetIntBlackboard"/>
+
+  <state id="idle">
+    <ros_service_handle_request name="/IsCheckingForPeopleSkill/tick" target="query">
+      <ros_service_send_request name="/BlackboardComponent/GetInt">
+        <field name="field_name" expr="m_name"/>
+      </ros_service_send_request>
+    </ros_service_handle_request>
+  </state>
+
+  <state id="query">
+    <ros_service_handle_response name="/BlackboardComponent/GetInt" target="evaluate">
+      <assign location="m_value"  expr="_res.value"/>
+      <assign location="m_result" expr="_res.result"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="evaluate">
+    <!-- Service call failed -->
+    <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+    <!-- Check if currently checking for people -->
+    <transition target="decide"/>
+  </state>
+
+  <state id="decide">
+    <onentry>
+      <if cond="m_value != 0">
+        <ros_service_send_response name="/IsCheckingForPeopleSkill/tick">
+          <field name="status" expr="SKILL_SUCCESS"/>
+          <field name="is_ok" expr="true"/>
+        </ros_service_send_response>
+      <else/>
+        <ros_service_send_response name="/IsCheckingForPeopleSkill/tick">
+          <field name="status" expr="SKILL_FAILURE"/>
+          <field name="is_ok" expr="true"/>
+        </ros_service_send_response>
+      </if>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="failure">
+    <onentry>
+      <ros_service_send_response name="/IsCheckingForPeopleSkill/tick">
+        <field name="status" expr="SKILL_FAILURE"/>
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+</scxml>

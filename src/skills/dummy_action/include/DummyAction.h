@@ -9,9 +9,9 @@
 
 #include <thread>
 #include <rclcpp/rclcpp.hpp>
-#include <bt_interfaces/msg/action_response.hpp>
-#include <bt_interfaces/srv/tick_action.hpp>
-#include <bt_interfaces/srv/halt_action.hpp>
+#include <bt_interfaces_dummy/msg/action_response.hpp>
+#include <bt_interfaces_dummy/srv/tick_action.hpp>
+#include <bt_interfaces_dummy/srv/halt_action.hpp>
 #include <mutex>
 
 #include <yarp/os/Network.h>
@@ -28,10 +28,10 @@ public:
     DummyAction(std::string name, std::string default_status );
     ~DummyAction();
 
-    void tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::TickAction::Request> request,
-               std::shared_ptr<bt_interfaces::srv::TickAction::Response> response);
-    void halt( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::HaltAction::Request> request,
-               [[maybe_unused]] std::shared_ptr<bt_interfaces::srv::HaltAction::Response> response);
+    void tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Request> request,
+               std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Response> response);
+    void halt( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::HaltAction::Request> request,
+               [[maybe_unused]] std::shared_ptr<bt_interfaces_dummy::srv::HaltAction::Response> response);
     bool read(yarp::os::ConnectionReader& connection) override;
 
 private:
@@ -39,7 +39,7 @@ private:
     std::string      m_name;
     std::mutex       m_mutex;
     yarp::os::Port   m_changeStatusPort;
-    rclcpp::Service<bt_interfaces::srv::TickAction>::SharedPtr m_tickService;
-    rclcpp::Service<bt_interfaces::srv::HaltAction>::SharedPtr m_haltService;
+    rclcpp::Service<bt_interfaces_dummy::srv::TickAction>::SharedPtr m_tickService;
+    rclcpp::Service<bt_interfaces_dummy::srv::HaltAction>::SharedPtr m_haltService;
 
 };

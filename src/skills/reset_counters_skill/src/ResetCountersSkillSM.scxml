@@ -1,57 +1,52 @@
-<scxml 
-  initial="idle" 
-  version="1.0" 
-  name="ResetCountersSkillAction"
-  datamodel="ecmascript"
-  xmlns="http://www.w3.org/2005/07/scxml">
-
-  <datamodel>
-    <data id="m_result"/>
-  </datamodel>
-
-  <state id="idle">
-    <transition event="CMD_TICK" target="resetCounters" />
-    <transition event="CMD_HALT" target="sendHalted" /> 
-  </state>
-
-  <state id="resetCounters">
-    <onentry>
-        <send event="TurnBackManagerComponent.ResetCounters.Call"/>
-    </onentry>
-    <transition event="TurnBackManagerComponent.ResetCounters.Return" target="resetCountersResult"> 
-        <assign expr="_event.data.result" location="m_result"/>
-    </transition>
-  </state>
-
-  <state id="resetCountersResult">
-    <transition cond="m_result == 'SUCCESS'" target="sendSuccess" />
-    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
-  </state>
-
-  <state id="sendFailure">
-    <onentry>
-      <send event="TICK_RESPONSE">
-        <param name="result" expr='"FAILURE"'/>
-      </send>
-    </onentry>
-    <transition target="idle" />
-  </state>
-
-  <state id="sendSuccess">
-      <onentry>
-        <send event="TICK_RESPONSE">
-          <param name="result" expr='"SUCCESS"'/>
-        </send>
-      </onentry>
-      <transition target="idle" />
-  </state>
-
-  <state id="sendHalted">
-      <onentry>
-          <send event="HALT_RESPONSE">
-          </send>
-      </onentry>
-      <transition target="idle" />
-  </state>
-
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="ResetCountersSkillAction" datamodel="ecmascript" initial="idle">
+    <datamodel>
+        <data id="m_result" expr="&apos;&apos;"/>
+        <data id="SUCCESS_RESULT" expr="&apos;SUCCESS&apos;"/>
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <data id="SKILL_FAILURE" expr="1"/>
+    </datamodel>
+    <!-- Action skill: tick + halt servers -->
+    <!-- Client for TurnBackManagerComponent.ResetCounters -->
+    <state id="idle">
+        <transition target="resetCounters" event="CMD_TICK">
+            <send event="TurnBackManagerComponent.ResetCounters.Call"/>
+        </transition>
+        <transition target="halted" event="CMD_HALT"/>
+    </state>
+    <state id="resetCounters">
+        <transition target="evaluate" event="TurnBackManagerComponent.ResetCounters.Return">
+            <assign location="m_result" expr="_event.data.result"/>
+        </transition>
+    </state>
+    <state id="evaluate">
+        <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+        <transition target="success"/>
+    </state>
+    <state id="success">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_SUCCESS"/>
+                <param name="is_ok" expr="true"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="failure">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_FAILURE"/>
+                <param name="is_ok" expr="true"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="halted">
+        <onentry>
+            <send event="HALT_RESPONSE">
+                <param name="is_ok" expr="true"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
 </scxml>

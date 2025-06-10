@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml"
+       version="1.0"
+       name="StartServiceSkill"
+       datamodel="ecmascript"
+       initial="idle">
+
+  <datamodel>
+    <data id="result"          expr="''"/>
+    <data id="SKILL_SUCCESS"   expr="0"/>
+    <data id="SKILL_FAILURE"   expr="1"/>
+    <data id="SKILL_RUNNING"   expr="2"/>
+  </datamodel>
+
+  <!-- Tick / halt servers -->
+  <ros_service_server service_name="/StartServiceSkill/tick"  type="bt_interfaces_dummy/TickAction"/>
+  <ros_service_server service_name="/StartServiceSkill/halt"  type="bt_interfaces_dummy/HaltAction"/>
+
+  <!-- Client used -->
+  <ros_service_client service_name="/ManagePeopleDetectorComponent/StartService"
+                      type="manage_service_interfaces/StartService"/>
+
+  <state id="idle">
+    <ros_service_handle_request name="/StartServiceSkill/tick" target="callStart">
+      <ros_service_send_request name="/ManagePeopleDetectorComponent/StartService"/>
+    </ros_service_handle_request>
+    <ros_service_handle_request name="/StartServiceSkill/halt" target="halted"/>
+  </state>
+
+  <state id="callStart">
+    <ros_service_handle_response name="/ManagePeopleDetectorComponent/StartService" target="reply">
+      <assign location="result" expr="_res.result"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="reply">
+    <onentry>
+      <if cond="result == 'SKILL_SUCCESS'">
+        <ros_service_send_response name="/StartServiceSkill/tick">
+          <field name="status" expr="SKILL_SUCCESS"/>
+        </ros_service_send_response>
+      <else/>
+        <ros_service_send_response name="/StartServiceSkill/tick">
+          <field name="status" expr="SKILL_FAILURE"/>
+        </ros_service_send_response>
+      </if>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="halted">
+    <onentry>
+      <ros_service_send_response name="/StartServiceSkill/halt"/>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+</scxml>

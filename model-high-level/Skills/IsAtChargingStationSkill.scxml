@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml
+  xmlns="http://www.w3.org/2005/07/scxml"
+  version="1.0"
+  name="IsAtChargingStationSkill"
+  datamodel="ecmascript"
+  initial="idle">
+
+  <datamodel>
+    <data id="NAV_STATUS_MOVING" type="int8"    expr="2"/>
+    <data id="charging_station"  type="string"  expr="'charging_station'"/>
+    <data id="distance"          type="float32" expr="0.5"/>
+    <data id="m_status"          type="int8"    expr="0"/>
+    <data id="m_is_near"         type="boolean" expr="false"/>
+    <data id="SKILL_SUCCESS"     type="int8"    expr="0"/>
+    <data id="SKILL_FAILURE"     type="int8"    expr="1"/>
+  </datamodel>
+
+  <!-- Condition skill: tick server only -->
+  <ros_service_server service_name="/IsAtChargingStationSkill/tick" type="bt_interfaces_dummy/TickCondition"/>
+
+  <!-- Clients for navigation -->
+  <ros_service_client service_name="/NavigationComponent/GetNavigationStatus" type="navigation_interfaces/GetNavigationStatus"/>
+  <ros_service_client service_name="/NavigationComponent/CheckNearToPoi" type="navigation_interfaces/CheckNearToPoi"/>
+
+  <state id="idle">
+    <ros_service_handle_request name="/IsAtChargingStationSkill/tick" target="getStatus">
+      <ros_service_send_request name="/NavigationComponent/GetNavigationStatus"/>
+    </ros_service_handle_request>
+  </state>
+
+  <state id="getStatus">
+    <ros_service_handle_response name="/NavigationComponent/GetNavigationStatus" target="decideStatus">
+      <assign location="m_status" expr="_res.status"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="decideStatus">
+    <onentry>
+      <if cond="_res.result!='SKILL_SUCCESS'">
+        <ros_service_send_response name="/IsAtChargingStationSkill/tick">
+          <field name="status" expr="SKILL_FAILURE"/>
+          <field name="is_ok" expr="true"/>
+        </ros_service_send_response>
+      <elseif cond="m_status == NAV_STATUS_MOVING"/>
+        <ros_service_send_response name="/IsAtChargingStationSkill/tick">
+          <field name="status" expr="SKILL_FAILURE"/>
+          <field name="is_ok" expr="true"/>
+        </ros_service_send_response>
+      <else/>
+        <ros_service_send_request name="/NavigationComponent/CheckNearToPoi">
+          <field name="poi_name"  expr="charging_station"/>
+          <field name="distance"  expr="distance"/>
+        </ros_service_send_request>
+      </if>
+    </onentry>
+    <transition target="checkProximity"/>
+  </state>
+
+  <state id="checkProximity">
+    <ros_service_handle_response name="/NavigationComponent/CheckNearToPoi" target="finalize">
+      <assign location="m_is_near" expr="_res.is_near"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="finalize">
+    <onentry>
+      <if cond="m_is_near">
+        <ros_service_send_response name="/IsAtChargingStationSkill/tick">
+          <field name="status" expr="SKILL_SUCCESS"/>
+          <field name="is_ok" expr="true"/>
+        </ros_service_send_response>
+      <else/>
+        <ros_service_send_response name="/IsAtChargingStationSkill/tick">
+          <field name="status" expr="SKILL_FAILURE"/>
+          <field name="is_ok" expr="true"/>
+        </ros_service_send_response>
+      </if>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+</scxml>

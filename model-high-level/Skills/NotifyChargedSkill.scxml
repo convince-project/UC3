@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml
+  xmlns="http://www.w3.org/2005/07/scxml"
+  version="1.0"
+  name="NotifyChargedSkill"
+  datamodel="ecmascript"
+  initial="idle">
+
+  <datamodel>
+    <data id="m_result"       type="boolean" expr="false"/>
+    <data id="SUCCESS_RESULT" type="string"   expr="'SUCCESS'"/>
+    <data id="SKILL_SUCCESS"  type="int8"     expr="0"/>
+    <data id="SKILL_FAILURE"  type="int8"     expr="1"/>
+  </datamodel>
+
+  <!-- Action skill: tick + halt servers -->
+  <ros_service_server service_name="/NotifyChargedSkill/tick" type="bt_interfaces/srv/TickAction"/>
+  <ros_service_server service_name="/NotifyChargedSkill/halt" type="bt_interfaces/srv/HaltAction"/>
+
+  <!-- Client for NotifyUserComponent.NotifyUserCharged -->
+  <ros_service_client service_name="/NotifyUserComponent/NotifyUserCharged" type="notify_user_interfaces/srv/NotifyUserCharged"/>
+
+  <state id="idle">
+    <ros_service_handle_request name="/NotifyChargedSkill/tick" target="startNotify">
+      <ros_service_send_request name="/NotifyUserComponent/NotifyUserCharged"/>
+    </ros_service_handle_request>
+    <ros_service_handle_request name="/NotifyChargedSkill/halt" target="halted"/>
+  </state>
+
+  <state id="startNotify">
+    <ros_service_handle_response name="/NotifyUserComponent/NotifyUserCharged" target="evaluate">
+      <assign location="m_result" expr="_res.is_ok"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="evaluate">
+    <transition cond="!m_result" target="failure"/>
+    <transition target="decide"/>
+  </state>
+
+  <state id="decide">
+    <onentry>
+      <ros_service_send_response name="/NotifyChargedSkill/tick">
+        <field name="status" expr="m_result ? SKILL_SUCCESS : SKILL_FAILURE"/>
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="failure">
+    <onentry>
+      <ros_service_send_response name="/NotifyChargedSkill/tick">
+        <field name="status" expr="SKILL_FAILURE"/>
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="halted">
+    <onentry>
+      <ros_service_send_response name="/NotifyChargedSkill/halt">
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+</scxml>

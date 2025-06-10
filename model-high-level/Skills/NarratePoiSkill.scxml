@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml
+  xmlns="http://www.w3.org/2005/07/scxml"
+  version="1.0"
+  name="NarratePoiSkill"
+  datamodel="ecmascript"
+  initial="idle">
+
+  <datamodel>
+    <data id="m_command"      type="string"  expr="'explainRoom'"/>
+    <data id="m_is_done"      type="boolean" expr="false"/>
+    <data id="m_result"       type="string"  expr="''"/>
+    <data id="SUCCESS_RESULT" type="string"  expr="'SUCCESS'"/>
+    <data id="SKILL_SUCCESS"  type="int8"    expr="0"/>
+    <data id="SKILL_FAILURE"  type="int8"    expr="1"/>
+    <data id="SKILL_RUNNING"  type="int8"    expr="2"/>
+  </datamodel>
+  
+  <!-- Action skill: tick + halt servers -->
+  <ros_service_server service_name="/NarratePoiSkill/tick" type="bt_interfaces_dummy/TickAction"/>
+  <ros_service_server service_name="/NarratePoiSkill/halt" type="bt_interfaces_dummy/HaltAction"/>
+
+  <!-- Clients for NarrateComponent -->
+  <ros_service_client service_name="/NarrateComponent/Narrate" type="narrate_interfaces/Narrate"/>
+  <ros_service_client service_name="/NarrateComponent/Stop" type="narrate_interfaces/Stop"/>
+  <ros_service_client service_name="/NarrateComponent/IsDone" type="narrate_interfaces/IsDone"/>
+
+  <state id="idle">
+    <ros_service_handle_request name="/NarratePoiSkill/tick" target="start">
+      <ros_service_send_request name="/NarrateComponent/Narrate">
+        <field name="command" expr="m_command"/>
+      </ros_service_send_request>
+    </ros_service_handle_request>
+    <ros_service_handle_request name="/NarratePoiSkill/halt" target="halted"/>
+  </state>
+
+  <state id="start">
+    <ros_service_handle_response name="/NarrateComponent/Narrate" target="evaluateStart">
+      <assign location="m_result" expr="_res.result"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="evaluateStart">
+    <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+    <transition target="running"/>
+  </state>
+
+  <state id="running">
+    <onentry>
+      <ros_service_send_response name="/NarratePoiSkill/tick">
+        <field name="status" expr="SKILL_RUNNING"/>
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
+    </onentry>
+    <ros_service_handle_request name="/NarratePoiSkill/tick" target="check">
+      <ros_service_send_request name="/NarrateComponent/IsDone"/>
+    </ros_service_handle_request>
+    <ros_service_handle_request name="/NarratePoiSkill/halt" target="stop">
+      <ros_service_send_request name="/NarrateComponent/Stop"/>
+    </ros_service_handle_request>
+  </state>
+
+  <state id="check">
+    <ros_service_handle_response name="/NarrateComponent/IsDone" target="evaluateCheck">
+      <assign location="m_is_done" expr="_res.is_done"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="evaluateCheck">
+    <transition cond="m_is_done" target="success"/>
+    <transition target="running"/>
+  </state>
+
+  <state id="stop">
+    <ros_service_handle_response name="/NarrateComponent/Stop" target="halted"/>
+  </state>
+
+  <state id="success">
+    <onentry>
+      <ros_service_send_response name="/NarratePoiSkill/tick">
+        <field name="status" expr="SKILL_SUCCESS"/>
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="failure">
+    <onentry>
+      <ros_service_send_response name="/NarratePoiSkill/tick">
+        <field name="status" expr="SKILL_FAILURE"/>
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="halted">
+    <onentry>
+      <ros_service_send_response name="/NarratePoiSkill/halt">
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+</scxml>

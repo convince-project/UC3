@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml"
+       version="1.0"
+       name="StartTourTimerSkill"
+       datamodel="ecmascript"
+       initial="idle">
+
+  <datamodel>
+    <data id="result"          expr="''"/>
+    <data id="SKILL_SUCCESS"   expr="0"/>
+    <data id="SKILL_FAILURE"   expr="1"/>
+    <data id="FLAG_WARN" expr="'SaidWarningFlag'"/>
+    <data id="FLAG_EXC"  expr="'SaidExceededFlag'"/>
+  </datamodel>
+
+  <ros_service_server service_name="/StartTourTimerSkill/tick"  type="bt_interfaces_dummy/TickAction"/>
+  <ros_service_server service_name="/StartTourTimerSkill/halt"  type="bt_interfaces_dummy/HaltAction"/>
+
+  <ros_service_client service_name="/TimeComponent/StartTourTimer"      type="time_interfaces/StartTourTimer"/>
+  <ros_service_client service_name="/BlackboardComponent/SetInt"        type="blackboard_interfaces/SetInt"/>
+
+  <state id="idle">
+    <ros_service_handle_request name="/StartTourTimerSkill/tick" target="startTimer">
+      <ros_service_send_request name="/TimeComponent/StartTourTimer"/>
+    </ros_service_handle_request>
+    <ros_service_handle_request name="/StartTourTimerSkill/halt" target="halted"/>
+  </state>
+
+  <state id="startTimer">
+    <ros_service_handle_response name="/TimeComponent/StartTourTimer" target="afterTimer">
+      <assign location="result" expr="_res.result"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="afterTimer">
+    <transition cond="result == 'SKILL_SUCCESS'" target="resetWarn"/>
+    <transition cond="result != 'SKILL_SUCCESS'" target="failReply"/>
+  </state>
+
+  <state id="resetWarn">
+    <onentry>
+      <ros_service_send_request name="/BlackboardComponent/SetInt">
+        <field name="field_name" expr="FLAG_WARN"/>
+        <field name="value"      expr="0"/>
+      </ros_service_send_request>
+    </onentry>
+    <ros_service_handle_response name="/BlackboardComponent/SetInt" target="resetExc"/>
+  </state>
+
+  <state id="resetExc">
+    <onentry>
+      <ros_service_send_request name="/BlackboardComponent/SetInt">
+        <field name="field_name" expr="FLAG_EXC"/>
+        <field name="value"      expr="0"/>
+      </ros_service_send_request>
+    </onentry>
+    <ros_service_handle_response name="/BlackboardComponent/SetInt" target="checkResetResult">
+      <assign location="result" expr="_res.result"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="checkResetResult">
+    <transition cond="result == 'SKILL_SUCCESS'" target="successReply"/>
+    <transition cond="result != 'SKILL_SUCCESS'" target="failReply"/>
+  </state>
+
+  <state id="successReply">
+    <onentry>
+      <ros_service_send_response name="/StartTourTimerSkill/tick">
+        <field name="status" expr="SKILL_SUCCESS"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="failReply">
+    <onentry>
+      <ros_service_send_response name="/StartTourTimerSkill/tick">
+        <field name="status" expr="SKILL_FAILURE"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="halted">
+    <onentry>
+      <ros_service_send_response name="/StartTourTimerSkill/halt"/>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+</scxml>

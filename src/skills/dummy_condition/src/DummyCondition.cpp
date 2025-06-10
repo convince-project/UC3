@@ -20,7 +20,7 @@ DummyCondition::DummyCondition(std::string name, std::string default_status) : N
     m_changeStatusPort.setReader(*this);
 
     RCLCPP_DEBUG(this->get_logger(), "%s::start",m_name.c_str());
-    auto message = bt_interfaces::msg::ConditionResponse();
+    auto message = bt_interfaces_dummy::msg::ConditionResponse();
     if(default_status=="SUCCESS")
     {
         m_status = message.SKILL_SUCCESS;
@@ -29,17 +29,17 @@ DummyCondition::DummyCondition(std::string name, std::string default_status) : N
     {
         m_status = message.SKILL_FAILURE;
     }
-    m_tickService = this->create_service<bt_interfaces::srv::TickCondition>(m_name + "Skill/tick",  std::bind(&DummyCondition::tick,
+    m_tickService = this->create_service<bt_interfaces_dummy::srv::TickCondition>(m_name + "Skill/tick",  std::bind(&DummyCondition::tick,
                                                                                                                  this,
                                                                                                                  std::placeholders::_1,
                                                                                                                  std::placeholders::_2));
 }
 
-void DummyCondition::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::TickCondition::Request> request,
-                                       std::shared_ptr<bt_interfaces::srv::TickCondition::Response>      response)
+void DummyCondition::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Request> request,
+                                       std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Response>      response)
 {
     RCLCPP_DEBUG(this->get_logger(), "%s::request_ack",m_name.c_str());
-    response->status.status = m_status;
+    response->status = m_status;
     response->is_ok = true;
 }
 
@@ -56,7 +56,7 @@ bool DummyCondition::read(yarp::os::ConnectionReader& connection)
     if(in.get(0).isString())
     {
         std::string cmd = in.get(0).asString();
-        auto message = bt_interfaces::msg::ConditionResponse();
+        auto message = bt_interfaces_dummy::msg::ConditionResponse();
         if(cmd=="help")
         {
             out.addVocab32("many");

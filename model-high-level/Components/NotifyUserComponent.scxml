@@ -1,56 +1,71 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<scxml
-  version="1.0"
-  xmlns="..."
-  datamodel="ecmascript"
-  name="NotifyUserComponent"
-  initial="idle">
+<scxml xmlns="http://www.w3.org/2005/07/scxml"
+       version="1.0"
+       name="NotifyUserComponent"
+       initial="idle"
+       datamodel="ecmascript">
 
-	<datamodel>
-    <data id="alarm_active" type="bool" expr="false" />
-	</datamodel>
+  <datamodel>
+    <!-- whether the periodic alarm is active -->
+    <data id="alarmActive" type="boolean" expr="false"/>
+  </datamodel>
 
-  <ros_service_server service_name="/NotifyUserComponent/StartAlarm" type="notify_user_interfaces_dummy/StartAlarm"/>
-  <!-- <ros_service_server service_name="/NotifyUserComponent/StopAlarm" type="notify_user_interfaces_dummy/StopAlarm"/> -->
-  <ros_topic_publisher topic="/NotifyUserComponent/alarm" type="std_msgs/Bool" />
+  <!-- ROS services -->
+  <ros_service_server service_name="/NotifyUserComponent/StartAlarm" type="notify_user_interfaces/srv/StartAlarm"/>
+  <ros_service_server service_name="/NotifyUserComponent/StopAlarm" type="notify_user_interfaces/srv/StopAlarm"/>
+  <ros_service_server service_name="/NotifyUserComponent/NotifyUserCharged" type="notify_user_interfaces/srv/NotifyUserCharged"/>
+
+  <!-- timer to drive the 2 Hz alarm prints -->
+  <ros_time_rate name="alarm_timer" rate_hz="2.0"/>
 
   <state id="idle">
-    <onentry>
-      <ros_topic_publish name="/NotifyUserComponent/alarm">
-        <field name="data" expr="false" />
-      </ros_topic_publish>
-    </onentry>
-    <ros_service_handle_request name="/NotifyUserComponent/StartAlarm" target="active">
-      <assign location="alarm_active" expr="true"/>
-      <ros_service_send_response name="/NotifyUserComponent/StartAlarm">
-        <field name="is_ok" expr="true"/>
-      </ros_service_send_response>
-    </ros_service_handle_request>
-    <!-- <ros_service_handle_request name="/NotifyUserComponent/StopAlarm" target="idle">
-      <assign location="alarm_active" expr="false"/>
-      <ros_service_send_response name="/NotifyUserComponent/StopAlarm">
-        <field name="is_ok" expr="true"/>
-      </ros_service_send_response>
-    </ros_service_handle_request> -->
+    <!-- start the alarm -->
+    <ros_service_handle_request name="/NotifyUserComponent/StartAlarm" target="HandleStartAlarm"/>
+    <!-- stop the alarm -->
+
+    <ros_service_handle_request name="/NotifyUserComponent/StopAlarm" target="HandleStopAlarm"/>
+    <!-- notify that user is charged -->
+    <ros_service_handle_request name="/NotifyUserComponent/NotifyUserCharged" target="HandleNotifyUserCharged"/>
+    <!-- if alarm is active, fire every tick -->
+    <transition event="alarm_timer.tick" cond="alarmActive" target="AlarmTick"/>
   </state>
 
-  <state id="active">
+  <state id="HandleStartAlarm">
     <onentry>
-      <ros_topic_publish name="/NotifyUserComponent/alarm">
-        <field name="data" expr="true" />
-      </ros_topic_publish>
-    </onentry>
-    <!-- <ros_service_handle_request name="/NotifyUserComponent/StopAlarm" target="idle">
-      <assign location="alarm_active" expr="false"/>
-      <ros_service_send_response name="/NotifyUserComponent/StopAlarm">
-        <field name="is_ok" expr="true"/>
-      </ros_service_send_response>
-    </ros_service_handle_request> -->
-    <ros_service_handle_request name="/NotifyUserComponent/StartAlarm" target="active">
+      <assign location="alarmActive" expr="true"/>
       <ros_service_send_response name="/NotifyUserComponent/StartAlarm">
         <field name="is_ok" expr="true"/>
       </ros_service_send_response>
-    </ros_service_handle_request>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="HandleStopAlarm">
+    <onentry>
+      <assign location="alarmActive" expr="false"/>
+      <ros_service_send_response name="/NotifyUserComponent/StopAlarm">
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="HandleNotifyUserCharged">
+    <onentry>
+      <!-- ensure alarm is stopped -->
+      <assign location="alarmActive" expr="false"/>
+      <ros_service_send_response name="/NotifyUserComponent/NotifyUserCharged">
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="AlarmTick">
+    <onentry>
+      <log label="info" expr="'alarm'"/>
+    </onentry>
+    <transition target="idle"/>
   </state>
 
 </scxml>

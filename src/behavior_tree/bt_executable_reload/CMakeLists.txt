@@ -4,13 +4,13 @@ project(bt_executable_reload)
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
-set (dependencies bt_nodes bt_interfaces rclcpp behaviortree_cpp_v3)
+set (dependencies bt_nodes bt_interfaces_dummy rclcpp behaviortree_cpp_v3)
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(bt_nodes REQUIRED)
 find_package(Boost COMPONENTS coroutine QUIET)
 find_package(rclcpp REQUIRED)
-find_package(bt_interfaces REQUIRED)
+find_package(bt_interfaces_dummy REQUIRED)
 find_package(behaviortree_cpp_v3 REQUIRED)
 #find_package(ZeroMQ)
 
@@ -20,7 +20,7 @@ ament_export_include_directories(include)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
-ament_target_dependencies(${PROJECT_NAME} ${dependencies} bt_interfaces)
+ament_target_dependencies(${PROJECT_NAME} ${dependencies} bt_interfaces_dummy)
 # configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../BT/simple_bt.xml simple_bt.xml COPYONLY)
 
 

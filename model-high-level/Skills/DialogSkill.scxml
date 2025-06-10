@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml
+  xmlns="http://www.w3.org/2005/07/scxml"
+  version="1.0"
+  name="DialogSkill"
+  datamodel="ecmascript"
+  initial="idle">
+
+  <datamodel>
+    <data id="STATUS_DONE"    type="int16"  expr="2"/>
+    <data id="m_language"     type="string" expr="''"/>
+    <data id="m_state"        type="int16"  expr="0"/>
+    <data id="m_error_count"  type="int8"   expr="0"/>
+    <data id="MAX_RETRIES"    type="int8"   expr="3"/>
+    <data id="SKILL_SUCCESS"  type="int8"   expr="0"/>
+    <data id="SKILL_FAILURE"  type="int8"   expr="1"/>
+    <data id="SKILL_RUNNING"  type="int8"   expr="2"/>
+  </datamodel>
+
+
+  <!-- ROS2 service servers for tick and halt -->
+  <ros_service_server service_name="/DialogSkill/tick" type="bt_interfaces_dummy/TickAction"/>
+  <ros_service_server service_name="/DialogSkill/halt" type="bt_interfaces_dummy/HaltAction"/>
+
+  <!-- ROS2 service clients - allineati con dialog_interfaces -->
+  <ros_service_client service_name="/SchedulerComponent/GetCurrentLanguage" type="scheduler_interfaces/GetCurrentLanguage"/>
+  <ros_service_client service_name="/DialogComponent/SetLanguage" type="dialog_interfaces/SetLanguage"/>
+  <ros_service_client service_name="/DialogComponent/EnableDialog" type="dialog_interfaces/EnableDialog"/>
+  <ros_service_client service_name="/DialogComponent/GetState" type="dialog_interfaces/GetState"/>
+
+  <state id="idle">
+    <onentry>
+      <!-- Reset error counter on new execution -->
+      <assign location="m_error_count" expr="0"/>
+    </onentry>
+    <!-- tick request -->
+    <ros_service_handle_request name="/DialogSkill/tick" target="getLanguage">
+      <ros_service_send_request name="/SchedulerComponent/GetCurrentLanguage"/>
+    </ros_service_handle_request>
+    <!-- halt request -->
+    <ros_service_handle_request name="/DialogSkill/halt" target="disableDialog">
+      <ros_service_send_request name="/DialogComponent/EnableDialog"/>
+    </ros_service_handle_request>
+  </state>
+
+  <state id="getLanguage">
+    <!-- Success case -->
+    <ros_service_handle_response name="/SchedulerComponent/GetCurrentLanguage" target="setLanguage">
+      <assign location="m_language" expr="_res.language"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="setLanguage">
+    <onentry>
+      <ros_service_send_request name="/DialogComponent/SetLanguage"/>
+    </onentry>
+    <!-- Procede automaticamente dopo aver inviato la richiesta -->
+    <ros_service_handle_response name="/DialogComponent/SetLanguage" target="enableDialog"/>
+  </state>
+
+  <state id="enableDialog">
+    <onentry>
+      <ros_service_send_request name="/DialogComponent/EnableDialog"/>
+    </onentry>
+    <!-- Procede a running dopo aver abilitato il dialogo -->
+    <ros_service_handle_response name="/DialogComponent/EnableDialog" target="running"/>
+  </state>
+
+  <state id="running">
+    <onentry>
+      <ros_service_send_response name="/DialogSkill/tick">
+        <field name="status" expr="SKILL_RUNNING"/>
+      </ros_service_send_response>
+    </onentry>
+    <!-- Poll for completion -->
+    <ros_service_handle_request name="/DialogSkill/tick" target="checkState">
+      <ros_service_send_request name="/DialogComponent/GetState"/>
+    </ros_service_handle_request>
+    <!-- Allow halt while running -->
+    <ros_service_handle_request name="/DialogSkill/halt" target="disableDialog">
+      <ros_service_send_request name="/DialogComponent/EnableDialog"/>
+    </ros_service_handle_request>
+  </state>
+
+  <state id="checkState">
+    <!-- Riceve la risposta con il campo 'state' come int16 -->
+    <ros_service_handle_response name="/DialogComponent/GetState" target="decide">
+      <assign location="m_state" expr="_res.state"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="decide">
+    <onentry>
+      <if cond="m_state == STATUS_DONE">
+        <ros_service_send_response name="/DialogSkill/tick">
+          <field name="status" expr="SKILL_SUCCESS"/>
+        </ros_service_send_response>
+      <else/>
+        <ros_service_send_response name="/DialogSkill/tick">
+          <field name="status" expr="SKILL_RUNNING"/>
+        </ros_service_send_response>
+      </if>
+    </onentry>
+    <transition cond="m_state == STATUS_DONE" target="idle"/>
+    <transition cond="m_state != STATUS_DONE" target="running"/>
+  </state>
+
+  <state id="disableDialog">
+    <onentry>
+      <ros_service_send_request name="/DialogComponent/EnableDialog"/>
+    </onentry>
+    <ros_service_handle_response name="/DialogComponent/EnableDialog" target="halted"/>
+  </state>
+
+  <state id="halted">
+    <onentry>
+      <ros_service_send_response name="/DialogSkill/halt"/>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+</scxml>

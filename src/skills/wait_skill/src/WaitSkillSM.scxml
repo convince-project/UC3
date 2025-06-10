@@ -1,31 +1,44 @@
-<scxml 
-  initial="idle" 
-  version="1.0" 
-  name="WaitSkillAction"
-  datamodel="ecmascript"
-  xmlns="http://www.w3.org/2005/07/scxml">
-
+<scxml version="1.0" xmlns="http://www.w3.org/2005/07/scxml" datamodel="ecmascript" name="WaitSkillAction" initial="idle">
+    <datamodel>
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <data id="SKILL_FAILURE" expr="1"/>
+        <data id="SKILL_RUNNING" expr="2"/>
+        <data id="wait_time_ms" expr="5000"/>
+        <data id="start_time" expr="0"/>
+    </datamodel>
+    <!-- WaitSkill is a server for tick from the ROS2Action plugin-->
+    <!-- WaitSkill is a server for halt from the ROS2Action plugin-->
     <state id="idle">
-        <transition event="CMD_TICK" target="sendRunning" />
-        <transition event="CMD_HALT" target="sendHalted" /> 
+        <transition target="startWait" event="CMD_TICK"/>
+        <transition target="halted" event="CMD_HALT"/>
     </state>
-
-    <state id="sendRunning">
+    <state id="startWait">
         <onentry>
-          <send event="TICK_RESPONSE">
-            <param name="result" expr='"RUNNING"'/>
-          </send>
+            <assign location="start_time" expr="Date.now()"/>
         </onentry>
-        <transition target="idle" />
+        <transition target="checkWait" event="CMD_TICK"/>
+        <transition target="halted" event="CMD_HALT"/>
     </state>
-
-    <state id="sendHalted">
+    <state id="checkWait">
         <onentry>
-            <send event="HALT_RESPONSE">
-            </send>
+            <if cond="(Date.now() - start_time) &gt;= wait_time_ms">
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_SUCCESS"/>
+                    <param name="is_ok" expr="true"/>
+                </send>
+                <else/>
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_RUNNING"/>
+                    <param name="is_ok" expr="true"/>
+                </send>
+            </if>
         </onentry>
-        <transition target="idle" />
+        <transition target="idle"/>
     </state>
-
-
+    <state id="halted">
+        <onentry>
+            <send event="HALT_RESPONSE"/>
+        </onentry>
+        <transition target="idle"/>
+    </state>
 </scxml>

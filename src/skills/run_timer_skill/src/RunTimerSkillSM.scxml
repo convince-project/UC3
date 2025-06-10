@@ -1,90 +1,58 @@
-<scxml 
-  initial="idle" 
-  version="1.0" 
-  name="RunTimerSkillAction"
-  datamodel="ecmascript"
-  xmlns="http://www.w3.org/2005/07/scxml">
-
-  <datamodel>
-    <data id="m_is_active"/>
-    <data id="m_result"/>
-  </datamodel>
-
-  <state id="idle">
-      <transition event="CMD_TICK" target="getStatus" />
-      <transition event="CMD_HALT" target="sendHalted" /> 
-  </state>
-
-  <state id="getStatus">
-    <onentry>
-        <send event="TimerCheckForPeopleComponent.IsTimerActive.Call">
-        </send>
-    </onentry>
-    <transition event="TimerCheckForPeopleComponent.IsTimerActive.Return" target="getStatusResult">
-      <assign expr="_event.data.result" location="m_result"/>
-      <assign expr="_event.data.is_active" location="m_is_active"/>
-    </transition>
-  </state>
-
-  <state id="getStatusResult">
-    <transition cond="m_result == 'SUCCESS'" target="checkStatus" />
-    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
-  </state>
-
-  <state id="checkStatus">
-    <transition cond="m_is_active" target="sendRunning" />
-    <transition target="start" />
-  </state>
-
-  <state id="start">
-      <onentry>
-          <send event="TimerCheckForPeopleComponent.StartTimer.Call">
-          </send>
-      </onentry>
-      <transition event="TimerCheckForPeopleComponent.StartTimer.Return" target="startResult">
-        <assign expr="_event.data.result" location="m_result"/>
-      </transition>
-  </state>
-
-  <state id="startResult">
-    <transition cond="m_result == 'SUCCESS'" target="sendSuccess" />
-    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
-  </state>
-
-  <state id="sendSuccess">
-    <onentry>
-        <send event="TICK_RESPONSE">
-          <param name="result" expr='"SUCCESS"'/> 
-        </send>
-    </onentry>
-    <transition target="idle" />
-
-  </state>
-
-  <state id="sendHalted">
-      <onentry>
-          <send event="HALT_RESPONSE">
-          </send>
-      </onentry>
-      <transition target="idle" />
-  </state>
-
-  <state id="sendFailure">
-    <onentry>
-      <send event="TICK_RESPONSE">
-        <param name="result" expr='"FAILURE"'/>
-      </send>
-    </onentry>
-    <transition target="idle" />
-  </state>
-
-  <state id="sendRunning">
-    <onentry>
-      <send event="TICK_RESPONSE">
-        <param name="result" expr='"RUNNING"'/>
-      </send>
-    </onentry>
-    <transition target="idle" />
-  </state>
-
+<scxml version="1.0" xmlns="http://www.w3.org/2005/07/scxml" datamodel="ecmascript" name="RunTimerSkillCondition" initial="idle">
+    <datamodel>
+        <data id="timer_active" expr="false"/>
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <data id="SKILL_FAILURE" expr="1"/>
+        <data id="SKILL_RUNNING" expr="2"/>
+    </datamodel>
+    <!-- RunTimerSkill is a server for tick from the ROS2Action plugin-->
+    <!-- RunTimerSkill is a server for halt from the ROS2Action plugin-->
+    <!-- <ros_service_server service_name="/RunTimerSkill/halt" type ="bt_interface/HaltAction"/> -->
+    <!-- RunTimerSkill is a client for IsTimerActive from the TimerCheckForPeopleComponent -->
+    <!-- RunTimerSkill is a client for StartTimer from the TimerCheckForPeopleComponent -->
+    <state id="idle">
+        <transition target="isTimerActive" event="CMD_TICK">
+            <send event="TimerCheckForPeopleComponent.IsTimerActive.Call"/>
+        </transition>
+        <!-- <ros_service_handle_request name="/RunTimerSkill/halt" target="idle">
+            <ros_service_send_response name="/RunTimerSkill/halt"/>
+        </ros_service_handle_request> -->
+    </state>
+    <state id="isTimerActive">
+        <transition cond="(_event.data.is_ok) == false " target="idle" event="TimerCheckForPeopleComponent.IsTimerActive.Return">
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_FAILURE"/>
+                <param name="is_ok" expr="true"/>
+            </send>
+        </transition>
+        <transition cond="_event.data.is_active " target="idle" event="TimerCheckForPeopleComponent.IsTimerActive.Return">
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_RUNNING"/>
+                <param name="is_ok" expr="true"/>
+            </send>
+        </transition>
+        <transition cond="(_event.data.is_active) == false" target="startTimer" event="TimerCheckForPeopleComponent.IsTimerActive.Return">
+            <send event="TimerCheckForPeopleComponent.StartTimer.Call"/>
+        </transition>
+        <!-- <ros_service_handle_request name="/RunTimerSkill/halt" target="idle">
+            <ros_service_send_response name="/RunTimerSkill/halt"/>
+        </ros_service_handle_request> -->
+    </state>
+    <state id="startTimer">
+        <transition cond="_event.data.is_ok" target="idle" event="TimerCheckForPeopleComponent.StartTimer.Return">
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_SUCCESS"/>
+                <param name="is_ok" expr="true"/>
+            </send>
+        </transition>
+        <transition cond="(_event.data.is_ok) == false" target="idle" event="TimerCheckForPeopleComponent.StartTimer.Return">
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_FAILURE"/>
+                <param name="is_ok" expr="true"/>
+            </send>
+        </transition>
+        <!-- <ros_service_handle_request name="/RunTimerSkill/halt" target="idle">
+            <ros_service_send_response name="/RunTimerSkill/halt"/>
+        </ros_service_handle_request> -->
+    </state>
 </scxml>

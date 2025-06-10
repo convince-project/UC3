@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml"
+       version="1.0"
+       name="LogComponent"
+       initial="idle"
+       datamodel="ecmascript">
+
+  <datamodel>
+    <!-- temporary storage for incoming text -->
+    <data id="temp_text" type="string" expr="''"/>
+  </datamodel>
+
+  <!-- ROS interfaces -->
+  <ros_service_server service_name="/LogComponent/AddToLog" type="log_interfaces::srv::AddToLog"/>
+  <ros_topic_subscriber topic_name="/LogComponent/add_to_log" type="std_msgs/String"/>
+  <ros_topic_publisher topic_name="/LogComponent/read_log"  type="std_msgs/String"/>
+
+  <state id="idle">
+    <!-- service request to add a line to the log -->
+    <ros_service_handle_request name="/LogComponent/AddToLog" target="HandleAddToLog">
+      <assign location="temp_text" expr="_req.text"/>
+    </ros_service_handle_request>
+
+    <!-- incoming topic to add a line to the log -->
+    <ros_topic_subscribe_handle_event name="/LogComponent/add_to_log" target="HandleTopicLog">
+      <assign location="temp_text" expr="_event.data.data"/>
+    </ros_topic_subscribe_handle_event>
+  </state>
+
+  <state id="HandleAddToLog">
+    <onentry>
+      <!-- respond to the service -->
+      <ros_service_send_response name="/LogComponent/AddToLog">
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
+      <!-- publish the timestamped log line -->
+      <ros_topic_publish name="/LogComponent/read_log">
+        <field name="data" expr="(new Date()).toISOString() + ' ' + temp_text"/>
+      </ros_topic_publish>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="HandleTopicLog">
+    <onentry>
+      <!-- publish the timestamped log line -->
+      <ros_topic_publish name="/LogComponent/read_log">
+        <field name="data" expr="(new Date()).toISOString() + ' ' + temp_text"/>
+      </ros_topic_publish>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+</scxml>

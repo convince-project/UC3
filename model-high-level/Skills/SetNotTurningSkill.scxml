@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml
+  xmlns="http://www.w3.org/2005/07/scxml"
+  version="1.0"
+  name="SetNotTurningSkill"
+  datamodel="ecmascript"
+  initial="idle">
+
+  <datamodel>
+    <data id="FIELD_NAME" expr="'turnBackState'"/>
+    <data id="VALUE_STR"  expr="'not_turning'"/>
+    <data id="SKILL_SUCCESS" type="int8" expr="0"/>
+    <data id="SKILL_FAILURE" type="int8" expr="1"/>
+    <data id="SKILL_RUNNING" type="int8" expr="2"/>
+  </datamodel>
+
+  <ros_service_server service_name="/SetNotTurningSkill/tick"  type="bt_interfaces_dummy/TickAction"/>
+  <ros_service_server service_name="/SetNotTurningSkill/halt"  type="bt_interfaces_dummy/HaltAction"/>
+
+  <ros_service_client service_name="/BlackboardComponent/SetString" type="blackboard_interfaces/SetString"/>
+
+  <state id="idle">
+    <ros_service_handle_request name="/SetNotTurningSkill/tick" target="setString">
+      <ros_service_send_request name="/BlackboardComponent/SetString">
+        <field name="field_name" expr="FIELD_NAME"/>
+        <field name="value"      expr="VALUE_STR"/>
+      </ros_service_send_request>
+    </ros_service_handle_request>
+    <ros_service_handle_request name="/SetNotTurningSkill/halt" target="halted"/>
+  </state>
+
+  <state id="setString">
+    <ros_service_handle_response name="/BlackboardComponent/SetString" target="reply"/>
+    <ros_service_handle_request name="/SetNotTurningSkill/halt" target="halted"/>
+  </state>
+
+  <state id="reply">
+    <onentry>
+      <ros_service_send_response name="/SetNotTurningSkill/tick">
+        <field name="status" expr="SKILL_SUCCESS"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="halted">
+    <onentry>
+      <ros_service_send_response name="/SetNotTurningSkill/halt"/>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+</scxml>

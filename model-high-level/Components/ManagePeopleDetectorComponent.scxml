@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml"
+       version="1.0"
+       initial="idle"
+       name="ManagePeopleDetectorComponent"
+       datamodel="ecmascript">
+
+  <datamodel>
+    <!-- no internal variables needed for this simple start/stop service handling -->
+  </datamodel>
+
+  <!-- expose the two ROS services -->
+  <ros_service_server service_name="/ManagePeopleDetectorComponent/StartService" type="manage_service_interfaces/StartService"/>
+  <ros_service_server service_name="/ManagePeopleDetectorComponent/StopService" type="manage_service_interfaces/StopService"/>
+
+  <state id="idle">
+    <!-- handle StartService requests -->
+    <ros_service_handle_request name="/ManagePeopleDetectorComponent/StartService" target="HandleStart"/>
+    <!-- handle StopService requests -->
+    <ros_service_handle_request name="/ManagePeopleDetectorComponent/StopService" target="HandleStop"/>
+  </state>
+
+  <state id="HandleStart">
+    <onentry>
+      <!-- immediately reply OK -->
+      <ros_service_send_response name="/ManagePeopleDetectorComponent/StartService">
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="HandleStop">
+    <onentry>
+      <!-- immediately reply OK -->
+      <ros_service_send_response name="/ManagePeopleDetectorComponent/StopService">
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+</scxml>

@@ -1,15 +1,10 @@
 #include <QCoreApplication>
 #include <QScxmlStateMachine>
 #include <QDebug>
-
-
 #include <iostream>
-#include "VisitorsFollowingRobotSkill.h"
-
 #include <thread>
 #include <chrono>
-
-
+#include "VisitorsFollowingRobotSkill.h"
 
 int main(int argc, char *argv[])
 {
@@ -20,6 +15,5 @@ int main(int argc, char *argv[])
   int ret=app.exec();
   
   return ret;
-  
 }
 

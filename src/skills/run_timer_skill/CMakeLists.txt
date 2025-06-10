@@ -9,7 +9,9 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(bt_interfaces REQUIRED)
+find_package(rclcpp_action REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(bt_interfaces_dummy REQUIRED)
 
 find_package(timer_check_for_people_interfaces REQUIRED)
 find_package(Qt6 COMPONENTS Core Scxml StateMachine  REQUIRED)
@@ -26,8 +28,10 @@ endif()
 # find_package(<dependency> REQUIRED)
 
 ament_target_dependencies(${PROJECT_NAME} 
-  bt_interfaces 
+  std_msgs
+  bt_interfaces_dummy 
   rclcpp 
+  rclcpp_action 
   timer_check_for_people_interfaces 
   
   )

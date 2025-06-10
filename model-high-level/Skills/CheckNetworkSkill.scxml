@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml
+  xmlns="http://www.w3.org/2005/07/scxml"
+  version="1.0"
+  name="CheckNetworkSkill"
+  datamodel="ecmascript"
+  initial="idle">
+
+  <datamodel>
+    <!-- Network status variable - initialized to false (no network) -->
+    <data id="network_status" type="boolean" expr="false"/>
+    <!-- Provided by C++ DataModel -->
+    <data id="SKILL_SUCCESS" type="int8" expr="0"/>
+    <data id="SKILL_FAILURE" type="int8" expr="1"/>
+  </datamodel>
+
+  <!-- Condition skill: TickCondition server -->
+  <ros_service_server service_name="/CheckNetworkSkill/tick" type="bt_interfaces_dummy/TickCondition"/>
+
+  <!-- Add network status subscriber -->
+  <ros_topic_subscriber topic="/NetworkComponent/status" type="network_interfaces/NetworkStatus"/>
+
+  <state id="idle">
+    <!-- Update network status when message arrives -->
+    <ros_topic_callback name="/NetworkComponent/status" target="idle">
+      <assign location="network_status" expr="_msg.data"/>
+    </ros_topic_callback>
+    
+    <ros_service_handle_request name="/CheckNetworkSkill/tick" target="levelCheck"/>
+  </state>
+
+  <state id="levelCheck">
+    <onentry>
+      <if cond="network_status">
+        <ros_service_send_response name="/CheckNetworkSkill/tick">
+          <field name="status" expr="SKILL_SUCCESS"/>
+        </ros_service_send_response>
+      <else/>
+        <ros_service_send_response name="/CheckNetworkSkill/tick">
+          <field name="status" expr="SKILL_FAILURE"/>
+        </ros_service_send_response>
+      </if>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+</scxml>

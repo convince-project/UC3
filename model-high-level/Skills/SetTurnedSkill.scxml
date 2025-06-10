@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml
+  xmlns="http://www.w3.org/2005/07/scxml"
+  version="1.0"
+  name="SetTurnedSkill"
+  datamodel="ecmascript"
+  initial="idle">
+
+  <datamodel>
+    <data id="FIELD_NAME" expr="'turnBackState'"/>
+    <data id="VALUE_STR"  expr="'turned'"/>
+    <data id="result"     expr="''"/>
+    <data id="SKILL_SUCCESS" type="int8" expr="0"/>
+    <data id="SKILL_FAILURE" type="int8" expr="1"/>
+    <data id="SKILL_RUNNING" type="int8" expr="2"/>
+  </datamodel>
+
+  <ros_service_server service_name="/SetTurnedSkill/tick"  type="bt_interfaces_dummy/TickAction"/>
+  <ros_service_server service_name="/SetTurnedSkill/halt"  type="bt_interfaces_dummy/HaltAction"/>
+
+  <ros_service_client service_name="/BlackboardComponent/SetString" type="blackboard_interfaces/SetString"/>
+  <ros_service_client service_name="/TurnBackManagerComponent/IncreaseTurnBacksCounter" type="turn_back_manager_interfaces/IncreaseTurnBacksCounter"/>
+
+  <state id="idle">
+    <ros_service_handle_request name="/SetTurnedSkill/tick" target="setString">
+      <ros_service_send_request name="/BlackboardComponent/SetString">
+        <field name="field_name" expr="FIELD_NAME"/>
+        <field name="value"      expr="VALUE_STR"/>
+      </ros_service_send_request>
+    </ros_service_handle_request>
+    <ros_service_handle_request name="/SetTurnedSkill/halt" target="halted"/>
+  </state>
+
+  <state id="setString">
+    <ros_service_handle_response name="/BlackboardComponent/SetString" target="afterSet">
+      <assign location="result" expr="_res.result"/>
+    </ros_service_handle_response>
+    <!-- Aggiungere gestione halt -->
+    <ros_service_handle_request name="/SetTurnedSkill/halt" target="halted"/>
+  </state>
+
+  <state id="afterSet">
+    <onentry>
+      <if cond="result=='SKILL_SUCCESS'">
+        <ros_service_send_request name="/TurnBackManagerComponent/IncreaseTurnBacksCounter"/>
+      <else/>
+        <ros_service_send_response name="/SetTurnedSkill/tick">
+          <field name="status" expr="SKILL_FAILURE"/>
+        </ros_service_send_response>
+      </if>
+    </onentry>
+    <transition cond="result=='SKILL_SUCCESS'" target="waitInc"/>
+    <transition cond="result!='SKILL_SUCCESS'" target="idle"/>
+    <!-- Aggiungere gestione halt -->
+    <ros_service_handle_request name="/SetTurnedSkill/halt" target="halted"/>
+  </state>
+
+  <state id="waitInc">
+    <ros_service_handle_response name="/TurnBackManagerComponent/IncreaseTurnBacksCounter" target="reply">
+      <assign location="result" expr="_res.result"/>
+    </ros_service_handle_response>
+    <!-- Aggiungere gestione halt -->
+    <ros_service_handle_request name="/SetTurnedSkill/halt" target="halted"/>
+  </state>
+
+  <state id="reply">
+    <onentry>
+      <if cond="result=='SKILL_SUCCESS'">
+        <ros_service_send_response name="/SetTurnedSkill/tick">
+          <field name="status" expr="SKILL_SUCCESS"/>
+        </ros_service_send_response>
+      <else/>
+        <ros_service_send_response name="/SetTurnedSkill/tick">
+          <field name="status" expr="SKILL_FAILURE"/>
+        </ros_service_send_response>
+      </if>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="halted">
+    <onentry>
+      <assign location="result" expr="''"/>
+      <ros_service_send_response name="/SetTurnedSkill/halt"/>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+</scxml>

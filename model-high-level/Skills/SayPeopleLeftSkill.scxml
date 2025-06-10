@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml
+  xmlns="http://www.w3.org/2005/07/scxml"
+  version="1.0"
+  name="SayPeopleLeftSkill"
+  datamodel="ecmascript"
+  initial="idle">
+
+  <datamodel>
+    <data id="m_command"     type="string"  expr="'sayPeopleLeft'"/>
+    <data id="m_param"       type="string"  expr="''"/>
+    <data id="m_is_speaking" type="boolean" expr="false"/>
+    <data id="m_result"      type="string"  expr="''"/>
+    <data id="SKILL_SUCCESS" type="int8"    expr="0"/>
+    <data id="SKILL_FAILURE" type="int8"    expr="1"/>
+    <data id="SKILL_RUNNING" type="int8"    expr="2"/>
+  </datamodel>
+
+  <!-- Action skill: tick + halt servers -->
+  <ros_service_server service_name="/SayPeopleLeftSkill/tick" type="bt_interfaces_dummy/TickAction"/>
+  <ros_service_server service_name="/SayPeopleLeftSkill/halt" type="bt_interfaces_dummy/HaltAction"/>
+
+  <!-- Clients -->
+  <ros_service_client service_name="/SchedulerComponent/SetCommand" type="scheduler_interfaces/SetCommand"/>
+  <ros_service_client service_name="/SchedulerComponent/GetCurrentAction" type="scheduler_interfaces/GetCurrentAction"/>
+  <ros_service_client service_name="/TextToSpeechComponent/Speak" type="text_to_speech_interfaces/Speak"/>
+  <ros_service_client service_name="/TextToSpeechComponent/IsSpeaking" type="text_to_speech_interfaces/IsSpeaking"/>
+
+  <state id="idle">
+    <ros_service_handle_request name="/SayPeopleLeftSkill/tick" target="setCommand">
+      <ros_service_send_request name="/SchedulerComponent/SetCommand">
+        <field name="command" expr="m_command"/>
+      </ros_service_send_request>
+    </ros_service_handle_request>
+    <ros_service_handle_request name="/SayPeopleLeftSkill/halt" target="halted"/>
+  </state>
+
+  <state id="setCommand">
+    <ros_service_handle_response name="/SchedulerComponent/SetCommand" target="onSetCommand">
+      <assign location="m_result" expr="_res.result"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="onSetCommand">
+    <onentry>
+      <if cond="m_result=='SKILL_SUCCESS'">
+        <ros_service_send_request name="/SchedulerComponent/GetCurrentAction"/>
+      <else/>
+        <ros_service_send_response name="/SayPeopleLeftSkill/tick">
+          <field name="status" expr="SKILL_FAILURE"/>
+        </ros_service_send_response>
+      </if>
+    </onentry>
+    <transition cond="m_result=='SKILL_SUCCESS'" target="getText"/>
+    <transition cond="m_result!='SKILL_SUCCESS'" target="idle"/>
+  </state>
+
+  <state id="getText">
+    <ros_service_handle_response name="/SchedulerComponent/GetCurrentAction" target="talk">
+      <assign location="m_param" expr="_res.param"/>
+    </ros_service_handle_response>
+    <ros_service_handle_response name="/SchedulerComponent/GetCurrentAction" cond="_res.result!='SKILL_SUCCESS'" target="failure"/>
+  </state>
+
+  <state id="talk">
+    <onentry>
+      <ros_service_send_response name="/SayPeopleLeftSkill/tick">
+        <field name="status" expr="SKILL_RUNNING"/>
+      </ros_service_send_response>
+      <ros_service_send_request name="/TextToSpeechComponent/Speak">
+        <field name="text" expr="m_param"/>
+      </ros_service_send_request>
+    </onentry>
+    <transition target="waitSpeaking"/>
+  </state>
+
+  <state id="waitSpeaking">
+    <ros_service_handle_request name="/SayPeopleLeftSkill/tick" target="checkSpeaking">
+      <ros_service_send_request name="/TextToSpeechComponent/IsSpeaking"/>
+    </ros_service_handle_request>
+    <ros_service_handle_request name="/SayPeopleLeftSkill/halt" target="halted"/>
+    <ros_service_handle_response name="/TextToSpeechComponent/Speak" cond="_res.result!='SKILL_SUCCESS'" target="failure"/>
+  </state>
+
+  <state id="checkSpeaking">
+    <ros_service_handle_response name="/TextToSpeechComponent/IsSpeaking" target="onCheck">
+      <assign location="m_is_speaking" expr="_res.is_speaking"/>
+    </ros_service_handle_response>
+    <ros_service_handle_response name="/TextToSpeechComponent/IsSpeaking" cond="_res.result!='SKILL_SUCCESS'" target="failure"/>
+  </state>
+
+  <state id="onCheck">
+    <onentry>
+      <if cond="m_is_speaking">
+        <ros_service_send_response name="/SayPeopleLeftSkill/tick">
+          <field name="status" expr="SKILL_RUNNING"/>
+        </ros_service_send_response>
+      <else/>
+        <ros_service_send_response name="/SayPeopleLeftSkill/tick">
+          <field name="status" expr="SKILL_SUCCESS"/>
+        </ros_service_send_response>
+      </if>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="failure">
+    <onentry>
+      <ros_service_send_response name="/SayPeopleLeftSkill/tick">
+        <field name="status" expr="SKILL_FAILURE"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="halted">
+    <onentry>
+      <assign location="m_is_speaking" expr="false"/>
+      <assign location="m_result" expr="''"/>
+      <assign location="m_param" expr="''"/>
+      <ros_service_send_response name="/SayPeopleLeftSkill/halt"/>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+</scxml>

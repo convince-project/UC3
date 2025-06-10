@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml
+  xmlns="http://www.w3.org/2005/07/scxml"
+  version="1.0"
+  name="SetNavigationPositionSkill"
+  datamodel="ecmascript"
+  initial="idle">
+
+  <datamodel>
+    <data id="DANCE_NAME"          expr="'navigationPosition'"/>
+    <data id="is_dancing"  type="boolean" expr="false"/>
+    <data id="result"      type="string"  expr="''"/>
+    <data id="SKILL_SUCCESS" type="int8" expr="0"/>
+    <data id="SKILL_FAILURE" type="int8" expr="1"/>
+    <data id="SKILL_RUNNING" type="int8" expr="2"/>
+  </datamodel>
+
+  <!-- Tick / halt servers (Behaviour-Tree plugin) -->
+  <ros_service_server service_name="/SetNavigationPositionSkill/tick"  type="bt_interfaces_dummy/TickAction"/>
+  <ros_service_server service_name="/SetNavigationPositionSkill/halt" type="bt_interfaces_dummy/HaltAction"/>
+
+  <!-- Clients used by this skill -->
+  <ros_service_client service_name="/ExecuteDanceComponent/ExecuteDance" type="execute_dance_interfaces/ExecuteDance"/>
+  <ros_service_client service_name="/ExecuteDanceComponent/IsDancing"   type="execute_dance_interfaces/IsDancing"/>
+
+  <!-- ============ STATES ============ -->
+
+  <!-- Waiting for a tick/halt -->
+  <state id="idle">
+    <ros_service_handle_request name="/SetNavigationPositionSkill/tick" target="executeDance">
+      <ros_service_send_request name="/ExecuteDanceComponent/ExecuteDance">
+        <field name="dance_name" expr="DANCE_NAME"/>
+      </ros_service_send_request>
+    </ros_service_handle_request>
+
+    <ros_service_handle_request name="/SetNavigationPositionSkill/halt" target="halted"/>
+  </state>
+
+  <!-- First service reply (start dance) -->
+  <state id="executeDance">
+    <ros_service_handle_response name="/ExecuteDanceComponent/ExecuteDance" target="afterExecute">
+      <assign location="result" expr="_res.result"/>
+    </ros_service_handle_response>
+    <!-- Aggiungere gestione halt -->
+    <ros_service_handle_request name="/SetNavigationPositionSkill/halt" target="halted"/>
+  </state>
+
+  <state id="afterExecute">
+    <onentry>
+      <if cond="result == 'SKILL_SUCCESS'">
+        <!-- Tell BT this skill is running -->
+        <ros_service_send_response name="/SetNavigationPositionSkill/tick">
+          <field name="status" expr="SKILL_RUNNING"/>
+        </ros_service_send_response>
+      <else/>
+        <ros_service_send_response name="/SetNavigationPositionSkill/tick">
+          <field name="status" expr="SKILL_FAILURE"/>
+        </ros_service_send_response>
+      </if>
+    </onentry>
+    <transition cond="result == 'SKILL_SUCCESS'"  target="wait_dance_done"/>
+    <transition cond="result != 'SKILL_SUCCESS'"  target="idle"/>
+  </state>
+
+  <!-- Running loop: check IsDancing until finished -->
+  <state id="wait_dance_done">
+    <ros_service_handle_request name="/SetNavigationPositionSkill/tick" target="queryDancing">
+      <ros_service_send_request name="/ExecuteDanceComponent/IsDancing"/>
+    </ros_service_handle_request>
+    <ros_service_handle_request name="/SetNavigationPositionSkill/halt" target="halted"/>
+  </state>
+
+  <state id="queryDancing">
+    <ros_service_handle_response name="/ExecuteDanceComponent/IsDancing" target="onQuery">
+      <assign location="is_dancing" expr="_res.is_dancing"/>
+    </ros_service_handle_response>
+    <ros_service_handle_response name="/ExecuteDanceComponent/IsDancing" cond="_res.result!='SKILL_SUCCESS'" target="failure"/>
+    <!-- Aggiungere gestione halt -->
+    <ros_service_handle_request name="/SetNavigationPositionSkill/halt" target="halted"/>
+  </state>
+
+  <state id="onQuery">
+    <onentry>
+      <if cond="is_dancing">
+        <!-- still running -->
+        <ros_service_send_response name="/SetNavigationPositionSkill/tick">
+          <field name="status" expr="SKILL_RUNNING"/>
+        </ros_service_send_response>
+      <else/>
+        <!-- done -->
+        <ros_service_send_response name="/SetNavigationPositionSkill/tick">
+          <field name="status" expr="SKILL_SUCCESS"/>
+        </ros_service_send_response>
+      </if>
+    </onentry>
+    <transition cond="is_dancing"   target="wait_dance_done"/>
+    <transition cond="!is_dancing"  target="idle"/>
+  </state>
+
+  <!-- Halt simply acknowledges -->
+  <state id="halted">
+    <onentry>
+      <assign location="is_dancing" expr="false"/>
+      <assign location="result" expr="''"/>
+      <ros_service_send_response name="/SetNavigationPositionSkill/halt"/>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="failure">
+    <onentry>
+      <ros_service_send_response name="/SetNavigationPositionSkill/tick">
+        <field name="status" expr="SKILL_FAILURE"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+</scxml>

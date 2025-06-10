@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml"
+       version="1.0"
+       name="CheckIfStartSkill"
+       datamodel="ecmascript"
+       initial="idle">
+
+  <datamodel>
+    <data id="START_POI"     type="int32" expr="0"/>
+    <data id="m_poi_number"  type="int32" expr="0"/>
+    <data id="SKILL_SUCCESS" type="int8"  expr="0"/> 
+    <data id="SKILL_FAILURE" type="int8"  expr="1"/>
+  </datamodel>
+
+  <!-- TickCondition server -->
+  <ros_service_server service_name="/CheckIfStartSkill/tick" type="bt_interfaces_dummy/TickCondition"/>
+
+  <!-- Client for SchedulerComponent.GetCurrentPoi -->
+  <ros_service_client service_name="/SchedulerComponent/GetCurrentPoi" type="scheduler_interfaces/GetCurrentPoi"/>
+
+  <state id="idle">
+    <ros_service_handle_request name="/CheckIfStartSkill/tick" target="getPoi">
+      <ros_service_send_request name="/SchedulerComponent/GetCurrentPoi"/>
+    </ros_service_handle_request>
+  </state>
+
+  <state id="getPoi">
+    <ros_service_handle_response name="/SchedulerComponent/GetCurrentPoi" target="decide">
+      <assign location="m_poi_number" expr="_res.poi_number"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="decide">
+    <onentry>
+      <if cond="m_poi_number == START_POI">
+        <ros_service_send_response name="/CheckIfStartSkill/tick">
+          <field name="status" expr="SKILL_SUCCESS"/>
+        </ros_service_send_response>
+      <else/>
+        <ros_service_send_response name="/CheckIfStartSkill/tick">
+          <field name="status" expr="SKILL_FAILURE"/>
+        </ros_service_send_response>
+      </if>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+</scxml>
