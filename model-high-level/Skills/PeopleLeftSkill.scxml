@@ -14,9 +14,9 @@
   </datamodel>
 
   <!-- Clients for resetting tour, counters, and timer -->
-  <ros_service_client service_name="/SchedulerComponent/Reset" type="scheduler_interfaces_dummy/Reset"/>
-  <ros_service_client service_name="/TurnBackManagerComponent/ResetCounters" type="turnbackmanager_interfaces_dummy/ResetCounters"/>
-  <ros_service_client service_name="/TimeComponent/StopTourTimer" type="time_interfaces_dummy/StopTourTimer"/>
+  <ros_service_client service_name="/SchedulerComponent/Reset" type="scheduler_interfaces/Reset"/>
+  <ros_service_client service_name="/TurnBackManagerComponent/ResetCounters" type="turnbackmanager_interfaces/ResetCounters"/>
+  <ros_service_client service_name="/TimeComponent/StopTourTimer" type="time_interfaces/StopTourTimer"/>
 
   <!-- Action skill: tick + halt servers -->
   <ros_service_server service_name="/PeopleLeftSkill/tick" type="bt_interfaces_dummy/TickAction"/>
