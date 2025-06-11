@@ -33,13 +33,13 @@ jobs:
             image_name_base: "ste93/convince:tour_sim_ubuntu_22.04_qt_6.8.3_iron",
             dockerfile: "Dockerfile.bt_iron"
          }
-         - {
-            ros2_distro: "jazzy",
-            base_image_repo: "elandini84/r1images",
-            base_image_tag: "tourCore2_ubuntu_24.04_qt_6.8.3_jazzy_devel",
-            image_name_base: "ste93/convince:tour_ubuntu_24.04_qt_6.8.3_jazzy_verification",
-            dockerfile: "Dockerfile.verification"
-         }
+         #- {
+         #   ros2_distro: "jazzy",
+         #   base_image_repo: "elandini84/r1images",
+         #   base_image_tag: "tourCore2_ubuntu_24.04_qt_6.8.3_jazzy_devel",
+         #   image_name_base: "ste93/convince:tour_ubuntu_24.04_qt_6.8.3_jazzy_verification",
+         #   dockerfile: "Dockerfile.verification"
+         #}
     steps:
     - name: Info
       run: |
