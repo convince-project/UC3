@@ -48,7 +48,7 @@
             </send>
         </transition>
         <transition target="idle" event="CMD_HALT">
-            <ros_action_cancel_goal name="go_to_poi_action"/>
+            <!-- <ros_action_cancel_goal name="go_to_poi_action"/> -->
             <send event="HALT_RESPONSE">
                 <param name="is_ok" expr="true"/>
             </send>
@@ -67,9 +67,9 @@
         <transition target="goal_done" event="NavigationComponent.GoToPoi.ResultResponse">
             <assign location="result" expr="_event.data.is_ok"/>
         </transition>
-        <ros_action_handle_failure_result name="go_to_poi_action" target="send_failure"/>
+        <!-- <ros_action_handle_failure_result name="go_to_poi_action" target="send_failure"/> -->
         <transition target="idle" event="CMD_HALT">
-            <ros_action_cancel_goal name="go_to_poi_action"/>
+            <!-- <ros_action_cancel_goal name="go_to_poi_action"/> -->
             <send event="HALT_RESPONSE">
                 <param name="is_ok" expr="true"/>
             </send>
