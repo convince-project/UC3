@@ -77,13 +77,13 @@ bool DialogSkill::start(int argc, char *argv[])
     RCLCPP_DEBUG_STREAM(m_node->get_logger(), "DialogSkill::start");
     std::cout << "DialogSkill::start";
 
-    m_tickService = m_node->create_service<bt_interfaces::srv::TickAction>(m_name + "Skill/tick",
+    m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
                                                                            std::bind(&DialogSkill::tick,
                                                                                      this,
                                                                                      std::placeholders::_1,
                                                                                      std::placeholders::_2));
 
-    m_haltService = m_node->create_service<bt_interfaces::srv::HaltAction>(m_name + "Skill/halt",
+    m_haltService = m_node->create_service<bt_interfaces_dummy::srv::HaltAction>(m_name + "Skill/halt",
                                                                            std::bind(&DialogSkill::halt,
                                                                                      this,
                                                                                      std::placeholders::_1,
@@ -530,12 +530,12 @@ bool DialogSkill::start(int argc, char *argv[])
     return true;
 }
 
-void DialogSkill::tick([[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::TickAction::Request> request,
-                       std::shared_ptr<bt_interfaces::srv::TickAction::Response> response)
+void DialogSkill::tick([[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Request> request,
+                       std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Response> response)
 {
     std::lock_guard<std::mutex> lock(m_requestMutex);
     RCLCPP_INFO(m_node->get_logger(), "DialogSkill::tick");
-    auto message = bt_interfaces::msg::ActionResponse();
+    auto message = bt_interfaces_dummy::msg::ActionResponse();
     m_tickResult.store(Status::undefined); // here we can put a struct
     m_stateMachine.submitEvent("CMD_TICK");
 
@@ -566,8 +566,8 @@ void DialogSkill::tick([[maybe_unused]] const std::shared_ptr<bt_interfaces::srv
     response->is_ok = true;
 }
 
-void DialogSkill::halt([[maybe_unused]] const std::shared_ptr<bt_interfaces::srv::HaltAction::Request> request,
-                       [[maybe_unused]] std::shared_ptr<bt_interfaces::srv::HaltAction::Response> response)
+void DialogSkill::halt([[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::HaltAction::Request> request,
+                       [[maybe_unused]] std::shared_ptr<bt_interfaces_dummy::srv::HaltAction::Response> response)
 {
 
     std::lock_guard<std::mutex> lock(m_requestMutex);

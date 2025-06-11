@@ -9,7 +9,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
-find_package(bt_interfaces REQUIRED)
+find_package(bt_interfaces_dummy REQUIRED)
 find_package(dialog_interfaces REQUIRED)
 find_package(scheduler_interfaces REQUIRED)
 find_package(text_to_speech_interfaces REQUIRED)
@@ -25,7 +25,7 @@ endif()
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-ament_target_dependencies(${PROJECT_NAME} bt_interfaces rclcpp dialog_interfaces scheduler_interfaces text_to_speech_interfaces "rclcpp_action")
+ament_target_dependencies(${PROJECT_NAME} bt_interfaces_dummy rclcpp dialog_interfaces scheduler_interfaces text_to_speech_interfaces "rclcpp_action")
 target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Scxml Qt6::StateMachine)
 target_include_directories(${PROJECT_NAME}
   PUBLIC
