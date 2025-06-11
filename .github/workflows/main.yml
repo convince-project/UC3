@@ -29,7 +29,7 @@ jobs:
          - {
             ros2_distro: "iron",
             base_image_repo: "elandini84/r1images",
-            base_image_tag: "tourSim2_ubuntu_22.04_qt_6.8.3_iron_devel",
+            base_image_tag: "tourSim2_ubuntu_22.04_qt_6.8.3_iron_stable",
             image_name_base: "ste93/convince:tour_sim_ubuntu_22.04_qt_6.8.3_iron",
             dockerfile: "Dockerfile.bt_iron"
          }
