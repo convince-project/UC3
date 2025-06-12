@@ -7,19 +7,17 @@
         <workdir>/home/user1/UC3/launch/symbolic_links/</workdir>
         <node>bt</node>
     </module>
-
     <module>
-        <name>text_to_speech_component</name>
-        <parameters>--from /home/user1/UC3/src/components/text_to_speech_component/config/text_to_speech_config.ini</parameters>
-        <workdir>/home/user1/UC3/build/text_to_speech_component</workdir>
+        <name>ros2_speech_to_text_component</name>
+        <parameters>run speech_to_text_component speech_to_text_component</parameters>
+        <workdir>/home/user1/UC3</workdir>
         <node>bt</node>
     </module>
 
-
     <module>
-        <name>dialog_component</name>
-        <parameters>--from /home/user1/UC3/src/components/dialog_component/config/config.ini</parameters>
-        <workdir>/home/user1/UC3/build/dialog_component</workdir>
+        <name>ros2_text_to_speech_component</name>
+        <parameters>run text_to_speech_component text_to_speech_component --from text_to_speech_config.ini</parameters>
+        <workdir>/home/user1/UC3/src/components/text_to_speech_component/config</workdir>
         <node>bt</node>
     </module>
 
@@ -29,7 +27,6 @@
         <workdir />
         <node>bt</node>
     </module>
-
 
     <module>
         <name>ros2_blackboard_component</name>
@@ -152,4 +149,20 @@
         <node>bt</node>
     </module>
 
+
+
+    <module>
+        <name>ros2_cpp_dialog_component</name>
+        <parameters>run dialog_component dialog_component --from config.ini</parameters>
+        <workdir>/home/user1/UC3/src/components/dialog_component/cpp_dialog_component/config</workdir>
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2_py_dialog_component</name>
+        <parameters>run py_interaction_cliserv service</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+    
 </application>
