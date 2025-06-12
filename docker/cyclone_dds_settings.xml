@@ -3,7 +3,7 @@
       <General>
          <AllowMulticast>false</AllowMulticast>
          <Interfaces>
-            <NetworkInterface address="172.17.0.1" priority="default"/>
+            <NetworkInterface address="192.168.100.103" priority="default"/>
          </Interfaces>
       </General>
       <Discovery>
@@ -11,8 +11,9 @@
          <ParticipantIndex>auto</ParticipantIndex>
          <Peers>
             <Peer address="localhost"/>
-            <Peer address="172.17.0.1"/>
+            <Peer address="192.168.100.10"/>
          </Peers>
       </Discovery>
    </Domain>
 </CycloneDDS>
+
