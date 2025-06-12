@@ -119,7 +119,7 @@
     </onentry>
 
     <!-- If the visitor asked to start/continue/end the tour, we send a success response and end the conversation -->
-    <transition cond="m_is_poi_ended == true" target="idle"/>
+    <transition cond="m_is_poi_ended == true" target="sendSuccess"/>
     <!-- Else, continue the pipeline -->
     <transition cond="m_is_poi_ended == false" target="setLanguage">
         <send event="DialogComponent.SetLanguage.Call">
@@ -399,16 +399,14 @@
   </state>
 
   <!-- STATE END -->
-<!-- 
-  <state id="sendSuccess">
-    <onentry>
-      <send event="TICK_RESPONSE">
-        <param name="result" expr='"SUCCESS"'/> 
-      </send>
 
-    </onentry>
-    <transition target="idle" />
-  </state> -->
+  <state id="sendSuccess">
+    <transition event="CMD_TICK" target="idle">
+      <send event="TICK_RESPONSE">
+        <param name="result" expr='"SUCCESS"'/>
+      </send>
+    </transition>
+  </state>
 
   <!-- STATE END -->
 
