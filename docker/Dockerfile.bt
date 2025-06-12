@@ -107,6 +107,13 @@ RUN echo "export PATH=\$PATH:/home/user1/Groot/build" >> ~/.bashrc
 
 ENV PATH=/usr/local/Qt-6.8.3/bin:$PATH
 
+RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
+    cd /home/user1/UC3/src/components/dialog_component/py_interaction_cliserv/ && \
+    python3 -m venv create sbert && \
+    source sbert/bin/activate && \
+    pip install --upgrade pip && \
+    pip install -r requirements.txt"
+
 RUN /bin/bash -c "echo 'updated on 202503250921' && \
     source /opt/ros/jazzy/setup.bash && \
     cd /home/user1 && \
@@ -119,6 +126,8 @@ RUN /bin/bash -c "echo 'updated on 202503250921' && \
 RUN echo "source /home/user1/UC3/install/setup.bash" >> ~/.bashrc
 
 ENV PATH=${PATH}:/home/user1/.local/bin
+
+ENV UPDATED_ON=202506041448
 
 ENV LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/src/robot/yarp/build/lib/
 
