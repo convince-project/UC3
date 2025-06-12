@@ -1,4 +1,4 @@
-ARG base_img=ste93/convince:qt_6.7.3_ubuntu22.04_jazzy_stable_sim
+ARG base_img=elandini84/r1images:tourCore2_ubuntu_24.04_qt_6.8.3_jazzy_devel
 FROM $base_img
 LABEL maintainer="Stefano Bernagozzi"
 USER root
@@ -19,13 +19,19 @@ RUN /bin/bash -c "git clone --recurse-submodules https://github.com/BehaviorTree
     cmake --build build && \
     cmake --install build"
 
-RUN pip install reelay websocket-client jedi prompt_toolkit
+RUN /bin/bash -c "cd /home/user1 && \
+    python3 -m venv convince-python-env"
+#     . /home/user1/convince-python-env/bin/activate && \
+#     /home/user1/convince-python-env/bin/pip install --upgrade pip && \
+#     /home/user1/convince-python-env/bin/pip install reelay websocket_client rospy_message_converter pyyaml jedi pycairo PyGObject==3.50.0 prompt_toolkit"
 
-RUN /bin/bash -c "git clone --recurse-submodules https://github.com/BehaviorTree/Groot.git && \
-    cd Groot && \
-    cmake -S . -B build && \
-    cmake --build build && \
-    cmake --install build"
+# RUN apt install python3-reelay python3-websocket-client python3-jedi python3-prompt_toolkit
+
+# RUN /bin/bash -c "git clone --recurse-submodules https://github.com/BehaviorTree/Groot.git && \
+#     cd Groot && \
+#     cmake -S . -B build && \
+#     cmake --build build && \
+#     cmake --install build"
 
 USER user1
 WORKDIR /home/user1 
@@ -47,10 +53,10 @@ RUN /bin/bash -c "sudo apt install gobject-introspection libgirepository1.0-dev 
 cd /home/user1/ && \
 python3 -m venv monitoring-python-env && \
 /home/user1/monitoring-python-env/bin/pip install --upgrade pip && \
-/home/user1/monitoring-python-env/bin/pip install websocket_client rospy_message_converter pyyaml reelay jedi pycairo PyGObject prompt_toolkit"
+/home/user1/monitoring-python-env/bin/pip install websocket_client rospy_message_converter pyyaml reelay jedi pycairo PyGObject==3.50.0 prompt_toolkit"
 
 
-RUN echo "export PATH=\$PATH:/home/user1/Groot/build" >> ~/.bashrc
+# RUN echo "export PATH=\$PATH:/home/user1/Groot/build" >> ~/.bashrc
 
 RUN /bin/bash -c "echo 'updated on 2025023061457' && \
     source /opt/ros/jazzy/setup.bash && \
@@ -59,36 +65,32 @@ RUN /bin/bash -c "echo 'updated on 2025023061457' && \
     cd /home/user1/MOON/ModelMonitor/modeloracle && \
     mvn install"
 
-RUN /bin/bash -c "mkdir smc_storm_executable && \
+RUN /bin/bash -c " cd /home/user1/ && \
+    mkdir smc_storm_executable && \
     curl -O -L https://github.com/convince-project/smc_storm/releases/latest/download/smc_storm_executable.tar.gz && \
     tar -xzf smc_storm_executable.tar.gz -C smc_storm_executable && \
-    cd /smc_storm_executable && \
+    cd smc_storm_executable && \
     ./install.sh --install-dependencies && \
-    rm -rf /var/lib/apt/lists/* && \
-    ln /smc_storm_executable/bin/smc_storm /usr/local/bin && \
-    rm -rf smc_storm_executable.tar.gz"
+    # sudo rm -rf /var/lib/apt/lists/* && \
+    sudo ln /home/user1/smc_storm_executable/bin/smc_storm /usr/local/bin && \
+    sudo rm -rf smc_storm_executable.tar.gz"
 
 # Add AS2FM
-RUN /bin/bash -c "mkdir -p /colcon_ws/src
-COPY . /colcon_ws/src/as2fm
-RUN pip3 uninstall -y --break-system-packages js2py && \
-    pip3 install --break-system-packages git+https://github.com/felixonmars/Js2Py.git@py3.12  # Temporary fix for js2py
-RUN pip3 install --break-system-packages /colcon_ws/src/as2fm# RUN /bin/bash -c "/home/user1/convince-python-env/bin/pip install --upgrade pip"
+# RUN /bin/bash -c "mkdir -p /colcon_ws/src
+# COPY . /colcon_ws/src/as2fm
+# RUN pip3 uninstall -y --break-system-packages js2py && \
+#     pip3 install --break-system-packages git+https://github.com/felixonmars/Js2Py.git@py3.12  # Temporary fix for js2py
+# RUN pip3 install --break-system-packages /colcon_ws/src/as2fm# 
+# RUN /bin/bash -c "/home/user1/convince-python-env/bin/pip install --upgrade pip"
 RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
     cd /home/user1 && \
-    pip3 uninstall -y --break-system-packages js2py && \
-    pip3 install --break-system-packages git+https://github.com/felixonmars/Js2Py.git@py3.12 && \
+    python3 -m venv as2fm-python-env && \
+    /home/user1/as2fm-python-env/bin/pip install --upgrade pip && \
+    /home/user1/as2fm-python-env/bin/pip uninstall -y js2py && \
+    /home/user1/as2fm-python-env/bin/pip install  git+https://github.com/felixonmars/Js2Py.git@py3.12 && \
     git clone https://github.com/convince-project/AS2FM.git && \
-    /home/user1/convince-python-env/bin/python -m pip install AS2FM/"
+    /home/user1/as2fm-python-env/bin/python -m pip install AS2FM/"
     # pip3 install --break-system-packages /colcon_ws/src/as2fm"
-
-RUN /bin/bash -c "echo 'updated on 202503250921' && \
-    source /opt/ros/jazzy/setup.bash && \
-    cd /home/user1 && \
-    git clone https://github.com/convince-project/UC3.git && \
-    source /opt/ros/jazzy/setup.bash && \
-    cd /home/user1/UC3/ && \
-    colcon build --base-paths src/* --packages-ignore face_expressions_wrapper dialog_component"
 
 
 RUN /bin/bash -c "curl https://sh.rustup.rs -sSf | sh -s -- -y"
@@ -100,7 +102,21 @@ python3 -m venv monitoring-python-env && \
 /home/user1/monitoring-python-env/bin/pip install --upgrade pip && \
 /home/user1/monitoring-python-env/bin/pip install websocket_client rospy_message_converter pyyaml reelay jedi pycairo PyGObject==3.50.0 prompt_toolkit"
 
+# Install UC3
 
+RUN /bin/bash -c "echo 'updated on 202503250921' && \
+    source /opt/ros/jazzy/setup.bash && \
+    cd /home/user1 && \
+    git clone https://github.com/convince-project/UC3.git && \
+    source /opt/ros/jazzy/setup.bash && \
+    cd /home/user1/UC3/ && \
+    colcon build --base-paths src/* --packages-ignore face_expressions_wrapper dialog_component"
+
+# clone data-model repo
+RUN /bin/bash -c "echo 'updated on 202503250921' && \
+    source /opt/ros/jazzy/setup.bash && \
+    cd /home/user1 && \
+    git clone https://github.com/convince-project/data-model.git"
 
 RUN echo "source /home/user1/UC3/install/setup.bash" >> ~/.bashrc
 
@@ -118,35 +134,35 @@ RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
     colcon build"
 
 
-RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
-    cd /home/user1/MOON/ModelMonitor/config_generator && \
-    python3 config_gen.py --monitor-ws-path /home/user1/UC3/monitoring/monitor_BatteryLevelSkill/src --oracle-address 127.0.0.1:8081 /home/user1/UC3/model-high-level/Skills/BatteryLevelSkill.scxml && \
-    python3 config_gen.py --monitor-ws-path /home/user1/UC3/monitoring/monitor_AlarmSkill/src --oracle-address 127.0.0.1:8082 /home/user1/UC3/model-high-level/Skills/AlarmSkill.scxml && \
-    python3 config_gen.py --monitor-ws-path /home/user1/UC3/monitoring/monitor_IsPoiDone1Skill/src --oracle-address 127.0.0.1:8083 /home/user1/UC3/model-high-level/Skills/IsPoiDone1Skill.scxml && \
-    python3 config_gen.py --monitor-ws-path /home/user1/UC3/monitoring/monitor_SetPoi1Skill/src --oracle-address 127.0.0.1:8084 /home/user1/UC3/model-high-level/Skills/SetPoi1Skill.scxml && \
-    python3 config_gen.py --monitor-ws-path /home/user1/UC3/monitoring/monitor_SetCurrentPoiDoneSkill/src --oracle-address 127.0.0.1:8084 /home/user1/UC3/model-high-level/Skills/SetCurrentPoiDoneSkill.scxml"
+# RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
+#     cd /home/user1/MOON/ModelMonitor/config_generator && \
+#     python3 config_gen.py --monitor-ws-path /home/user1/UC3/monitoring/monitor_BatteryLevelSkill/src --oracle-address 127.0.0.1:8081 /home/user1/UC3/model-high-level/Skills/BatteryLevelSkill.scxml && \
+#     python3 config_gen.py --monitor-ws-path /home/user1/UC3/monitoring/monitor_AlarmSkill/src --oracle-address 127.0.0.1:8082 /home/user1/UC3/model-high-level/Skills/AlarmSkill.scxml && \
+#     python3 config_gen.py --monitor-ws-path /home/user1/UC3/monitoring/monitor_IsPoiDone1Skill/src --oracle-address 127.0.0.1:8083 /home/user1/UC3/model-high-level/Skills/IsPoiDone1Skill.scxml && \
+#     python3 config_gen.py --monitor-ws-path /home/user1/UC3/monitoring/monitor_SetPoi1Skill/src --oracle-address 127.0.0.1:8084 /home/user1/UC3/model-high-level/Skills/SetPoi1Skill.scxml && \
+#     python3 config_gen.py --monitor-ws-path /home/user1/UC3/monitoring/monitor_SetCurrentPoiDoneSkill/src --oracle-address 127.0.0.1:8084 /home/user1/UC3/model-high-level/Skills/SetCurrentPoiDoneSkill.scxml"
 
-RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
-    cd /home/user1/ROSMonitoring/generator/ros2_devel && \
-    /home/user1/monitoring-python-env/bin/python generator --config_file  /home/user1/MOON/ModelMonitor/config_generator/monitor_BatteryLevelSkill.yaml && \
-    cd /home/user1/UC3/monitoring/monitor_BatteryLevelSkill/src && \
-    colcon build && \
-    cd /home/user1/ROSMonitoring/generator/ros2_devel && \
-    /home/user1/monitoring-python-env/bin/python generator --config_file  /home/user1/MOON/ModelMonitor/config_generator/monitor_AlarmSkill.yaml && \
-    cd /home/user1/UC3/monitoring/monitor_AlarmSkill/src && \
-    colcon build && \
-    cd /home/user1/ROSMonitoring/generator/ros2_devel && \
-    /home/user1/monitoring-python-env/bin/python generator --config_file  /home/user1/MOON/ModelMonitor/config_generator/monitor_IsPoiDone1Skill.yaml && \
-    cd /home/user1/UC3/monitoring/monitor_IsPoiDone1Skill/src && \
-    colcon build && \
-    cd /home/user1/ROSMonitoring/generator/ros2_devel && \
-    /home/user1/monitoring-python-env/bin/python generator --config_file  /home/user1/MOON/ModelMonitor/config_generator/monitor_SetPoi1Skill.yaml && \
-    cd /home/user1/UC3/monitoring/monitor_SetPoi1Skill/src && \
-    colcon build  && \
-    cd /home/user1/ROSMonitoring/generator/ros2_devel && \
-    /home/user1/monitoring-python-env/bin/python generator --config_file  /home/user1/MOON/ModelMonitor/config_generator/monitor_SetCurrentPoiDoneSkill.yaml && \
-    cd /home/user1/UC3/monitoring/monitor_SetCurrentPoiDoneSkill/src && \
-    colcon build"
+# RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
+#     cd /home/user1/ROSMonitoring/generator/ros2_devel && \
+#     /home/user1/monitoring-python-env/bin/python generator --config_file  /home/user1/MOON/ModelMonitor/config_generator/monitor_BatteryLevelSkill.yaml && \
+#     cd /home/user1/UC3/monitoring/monitor_BatteryLevelSkill/src && \
+#     colcon build && \
+#     cd /home/user1/ROSMonitoring/generator/ros2_devel && \
+#     /home/user1/monitoring-python-env/bin/python generator --config_file  /home/user1/MOON/ModelMonitor/config_generator/monitor_AlarmSkill.yaml && \
+#     cd /home/user1/UC3/monitoring/monitor_AlarmSkill/src && \
+#     colcon build && \
+#     cd /home/user1/ROSMonitoring/generator/ros2_devel && \
+#     /home/user1/monitoring-python-env/bin/python generator --config_file  /home/user1/MOON/ModelMonitor/config_generator/monitor_IsPoiDone1Skill.yaml && \
+#     cd /home/user1/UC3/monitoring/monitor_IsPoiDone1Skill/src && \
+#     colcon build && \
+#     cd /home/user1/ROSMonitoring/generator/ros2_devel && \
+#     /home/user1/monitoring-python-env/bin/python generator --config_file  /home/user1/MOON/ModelMonitor/config_generator/monitor_SetPoi1Skill.yaml && \
+#     cd /home/user1/UC3/monitoring/monitor_SetPoi1Skill/src && \
+#     colcon build  && \
+#     cd /home/user1/ROSMonitoring/generator/ros2_devel && \
+#     /home/user1/monitoring-python-env/bin/python generator --config_file  /home/user1/MOON/ModelMonitor/config_generator/monitor_SetCurrentPoiDoneSkill.yaml && \
+#     cd /home/user1/UC3/monitoring/monitor_SetCurrentPoiDoneSkill/src && \
+#     colcon build"
 
 ENV PATH=${PATH}:/home/user1/.local/bin
 
