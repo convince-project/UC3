@@ -55,7 +55,8 @@ void NarrateComponent::spin()
 void NarrateComponent::IsDone([[maybe_unused]] const std::shared_ptr<narrate_interfaces::srv::IsDone::Request> request,
              std::shared_ptr<narrate_interfaces::srv::IsDone::Response>      response) 
 {
-    response->is_done = (!m_speakTask && !m_danceTask);
+    // response->is_done = (!m_speakTask && !m_danceTask);
+    response->is_done = !(m_speakTask);
     response->is_ok = true;
 }
 
@@ -147,100 +148,100 @@ void NarrateComponent::speakTask() {
 
 void NarrateComponent::danceTask() {
     RCLCPP_INFO_STREAM(m_node->get_logger(), "New Dance Thread ");
-    m_danceMutex.lock();
-    int size = m_danceBuffer.size();
-    m_danceMutex.unlock();
-    int l_seconds_left;
-    int old_randomNumber;
-    int randomNumber;
-    do{
-        std::string text;
-        m_timeMutex.lock();
-        l_seconds_left = m_seconds_left;
-        m_timeMutex.unlock();
-        if(l_seconds_left < 3){
-            // m_danceMutex.lock();
-            // if(m_danceBuffer.size() != 0)
-            // {
-            //     m_danceBuffer.pop();
-            // }
-            // m_danceMutex.unlock();
-            text = "idleMove";
-        }
-        else{
-            m_danceMutex.lock();
-            if(m_danceBuffer.size() != 0){
-                text = m_danceBuffer.front();
-                if(text == "argue"){
-                    srand (time(NULL));
-                    randomNumber = rand() % 3;
-                    if(randomNumber == old_randomNumber)
-                    {
-                        randomNumber = (randomNumber + 1) % 3;
-                    }
-                    old_randomNumber = randomNumber;
-                    text += std::to_string(randomNumber);
-                }
-            }
-            m_danceMutex.unlock();
-        }
-        // m_danceMutex.lock();
-        // text = m_danceBuffer.front();
-        // m_danceBuffer.pop();
-        // m_danceMutex.unlock();
-        RCLCPP_INFO_STREAM(m_node->get_logger(), "Dance Action " << text); 
-        auto danceClientNode = rclcpp::Node::make_shared("NarrateComponentDanceNode");
-        std::shared_ptr<rclcpp::Client<execute_dance_interfaces::srv::ExecuteDance>> danceClient = 
-        danceClientNode->create_client<execute_dance_interfaces::srv::ExecuteDance>("/ExecuteDanceComponent/ExecuteDance");
-        auto danceRequest = std::make_shared<execute_dance_interfaces::srv::ExecuteDance::Request>();
-        danceRequest->dance_name = text;
-        bool wait_succeded{true};
-        int retries = 0;
-        while (!danceClient->wait_for_service(std::chrono::seconds(1))) {
-            if (!rclcpp::ok()) {
-                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'ExecuteDance'. Exiting.");
-                wait_succeded = false;
-                break;
-            }
-            retries++;
-            if(retries == SERVICE_TIMEOUT) {
-               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while waiting for the service 'ExecuteDance'.");
-               wait_succeded = false;
-               break;
-            }
-        }
-        if (wait_succeded) {
-            auto danceResult = danceClient->async_send_request(danceRequest);
-            const std::chrono::seconds timeout_duration(SERVICE_TIMEOUT);
-            auto futureDanceResult = rclcpp::spin_until_future_complete(danceClientNode, danceResult, timeout_duration);
-            if(futureDanceResult == rclcpp::FutureReturnCode::SUCCESS)
-            {
-                auto danceFutureResult = danceResult.get();
-                if (danceFutureResult->is_ok == true) { // 0 is dance
-                    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-                }
-                std::this_thread::sleep_for(std::chrono::seconds(3));
-            }
-            else if(futureDanceResult == rclcpp::FutureReturnCode::TIMEOUT){
-               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'ExecuteDance'.");
-           }
-        }
-        if(m_stopped)
-        {
-            RCLCPP_INFO_STREAM(m_node->get_logger(), "Stop Recieved Dance Task" ); 
-            break;   
-        }
+    // m_danceMutex.lock();
+    // int size = m_danceBuffer.size();
+    // m_danceMutex.unlock();
+    // int l_seconds_left;
+    // int old_randomNumber;
+    // int randomNumber;
+    // do{
+    //     std::string text;
+    //     m_timeMutex.lock();
+    //     l_seconds_left = m_seconds_left;
+    //     m_timeMutex.unlock();
+    //     if(l_seconds_left < 3){
+    //         // m_danceMutex.lock();
+    //         // if(m_danceBuffer.size() != 0)
+    //         // {
+    //         //     m_danceBuffer.pop();
+    //         // }
+    //         // m_danceMutex.unlock();
+    //         text = "idleMove";
+    //     }
+    //     else{
+    //         m_danceMutex.lock();
+    //         if(m_danceBuffer.size() != 0){
+    //             text = m_danceBuffer.front();
+    //             if(text == "argue"){
+    //                 srand (time(NULL));
+    //                 randomNumber = rand() % 3;
+    //                 if(randomNumber == old_randomNumber)
+    //                 {
+    //                     randomNumber = (randomNumber + 1) % 3;
+    //                 }
+    //                 old_randomNumber = randomNumber;
+    //                 text += std::to_string(randomNumber);
+    //             }
+    //         }
+    //         m_danceMutex.unlock();
+    //     }
+    //     // m_danceMutex.lock();
+    //     // text = m_danceBuffer.front();
+    //     // m_danceBuffer.pop();
+    //     // m_danceMutex.unlock();
+    //     RCLCPP_INFO_STREAM(m_node->get_logger(), "Dance Action " << text); 
+    //     auto danceClientNode = rclcpp::Node::make_shared("NarrateComponentDanceNode");
+    //     std::shared_ptr<rclcpp::Client<execute_dance_interfaces::srv::ExecuteDance>> danceClient = 
+    //     danceClientNode->create_client<execute_dance_interfaces::srv::ExecuteDance>("/ExecuteDanceComponent/ExecuteDance");
+    //     auto danceRequest = std::make_shared<execute_dance_interfaces::srv::ExecuteDance::Request>();
+    //     danceRequest->dance_name = text;
+    //     bool wait_succeded{true};
+    //     int retries = 0;
+    //     while (!danceClient->wait_for_service(std::chrono::seconds(1))) {
+    //         if (!rclcpp::ok()) {
+    //             RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'ExecuteDance'. Exiting.");
+    //             wait_succeded = false;
+    //             break;
+    //         }
+    //         retries++;
+    //         if(retries == SERVICE_TIMEOUT) {
+    //            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while waiting for the service 'ExecuteDance'.");
+    //            wait_succeded = false;
+    //            break;
+    //         }
+    //     }
+    //     if (wait_succeded) {
+    //         auto danceResult = danceClient->async_send_request(danceRequest);
+    //         const std::chrono::seconds timeout_duration(SERVICE_TIMEOUT);
+    //         auto futureDanceResult = rclcpp::spin_until_future_complete(danceClientNode, danceResult, timeout_duration);
+    //         if(futureDanceResult == rclcpp::FutureReturnCode::SUCCESS)
+    //         {
+    //             auto danceFutureResult = danceResult.get();
+    //             if (danceFutureResult->is_ok == true) { // 0 is dance
+    //                 std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    //             }
+    //             std::this_thread::sleep_for(std::chrono::seconds(3));
+    //         }
+    //         else if(futureDanceResult == rclcpp::FutureReturnCode::TIMEOUT){
+    //            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'ExecuteDance'.");
+    //        }
+    //     }
+    //     if(m_stopped)
+    //     {
+    //         RCLCPP_INFO_STREAM(m_node->get_logger(), "Stop Recieved Dance Task" ); 
+    //         break;   
+    //     }
         
-        m_danceMutex.lock();
-        size = m_danceBuffer.size();
-        m_danceMutex.unlock();
-        m_timeMutex.lock();
-        l_seconds_left = m_seconds_left;
-        m_timeMutex.unlock();
-    }
-    while(l_seconds_left > 0 || size > 0);
-    // while(size);
-    m_danceTask = false;
+    //     m_danceMutex.lock();
+    //     size = m_danceBuffer.size();
+    //     m_danceMutex.unlock();
+    //     m_timeMutex.lock();
+    //     l_seconds_left = m_seconds_left;
+    //     m_timeMutex.unlock();
+    // }
+    // while(l_seconds_left > 0 || size > 0);
+    // // while(size);
+    // m_danceTask = false;
 }
         
 void NarrateComponent::NarrateTask(const std::shared_ptr<narrate_interfaces::srv::Narrate::Request> request) {
@@ -301,40 +302,40 @@ void NarrateComponent::NarrateTask(const std::shared_ptr<narrate_interfaces::srv
                         RCLCPP_INFO_STREAM(m_node->get_logger(), "Speak Task is already running");
                     }
                 }
-                else if (currentAction->type == "dance")
-                {
-                    RCLCPP_INFO_STREAM(m_node->get_logger(), "Got dance action " ); 
-                    m_danceMutex.lock();
-                    m_danceBuffer.push(currentAction->param);
-                    m_danceMutex.unlock();
-                    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-                    if (!m_danceTask) {
-                        m_danceTask = true;
-                        if (danceThread.joinable()) {
-                            danceThread.join();
-                        }
-                        danceThread = std::thread(&NarrateComponent::danceTask, this);
-                    } else {
-                        RCLCPP_INFO_STREAM(m_node->get_logger(), "Dance Task is already running");
-                    }
-                }
+                // else if (currentAction->type == "dance")
+                // {
+                //     RCLCPP_INFO_STREAM(m_node->get_logger(), "Got dance action " ); 
+                //     m_danceMutex.lock();
+                //     m_danceBuffer.push(currentAction->param);
+                //     m_danceMutex.unlock();
+                //     std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                //     if (!m_danceTask) {
+                //         m_danceTask = true;
+                //         if (danceThread.joinable()) {
+                //             danceThread.join();
+                //         }
+                //         danceThread = std::thread(&NarrateComponent::danceTask, this);
+                //     } else {
+                //         RCLCPP_INFO_STREAM(m_node->get_logger(), "Dance Task is already running");
+                //     }
+                // }
                 if(currentAction->is_blocking)
                 {
                     RCLCPP_INFO_STREAM(m_node->get_logger(), "Blocking action " ); 
                     if (speakThread.joinable()) {
                         speakThread.join();
-                        m_danceMutex.lock();
-                        while(m_danceBuffer.size() != 0)
-                        {
-                            m_danceBuffer.pop();
-                        }
-                        m_danceMutex.unlock();
+                        // m_danceMutex.lock();
+                        // while(m_danceBuffer.size() != 0)
+                        // {
+                        //     m_danceBuffer.pop();
+                        // }
+                        // m_danceMutex.unlock();
                         RCLCPP_INFO_STREAM(m_node->get_logger(), "Speak Thread Joined");
                     }
-                    if (danceThread.joinable() ) {
-                        danceThread.join();
-                        RCLCPP_INFO_STREAM(m_node->get_logger(), "Dance Thread Joined");
-                    }
+                    // if (danceThread.joinable() ) {
+                    //     danceThread.join();
+                    //     RCLCPP_INFO_STREAM(m_node->get_logger(), "Dance Thread Joined");
+                    // }
                     RCLCPP_INFO_STREAM(m_node->get_logger(), "Both Threads Joined");
                 }
 
@@ -359,10 +360,10 @@ void NarrateComponent::NarrateTask(const std::shared_ptr<narrate_interfaces::srv
                     speakThread.join();
                     RCLCPP_INFO_STREAM(m_node->get_logger(), "Speak Thread Joined");
                 }
-                if (danceThread.joinable() ) {
-                    danceThread.join();
-                    RCLCPP_INFO_STREAM(m_node->get_logger(), "Dance Thread Joined");
-                }
+                // if (danceThread.joinable() ) {
+                //     danceThread.join();
+                //     RCLCPP_INFO_STREAM(m_node->get_logger(), "Dance Thread Joined");
+                // }
                 RCLCPP_INFO_STREAM(m_node->get_logger(), "Both Thread Joined");
                 break;   
             }
