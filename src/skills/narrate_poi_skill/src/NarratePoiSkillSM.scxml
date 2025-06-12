@@ -3,7 +3,7 @@
     <datamodel>
         <data id="m_command" expr="&apos;explainRoom&apos;"/>
         <data id="m_is_done" expr="false"/>
-        <data id="m_result" expr="&apos;&apos;"/>
+        <data id="m_result" expr="false"/>
         <data id="SUCCESS_RESULT" expr="&apos;SUCCESS&apos;"/>
         <data id="SKILL_SUCCESS" expr="0"/>
         <data id="SKILL_FAILURE" expr="1"/>
@@ -21,11 +21,11 @@
     </state>
     <state id="start">
         <transition target="evaluateStart" event="NarrateComponent.Narrate.Return">
-            <assign location="m_result" expr="_event.data.result"/>
+            <assign location="m_result" expr="_event.data.is_ok"/>
         </transition>
     </state>
     <state id="evaluateStart">
-        <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+        <transition cond="!m_result" target="failure"/>
         <transition target="running"/>
     </state>
     <state id="running">
