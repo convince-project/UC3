@@ -79,10 +79,10 @@ RUN cd yarp-devices-ros2 && cd build && /bin/bash -c "source /opt/ros/jazzy/setu
     
 WORKDIR /home/user1 
 
-RUN /bin/bash -c "cd /home/user1 && rm -rf ROSMonitoring"
+# RUN /bin/bash -c "cd /home/user1 && rm -rf ROSMonitoring"
 
-RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
-    cd /home/user1 && git clone https://github.com/ste93/ROSMonitoring.git -b ros2"
+# RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
+#     cd /home/user1 && git clone https://github.com/ste93/ROSMonitoring.git -b ros2"
 
 # installing as2fm
 # RUN /bin/bash -c "/home/user1/convince-python-env/bin/pip install --upgrade pip"
@@ -107,13 +107,6 @@ RUN echo "export PATH=\$PATH:/home/user1/Groot/build" >> ~/.bashrc
 
 ENV PATH=/usr/local/Qt-6.8.3/bin:$PATH
 
-RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
-    cd /home/user1/UC3/src/components/dialog_component/py_interaction_cliserv/ && \
-    python3 -m venv create sbert && \
-    source sbert/bin/activate && \
-    pip install --upgrade pip && \
-    pip install -r requirements.txt"
-
 RUN /bin/bash -c "echo 'updated on 202503250921' && \
     source /opt/ros/jazzy/setup.bash && \
     cd /home/user1 && \
@@ -122,6 +115,12 @@ RUN /bin/bash -c "echo 'updated on 202503250921' && \
     cd /home/user1/UC3/ && \
     colcon build --base-paths src/* --packages-ignore face_expressions_wrapper"
 
+RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
+    cd /home/user1/UC3/src/components/dialog_component/py_interaction_cliserv/ && \
+    python3 -m venv create sbert && \
+    source sbert/bin/activate && \
+    pip install --upgrade pip && \
+    pip install -r requirements.txt"
 
 RUN echo "source /home/user1/UC3/install/setup.bash" >> ~/.bashrc
 
