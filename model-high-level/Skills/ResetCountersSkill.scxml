@@ -7,8 +7,7 @@
   initial="idle">
 
   <datamodel>
-    <data id="m_result"       type="string" expr="''"/>
-    <data id="SUCCESS_RESULT" type="string" expr="'SUCCESS'"/>
+    <data id="m_result"       type="boolean" expr="false"/>
     <data id="SKILL_SUCCESS"  type="int8"   expr="0"/>
     <data id="SKILL_FAILURE"  type="int8"   expr="1"/>
   </datamodel>
@@ -34,7 +33,7 @@
   </state>
 
   <state id="evaluate">
-    <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+    <transition cond="!m_result" target="failure"/>
     <transition target="success"/>
   </state>
 
