@@ -26,7 +26,7 @@
     <state id="decideCount">
         <transition cond="!m_result" target="fail"/>
         <transition cond="m_counter!=0" target="success"/>
-        <transition cond="m_result &amp;&amp; m_counter==0" target="startNarration"/>
+        <transition cond="!m_result &amp;&amp; m_counter==0" target="startNarration"/>
     </state>
     <state id="fail">
         <onentry>
@@ -51,7 +51,7 @@
             </send>
         </onentry>
         <transition cond="_event.data.is_ok" target="running" event="NarrateComponent.Narrate.Return"/>
-        <transition cond="_event.data.is_ok" target="fail" event="NarrateComponent.Narrate.Return"/>
+        <transition cond="!_event.data.is_ok" target="fail" event="NarrateComponent.Narrate.Return"/>
     </state>
     <state id="running">
         <onentry>
@@ -68,7 +68,7 @@
         <transition target="onCheck" event="NarrateComponent.IsDone.Return">
             <assign location="m_is_done" expr="_event.data.is_done"/>
         </transition>
-        <transition cond="_event.data.is_ok" target="fail" event="NarrateComponent.IsDone.Return"/>
+        <transition cond="!_event.data.is_ok" target="fail" event="NarrateComponent.IsDone.Return"/>
     </state>
     <state id="onCheck">
         <transition cond="m_is_done" target="success"/>
@@ -85,7 +85,7 @@
         <onentry>
             <assign location="m_counter" expr="0"/>
             <assign location="m_is_done" expr="false"/>
-            <assign location="m_result" expr="false"/>
+            <assign location="m_result" expr="false&apos;"/>
             <send event="HALT_RESPONSE"/>
         </onentry>
         <transition target="idle"/>
