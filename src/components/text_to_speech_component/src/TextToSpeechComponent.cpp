@@ -6,6 +6,7 @@
  ******************************************************************************/
 
 #include "yarp/sig/Sound.h"
+#include "yarp/os/Time.h"
 
 #include "TextToSpeechComponent.hpp"
 
@@ -246,6 +247,7 @@ void TextToSpeechComponent::Speak(const std::shared_ptr<text_to_speech_interface
     yInfo() << "[TextToSpeechComponent::Speak] passed mic";
     yarp::sig::Sound& sound = m_audioPort.prepare();
     sound.clear();
+    auto init_time = yarp::os::Time::now();
     if (!m_iSpeechSynth->synthesize(request->text, sound))
     {
         yError() << "[TextToSpeechComponent::Speak] Error in synthesize";
@@ -259,10 +261,14 @@ void TextToSpeechComponent::Speak(const std::shared_ptr<text_to_speech_interface
     }
     else
     {
+
+        auto end_time =  yarp::os::Time::now();
+        yInfo() << "elapsed time = " << end_time - init_time ;
         yInfo() << "[TextToSpeechComponent::Speak] synthesized with size: " << sound.getSamples();
         m_audioPort.write();
         response->is_ok=true;
     }
+
     bool isSpeaking =false;
     while (!isSpeaking){
         auto data = m_audioStatusPort.read();

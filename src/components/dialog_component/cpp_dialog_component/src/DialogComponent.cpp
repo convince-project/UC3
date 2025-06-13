@@ -658,55 +658,55 @@ void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::
     }
 
     // Calls the set language service of the text to speech component
-    // auto setLangClientNode2 = rclcpp::Node::make_shared("DialogComponentSetLangNode2");
-    // auto setLangClient2 = setLangClientNode2->create_client<text_to_speech_interfaces::srv::SetLanguage>("/TextToSpeechComponent/SetLanguage");
-    // auto request2 = std::make_shared<text_to_speech_interfaces::srv::SetLanguage::Request>();
-    // request2->new_language = newLang;
-    // while (!setLangClient2->wait_for_service(std::chrono::seconds(1)))
-    // {
-    //     if (!rclcpp::ok())
-    //     {
-    //         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setLangClient'. Exiting.");
-    //         response->is_ok = false;
-    //         return;
-    //     }
-    // }
-    // auto result2 = setLangClient2->async_send_request(request2);
-    // if (rclcpp::spin_until_future_complete(setLangClientNode2, result2) == rclcpp::FutureReturnCode::SUCCESS)
-    // {
-    //     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Set Language succeeded");
-    // }
-    // else
-    // {
-    //     RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service set_language");
-    //     response->is_ok = false;
-    //     return;
-    // }
+    auto setLangClientNode2 = rclcpp::Node::make_shared("DialogComponentSetLangNode2");
+    auto setLangClient2 = setLangClientNode2->create_client<text_to_speech_interfaces::srv::SetLanguage>("/TextToSpeechComponent/SetLanguage");
+    auto request2 = std::make_shared<text_to_speech_interfaces::srv::SetLanguage::Request>();
+    request2->new_language = newLang;
+    while (!setLangClient2->wait_for_service(std::chrono::seconds(1)))
+    {
+        if (!rclcpp::ok())
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setLangClient'. Exiting.");
+            response->is_ok = false;
+            return;
+        }
+    }
+    auto result2 = setLangClient2->async_send_request(request2);
+    if (rclcpp::spin_until_future_complete(setLangClientNode2, result2) == rclcpp::FutureReturnCode::SUCCESS)
+    {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Set Language succeeded");
+    }
+    else
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service set_language");
+        response->is_ok = false;
+        return;
+    }
 
-    // auto setVoiceClientNode = rclcpp::Node::make_shared("DialogComponentSetVoiceNode");
-    // auto setVoiceClient = setVoiceClientNode->create_client<text_to_speech_interfaces::srv::SetVoice>("/TextToSpeechComponent/SetVoice");
-    // auto request3 = std::make_shared<text_to_speech_interfaces::srv::SetVoice::Request>();
-    // request3->new_voice = m_voicesMap[newLang];
-    // while (!setVoiceClient->wait_for_service(std::chrono::seconds(1)))
-    // {
-    //     if (!rclcpp::ok())
-    //     {
-    //         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setVoiceClient'. Exiting.");
-    //         response->is_ok = false;
-    //         return;
-    //     }
-    // }
-    // auto result3 = setVoiceClient->async_send_request(request3);
-    // if (rclcpp::spin_until_future_complete(setVoiceClientNode, result3) == rclcpp::FutureReturnCode::SUCCESS)
-    // {
-    //     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Set Voice succeeded");
-    // }
-    // else
-    // {
-    //     RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service set_voice");
-    //     response->is_ok = false;
-    //     return;
-    // }
+    auto setVoiceClientNode = rclcpp::Node::make_shared("DialogComponentSetVoiceNode");
+    auto setVoiceClient = setVoiceClientNode->create_client<text_to_speech_interfaces::srv::SetVoice>("/TextToSpeechComponent/SetVoice");
+    auto request3 = std::make_shared<text_to_speech_interfaces::srv::SetVoice::Request>();
+    request3->new_voice = m_voicesMap[newLang];
+    while (!setVoiceClient->wait_for_service(std::chrono::seconds(1)))
+    {
+        if (!rclcpp::ok())
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setVoiceClient'. Exiting.");
+            response->is_ok = false;
+            return;
+        }
+    }
+    auto result3 = setVoiceClient->async_send_request(request3);
+    if (rclcpp::spin_until_future_complete(setVoiceClientNode, result3) == rclcpp::FutureReturnCode::SUCCESS)
+    {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Set Voice succeeded");
+    }
+    else
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service set_voice");
+        response->is_ok = false;
+        return;
+    }
 }
 
 void DialogComponent::WaitForSpeakEnd()
