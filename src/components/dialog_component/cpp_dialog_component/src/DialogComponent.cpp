@@ -533,40 +533,6 @@ bool DialogComponent::CommandManager(const std::string &command, std::shared_ptr
     else if (action == "next_poi" || action == "start_tour") // means that it has been found // NEXT POI
     {
 
-        auto updatePoiClientNode = rclcpp::Node::make_shared("DialogComponentUpdatePoiNode");
-        auto updatePoiClient = updatePoiClientNode->create_client<scheduler_interfaces::srv::UpdatePoi>("/SchedulerComponent/UpdatePoi");
-        auto updatePoiRequest = std::make_shared<scheduler_interfaces::srv::UpdatePoi::Request>();
-        while (!updatePoiClient->wait_for_service(std::chrono::seconds(1)))
-        {
-            if (!rclcpp::ok())
-            {
-                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'updatePoiClient'. Exiting.");
-            }
-        }
-        auto updatePoiResult = updatePoiClient->async_send_request(updatePoiRequest);
-        auto futureUpdatePoiResult = rclcpp::spin_until_future_complete(updatePoiClientNode, updatePoiResult);
-        if (futureUpdatePoiResult == rclcpp::FutureReturnCode::SUCCESS)
-        {
-            if (updatePoiResult.get()->is_ok)
-            {
-                yInfo() << "[DialogComponent::CommandManager] Update Poi Succeeded" << __LINE__;
-            }
-            else
-            {
-                yError() << "[DialogComponent::CommandManager] Update Poi Failed" << __LINE__;
-            }
-        }
-        else
-        {
-            yError() << "[DialogComponent::CommandManager] Update Poi Failed" << __LINE__;
-        }
-
-        if (!UpdatePoILLMPrompt())
-        {
-            yError() << "[DialogComponent::CommandManager] Error in UpdatePoILLMPrompt";
-            response->is_ok = false;
-            return false;
-        }
 
         m_state = SUCCESS;
         yInfo() << "[DialogComponent::CommandManager] Next Poi Detected" << __LINE__;
@@ -579,33 +545,7 @@ bool DialogComponent::CommandManager(const std::string &command, std::shared_ptr
     {
         yInfo() << "[DialogComponent::CommandManager] End Tour Detected" << __LINE__;
         // calls the end tour service of the scheduler component
-        auto endTourClientNode = rclcpp::Node::make_shared("DialogComponentEndTourNode");
-        auto endTourClient = endTourClientNode->create_client<scheduler_interfaces::srv::EndTour>("/SchedulerComponent/EndTour");
-        auto endTourRequest = std::make_shared<scheduler_interfaces::srv::EndTour::Request>();
-        while (!endTourClient->wait_for_service(std::chrono::seconds(1)))
-        {
-            if (!rclcpp::ok())
-            {
-                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'endTourClient'. Exiting.");
-            }
-        }
-        auto endTourResult = endTourClient->async_send_request(endTourRequest);
-        auto futureEndTourResult = rclcpp::spin_until_future_complete(endTourClientNode, endTourResult);
-        if (futureEndTourResult == rclcpp::FutureReturnCode::SUCCESS)
-        {
-            if (endTourResult.get()->is_ok)
-            {
-                yInfo() << "[DialogComponent::CommandManager] End Tour Succeeded" << __LINE__;
-            }
-            else
-            {
-                yError() << "[DialogComponent::CommandManager] End Tour Failed" << __LINE__;
-            }
-        }
-        else
-        {
-            yError() << "[DialogComponent::CommandManager] End Tour Failed" << __LINE__;
-        }
+        
         response->is_ok = true;
         response->is_poi_ended = true;
         m_state = SUCCESS;
@@ -1076,11 +1016,20 @@ void DialogComponent::handle_accepted(const std::shared_ptr<GoalHandleWaitForInt
 void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitForInteraction> goal_handle)
 {
 
+
+
     RCLCPP_INFO(m_node->get_logger(), "Waiting for interaction");
     auto goal = goal_handle->get_goal();
     auto feedback = std::make_shared<dialog_interfaces::action::WaitForInteraction::Feedback>();
     feedback->status = "Waiting for interaction";
     auto result = std::make_shared<dialog_interfaces::action::WaitForInteraction::Result>();
+    if (!UpdatePoILLMPrompt())
+    {
+        yError() << "[DialogComponent::CommandManager] Error in UpdatePoILLMPrompt";
+        result->is_ok = false;
+        goal_handle->abort(result);
+        return;
+    } 
 
     if (goal->is_beginning_of_conversation)
     {
