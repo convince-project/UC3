@@ -10,7 +10,7 @@
     <data id="m_command"    type="string"  expr="'sayWhileNavigating'"/>
     <data id="m_counter"    type="int32"   expr="0"/>
     <data id="m_is_done"    type="boolean" expr="false"/>
-    <data id="m_result"     type="string"  expr="''"/>
+    <data id="m_result"     type="boolean"  expr="false"/>
     <data id="SKILL_SUCCESS" type="int8"   expr="0"/>
     <data id="SKILL_FAILURE" type="int8"   expr="1"/>
     <data id="SKILL_RUNNING" type="int8"   expr="2"/>
@@ -36,14 +36,14 @@
   <state id="getCount">
     <ros_service_handle_response name="/TurnBackManagerComponent/GetTurnBacksCounter" target="decideCount">
       <assign location="m_counter" expr="_res.counter"/>
-      <assign location="m_result" expr="_res.result"/>
+      <assign location="m_result" expr="_res.is_ok"/>
     </ros_service_handle_response>
   </state>
 
   <state id="decideCount">
-    <transition cond="m_result!='SKILL_SUCCESS'" target="fail"/>
+    <transition cond="!m_result" target="fail"/>
     <transition cond="m_counter!=0" target="success"/>
-    <transition cond="m_result=='SKILL_SUCCESS' && m_counter==0" target="startNarration"/>
+    <transition cond="!m_result' && m_counter==0" target="startNarration"/>
   </state>
 
   <state id="fail">
@@ -70,8 +70,8 @@
         <field name="command" expr="m_command"/>
       </ros_service_send_request>
     </onentry>
-    <ros_service_handle_response name="/NarrateComponent/Narrate" cond="_res.result=='SKILL_SUCCESS'" target="running"/>
-    <ros_service_handle_response name="/NarrateComponent/Narrate" cond="_res.result!='SKILL_SUCCESS'" target="fail"/>
+    <ros_service_handle_response name="/NarrateComponent/Narrate" cond="_res.is_ok" target="running"/>
+    <ros_service_handle_response name="/NarrateComponent/Narrate" cond="!_res.is_ok" target="fail"/>
   </state>
 
   <state id="running">
@@ -90,7 +90,7 @@
     <ros_service_handle_response name="/NarrateComponent/IsDone" target="onCheck">
       <assign location="m_is_done" expr="_res.is_done"/>
     </ros_service_handle_response>
-    <ros_service_handle_response name="/NarrateComponent/IsDone" cond="_res.result!='SKILL_SUCCESS'" target="fail"/>
+    <ros_service_handle_response name="/NarrateComponent/IsDone" cond="!_res.is_ok" target="fail"/>
   </state>
 
   <state id="onCheck">
@@ -110,7 +110,7 @@
     <onentry>
       <assign location="m_counter" expr="0"/>
       <assign location="m_is_done" expr="false"/>
-      <assign location="m_result" expr="''"/>
+      <assign location="m_result" expr="false'"/>
       <ros_service_send_response name="/SayWhileNavigatingSkill/halt"/>
     </onentry>
     <transition target="idle"/>
