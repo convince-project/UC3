@@ -16,9 +16,12 @@
     <state id="idle">
         <transition target="getCurrentPoi" event="CMD_TICK">
             <send event="SchedulerComponent.GetCurrentPoi.Call"/>
+            <send event="TICK_RESPONSE">
+                <param name="result" expr='"RUNNING"'/>
+            </send>
         </transition>
         <!-- Decommentare e correggere -->
-        <transition target="halted" event="CMD_HALT"/>
+        <transition target="idle" event="CMD_HALT"/>
     </state>
     <state id="getCurrentPoi">
         <transition cond="_event.data.is_ok" target="setInt" event="SchedulerComponent.GetCurrentPoi.Return">
@@ -44,7 +47,7 @@
                 <param name="is_ok" expr="true"/>
             </send>
         </transition>
-        <transition cond="(_event.data.is_ok) == false" target="idle" event="BlackboardComponent.SetInt.Return">
+        <transition cond="!_event.data.is_ok" target="idle" event="BlackboardComponent.SetInt.Return">
             <send event="TICK_RESPONSE">
                 <param name="status" expr="SKILL_FAILURE"/>
                 <param name="is_ok" expr="true"/>
