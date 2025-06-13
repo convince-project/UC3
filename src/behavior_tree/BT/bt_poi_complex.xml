@@ -50,7 +50,7 @@
       <ROS2Action name="Dialog" interface="ROS2SERVICE" isMonitored="false" />
       <ROS2Action name="SetCurrentPoiDone" interface="ROS2SERVICE" isMonitored="false" />
       <ROS2Action name="ResetCounters" interface="ROS2SERVICE" isMonitored="false" />
-      <ROS2Action name="SetNavigationPosition" interface="ROS2SERVICE" isMonitored="false" />
+      
     </Sequence>
   </BehaviorTree>
 
