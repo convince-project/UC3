@@ -29,7 +29,7 @@
 
   <state id="resetCounters">
     <ros_service_handle_response name="/TurnBackManagerComponent/ResetCounters" target="evaluate">
-      <assign location="m_result" expr="_res.result"/>
+      <assign location="m_result" expr="_res.is_ok"/>
     </ros_service_handle_response>
   </state>
 
