@@ -183,7 +183,7 @@
         <name>ros2_visitors_following_robot_skill</name>
         <parameters>run visitors_following_robot_skill visitors_following_robot_skill</parameters>
         <workdir />
-        <node>bt</node>
+        <node>opt</node>
     </module>
 
     <module>
@@ -355,21 +355,12 @@
         <workdir>/home/user1/UC3/launch/</workdir>
         <node>bt</node>
     </module>
-    
-    
-    <module>
-        <name>ros2_dialog_skill</name>
-        <parameters>run dialog_skill dialog_skill</parameters>
-        <workdir />
-        <node>bt</node>
-    </module>
-    
         
     <module>
          <name>ros2_dummy_condition</name>
          <parameters>run dummy_condition dummy_condition --skill_name VisitorsFollowingRobot --default_status SUCCESS</parameters>
          <workdir />
-         <node>opt</node>
+         <node>bt</node>
     </module>
 
 
