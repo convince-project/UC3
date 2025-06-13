@@ -16,11 +16,11 @@
     </state>
     <state id="resetCounters">
         <transition target="evaluate" event="TurnBackManagerComponent.ResetCounters.Return">
-            <assign location="m_result" expr="_event.data.result"/>
+            <assign location="m_result" expr="_event.data.is_ok"/>
         </transition>
     </state>
     <state id="evaluate">
-        <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+        <transition cond="!m_result" target="failure"/>
         <transition target="success"/>
     </state>
     <state id="success">
