@@ -1,0 +1,4 @@
+---
+bool done_with_poi
+bool is_ok
+string error_msg

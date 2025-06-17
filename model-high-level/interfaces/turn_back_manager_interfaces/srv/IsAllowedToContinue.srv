@@ -1,0 +1,5 @@
+---
+bool is_allowed
+bool is_ok
+bool result
+string error_msg
