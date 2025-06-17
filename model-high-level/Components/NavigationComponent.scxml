@@ -6,12 +6,19 @@
        datamodel="ecmascript">
 
   <datamodel>
-    <data id="temp_poi_name"      type="string"  expr="''"/>
-    <data id="temp_distance"      type="number"  expr="0"/>
-    <data id="temp_is_near"       type="boolean" expr="false"/>
-    <data id="temp_error_msg"     type="string"  expr="''"/>
-    <data id="temp_goal"          type="string"  expr="''"/>
-    <data id="temp_status_code"   type="number"  expr="0"/>
+    <data id="GOAL_REACHED" type="int32" expr="4" />
+    <data id="ABORTED" type="int32" expr="5" />
+    <data id="MOVING" type="int32" expr="2" />
+    <data id="IDLE" type="int32" expr="0" />
+    <data id="goal_name" type="string" expr="''" />
+    <data id="goal_id" type="int32" expr="0" />
+
+    <!-- <data id="poi_name" type="string" expr="" /> -->
+    <!-- <data id="poi_number" type="int32" expr="0" /> -->
+    <!-- Exec fields -->
+    <data id="is_near" type="boolean" expr="false" />
+    <data id="status" type="int32" expr="0" />
+    <!-- temp variables -->
   </datamodel>
 
   <!-- Service servers -->
@@ -23,73 +30,86 @@
 
   <!-- Action server -->
   <ros_action_server name="goto_act" action_name="/NavigationComponent/GoToPoi" type="navigation_interfaces/action/GoToPoi"/>
+  <ros_time_rate name="action_timer" rate_hz="10.0"/>
 
   <state id="idle">
-    <!-- GoToPoiByName -->
-    <ros_service_handle_request name="/NavigationComponent/GoToPoiByName" target="HandleGoToPoiByName">
-      <assign location="temp_poi_name" expr="_req.poi_name"/>
-    </ros_service_handle_request>
+
     <!-- GetNavigationStatus -->
-    <ros_service_handle_request name="/NavigationComponent/GetNavigationStatus" target="HandleGetNavigationStatus"/>
+    <ros_service_handle_request name="/NavigationComponent/GetNavigationStatus" target="HandleGetNavigationStatus">
+      <ros_service_send_response name="/NavigationComponent/GetNavigationStatus">
+        <field name="is_ok"         expr="true"/>
+        <field name="current_goal"  expr="goal_name"/>
+        <field name="status.status" expr="status"/>
+        <field name="error_msg"     expr="error_msg"/>
+      </ros_service_send_response>
+    </ros_service_handle_request>
     <!-- StopNavigation -->
     <ros_service_handle_request name="/NavigationComponent/StopNavigation" target="HandleStopNavigation"/>
     <!-- CheckNearToPoi -->
     <ros_service_handle_request name="/NavigationComponent/CheckNearToPoi" target="HandleCheckNearToPoi">
-      <assign location="temp_poi_name"  expr="_req.poi_name"/>
-      <assign location="temp_distance"  expr="_req.distance"/>
+      <ros_service_send_response name="/NavigationComponent/CheckNearToPoi">
+        <field name="is_ok"      expr="true"/>
+        <field name="is_near"    expr="is_near"/>
+        <field name="error_msg"  expr="''"/>
+      </ros_service_send_response>
     </ros_service_handle_request>
     <!-- TurnBack -->
-    <ros_service_handle_request name="/NavigationComponent/TurnBack" target="HandleTurnBack"/>
+    <!-- <ros_service_handle_request name="/NavigationComponent/TurnBack" target="HandleTurnBack"/> -->
     <!-- Action‐goal -->
     <ros_action_handle_goal name="/NavigationComponent/GoToPoi" target="HandleActionGoal">
-      <assign location="temp_goal" expr="_req.poi_name"/>
+      <assign location="goal" expr="_req.poi_name"/>
+      <assign location="status" expr="MOVING"/>
+      <assign location="goal_name" expr="_req.poi_name"/>
+      <ros_action_accept_goal name="/NavigationComponent/GoToPoi" goal_id="goal_id"/>
+
     </ros_action_handle_goal>
-    <ros_action_handle_cancel name="/NavigationComponent/GoToPoi" target="HandleActionCancel"/>
+    <!-- <ros_action_handle_cancel name="/NavigationComponent/GoToPoi" target="HandleActionCancel"/> -->
   </state>
 
-  <state id="HandleGoToPoiByName">
-    <onentry>
-      <ros_service_send_response name="/NavigationComponent/GoToPoiByName">
-        <field name="is_ok"  expr="temp_poi_name !== ''"/>
-        <field name="error_msg" expr="temp_poi_name === '' ? 'empty poi' : ''"/>
-      </ros_service_send_response>
-    </onentry>
-    <transition target="idle"/>
-  </state>
 
-  <state id="HandleGetNavigationStatus">
-    <onentry>
-      <ros_service_send_response name="/NavigationComponent/GetNavigationStatus">
-        <field name="is_ok"         expr="_callSucceeded()"/>
-        <field name="current_goal"  expr="_result.target || ''"/>
-        <field name="status.xcld.,status" expr="_result.status_code || 0"/>
-        <field name="error_msg"     expr="_callSucceeded() ? '' : _errorMessage()"/>
-      </ros_service_send_response>
-    </onentry>
-    <transition target="idle"/>
-  </state>
+
 
   <state id="HandleStopNavigation">
+
+      <!-- <ros_action_aborted name="/NavigationComponent/GoToPoi" goal_id="goal_id">
+        <field name="is_ok" expr="false"/>
+        <field name="error_msg" expr="'goal stopped'"/>
+
+      </ros_action_aborted> -->
+    <transition target="NavigationAborted"/>
+    <!-- <transition target="idle"/> -->
+  </state>
+
+  <state id="NavigationAborted">
     <onentry>
+      <assign location="goal_name" expr="''"/>
+      <assign location="goal_id"   expr="0"/>
+      <assign location="status"    expr="ABORTED"/>
+      <assign location="is_near"   expr="false"/>
       <ros_service_send_response name="/NavigationComponent/StopNavigation">
-        <field name="is_ok"      expr="_callSucceeded()"/>
-        <field name="error_msg"  expr="_callSucceeded() ? '' : _errorMessage()"/>
+        <field name="is_ok"      expr="true"/>
+        <field name="error_msg"  expr="''"/>
       </ros_service_send_response>
     </onentry>
-    <transition target="idle"/>
-  </state>
-
-  <state id="HandleCheckNearToPoi">
-    <onentry>
+    <ros_service_handle_request name="/NavigationComponent/GetNavigationStatus" target="HandleGetNavigationStatus">
+      <ros_service_send_response name="/NavigationComponent/GetNavigationStatus">
+        <field name="is_ok"         expr="true"/>
+        <field name="current_goal"  expr="goal_name"/>
+        <field name="status.status" expr="status"/>
+        <field name="error_msg"     expr="error_msg"/>
+      </ros_service_send_response>
+    </ros_service_handle_request>
+    <!-- CheckNearToPoi -->
+    <ros_service_handle_request name="/NavigationComponent/CheckNearToPoi" target="HandleCheckNearToPoi">
       <ros_service_send_response name="/NavigationComponent/CheckNearToPoi">
-        <field name="is_ok"      expr="_callSucceeded()"/>
-        <field name="is_near"    expr="_result.is_near"/>
-        <field name="error_msg"  expr="_callSucceeded() ? '' : 'failed to check if nearby'"/>
+        <field name="is_ok"      expr="true"/>
+        <field name="is_near"    expr="is_near"/>
+        <field name="error_msg"  expr="''"/>
       </ros_service_send_response>
-    </onentry>
-    <transition target="idle"/>
+    </ros_service_handle_request>
   </state>
 
+<!-- 
   <state id="HandleTurnBack">
     <onentry>
       <ros_service_send_response name="/NavigationComponent/TurnBack">
@@ -98,44 +118,24 @@
       </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
-  </state>
+  </state> -->
 
   <state id="HandleActionGoal">
-    <onentry>
-      <!-- accept and start execution -->
-      <ros_action_send_accepted name="/NavigationComponent/GoToPoi"/>
-      <send event="EXECUTE"/>
-    </onentry>
-    <transition event="EXECUTE" target="ActionExecute"/>
-  </state>
+            <transition target="idle" prob="0.7">
+                <!-- success -->
+                <assign location="status" expr="GOAL_REACHED" />
+                <assign location="is_near" expr="true" />
+                <ros_action_succeed name="MoveBlock_action_srv" goal_id="goal_id" />
+            </transition>
+            <transition target="NavigationAborted" prob="0.3">
+                <!-- failure -->
+                <assign location="status" expr="ABORTED" />
+                <assign location="is_near" expr="false" />
+                <!-- <ros_action_abort name="/NavigationComponent/GoToPoi" goal_id="goal_id">
+                  <field name="is_ok" expr="false"/>
+                  <field name="error_msg" expr="'goal aborted'"/>
+                </ros_action_abort> -->
+            </transition>
 
-  <state id="ActionExecute">
-    <onentry>
-      <!-- here the runtime will do the actual goto and feedback loop -->
-      <!-- upon completion it will emit 'DONE' or 'CANCELLED' -->
-    </onentry>
-    <transition event="DONE">
-      <ros_action_send_result name="/NavigationComponent/GoToPoi">
-        <field name="is_ok" expr="true"/>
-      </ros_action_send_result>
-      <transition target="idle"/>
-    </transition>
-    <transition event="CANCELLED">
-      <ros_action_send_result name="/NavigationComponent/GoToPoi">
-        <field name="is_ok" expr="false"/>
-        <field name="error_msg" expr="'goal canceled'"/>
-      </ros_action_send_result>
-      <transition target="idle"/>
-    </transition>
   </state>
-
-  <state id="HandleActionCancel">
-    <onentry>
-      <!-- runtime will stop the navigation -->
-      <ros_action_send_cancel_ack name="/NavigationComponent/GoToPoi"/>
-      <send event="CANCELLED"/>
-    </onentry>
-    <transition target="idle"/>
-  </state>
-
 </scxml>

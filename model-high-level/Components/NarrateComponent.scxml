@@ -11,8 +11,9 @@
     <!-- track whether the narration has completed -->
     <data id="is_done"         type="boolean" expr="true"/>
     <!-- track whether a stop was requested -->
-    <data id="stopped"         type="boolean" expr="false"/>
+    <!-- <data id="stopped"         type="boolean" expr="false"/> -->
   </datamodel>
+  <ros_time_rate name="speak_timer" rate_hz="10.0"/>
 
   <!-- ROS service servers -->
   <ros_service_server service_name="/NarrateComponent/Narrate" type="narrate_interfaces/srv/Narrate"/>
@@ -32,6 +33,10 @@
     <ros_service_handle_request name="/NarrateComponent/Stop" target="HandleStop">
       <assign location="stopped" expr="true"/>
     </ros_service_handle_request>
+    <!-- periodically set narration to done -->
+    <transition event="speak_timer.tick" target="idle">
+      <assign location="is_done" expr="true"/>
+    </transition>
   </state>
 
   <state id="HandleNarrate">
@@ -66,7 +71,7 @@
         <field name="is_ok" expr="true"/>
       </ros_service_send_response>
       <!-- set the stopped flag so the running task can observe it -->
-      <assign location="stopped" expr="true"/>
+      <assign location="is_done" expr="true"/>
     </onentry>
     <transition target="idle"/>
   </state>
