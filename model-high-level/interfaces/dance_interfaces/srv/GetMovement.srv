@@ -1,0 +1,7 @@
+---
+string part_name
+float32 time
+float32 offset
+float32[] joints
+bool is_ok
+string error_msg

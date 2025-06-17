@@ -1,0 +1,3 @@
+string context # the command to be interpreted
+---
+bool is_ok

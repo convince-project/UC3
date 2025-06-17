@@ -1,0 +1,6 @@
+string poi_name
+---
+bool is_ok
+string error_msg
+---
+NavigationStatus status
