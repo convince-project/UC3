@@ -9,26 +9,45 @@
 	<datamodel>
 		<data id="isCheckingForPeople" type="int32" expr="0" />
 		<!-- <data id="field_name" type="string" expr="" /> -->
-		<data id="field_name" type="int32" expr="0" />
-    <data id="value" type="int32" expr="0" />
-		<!-- <data id="saved_field_name_1" type="string" expr='"PoiDone1"' />
-		<data id="saved_field_name_2" type="string" expr='"PoiDone2"' /> -->
-		<data id="saved_field_name_1" type="int32" expr="1" />
-		<data id="saved_field_name_2" type="int32" expr="2" />
-		<data id="saved_value_1" type="int32" expr="0" />
-		<data id="saved_value_2" type="int32" expr="0" />
+		<data id="field_name_string" type="string" expr="0" />
+    <data id="value_string" type="string" expr="''" />
+    <data id="field_name_int" type="string" expr="''" />
+    <data id="value_int" type="int32" expr="0" />
+    <data id="field_name_all_int_with_prefix" type="string" expr="''" />
+    <data id="value_all_int_with_prefix" type="int32" expr="0" />
+
+		<data id="saved_field_name_int_1" type="string" expr='"PoiDone0"' />
+		<data id="saved_field_name_int_2" type="string" expr='"PoiDone1"' />
+    <data id="saved_field_name_int_3" type="string" expr='"PoiDone2"' />
+    <data id="saved_field_name_int_4" type="string" expr='"PoiDone3"' />
+    <data id="saved_field_name_int_5" type="string" expr='"PoiDone4"' />
+    <data id="saved_field_name_int_6" type="string" expr='"PoiDone5"' />
+		<!-- <data id="saved_field_name_1" type="int32" expr="1" />
+		<data id="saved_field_name_2" type="int32" expr="2" /> -->
+		<data id="saved_value_int_1" type="int32" expr="0" />
+		<data id="saved_value_int_2" type="int32" expr="0" />
+    <data id="saved_value_int_3" type="int32" expr="0" />
+    <data id="saved_value_int_4" type="int32" expr="0" />
+    <data id="saved_value_int_5" type="int32" expr="0" />
+    <data id="saved_value_int_6" type="int32" expr="0" />
+
 	</datamodel>
 
-  <ros_service_server service_name="/BlackboardComponent/GetInt" type="blackboard_interfaces_dummy/GetIntBlackboard"/>
-  <ros_service_server service_name="/BlackboardComponent/SetInt" type="blackboard_interfaces_dummy/SetIntBlackboard"/>
-  <ros_topic_publisher topic="/BlackboardComponent/Poi1Done" type="std_msgs/Int32" />
+  <ros_service_server service_name="/BlackboardComponent/GetInt" type="blackboard_interfaces/GetIntBlackboard"/>
+  <ros_service_server service_name="/BlackboardComponent/SetInt" type="blackboard_interfaces/SetIntBlackboard"/>
+  <ros_service_client service_name="/BlackboardComponent/GetString" type="blackboard_interfaces/GetStringBlackboard"/>
+  <ros_service_client service_name="/BlackboardComponent/SetString" type="blackboard_interfaces/SetStringBlackboard"/>
+  <ros_service_client service_name="/BlackboardComponent/SetAllIntsWithPrefix" type="blackboard_interfaces/SetAllIntsWithPrefixBlackboard"/>
+
+
+  <!-- <ros_topic_publisher topic="/BlackboardComponent/Poi1Done" type="std_msgs/Int32" /> -->
 
   <state id="idle">
-    <onentry>
+    <!-- <onentry>
       <ros_topic_publish name="/BlackboardComponent/Poi1Done">
         <field name="data" expr="saved_value_1"/>
       </ros_topic_publish>
-    </onentry>
+    </onentry> -->
     <ros_service_handle_request name="/BlackboardComponent/GetInt" target="GetInt">
       <assign location="field_name" expr="_req.field_name"/>
     </ros_service_handle_request>
@@ -36,6 +55,17 @@
       <assign location="field_name" expr="_req.field_name"/>
       <assign location="value" expr="_req.value"/>
     </ros_service_handle_request>
+    <!-- <ros_service_handle_request name="/BlackboardComponent/GetString" target="GetString">
+      <assign location="field_name" expr="_req.field_name"/>
+    </ros_service_handle_request>
+    <ros_service_handle_request name="/BlackboardComponent/SetString" target="SetString">
+      <assign location="field_name" expr="_req.field_name"/>
+      <assign location="value" expr="_req.value"/>
+    </ros_service_handle_request>
+    <ros_service_handle_request name="/BlackboardComponent/SetAllIntsWithPrefix" target="SetAllIntsWithPrefix">
+      <assign location="field_name" expr="_req.field_name"/>
+      <assign location="value" expr="_req.value"/>
+    </ros_service_handle_request> -->
   </state>
 
   <state id="GetInt">
@@ -48,6 +78,26 @@
       <elseif cond="field_name == saved_field_name_2"/>
         <ros_service_send_response name="/BlackboardComponent/GetInt">
           <field name="value" expr="saved_value_2"/>
+          <field name="is_ok" expr="true"/>
+        </ros_service_send_response>
+      <elseif cond="field_name == saved_field_name_int_3"/>
+        <ros_service_send_response name="/BlackboardComponent/GetInt">
+          <field name="value" expr="saved_value_int_3"/>
+          <field name="is_ok" expr="true"/>
+        </ros_service_send_response>
+      <elseif cond="field_name == saved_field_name_int_4"/>
+        <ros_service_send_response name="/BlackboardComponent/GetInt">
+          <field name="value" expr="saved_value_int_4"/>
+          <field name="is_ok" expr="true"/>
+        </ros_service_send_response>
+      <elseif cond="field_name == saved_field_name_int_5"/> 
+        <ros_service_send_response name="/BlackboardComponent/GetInt">
+          <field name="value" expr="saved_value_int_5"/>
+          <field name="is_ok" expr="true"/>
+        </ros_service_send_response>
+      <elseif cond="field_name == saved_field_name_int_6"/>
+        <ros_service_send_response name="/BlackboardComponent/GetInt">
+          <field name="value" expr="saved_value_int_6"/>
           <field name="is_ok" expr="true"/>
         </ros_service_send_response>
       <else />
@@ -72,6 +122,26 @@
           <field name="is_ok" expr="true"/>
         </ros_service_send_response>
         <assign location="saved_value_2" expr="value"/>
+      <elseif cond="field_name == saved_field_name_int_3"/>
+        <ros_service_send_response name="/BlackboardComponent/SetInt">
+          <field name="is_ok" expr="true"/>
+        </ros_service_send_response>
+        <assign location="saved_value_int_3" expr="value"/>
+      <elseif cond="field_name == saved_field_name_int_4"/>
+        <ros_service_send_response name="/BlackboardComponent/SetInt">
+          <field name="is_ok" expr="true"/>
+        </ros_service_send_response>
+        <assign location="saved_value_int_4" expr="value"/>
+      <elseif cond="field_name == saved_field_name_int_5"/>
+        <ros_service_send_response name="/BlackboardComponent/SetInt">
+          <field name="is_ok" expr="true"/>
+        </ros_service_send_response>
+        <assign location="saved_value_int_5" expr="value"/>
+      <elseif cond="field_name == saved_field_name_int_6"/>
+        <ros_service_send_response name="/BlackboardComponent/SetInt">  
+          <field name="is_ok" expr="true"/>
+        </ros_service_send_response>
+        <assign location="saved_value_int_6" expr="value"/>
       <else />
         <ros_service_send_response name="/BlackboardComponent/SetInt">
           <field name="is_ok" expr="false"/>
@@ -80,5 +150,7 @@
     </onentry>
     <transition target="idle"/>
   </state>
+
+  
 
 </scxml>
