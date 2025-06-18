@@ -72,15 +72,15 @@
         <!-- <input type="ros-scxml" id="SetNavigationPositionSkill" src="Skills/SetNavigationPositionSkill.scxml" /> -->
         <input type="ros-scxml" id="SetNotTurningSkill" src="Skills/SetNotTurningSkill.scxml" />
         <input type="ros-scxml" id="SetPoi0Skill" src="Skills/SetPoi0Skill.scxml" />
-        <input type="ros-scxml" id="SetPoiDone1Skill" src="Skills/SetPoiDone1Skill.scxml" />
-        <input type="ros-scxml" id="SetPoiDone2Skill" src="Skills/SetPoiDone2Skill.scxml" />
-        <input type="ros-scxml" id="SetPoiDone3Skill" src="Skills/SetPoiDone3Skill.scxml" />
-        <input type="ros-scxml" id="SetPoiDone4Skill" src="Skills/SetPoiDone4Skill.scxml" />
-        <input type="ros-scxml" id="SetPoiDone5Skill" src="Skills/SetPoiDone5Skill.scxml" />
+        <input type="ros-scxml" id="SetPoi1Skill" src="Skills/SetPoi1Skill.scxml" />
+        <input type="ros-scxml" id="SetPoi2Skill" src="Skills/SetPoi2Skill.scxml" />
+        <input type="ros-scxml" id="SetPoi3Skill" src="Skills/SetPoi3Skill.scxml" />
+        <input type="ros-scxml" id="SetPoi4Skill" src="Skills/SetPoi4Skill.scxml" />
+        <input type="ros-scxml" id="SetPoi5Skill" src="Skills/SetPoi5Skill.scxml" />
         <input type="ros-scxml" id="SetTurnedSkill" src="Skills/SetTurnedSkill.scxml" />
         <input type="ros-scxml" id="SetTurningSkill" src="Skills/SetTurningSkill.scxml" />
         <!-- <input type="ros-scxml" id="StartServiceSkill" src="Skills/StartServiceSkill.scxml" /> -->
-        <input type="ros-scxml" id="StartTourTimerSkill" src="Skills/StartTourAndTimerSkill.scxml" />
+        <input type="ros-scxml" id="StartTourTimerSkill" src="Skills/StartTourTimerSkill.scxml" />
         <input type="ros-scxml" id="StopAndTurnBackSkill" src="Skills/StopAndTurnBackSkill.scxml" />
         <!-- <input type="ros-scxml" id="StopServiceSkill" src="Skills/StopServiceSkill.scxml" /> -->
         <input type="ros-scxml" id="StopTourTimerSkill" src="Skills/StopTourTimerSkill.scxml" />

@@ -6,14 +6,14 @@
        initial="idle">
 
   <datamodel>
-    <data id="status"        expr="0"/>
-    <data id="result"        expr="''"/>
-    <data id="NAV_MOVING"    expr="2"/>
-    <data id="NAV_REACHED"   expr="4"/>
-    <data id="BB_FIELD"      expr="'isCheckingForPeople'"/>
-    <data id="SKILL_SUCCESS" expr="0"/>
-    <data id="SKILL_FAILURE" expr="1"/>
-    <data id="SKILL_RUNNING" expr="2"/>
+    <data id="status" type="int8" expr="0"/>
+    <data id="result" type="string" expr="''"/>
+    <data id="NAV_MOVING" type="int8" expr="2"/>
+    <data id="NAV_REACHED" type="int8" expr="4"/>
+    <data id="BB_FIELD" type="string" expr="'isCheckingForPeople'"/>
+    <data id="SKILL_SUCCESS" type="int8" expr="0"/>
+    <data id="SKILL_FAILURE" type="int8" expr="1"/>
+    <data id="SKILL_RUNNING" type="int8" expr="2"/>
   </datamodel>
 
   <!-- Corretti i nomi dei servizi -->
@@ -61,7 +61,7 @@
   <state id="evalStatus">
     <transition cond="status == NAV_MOVING" target="runningReply"/>
     <transition cond="status == NAV_REACHED" target="setBBFlag"/>
-    <transition cond="status != NAV_MOVING && status != NAV_REACHED" target="failReply"/>
+    <transition cond="status != NAV_MOVING &amp;&amp; status != NAV_REACHED" target="failReply"/>
   </state>
 
   <state id="runningReply">
