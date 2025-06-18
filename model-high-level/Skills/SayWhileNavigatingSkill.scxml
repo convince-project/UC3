@@ -43,7 +43,7 @@
   <state id="decideCount">
     <transition cond="!m_result" target="fail"/>
     <transition cond="m_counter!=0" target="success"/>
-    <transition cond="!m_result && m_counter==0" target="startNarration"/>
+    <transition cond="!m_result &amp;&amp; m_counter==0" target="startNarration"/>
   </state>
 
   <state id="fail">

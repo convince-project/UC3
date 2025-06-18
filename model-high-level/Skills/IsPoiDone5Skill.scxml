@@ -1,8 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <scxml 
   initial="idle" 
   version="1.0" 
-  name="IsPoiDone2SkillCondition"
+  name="IsPoiDone5SkillCondition"
   datamodel="ecmascript"
   xmlns="http://www.w3.org/2005/07/scxml">
 
@@ -66,7 +65,5 @@
     </onentry>
     <transition target="idle"/>
   </state>
-
-
 
 </scxml>

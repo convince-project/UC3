@@ -18,11 +18,12 @@
   <ros_service_server service_name="/CheckNetworkSkill/tick" type="bt_interfaces_dummy/TickCondition"/>
 
   <!-- Add network status subscriber -->
-  <ros_topic_subscriber topic="/NetworkComponent/status" type="network_interfaces/NetworkStatus"/>
+  <ros_topic_subscriber topic="/CheckNetworkComponent/status" type="network_interfaces/NetworkStatus"/>
+  
 
   <state id="idle">
     <!-- Update network status when message arrives -->
-    <ros_topic_callback name="/NetworkComponent/status" target="idle">
+    <ros_topic_callback name="/CheckNetworkComponent/status" target="idle">
       <assign location="network_status" expr="_msg.data"/>
     </ros_topic_callback>
     

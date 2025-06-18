@@ -27,7 +27,6 @@
     <!-- notify that user is charged -->
     <ros_service_handle_request name="/NotifyUserComponent/NotifyUserCharged" target="HandleNotifyUserCharged"/>
     <!-- if alarm is active, fire every tick -->
-    <transition event="alarm_timer.tick" cond="alarmActive" target="AlarmTick"/>
   </state>
 
   <state id="HandleStartAlarm">
@@ -61,11 +60,6 @@
     <transition target="idle"/>
   </state>
 
-  <state id="AlarmTick">
-    <onentry>
-      <log label="info" expr="'alarm'"/>
-    </onentry>
-    <transition target="idle"/>
-  </state>
+
 
 </scxml>
