@@ -6,11 +6,11 @@
        initial="idle">
 
   <datamodel>
-    <data id="result"          expr="''"/>
-    <data id="SKILL_SUCCESS"   expr="0"/>
-    <data id="SKILL_FAILURE"   expr="1"/>
-    <data id="FLAG_WARN" expr="'SaidWarningFlag'"/>
-    <data id="FLAG_EXC"  expr="'SaidExceededFlag'"/>
+    <data id="result"         type="string" expr="''"/>
+    <data id="SKILL_SUCCESS"  type="int8"  expr="0"/>
+    <data id="SKILL_FAILURE"  type="int8" expr="1"/>
+    <data id="FLAG_WARN" type="string" expr="'SaidWarningFlag'"/>
+    <data id="FLAG_EXC"  type="string" expr="'SaidExceededFlag'"/>
   </datamodel>
 
   <ros_service_server service_name="/StartTourTimerSkill/tick"  type="bt_interfaces_dummy/TickAction"/>
