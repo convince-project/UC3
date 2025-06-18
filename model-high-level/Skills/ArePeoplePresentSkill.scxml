@@ -36,7 +36,7 @@
 
   <state id="decide">
     <onentry>
-      <if cond="m_result && m_is_allowed">
+      <if cond="m_result &amp;&amp; m_is_allowed">
         <ros_service_send_response name="/ArePeoplePresentSkill/tick">
           <field name="status" expr="SKILL_SUCCESS"/>
         </ros_service_send_response>
