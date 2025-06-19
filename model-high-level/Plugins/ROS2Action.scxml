@@ -6,7 +6,10 @@
     model_src=""
     xmlns="http://www.w3.org/2005/07/scxml">
 
+    <bt_declare_port_in key="interface" type="string" />
+    <bt_declare_port_in key="isMonitored" type="bool" />
     <bt_declare_port_in key="service_name" type="string" />
+
     
     <datamodel>
         <data id="SKILL_SUCCESS" type="int8" expr="0" />

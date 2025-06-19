@@ -25,18 +25,18 @@
   <state id="HandleStart">
     <onentry>
       <!-- immediately reply OK -->
-      <ros_service_send_request name="/PeopleDetectorFilterComponent/StartLocal">
-        <field name="is_local" expr="true"/>
-      </ros_service_send_request>
+      <ros_service_send_request name="/PeopleDetectorFilterComponent/StartLocal"/>
     </onentry>
     <ros_service_handle_response name="/PeopleDetectorFilterComponent/StartLocal" target="idle">
       <if cond="_res.is_ok">
         <ros_service_send_response name="/ManagePeopleDetectorComponent/StartService">
           <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
         </ros_service_send_response>
       <else/>
         <ros_service_send_response name="/ManagePeopleDetectorComponent/StartService">
           <field name="is_ok" expr="false"/>
+          <field name="error_msg" expr="_res.error_msg"/>
         </ros_service_send_response>
       </if>
     </ros_service_handle_response>
@@ -46,18 +46,18 @@
   <state id="HandleStop">
     <onentry>
       <!-- immediately reply OK -->
-      <ros_service_send_request name="/PeopleDetectorFilterComponent/StopLocal">
-        <field name="is_local" expr="false"/>
-      </ros_service_send_request>
+      <ros_service_send_request name="/PeopleDetectorFilterComponent/StopLocal"/>
     </onentry>
     <ros_service_handle_response name="/PeopleDetectorFilterComponent/StopLocal" target="idle">
       <if cond="_res.is_ok">
         <ros_service_send_response name="/ManagePeopleDetectorComponent/StopService">
           <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
         </ros_service_send_response>    
       <else/>
         <ros_service_send_response name="/ManagePeopleDetectorComponent/StopService">
           <field name="is_ok" expr="false"/>
+          <field name="error_msg" expr="_res.error_msg"/>
         </ros_service_send_response>
       </if>
     </ros_service_handle_response>

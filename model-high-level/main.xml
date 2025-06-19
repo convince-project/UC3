@@ -7,7 +7,7 @@
     </mc_parameters>
 
     <behavior_tree>
-        <input type="bt.cpp-xml" src="./Policy/policy.xml" />
+        <input type="bt.cpp-xml" src="./Policy/policy_all_in_one.xml" />
         <input type="bt-plugin-ros-scxml" src="./Plugins/ROS2Condition.scxml" />
         <input type="bt-plugin-ros-scxml" src="./Plugins/ROS2Action.scxml" />
     </behavior_tree>
