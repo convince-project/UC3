@@ -7,66 +7,66 @@
     <ReactiveSequence>
       <ReactiveFallback>
         <ROS2Condition name="BatteryLevel"
+                       service_name="/BatteryLevelSkill/tick" 
                        interface="ROS2SERVICE"
                        isMonitored="false"/>
         <ReactiveFallback>
           <ReactiveSequence>
             <Inverter>
               <ROS2Condition name="BatteryCharging"
+                             service_name="/BatteryChargingSkill/tick" 
                              interface="ROS2SERVICE"
                              isMonitored="false"/>
             </Inverter>
-            <Parallel failure_threshold="1"
-                      success_threshold="2">
               <ReactiveFallback>
                 <ROS2Condition name="IsAtChargingStation"
+                               service_name="/IsAtChargingStationSkill/tick"
                                interface="ROS2SERVICE"
                                isMonitored="false"/>
                 <Sequence>
                   <ROS2Action name="ResetTour"
+                              service_name="/ResetTourAndFlags/tick"
                               interface="ROS2SERVICE"
                               isMonitored="false"/>
                   <ROS2Action name="GoToChargingStation"
+                              service_name="/GoToChargingStationSkill/tick"
                               interface="ROS2SERVICE"
                               isMonitored="false"/>
                 </Sequence>
               </ReactiveFallback>
-              <ROS2Action name="AlarmBatteryLow"
-                          interface="ROS2SERVICE"
-                          isMonitored="false"/>
-            </Parallel>
           </ReactiveSequence>
           <ROS2Action name="Wait"
+                      service_name="/Wait/tick"
                       interface="ROS2SERVICE"
                       isMonitored="false"/>
         </ReactiveFallback>
       </ReactiveFallback>
-      <Parallel failure_threshold="1"
-                success_threshold="2">
-        <ROS2Action name="NotifyCharged"
-                    interface="ROS2SERVICE"
-                    isMonitored="false"/>
+
         <ROS2Condition name="IsAllowedToMove"
+                        service_name="/IsAllowedToMoveSkill/tick" 
                        interface="ROS2SERVICE"
                        isMonitored="false"/>
-      </Parallel>
     </ReactiveSequence>
     <ReactiveFallback>
       <Inverter>
         <ROS2Condition name="NetworkStatusChanged"
+                        service_name="/NetworkStatusChangeSkill/tick"
                        interface="ROS2SERVICE"
                        isMonitored="false"/>
       </Inverter>
       <ReactiveFallback>
         <ReactiveSequence>
           <ROS2Condition name="NetworkUp"
+                          service_name="/NetworkUpSkill/tick"
                          interface="ROS2SERVICE"
                          isMonitored="false"/>
           <ROS2Action name="StopService"
+                      service_name="/StopService/tick"
                       interface="ROS2SERVICE"
                       isMonitored="false"/>
         </ReactiveSequence>
         <ROS2Action name="StartService"
+                    service_name="/StartService/tick"
                     interface="ROS2SERVICE"
                     isMonitored="false"/>
       </ReactiveFallback>
@@ -75,11 +75,13 @@
     <Fallback>
       <Inverter>
         <ROS2Condition name="CheckIfStart"
+                        service_name="/CheckIfStartSkill/tick"
                        interface="ROS2SERVICE"
                        isMonitored="false"/>
       </Inverter>
       <Inverter>
         <ROS2Condition name="IsMuseumClosing"
+                        service_name="/IsMuseumClosingSkill/tick"
                        interface="ROS2SERVICE"
                        isMonitored="false"/>
       </Inverter>
@@ -88,114 +90,139 @@
       <Sequence>
         <Inverter>
           <ROS2Condition name="IsPoiDone0"
+                          service_name="/IsPoiDone0Skill/tick"
                          interface="ROS2SERVICE"
                          isMonitored="false"/>
         </Inverter>
         <ROS2Action name="SetPoi0"
+                    service_name="/SetPoi0/tick"  
                     interface="ROS2SERVICE"
                     isMonitored="false"/>
       </Sequence>
       <Sequence>
         <Inverter>
           <ROS2Condition name="IsPoiDone1"
+                          service_name="/IsPoiDone1Skill/tick"
                          interface="ROS2SERVICE"
                          isMonitored="false"/>
         </Inverter>
         <ROS2Action name="SetPoi1"
+                    service_name="/SetPoi1/tick"
                     interface="ROS2SERVICE"
                     isMonitored="false"/>
       </Sequence>
       <Sequence>
         <Inverter>
           <ROS2Condition name="IsPoiDone2"
+                          service_name="/IsPoiDone2Skill/tick"
                          interface="ROS2SERVICE"
                          isMonitored="false"/>
         </Inverter>
         <ROS2Action name="SetPoi2"
+                    service_name="/SetPoi2/tick"
                     interface="ROS2SERVICE"
                     isMonitored="false"/>
       </Sequence>
       <Sequence>
         <Inverter>
           <ROS2Condition name="IsPoiDone3"
+                          service_name="/IsPoiDone3Skill/tick"
                          interface="ROS2SERVICE"
                          isMonitored="false"/>
         </Inverter>
         <ROS2Action name="SetPoi3"
+                    service_name="/SetPoi3/tick"
                     interface="ROS2SERVICE"
                     isMonitored="false"/>
       </Sequence>
       <Sequence>
         <Inverter>
           <ROS2Condition name="IsPoiDone4"
+                          service_name="/IsPoiDone4Skill/tick"
                          interface="ROS2SERVICE"
                          isMonitored="false"/>
         </Inverter>
         <ROS2Action name="SetPoi4"
+                    service_name="/SetPoi4/tick"
                     interface="ROS2SERVICE"
                     isMonitored="false"/>
       </Sequence>
       <Sequence>
         <Inverter>
           <ROS2Condition name="IsPoiDone5"
+                          service_name="/IsPoiDone5Skill/tick"
                          interface="ROS2SERVICE"
                          isMonitored="false"/>
         </Inverter>
         <ROS2Action name="SetPoi5"
+                    service_name="/SetPoi5/tick"
                     interface="ROS2SERVICE"
                     isMonitored="false"/>
       </Sequence>
       <ROS2Action name="ResetTourAndFlags"
+                  service_name="/ResetTourAndFlagsSkill/tick"
                   interface="ROS2SERVICE"
                   isMonitored="false"/>
     </Fallback>
     <ReactiveFallback>
       <ROS2Condition name="IsAtCurrentPoi"
+                      service_name="/IsAtCurrentPoiSkill/tick"
                      interface="ROS2SERVICE"
                      isMonitored="false"/>
       <ReactiveSequence>
     <ReactiveFallback>
       <ROS2Condition name="CheckIfStart"
+                      service_name="/CheckIfStartSkill/tick"
                      interface="ROS2SERVICE"
                      isMonitored="false"/>
       <Inverter>
         <ROS2Condition name="IsAllowedToTurnBack"
+                        service_name="/IsAllowedToTurnBackSkill/tick"
                        interface="ROS2SERVICE"
                        isMonitored="false"/>
       </Inverter>
       <ROS2Condition name="VisitorsFollowingRobot"
+                      service_name="/VisitorsFollowingRobotSkill/tick"
                      interface="ROS2SERVICE"
                      isMonitored="false"/>
       <ReactiveSequence>
         <ReactiveFallback>
           <ROS2Condition name="IsCheckingForPeople"
+                          service_name="/IsCheckingForPeopleSkill/tick"
                          interface="ROS2SERVICE"
                          isMonitored="false"/>
           <ReactiveSequence>
             <ROS2Action name="SetTurning"
+                        service_name="/SetTurning/tick"
                         interface="ROS2SERVICE"
                         isMonitored="false"/>
             <ROS2Action name="StopAndTurnBack"
+                        service_name="/StopAndTurnBack/tick"
                         interface="ROS2SERVICE"
                         isMonitored="false"/>
             <ROS2Action name="SetTurned"
+                        service_name="/SetTurned/tick"
                         interface="ROS2SERVICE"
                         isMonitored="false"/>
           </ReactiveSequence>
         </ReactiveFallback>
         <ROS2Action name="RunTimer"
+                    service_name="/RunTimerSkill/tick"
                     interface="ROS2SERVICE"
                     isMonitored="false"/>
         <ROS2Action name="Wait"
+                    service_name="/Wait/tick"
                     interface="ROS2SERVICE"
                     isMonitored="false"/>
       </ReactiveSequence>
     </ReactiveFallback>
         <ReactiveSequence>
           <ROS2Action name="SetNotTurning"
+                      service_name="/SetNotTurning/tick"
                       interface="ROS2SERVICE"
                       isMonitored="false"/>
           <ROS2Action name="GoToPoiAction"
+                      service_name="/GoToPoiActionSkill/tick"
                       interface="ROS2SERVICE"
                       isMonitored="false"/>
         </ReactiveSequence>
@@ -203,12 +230,15 @@
     </ReactiveFallback>
     <Sequence>
       <ROS2Action name="SetCurrentPoiDone"
+                  service_name="/SetCurrentPoiDone/tick"
                   interface="ROS2SERVICE"
                   isMonitored="false"/>
       <ROS2Action name="ResetCounters"
+                  service_name="/ResetCountersSkill/tick" 
                   interface="ROS2SERVICE"
                   isMonitored="false"/>
       <ROS2Action name="SetNavigationPosition"
+                  service_name="/SetNavigationPosition/tick"
                   interface="ROS2SERVICE"
                   isMonitored="false"/>
     </Sequence>

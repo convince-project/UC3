@@ -6,9 +6,9 @@
        datamodel="ecmascript">
 
   <datamodel>
-    <data id="current_status"     type="boolean" expr="true"/>
-    <data id="previous_status"    type="boolean" expr="true"/>
-    <data id="changed"            type="boolean" expr="false"/>
+    <data id="current_status"     type="bool" expr="true"/>
+    <data id="previous_status"    type="bool" expr="true"/>
+    <data id="changed"            type="bool" expr="false"/>
   </datamodel>
 
   <!-- publish two Bool topics -->

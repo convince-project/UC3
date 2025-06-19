@@ -17,18 +17,25 @@
   <state id="idle">
     <onentry>
       <!-- <send event="timer_expired" delayexpr="timer_duration + 'ms'" /> -->
-      <!-- <if cond="percentage &gt; 0" >
-				<assign location="percentage" expr="percentage - 1" />
-			</if> -->
-      <ros_topic_publish name="/BatteryComponent/battery_level">
-        <field name="data" expr="percentage" />
-      </ros_topic_publish>
-    </onentry>
-    <!-- <transition event="timer_expired" target="idle"/> -->
-    <ros_rate_callback name="control_timer" target="idle">
       <if cond="percentage &gt; 0" >
 				<assign location="percentage" expr="percentage - 1" />
 			</if>
+      <ros_topic_publish name="/BatteryComponent/battery_level">
+        <field name="data" expr="percentage" />
+      </ros_topic_publish>
+
+    </onentry>
+    <!-- <transition event="timer_expired" target="idle"/> -->
+    <ros_rate_callback name="control_timer" >
+
+      <target id="idle" prob="0.99">
+        <ros_topic_publish name="/BatteryComponent/battery_level">
+          <field name="data" expr="percentage" />
+        </ros_topic_publish>
+      </target>
+      <target id="idle" prob="0.01"/>
+
+
     </ros_rate_callback>
     <!-- <transition target="idle"/> -->
   </state>
