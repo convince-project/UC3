@@ -139,3 +139,6 @@ ENV YARP_DATA_DIRS=${YARP_DATA_DIRS}:/home/user1/UC3/launch
 ENV TZ=Europe/Rome
 
 ENV LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/home/user1/Groot/build/
+
+
+ENV PYTHONPATH=${PYTHONPATH}:/home/user1/UC3/src/components/dialog_component/py_interaction_cliserv/sbert/lib/python3.12/site-packages
