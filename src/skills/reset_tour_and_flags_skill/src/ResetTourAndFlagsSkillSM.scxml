@@ -17,7 +17,7 @@
     </state>
     <state id="resetTour">
         <transition target="setFlags" event="SchedulerComponent.Reset.Return">
-            <assign location="m_result" expr="_event.data.result"/>
+            <assign location="m_result" expr="_event.data.is_ok"/>
         </transition>
     </state>
     <state id="setFlags">
@@ -28,12 +28,14 @@
             </send>
         </onentry>
         <transition target="decide" event="BlackboardComponent.SetAllIntsWithPrefix.Return">
-            <assign location="m_result" expr="_event.data.result"/>
+            <assign location="m_result" expr="_event.data.is_ok"/>
+	    <log expr="_event.data"/>
         </transition>
     </state>
     <state id="decide">
         <onentry>
-            <if cond="m_result==&apos;SKILL_SUCCESS&apos;">
+		<log expr="m_result"/>
+            <if cond="m_result">
                 <send event="TICK_RESPONSE">
                     <param name="status" expr="SKILL_SUCCESS"/>
                 </send>

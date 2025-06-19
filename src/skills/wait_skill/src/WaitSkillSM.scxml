@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <scxml version="1.0" xmlns="http://www.w3.org/2005/07/scxml" datamodel="ecmascript" name="WaitSkillAction" initial="idle">
     <datamodel>
         <data id="SKILL_SUCCESS" expr="0"/>
@@ -9,29 +10,15 @@
     <!-- WaitSkill is a server for tick from the ROS2Action plugin-->
     <!-- WaitSkill is a server for halt from the ROS2Action plugin-->
     <state id="idle">
-        <transition target="startWait" event="CMD_TICK"/>
-        <transition target="halted" event="CMD_HALT"/>
-    </state>
-    <state id="startWait">
-        <onentry>
-            <assign location="start_time" expr="Date.now()"/>
-        </onentry>
         <transition target="checkWait" event="CMD_TICK"/>
         <transition target="halted" event="CMD_HALT"/>
     </state>
     <state id="checkWait">
         <onentry>
-            <if cond="(Date.now() - start_time) &gt;= wait_time_ms">
                 <send event="TICK_RESPONSE">
-                    <param name="status" expr="SKILL_SUCCESS"/>
+                    <param name="status" expr="'SKILL_RUNNING'"/>
                     <param name="is_ok" expr="true"/>
                 </send>
-                <else/>
-                <send event="TICK_RESPONSE">
-                    <param name="status" expr="SKILL_RUNNING"/>
-                    <param name="is_ok" expr="true"/>
-                </send>
-            </if>
         </onentry>
         <transition target="idle"/>
     </state>

@@ -140,6 +140,7 @@ bool ResetTourAndFlagsSkill::start(int argc, char*argv[])
               break;
           }
       }
+
       if (wait_succeded) {                                                                   
           auto result = clientSetAllIntsWithPrefix->async_send_request(request);
           const std::chrono::seconds timeout_duration(SERVICE_TIMEOUT);
@@ -162,7 +163,7 @@ bool ResetTourAndFlagsSkill::start(int argc, char*argv[])
       QVariantMap data;
       data.insert("is_ok", false);
       m_stateMachine.submitEvent("BlackboardComponent.SetAllIntsWithPrefix.Return", data);
-      RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.SetAllIntsWithPrefix.Return");
+      RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.SetAllIntsWithPrefix.Return wait failed");
   });
   
   m_stateMachine.connectToEvent("TICK_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){

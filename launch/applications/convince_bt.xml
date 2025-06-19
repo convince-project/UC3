@@ -24,5 +24,8 @@
         <workdir>/home/user1/UC3</workdir>
         <node>bt</node>
     </module>
-
+    <connection>
+        <from>/vad/audio:o</from>
+        <to>/SpeechToTextComponent/audio:i</to>
+    </connection>
 </application>

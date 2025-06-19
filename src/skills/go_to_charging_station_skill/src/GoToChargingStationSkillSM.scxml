@@ -25,9 +25,9 @@
     </state>
     <state id="sendGoal">
         <transition target="monitor" event="NavigationComponent.GoToPoiByName.Return">
-            <assign location="m_result" expr="_event.data.result"/>
+            <assign location="m_result" expr="_event.data.is_ok"/>
             <send event="TICK_RESPONSE">
-                <param name="status" expr="m_result==&apos;SUCCESS&apos;?SKILL_RUNNING:SKILL_FAILURE"/>
+                <param name="status" expr="m_result?SKILL_RUNNING:SKILL_FAILURE"/>
             </send>
         </transition>
     </state>
@@ -42,12 +42,12 @@
     <state id="getStatus">
         <transition target="evaluate" event="NavigationComponent.GetNavigationStatus.Return">
             <assign location="m_status" expr="_event.data.status"/>
-            <assign location="m_result" expr="_event.data.result"/>
+            <assign location="m_result" expr="_event.data.is_ok"/>
         </transition>
     </state>
     <state id="evaluate">
         <onentry>
-            <if cond="m_result!=&apos;SUCCESS&apos;">
+            <if cond="!m_result">
                 <send event="TICK_RESPONSE">
                     <param name="status" expr="SKILL_FAILURE"/>
                 </send>
@@ -67,12 +67,12 @@
     <state id="checkProximity">
         <transition target="decide" event="NavigationComponent.CheckNearToPoi.Return">
             <assign location="m_is_near" expr="_event.data.is_near"/>
-            <assign location="m_result" expr="_event.data.result"/>
+            <assign location="m_result" expr="_event.data.is_ok"/>
         </transition>
     </state>
     <state id="decide">
         <onentry>
-            <if cond="m_result==&apos;SUCCESS&apos; &amp;&amp; m_is_near">
+            <if cond="m_result &amp;&amp; m_is_near">
                 <send event="TICK_RESPONSE">
                     <param name="status" expr="SKILL_SUCCESS"/>
                 </send>

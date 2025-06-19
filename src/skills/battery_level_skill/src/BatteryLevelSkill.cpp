@@ -67,7 +67,7 @@ bool BatteryLevelSkill::start(int argc, char*argv[])
   
   
   m_subscription_battery_level = m_node->create_subscription<sensor_msgs::msg::BatteryState>(
-  "/battery_level", 10, std::bind(&BatteryLevelSkill::topic_callback_battery_level, this, std::placeholders::_1));
+  "/battery_status", 10, std::bind(&BatteryLevelSkill::topic_callback_battery_level, this, std::placeholders::_1));
   
   
   

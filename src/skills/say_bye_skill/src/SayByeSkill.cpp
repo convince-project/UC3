@@ -78,7 +78,8 @@ bool SayByeSkill::start(int argc, char*argv[])
       auto request = std::make_shared<text_to_speech_interfaces::srv::Speak::Request>();
       auto eventParams = event.data().toMap();
       
-      request->text = convert<decltype(request->text)>(eventParams["text"].toString().toStdString());
+      request->text = "sorry but my battery is low, I have to leave you.";
+      
       bool wait_succeded{true};
       int retries = 0;
       while (!clientSpeak->wait_for_service(std::chrono::seconds(1))) {

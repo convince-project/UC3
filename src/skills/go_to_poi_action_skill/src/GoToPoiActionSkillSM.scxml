@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <scxml version="1.0" xmlns="http://www.w3.org/2005/07/scxml" datamodel="ecmascript" name="GoToPoiActionSkillAction" initial="idle">
     <datamodel>
         <data id="poi_name" expr="&apos;&apos;"/>
