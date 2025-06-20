@@ -9,8 +9,8 @@
         <data id="SKILL_SUCCESS" type="int8" expr="0" />
         <data id="SKILL_FAILURE" type="int8" expr="1" />
         <data id="SKILL_RUNNING" type="int8" expr="2" />
-        <data id="wait_time_ms" expr="5000" />
-        <data id="start_time" expr="0" />
+        <data id="wait_time_ms" type="int32" expr="5000" />
+        <data id="start_time" type="int64" expr="0" />
     </datamodel>
 
     <!-- WaitSkill is a server for tick from the ROS2Action plugin-->

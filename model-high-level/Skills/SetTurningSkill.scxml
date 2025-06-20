@@ -7,9 +7,9 @@
   initial="idle">
 
   <datamodel>
-    <data id="FIELD_NAME" expr="'turnBackState'"/>
-    <data id="VALUE_STR"  expr="'turning'"/>
-    <data id="result"     expr="''"/>
+    <data id="FIELD_NAME" type="string" expr="'turnBackState'"/>
+    <data id="VALUE_STR"  type="string" expr="'turning'"/>
+    <data id="result"     type="string" expr="''"/>
     <data id="SKILL_SUCCESS" type="int8" expr="0"/>
     <data id="SKILL_FAILURE" type="int8" expr="1"/>
     <data id="SKILL_RUNNING" type="int8" expr="2"/>

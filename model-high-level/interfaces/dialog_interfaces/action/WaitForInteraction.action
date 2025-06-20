@@ -1,0 +1,7 @@
+string keyboard_interaction # Optional, added for debugging purposes. If this field is empty, the component will look for vocal interactions from the m_speechTranscriberCallback component
+bool is_beginning_of_conversation # if True, clear the list of questions to reset the conversation, otherwise maintain it
+---
+bool is_ok
+string interaction
+---
+string status
