@@ -7,13 +7,13 @@
 
   <datamodel>
     <!-- whether the periodic alarm is active -->
-    <data id="alarmActive" type="boolean" expr="false"/>
+    <data id="alarmActive" type="bool" expr="false"/>
   </datamodel>
 
   <!-- ROS services -->
-  <ros_service_server service_name="/NotifyUserComponent/StartAlarm" type="notify_user_interfaces/srv/StartAlarm"/>
-  <ros_service_server service_name="/NotifyUserComponent/StopAlarm" type="notify_user_interfaces/srv/StopAlarm"/>
-  <ros_service_server service_name="/NotifyUserComponent/NotifyUserCharged" type="notify_user_interfaces/srv/NotifyUserCharged"/>
+  <ros_service_server service_name="/NotifyUserComponent/StartAlarm" type="notify_user_interfaces/StartAlarm"/>
+  <ros_service_server service_name="/NotifyUserComponent/StopAlarm" type="notify_user_interfaces/StopAlarm"/>
+  <ros_service_server service_name="/NotifyUserComponent/NotifyUserCharged" type="notify_user_interfaces/NotifyUserCharged"/>
 
   <!-- timer to drive the 2 Hz alarm prints -->
   <ros_time_rate name="alarm_timer" rate_hz="2.0"/>
@@ -34,6 +34,7 @@
       <assign location="alarmActive" expr="true"/>
       <ros_service_send_response name="/NotifyUserComponent/StartAlarm">
         <field name="is_ok" expr="true"/>
+        <field name="error_msg" expr="''"/>
       </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
@@ -44,6 +45,7 @@
       <assign location="alarmActive" expr="false"/>
       <ros_service_send_response name="/NotifyUserComponent/StopAlarm">
         <field name="is_ok" expr="true"/>
+        <field name="error_msg" expr="''"/>
       </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
@@ -55,6 +57,7 @@
       <assign location="alarmActive" expr="false"/>
       <ros_service_send_response name="/NotifyUserComponent/NotifyUserCharged">
         <field name="is_ok" expr="true"/>
+        <field name="error_msg" expr="''"/>
       </ros_service_send_response>
     </onentry>
     <transition target="idle"/>

@@ -16,20 +16,20 @@
     <!-- <data id="poi_name" type="string" expr="" /> -->
     <!-- <data id="poi_number" type="int32" expr="0" /> -->
     <!-- Exec fields -->
-    <data id="is_near" type="boolean" expr="false" />
+    <data id="is_near" type="bool" expr="false" />
     <data id="status" type="int32" expr="0" />
     <!-- temp variables -->
   </datamodel>
 
   <!-- Service servers -->
-  <ros_service_server service_name="/NavigationComponent/GoToPoiByName" type="navigation_interfaces/srv/GoToPoiByName"/>
-  <ros_service_server service_name="/NavigationComponent/GetNavigationStatus" type="navigation_interfaces/srv/GetNavigationStatus"/>
-  <ros_service_server service_name="/NavigationComponent/StopNavigation" type="navigation_interfaces/srv/StopNavigation"/>
-  <ros_service_server service_name="/NavigationComponent/CheckNearToPoi" type="navigation_interfaces/srv/CheckNearToPoi"/>
-  <ros_service_server service_name="/NavigationComponent/TurnBack" type="navigation_interfaces/srv/TurnBack"/>
+  <ros_service_server service_name="/NavigationComponent/GoToPoiByName" type="navigation_interfaces/GoToPoiByName"/>
+  <ros_service_server service_name="/NavigationComponent/GetNavigationStatus" type="navigation_interfaces/GetNavigationStatus"/>
+  <ros_service_server service_name="/NavigationComponent/StopNavigation" type="navigation_interfaces/StopNavigation"/>
+  <ros_service_server service_name="/NavigationComponent/CheckNearToPoi" type="navigation_interfaces/CheckNearToPoi"/>
+  <ros_service_server service_name="/NavigationComponent/TurnBack" type="navigation_interfaces/TurnBack"/>
 
   <!-- Action server -->
-  <ros_action_server name="goto_act" action_name="/NavigationComponent/GoToPoi" type="navigation_interfaces/action/GoToPoi"/>
+  <ros_action_server name="goto_act" action_name="/NavigationComponent/GoToPoi" type="navigation_interfaces/GoToPoi"/>
   <ros_time_rate name="action_timer" rate_hz="10.0"/>
 
   <state id="idle">
@@ -39,7 +39,7 @@
       <ros_service_send_response name="/NavigationComponent/GetNavigationStatus">
         <field name="is_ok"         expr="true"/>
         <field name="current_goal"  expr="goal_name"/>
-        <field name="status.status" expr="status"/>
+        <field name="status" expr="status"/>
         <field name="error_msg"     expr="error_msg"/>
       </ros_service_send_response>
     </ros_service_handle_request>
@@ -56,14 +56,13 @@
     <!-- TurnBack -->
     <!-- <ros_service_handle_request name="/NavigationComponent/TurnBack" target="HandleTurnBack"/> -->
     <!-- Action‐goal -->
-    <ros_action_handle_goal name="/NavigationComponent/GoToPoi" target="HandleActionGoal">
-      <assign location="goal" expr="_req.poi_name"/>
+    <ros_action_handle_goal name="goto_act" target="HandleActionGoal">
       <assign location="status" expr="MOVING"/>
-      <assign location="goal_name" expr="_req.poi_name"/>
-      <ros_action_accept_goal name="/NavigationComponent/GoToPoi" goal_id="goal_id"/>
+      <assign location="goal_name" expr="_goal.poi_name"/>
+      <ros_action_accept_goal name="goto_act" goal_id="goal_id"/>
 
     </ros_action_handle_goal>
-    <!-- <ros_action_handle_cancel name="/NavigationComponent/GoToPoi" target="HandleActionCancel"/> -->
+    <!-- <ros_action_handle_cancel name="goto_act" target="HandleActionCancel"/> -->
   </state>
 
 
@@ -71,7 +70,7 @@
 
   <state id="HandleStopNavigation">
 
-      <!-- <ros_action_aborted name="/NavigationComponent/GoToPoi" goal_id="goal_id">
+      <!-- <ros_action_aborted name="goto_act" goal_id="goal_id">
         <field name="is_ok" expr="false"/>
         <field name="error_msg" expr="'goal stopped'"/>
 
@@ -95,7 +94,7 @@
       <ros_service_send_response name="/NavigationComponent/GetNavigationStatus">
         <field name="is_ok"         expr="true"/>
         <field name="current_goal"  expr="goal_name"/>
-        <field name="status.status" expr="status"/>
+        <field name="status" expr="status"/>
         <field name="error_msg"     expr="error_msg"/>
       </ros_service_send_response>
     </ros_service_handle_request>
@@ -125,13 +124,16 @@
                 <!-- success -->
                 <assign location="status" expr="GOAL_REACHED" />
                 <assign location="is_near" expr="true" />
-                <ros_action_succeed name="MoveBlock_action_srv" goal_id="goal_id" />
+                <ros_action_succeed name="goto_act" goal_id="goal_id">
+                    <field name="is_ok" expr="true"/>
+                    <field name="error_msg" expr="''"/>
+                </ros_action_succeed>
             </transition>
             <transition target="NavigationAborted" prob="0.3">
                 <!-- failure -->
                 <assign location="status" expr="ABORTED" />
                 <assign location="is_near" expr="false" />
-                <!-- <ros_action_abort name="/NavigationComponent/GoToPoi" goal_id="goal_id">
+                <!-- <ros_action_abort name="goto_act" goal_id="goal_id">
                   <field name="is_ok" expr="false"/>
                   <field name="error_msg" expr="'goal aborted'"/>
                 </ros_action_abort> -->
