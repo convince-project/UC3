@@ -9,7 +9,7 @@
   <datamodel>
     <data id="m_command"     type="string"  expr="'sayPeopleLeft'"/>
     <data id="m_param"       type="string"  expr="''"/>
-    <data id="m_is_speaking" type="boolean" expr="false"/>
+    <data id="m_is_speaking" type="bool" expr="false"/>
     <data id="m_result"      type="string"  expr="''"/>
     <data id="SKILL_SUCCESS" type="int8"    expr="0"/>
     <data id="SKILL_FAILURE" type="int8"    expr="1"/>

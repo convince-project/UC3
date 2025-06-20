@@ -19,7 +19,7 @@
   <ros_service_server service_name="/CheckIfFirstPoiSkill/tick" type="bt_interfaces_dummy/TickCondition"/>
 
   <!-- Client for SchedulerComponent.GetCurrentPoi -->
-  <ros_service_server service_name="/SchedulerComponent/GetCurrentPoi" type="scheduler_interfaces/GetCurrentPoi"/>
+  <ros_service_client service_name="/SchedulerComponent/GetCurrentPoi" type="scheduler_interfaces/GetCurrentPoi"/>
 
 
   <state id="idle">
@@ -30,8 +30,8 @@
 
   <state id="getPoi">
     <ros_service_handle_response name="/SchedulerComponent/GetCurrentPoi" target="decide">
-      <assign location="m_poi_name"   expr="_res.poi_name"/>
-      <assign location="m_poi_number" expr="_res.poi_number"/>
+      <assign location="m_poi_name"   expr="m_poi_name"/>
+      <assign location="m_poi_number" expr="poi_number"/>
     </ros_service_handle_response>
   </state>
 
@@ -40,10 +40,12 @@
       <if cond="m_poi_number == FIRST_POI">
         <ros_service_send_response name="/CheckIfFirstPoiSkill/tick">
           <field name="status" expr="SKILL_SUCCESS"/>
+          <field name="is_ok" expr="true"/>
         </ros_service_send_response>
       <else/>
         <ros_service_send_response name="/CheckIfFirstPoiSkill/tick">
           <field name="status" expr="SKILL_FAILURE"/>
+          <field name="is_ok" expr="true"/>
         </ros_service_send_response>
       </if>
     </onentry>

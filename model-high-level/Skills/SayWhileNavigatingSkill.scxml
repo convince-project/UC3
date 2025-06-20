@@ -9,8 +9,8 @@
   <datamodel>
     <data id="m_command"    type="string"  expr="'sayWhileNavigating'"/>
     <data id="m_counter"    type="int32"   expr="0"/>
-    <data id="m_is_done"    type="boolean" expr="false"/>
-    <data id="m_result"     type="boolean"  expr="false"/>
+    <data id="m_is_done"    type="bool" expr="false"/>
+    <data id="m_result"     type="bool"  expr="false"/>
     <data id="SKILL_SUCCESS" type="int8"   expr="0"/>
     <data id="SKILL_FAILURE" type="int8"   expr="1"/>
     <data id="SKILL_RUNNING" type="int8"   expr="2"/>

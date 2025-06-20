@@ -24,6 +24,7 @@
         </ros_service_handle_request>
         <ros_service_handle_request name="/GoToPoiActionSkill/halt" target="idle">
             <ros_service_send_response name="/GoToPoiActionSkill/halt">
+                <field name="is_ok" expr="true"/>
             </ros_service_send_response>
         </ros_service_handle_request>
     </state>

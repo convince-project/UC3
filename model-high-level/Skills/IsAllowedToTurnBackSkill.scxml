@@ -8,7 +8,7 @@
 
   <datamodel>
     <data id="m_result"        type="string"  expr="''"/>
-    <data id="m_is_allowed"    type="boolean" expr="false"/>
+    <data id="m_is_allowed"    type="bool" expr="false"/>
     <data id="m_value"         type="string"  expr="''"/>
     <data id="m_name"          type="string"  expr="'turnBackState'"/>
     <data id="SUCCESS_RESULT"  type="string"  expr="'SUCCESS'"/>
@@ -21,7 +21,7 @@
   <ros_service_server service_name="/IsAllowedToTurnBackSkill/tick" type="bt_interfaces_dummy/TickCondition"/>
 
   <!-- Clients -->
-  <ros_service_client service_name="/TurnBackManagerComponent/IsAllowedToTurnBack" type="turnbackmanager_interfaces/IsAllowedToTurnBack"/>
+  <ros_service_client service_name="/TurnBackManagerComponent/IsAllowedToTurnBack" type="turn_back_manager_interfaces/IsAllowedToTurnBack"/>
   <ros_service_client service_name="/BlackboardComponent/GetString" type="blackboard_interfaces/GetStringBlackboard"/>
 
   <!-- Check if turn back is allowed by manager -->

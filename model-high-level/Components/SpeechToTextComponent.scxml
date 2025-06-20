@@ -8,14 +8,14 @@
   <datamodel>
     <!-- request and response fields -->
     <data id="req_new_language"       type="string"  expr="''"/>
-    <data id="res_is_ok"              type="boolean" expr="false"/>
+    <data id="res_is_ok"              type="bool" expr="false"/>
     <data id="res_error_msg"          type="string"  expr="''"/>
     <data id="res_current_language"   type="string"  expr="''"/>
   </datamodel>
 
   <!-- ROS service servers -->
-  <ros_service_server service_name="/SpeechToTextComponent/SetLanguage" type="text_to_speech_interfaces/srv/SetLanguage"/>
-  <ros_service_server service_name="/SpeechToTextComponent/GetLanguage" type="text_to_speech_interfaces/srv/GetLanguage"/>
+  <ros_service_server service_name="/SpeechToTextComponent/SetLanguage" type="text_to_speech_interfaces/SetLanguage"/>
+  <ros_service_server service_name="/SpeechToTextComponent/GetLanguage" type="text_to_speech_interfaces/GetLanguage"/>
 
   <state id="idle">
     <!-- Handle SetLanguage request -->

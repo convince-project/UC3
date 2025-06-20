@@ -9,25 +9,25 @@
     <!-- request fields -->
     <data id="req_new_language"    type="string"  expr="''"/>
     <data id="req_text"            type="string"  expr="''"/>
-    <data id="req_enabled"         type="boolean" expr="false"/>
+    <data id="req_enabled"         type="bool" expr="false"/>
     <!-- response fields -->
-    <data id="res_is_ok"           type="boolean" expr="false"/>
+    <data id="res_is_ok"           type="bool" expr="false"/>
     <data id="res_error_msg"       type="string"  expr="''"/>
     <data id="res_current_language" type="string" expr="''"/>
-    <data id="res_is_speaking"     type="boolean" expr="false"/>
-    <data id="res_seconds_left"    type="number"  expr="0"/>
+    <data id="res_is_speaking"     type="bool" expr="false"/>
+    <data id="res_seconds_left"    type="int32"  expr="0"/>
   </datamodel>
 
   <!-- ROS service servers -->
-  <ros_service_server service_name="/TextToSpeechComponent/SetLanguage" type="text_to_speech_interfaces/srv/SetLanguage"/>
-  <ros_service_server service_name="/TextToSpeechComponent/GetLanguage" type="text_to_speech_interfaces/srv/GetLanguage"/>
-  <ros_service_server service_name="/TextToSpeechComponent/Speak" type="text_to_speech_interfaces/srv/Speak"/>
-  <ros_service_server service_name="/TextToSpeechComponent/IsSpeaking" type="text_to_speech_interfaces/srv/IsSpeaking"/>
-  <ros_service_server service_name="/TextToSpeechComponent/SetMicrophone" type="text_to_speech_interfaces/srv/SetMicrophone"/>
-  <ros_service_server service_name="/TextToSpeechComponent/SetVoice" type="text_to_speech_interfaces/srv/SetVoice"/>
+  <ros_service_server service_name="/TextToSpeechComponent/SetLanguage" type="text_to_speech_interfaces/SetLanguage"/>
+  <ros_service_server service_name="/TextToSpeechComponent/GetLanguage" type="text_to_speech_interfaces/GetLanguage"/>
+  <ros_service_server service_name="/TextToSpeechComponent/Speak" type="text_to_speech_interfaces/Speak"/>
+  <ros_service_server service_name="/TextToSpeechComponent/IsSpeaking" type="text_to_speech_interfaces/IsSpeaking"/>
+  <ros_service_server service_name="/TextToSpeechComponent/SetMicrophone" type="text_to_speech_interfaces/SetMicrophone"/>
+  <ros_service_server service_name="/TextToSpeechComponent/SetVoice" type="text_to_speech_interfaces/SetVoice"/>
 
   <!-- publisher for speaking status -->
-  <ros_topic_publisher topic_name="/TextToSpeechComponent/is_speaking" type="std_msgs/Bool"/>
+  <ros_topic_publisher topic="/TextToSpeechComponent/is_speaking" type="std_msgs/Bool"/>
 
   <state id="idle">
     <!-- handle SetLanguage -->
