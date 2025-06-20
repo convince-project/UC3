@@ -25,6 +25,8 @@
         <input type="ros-scxml" src="./Components/NotifyUserComponent.scxml" />
         <input type="ros-scxml" src="./Components/PeopleDetectorFilterComponent.scxml" />
         <input type="ros-scxml" src="./Components/SchedulerComponent.scxml" />
+        <input type="ros-scxml" src="./Components/SpeechToTextComponent.scxml" />
+        <input type="ros-scxml" src="./Components/TextToSpeechComponent.scxml" />
         <input type="ros-scxml" src="./Components/TimerCheckForPeopleComponent.scxml" />
         <input type="ros-scxml" src="./Components/TimerComponent.scxml" />
         <input type="ros-scxml" src="./Components/TurnBackManagerComponent.scxml" />

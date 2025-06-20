@@ -9,7 +9,7 @@
 
   <datamodel>
     <!-- Provided by C++ DataModel -->
-    <data id="m_edge_detected" type="boolean" expr="false"/>
+    <data id="m_edge_detected" type="bool" expr="false"/>
     <data id="SKILL_SUCCESS"    type="int8"   expr="0"/>
     <data id="SKILL_FAILURE"    type="int8"   expr="1"/>
   </datamodel>

@@ -9,7 +9,20 @@
     <!-- request and response placeholders -->
     <!-- response fields -->
     <data id="poi_number" type="int32" expr="0"/>
-    <data id="max_poi_number" type="int32" expr="5"/>
+    <data id="max_poi_number" type="int32" expr="6"/>
+    <data id="poi_done_0" type="bool" expr="false"/>
+    <data id="poi_done_1" type="bool" expr="false"/>
+    <data id="poi_done_2" type="bool" expr="false"/>
+    <data id="poi_done_3" type="bool" expr="false"/>
+    <data id="poi_done_4" type="bool" expr="false"/>
+    <data id="poi_done_5" type="bool" expr="false"/>
+    <data id="current_language" type="string" expr="'en-US'"/>
+    <data id="current_command" type="string" expr="''"/>
+    <data id="current_action" type="string" expr="''"/>
+    <data id="current_action_param" type="string" expr="''"/>
+    <data id="current_action_is_blocking" type="bool" expr="false"/>
+    <data id="current_action_type" type="string" expr="''"/>
+    <data id="all_commands" type="string" expr="''"/>
     
   </datamodel>
 
@@ -39,17 +52,24 @@
     <ros_service_handle_request name="/SchedulerComponent/GetCurrentAction" target="HandleGetCurrentAction"/>
     <ros_service_handle_request name="/SchedulerComponent/GetCurrentLanguage" target="HandleGetCurrentLanguage"/>
     <ros_service_handle_request name="/SchedulerComponent/SetLanguage" target="HandleSetLanguage">
-      <assign location="req_language" expr="_req.language"/>
+      <assign location="current_language" expr="_req.language"/>
     </ros_service_handle_request>
     <ros_service_handle_request name="/SchedulerComponent/GetCurrentCommand" target="HandleGetCurrentCommand"/>
     <ros_service_handle_request name="/SchedulerComponent/SetCommand" target="HandleSetCommand">
-      <assign location="req_command" expr="_req.command"/>
+      <assign location="current_command" expr="_req.command"/>
     </ros_service_handle_request>
     <ros_service_handle_request name="/SchedulerComponent/GetAvailableCommands" target="HandleGetAvailableCommands"/>
   </state>
 
   <state id="HandleReset">
     <onentry>
+      <assign location="poi_number" expr="0"/>
+      <assign location="poi_done_0" expr="false"/>
+      <assign location="poi_done_1" expr="false"/>
+      <assign location="poi_done_2" expr="false"/>
+      <assign location="poi_done_3" expr="false"/>
+      <assign location="poi_done_4" expr="false"/>
+      <assign location="poi_done_5" expr="false"/>
       <ros_service_send_response name="/SchedulerComponent/Reset">
         <field name="is_ok" expr="true"/>
         <field name="error_msg" expr="''"/>
@@ -60,6 +80,13 @@
 
   <state id="HandleEndTour">
     <onentry>
+      <assign location="poi_number" expr="5"/>
+      <assign location="poi_done_0" expr="true"/>
+      <assign location="poi_done_1" expr="true"/>
+      <assign location="poi_done_2" expr="true"/>
+      <assign location="poi_done_3" expr="true"/>
+      <assign location="poi_done_4" expr="true"/>
+      <assign location="poi_done_5" expr="true"/>
       <ros_service_send_response name="/SchedulerComponent/EndTour">
         <field name="is_ok" expr="true"/>
         <field name="error_msg" expr="''"/>
@@ -74,12 +101,70 @@
         <field name="is_ok" expr="true"/>
         <field name="error_msg" expr="''"/>
       </ros_service_send_response>
+      <assign location="poi_number" expr="poi_number + 1"/>
+      <if cond="poi_number &lt; max_poi_number">
+        <if cond="poi_number &gt; 0">
+          <assign location="poi_done_0" expr="true"/>
+        </if>
+        <if cond="poi_number &gt; 1">
+          <assign location="poi_done_1" expr="true"/>
+        </if>
+        <if cond="poi_number &gt; 2">
+          <assign location="poi_done_2" expr="true"/>
+        </if>
+        <if cond="poi_number &gt; 3">
+          <assign location="poi_done_3" expr="true"/>
+        </if>
+        <if cond="poi_number &gt; 4">
+          <assign location="poi_done_4" expr="true"/>
+        </if>
+        <if cond="poi_number &gt; 5">
+          <assign location="poi_done_5" expr="true"/>
+        </if>
+      <else />
+        <assign location="poi_number" expr="0"/>
+        <assign location="poi_done_0" expr="false"/>
+        <assign location="poi_done_1" expr="false"/>
+        <assign location="poi_done_2" expr="false"/>
+        <assign location="poi_done_3" expr="false"/>
+        <assign location="poi_done_4" expr="false"/>
+        <assign location="poi_done_5" expr="false"/>
+      </if>
     </onentry>
+
     <transition target="idle"/>
   </state>
 
   <state id="HandleSetPoi">
     <onentry>
+      <if cond="poi_number &lt; max_poi_number">
+        <if cond="poi_number &gt; 0">
+          <assign location="poi_done_0" expr="true"/>
+        </if>
+        <if cond="poi_number &gt; 1">
+          <assign location="poi_done_1" expr="true"/>
+        </if>
+        <if cond="poi_number &gt; 2">
+          <assign location="poi_done_2" expr="true"/>
+        </if>
+        <if cond="poi_number &gt; 3">
+          <assign location="poi_done_3" expr="true"/>
+        </if>
+        <if cond="poi_number &gt; 4">
+          <assign location="poi_done_4" expr="true"/>
+        </if>
+        <if cond="poi_number &gt; 5">
+          <assign location="poi_done_5" expr="true"/>
+        </if>
+      <else />
+        <assign location="poi_number" expr="0"/>
+        <assign location="poi_done_0" expr="false"/>
+        <assign location="poi_done_1" expr="false"/>
+        <assign location="poi_done_2" expr="false"/>
+        <assign location="poi_done_3" expr="false"/>
+        <assign location="poi_done_4" expr="false"/>
+        <assign location="poi_done_5" expr="false"/>
+      </if>
       <ros_service_send_response name="/SchedulerComponent/SetPoi">
         <field name="error_msg" expr="''"/>
         <field name="is_ok" expr="true"/>
@@ -91,9 +176,10 @@
   <state id="HandleGetCurrentPoi">
     <onentry>
       <ros_service_send_response name="/SchedulerComponent/GetCurrentPoi">
-        <field name="poi_name"   expr="_result.poi_name"/>
-        <field name="poi_number" expr="_result.poi_number"/>
-        <field name="is_ok"      expr="_result.is_ok"/>
+        <field name="poi_name"   expr="poi_number"/>
+        <field name="poi_number" expr="poi_number"/>
+        <field name="is_ok"      expr="true"/>
+        <field name="error_msg"  expr="''"/>
       </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
@@ -102,8 +188,9 @@
   <state id="HandleUpdateAction">
     <onentry>
       <ros_service_send_response name="/SchedulerComponent/UpdateAction">
-        <field name="is_ok"           expr="_result.is_ok"/>
-        <field name="done_with_poi"   expr="_result.done_with_poi"/>
+        <field name="is_ok"           expr="true"/>
+        <field name="done_with_poi"   expr="true"/>
+        <field name="error_msg"       expr="''"/>
       </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
@@ -112,10 +199,11 @@
   <state id="HandleGetCurrentAction">
     <onentry>
       <ros_service_send_response name="/SchedulerComponent/GetCurrentAction">
-        <field name="type"        expr="_result.type"/>
-        <field name="param"       expr="_result.param"/>
-        <field name="is_blocking" expr="_result.is_blocking"/>
-        <field name="is_ok"       expr="_result.is_ok"/>
+        <field name="is_blocking" expr="current_action_is_blocking"/>
+        <field name="param"       expr="current_action_param"/>
+        <field name="type"        expr="current_action_type"/>
+        <field name="is_ok"       expr="true"/>
+        <field name="error_msg"   expr="''"/>
       </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
@@ -124,8 +212,9 @@
   <state id="HandleGetCurrentLanguage">
     <onentry>
       <ros_service_send_response name="/SchedulerComponent/GetCurrentLanguage">
-        <field name="language" expr="_result.language"/>
-        <field name="is_ok"    expr="_result.is_ok"/>
+        <field name="language" expr="current_language"/>
+        <field name="is_ok"    expr="true"/>
+        <field name="error_msg" expr="''"/>
       </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
@@ -134,8 +223,8 @@
   <state id="HandleSetLanguage">
     <onentry>
       <ros_service_send_response name="/SchedulerComponent/SetLanguage">
-        <field name="is_ok"      expr="_result.is_ok"/>
-        <field name="error_msg"  expr="_result.error_msg"/>
+        <field name="is_ok"      expr="true"/>
+        <field name="error_msg"  expr="''"/>
       </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
@@ -144,8 +233,9 @@
   <state id="HandleGetCurrentCommand">
     <onentry>
       <ros_service_send_response name="/SchedulerComponent/GetCurrentCommand">
-        <field name="command" expr="_result.command"/>
-        <field name="is_ok"   expr="_result.is_ok"/>
+        <field name="command" expr="current_command"/>
+        <field name="is_ok"   expr="true"/>
+        <field name="error_msg" expr="''"/>
       </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
@@ -154,8 +244,8 @@
   <state id="HandleSetCommand">
     <onentry>
       <ros_service_send_response name="/SchedulerComponent/SetCommand">
-        <field name="is_ok"      expr="_result.is_ok"/>
-        <field name="error_msg"  expr="_result.error_msg"/>
+        <field name="is_ok"      expr="true"/>  
+        <field name="error_msg"  expr="''"/>
       </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
@@ -164,8 +254,9 @@
   <state id="HandleGetAvailableCommands">
     <onentry>
       <ros_service_send_response name="/SchedulerComponent/GetAvailableCommands">
-        <field name="commands" expr="_result.commands"/>
-        <field name="is_ok"    expr="_result.is_ok"/>
+        <field name="commands" expr="all_commands"/>
+        <field name="is_ok"    expr="true"/>
+        <field name="error_msg" expr="''"/>
       </ros_service_send_response>
     </onentry>
     <transition target="idle"/>

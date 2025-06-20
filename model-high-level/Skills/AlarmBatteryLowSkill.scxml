@@ -57,8 +57,10 @@
     </state>
 
     <state id="stopAlarm">
-        <ros_service_handle_response name="/NotifyUserComponent/stopAlarm" target="idle">
-            <ros_service_send_response name="/AlarmSkill/halt"/>
+        <ros_service_handle_response name="/NotifyUserComponent/StopAlarm" target="idle">
+            <ros_service_send_response name="/AlarmSkill/halt">
+                <field name="is_ok" expr="true"/>
+            </ros_service_send_response>
         </ros_service_handle_response>
         <ros_service_handle_request name="/AlarmSkill/halt" target="stopAlarm"/>
     </state>

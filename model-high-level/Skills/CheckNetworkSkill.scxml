@@ -8,7 +8,7 @@
 
   <datamodel>
     <!-- Network status variable - initialized to false (no network) -->
-    <data id="network_status" type="boolean" expr="false"/>
+    <data id="network_status" type="bool" expr="false"/>
     <!-- Provided by C++ DataModel -->
     <data id="SKILL_SUCCESS" type="int8" expr="0"/>
     <data id="SKILL_FAILURE" type="int8" expr="1"/>

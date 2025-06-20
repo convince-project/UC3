@@ -7,47 +7,58 @@
     <data id="counter_max" type="int32" expr="30000" /> 
 	</datamodel>
 
-  <ros_service_server service_name="/TimerComponent/StartTimer" type="timer_interfaces_dummy/StartTimer"/>
-  <ros_service_server service_name="/TimerComponent/IsTimerActive" type="timer_interfaces_dummy/IsTimerActive"/>
+  <ros_service_server service_name="/TimerComponent/StartTourTimer" type="time_interfaces/StartTourTimer"/>
+  <ros_service_server service_name="/TimerComponent/StopTourTimer" type="time_interfaces/StopTourTimer"/>
+  <ros_service_server service_name="/TimerComponent/IsMuseumClosing" type="time_interfaces/IsMuseumClosing"/>
+  <ros_time_rate name="control_timer" rate_hz="15.0" />
+
 
   <state id="idle">
-    <ros_service_handle_request name="/TimerComponent/StartTimer" target="active">
+    <ros_service_handle_request name="/TimerComponent/StartTourTimer" target="active">
       <assign location="timer_active" expr="true"/>
-      <ros_service_send_response name="/TimerComponent/StartTimer">
+      <ros_service_send_response name="/TimerComponent/StartTourTimer">
         <field name="is_ok" expr="true"/>
+        <field name="error_msg" expr="''"/>
       </ros_service_send_response>
     </ros_service_handle_request>
-    <ros_service_handle_request name="/TimerComponent/IsTimerActive" target="idle">
-      <ros_service_send_response name="/TimerComponent/IsTimerActive">
+    <ros_service_handle_request name="/TimerComponent/StopTourTimer" target="idle">
+      <assign location="timer_active" expr="false"/>
+      <assign location="counter" expr="0"/>
+      <ros_service_send_response name="/TimerComponent/StopTourTimer">
         <field name="is_ok" expr="true"/>
-        <field name="is_active" expr="timer_active"/>
+        <field name="error_msg" expr="''"/>
+      </ros_service_send_response>
+    </ros_service_handle_request>
+    <ros_service_handle_request name="/TimerComponent/IsMuseumClosing" target="idle">
+      <ros_service_send_response name="/TimerComponent/IsMuseumClosing">
+        <field name="is_ok" expr="true"/>
+        <field name="is_closing" expr="counter &gt; counter_max"/>
+        <field name="error_msg" expr="''"/>
       </ros_service_send_response>
     </ros_service_handle_request>
   </state>
 
   <state id="active">
-    <onentry>
-      <!-- <send event="timer_expired" delayexpr="timer_duration + 'ms'" /> -->
-      <assign location="counter" expr="counter+1"/>
-    </onentry>
-    <ros_service_handle_request name="/TimerComponent/IsTimerActive" target="active">
-      <ros_service_send_response name="/TimerComponent/IsTimerActive">
+    <ros_rate_callback name="control_timer">
+      <target id="active">
+        <assign location="counter" expr="counter + 1"/> 
+      </target>
+    </ros_rate_callback>
+    <ros_service_handle_request name="/TimerComponent/IsMuseumClosing" target="active">
+      <ros_service_send_response name="/TimerComponent/IsMuseumClosing">
         <field name="is_ok" expr="true"/>
-        <field name="is_active" expr="timer_active"/>
+        <field name="is_closing" expr="counter &gt; counter_max"/>
+        <field name="error_msg" expr="''"/>
       </ros_service_send_response>
     </ros_service_handle_request>
-  
-    <ros_service_handle_request name="/TimerComponent/StartTimer" target="active">
-      <ros_service_send_response name="/TimerComponent/StartTimer">
-        <field name="is_ok" expr="false"/> <!-- Can not start another timer if one is already active -->
-      </ros_service_send_response>
-    </ros_service_handle_request>
-    <!-- <transition event="timer_expired" target="idle">
-      <assign location="timer_active" expr="false"/>
-    </transition> -->
-    <transition cond="counter == counter_max" target="idle">
+    <ros_service_handle_request name="/TimerComponent/StopTourTimer" target="idle">
       <assign location="timer_active" expr="false"/>
       <assign location="counter" expr="0"/>
-    </transition>
+      <ros_service_send_response name="/TimerComponent/StopTourTimer">
+        <field name="is_ok" expr="true"/>
+        <field name="error_msg" expr="''"/>
+      </ros_service_send_response>
+    </ros_service_handle_request>
+    
   </state>
 </scxml>

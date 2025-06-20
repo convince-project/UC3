@@ -7,7 +7,7 @@
 
   <datamodel>
     <!-- Value returned by the hardware monitoring component -->
-    <data id="m_has_fault"   type="boolean" expr="false"/>
+    <data id="m_has_fault"   type="bool" expr="false"/>
 
     <!-- Behavior Tree return constants -->
     <data id="SKILL_SUCCESS" type="int8"    expr="0"/> <!-- No fault detected -->
