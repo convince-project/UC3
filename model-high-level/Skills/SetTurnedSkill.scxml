@@ -18,7 +18,7 @@
   <ros_service_server service_name="/SetTurnedSkill/tick"  type="bt_interfaces_dummy/TickAction"/>
   <ros_service_server service_name="/SetTurnedSkill/halt"  type="bt_interfaces_dummy/HaltAction"/>
 
-  <ros_service_client service_name="/BlackboardComponent/SetString" type="blackboard_interfaces/SetString"/>
+  <ros_service_client service_name="/BlackboardComponent/SetString" type="blackboard_interfaces/SetStringBlackboard"/>
   <ros_service_client service_name="/TurnBackManagerComponent/IncreaseTurnBacksCounter" type="turn_back_manager_interfaces/IncreaseTurnBacksCounter"/>
 
   <state id="idle">
@@ -46,6 +46,7 @@
       <else/>
         <ros_service_send_response name="/SetTurnedSkill/tick">
           <field name="status" expr="SKILL_FAILURE"/>
+          <field name="is_ok" expr="true"/>
         </ros_service_send_response>
       </if>
     </onentry>
@@ -68,10 +69,12 @@
       <if cond="result=='SKILL_SUCCESS'">
         <ros_service_send_response name="/SetTurnedSkill/tick">
           <field name="status" expr="SKILL_SUCCESS"/>
+          <field name="is_ok" expr="true"/>
         </ros_service_send_response>
       <else/>
         <ros_service_send_response name="/SetTurnedSkill/tick">
           <field name="status" expr="SKILL_FAILURE"/>
+          <field name="is_ok" expr="true"/>
         </ros_service_send_response>
       </if>
     </onentry>
@@ -81,7 +84,9 @@
   <state id="halted">
     <onentry>
       <assign location="result" expr="''"/>
-      <ros_service_send_response name="/SetTurnedSkill/halt"/>
+      <ros_service_send_response name="/SetTurnedSkill/halt">
+            <field name="is_ok" expr="true"/>
+          </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
   </state>

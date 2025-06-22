@@ -114,7 +114,9 @@
 
   <state id="halted">
     <onentry>
-      <ros_service_send_response name="/DialogSkill/halt"/>
+      <ros_service_send_response name="/DialogSkill/halt">
+            <field name="is_ok" expr="true"/>
+          </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
   </state>

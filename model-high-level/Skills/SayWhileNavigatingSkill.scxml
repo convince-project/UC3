@@ -21,7 +21,7 @@
   <ros_service_server service_name="/SayWhileNavigatingSkill/halt" type="bt_interfaces_dummy/HaltAction"/>
 
   <!-- Clients -->
-  <ros_service_client service_name="/TurnBackManagerComponent/GetTurnBacksCounter" type="turnbackmanager_interfaces/GetTurnBacksCounter"/>
+  <ros_service_client service_name="/TurnBackManagerComponent/GetTurnBacksCounter" type="turn_back_manager_interfaces/GetTurnBacksCounter"/>
   <ros_service_client service_name="/NarrateComponent/Narrate" type="narrate_interfaces/Narrate"/>
   <ros_service_client service_name="/NarrateComponent/IsDone" type="narrate_interfaces/IsDone"/>
   <ros_service_client service_name="/NarrateComponent/Stop" type="narrate_interfaces/Stop"/>
@@ -50,6 +50,7 @@
     <onentry>
       <ros_service_send_response name="/SayWhileNavigatingSkill/tick">
         <field name="status" expr="SKILL_FAILURE"/>
+        <field name="is_ok" expr="true"/>
       </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
@@ -59,6 +60,7 @@
     <onentry>
       <ros_service_send_response name="/SayWhileNavigatingSkill/tick">
         <field name="status" expr="SKILL_SUCCESS"/>
+        <field name="is_ok" expr="true"/>
       </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
@@ -78,6 +80,7 @@
     <onentry>
       <ros_service_send_response name="/SayWhileNavigatingSkill/tick">
         <field name="status" expr="SKILL_RUNNING"/>
+        <field name="is_ok" expr="true"/>
       </ros_service_send_response>
     </onentry>
     <ros_service_handle_request name="/SayWhileNavigatingSkill/tick" target="checkDone">
@@ -110,8 +113,10 @@
     <onentry>
       <assign location="m_counter" expr="0"/>
       <assign location="m_is_done" expr="false"/>
-      <assign location="m_result" expr="false'"/>
-      <ros_service_send_response name="/SayWhileNavigatingSkill/halt"/>
+      <assign location="m_result" expr="false"/>
+      <ros_service_send_response name="/SayWhileNavigatingSkill/halt">
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
   </state>

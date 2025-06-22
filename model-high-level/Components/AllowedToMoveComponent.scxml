@@ -6,21 +6,21 @@
        datamodel="ecmascript">
 
   <datamodel>
-    <data id="is_robot_allowed_to_move" type="bool" expr="false"/>
+    <data id="is_robot_allowed_to_move" type="bool" expr="true"/>
   </datamodel>
 
-  <ros_service_server service_name="/AllowedToMoveComponent/SetAllowedToMove" type="allowed_to_move_interfaces/SetAllowedToMove"/>
+  <!-- <ros_service_server service_name="/AllowedToMoveComponent/SetAllowedToMove" type="allowed_to_move_interfaces/SetAllowedToMove"/> -->
   <ros_service_server service_name="/AllowedToMoveComponent/IsAllowedToMove" type="allowed_to_move_interfaces/IsAllowedToMove"/>
 
   <state id="idle">
-    <ros_service_handle_request name="/AllowedToMoveComponent/SetAllowedToMove" target="HandleSetAllowedToMove">
-      <assign location="is_robot_allowed_to_move" expr="_req.is_allowed_to_move"/>
-    </ros_service_handle_request>
+    <!-- <ros_service_handle_request name="/AllowedToMoveComponent/SetAllowedToMove" target="HandleSetAllowedToMove"> -->
+      <!-- <assign location="is_robot_allowed_to_move" expr="_req.is_allowed_to_move"/>
+    </ros_service_handle_request> -->
 
     <ros_service_handle_request name="/AllowedToMoveComponent/IsAllowedToMove" target="HandleIsAllowedToMove"/>
   </state>
 
-  <state id="HandleSetAllowedToMove">
+  <!-- <state id="HandleSetAllowedToMove">
     <onentry>
       <ros_service_send_response name="/AllowedToMoveComponent/SetAllowedToMove">
         <field name="is_ok" expr="true"/>
@@ -28,7 +28,7 @@
       </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
-  </state>
+  </state> -->
 
   <state id="HandleIsAllowedToMove">
     <onentry>
