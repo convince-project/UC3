@@ -26,7 +26,9 @@
             <ros_service_send_request name="/TimerCheckForPeopleComponent/IsTimerActive"/>
         </ros_service_handle_request>
         <!-- <ros_service_handle_request name="/RunTimerSkill/halt" target="idle">
-            <ros_service_send_response name="/RunTimerSkill/halt"/>
+            <ros_service_send_response name="/RunTimerSkill/halt">
+            <field name="is_ok" expr="true"/>
+          </ros_service_send_response>
         </ros_service_handle_request> -->
 
     </state>
@@ -48,7 +50,9 @@
             <ros_service_send_request name="/TimerCheckForPeopleComponent/StartTimer"/>
         </ros_service_handle_response>
         <!-- <ros_service_handle_request name="/RunTimerSkill/halt" target="idle">
-            <ros_service_send_response name="/RunTimerSkill/halt"/>
+            <ros_service_send_response name="/RunTimerSkill/halt">
+            <field name="is_ok" expr="true"/>
+          </ros_service_send_response>
         </ros_service_handle_request> -->
 
     </state>
@@ -67,7 +71,9 @@
             </ros_service_send_response>
         </ros_service_handle_response>
         <!-- <ros_service_handle_request name="/RunTimerSkill/halt" target="idle">
-            <ros_service_send_response name="/RunTimerSkill/halt"/>
+            <ros_service_send_response name="/RunTimerSkill/halt">
+            <field name="is_ok" expr="true"/>
+          </ros_service_send_response>
         </ros_service_handle_request> -->
     </state>
 </scxml>

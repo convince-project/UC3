@@ -32,7 +32,9 @@
             </ros_service_send_request>
         </ros_service_handle_request>
         <ros_service_handle_request name="/SetPoi0Skill/halt" target="idle">
-            <ros_service_send_response name="/SetPoi0Skill/halt"/>
+            <ros_service_send_response name="/SetPoi0Skill/halt">
+                <field name="is_ok" expr="true"/>
+            </ros_service_send_response>
         </ros_service_handle_request>
     </state>
 
@@ -52,7 +54,9 @@
 
     <state id="wait_for_halt">
         <ros_service_handle_response name="/SchedulerComponent/SetPoi" target="idle">
-          <ros_service_send_response name="/SetPoi0Skill/halt"/>
+          <ros_service_send_response name="/SetPoi0Skill/halt">
+            <field name="is_ok" expr="true"/>
+          </ros_service_send_response>
         </ros_service_handle_response>
 
     </state>
@@ -70,7 +74,9 @@
             </ros_service_send_response>
         </ros_service_handle_request>      
         <ros_service_handle_request name="/SetPoi0Skill/halt" target="idle">
-            <ros_service_send_response name="/SetPoi0Skill/halt"/>
+            <ros_service_send_response name="/SetPoi0Skill/halt">
+            <field name="is_ok" expr="true"/>
+          </ros_service_send_response>
         </ros_service_handle_request>
     </state>
     
@@ -82,7 +88,9 @@
             </ros_service_send_response>
         </ros_service_handle_request>      
         <ros_service_handle_request name="/SetPoi0Skill/halt" target="idle">
-            <ros_service_send_response name="/SetPoi0Skill/halt"/>
+            <ros_service_send_response name="/SetPoi0Skill/halt">
+            <field name="is_ok" expr="true"/>
+          </ros_service_send_response>
         </ros_service_handle_request>
     </state>
 </scxml>

@@ -38,6 +38,7 @@
     <onentry>
       <ros_service_send_response name="/UpdatePoiSkill/tick">
         <field name="status" expr="SKILL_SUCCESS"/>
+        <field name="is_ok" expr="true"/>
       </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
@@ -47,6 +48,7 @@
     <onentry>
       <ros_service_send_response name="/UpdatePoiSkill/tick">
         <field name="status" expr="SKILL_FAILURE"/>
+        <field name="is_ok" expr="true"/>
       </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
@@ -54,7 +56,9 @@
 
   <state id="halted">
     <onentry>
-      <ros_service_send_response name="/UpdatePoiSkill/halt"/>
+      <ros_service_send_response name="/UpdatePoiSkill/halt">
+            <field name="is_ok" expr="true"/>
+          </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
   </state>

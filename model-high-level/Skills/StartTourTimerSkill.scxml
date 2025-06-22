@@ -17,7 +17,7 @@
   <ros_service_server service_name="/StartTourTimerSkill/halt"  type="bt_interfaces_dummy/HaltAction"/>
 
   <ros_service_client service_name="/TimeComponent/StartTourTimer"      type="time_interfaces/StartTourTimer"/>
-  <ros_service_client service_name="/BlackboardComponent/SetInt"        type="blackboard_interfaces/SetInt"/>
+  <ros_service_client service_name="/BlackboardComponent/SetInt"        type="blackboard_interfaces/SetIntBlackboard"/>
 
   <state id="idle">
     <ros_service_handle_request name="/StartTourTimerSkill/tick" target="startTimer">
@@ -68,6 +68,7 @@
     <onentry>
       <ros_service_send_response name="/StartTourTimerSkill/tick">
         <field name="status" expr="SKILL_SUCCESS"/>
+        <field name="is_ok" expr="true"/>
       </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
@@ -77,6 +78,7 @@
     <onentry>
       <ros_service_send_response name="/StartTourTimerSkill/tick">
         <field name="status" expr="SKILL_FAILURE"/>
+        <field name="is_ok" expr="true"/>
       </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
@@ -84,7 +86,9 @@
 
   <state id="halted">
     <onentry>
-      <ros_service_send_response name="/StartTourTimerSkill/halt"/>
+      <ros_service_send_response name="/StartTourTimerSkill/halt">
+            <field name="is_ok" expr="true"/>
+          </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
   </state>

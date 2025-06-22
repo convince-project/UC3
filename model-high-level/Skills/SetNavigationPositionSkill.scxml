@@ -102,7 +102,9 @@
     <onentry>
       <assign location="is_dancing" expr="false"/>
       <assign location="result" expr="''"/>
-      <ros_service_send_response name="/SetNavigationPositionSkill/halt"/>
+      <ros_service_send_response name="/SetNavigationPositionSkill/halt">
+            <field name="is_ok" expr="true"/>
+          </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
   </state>

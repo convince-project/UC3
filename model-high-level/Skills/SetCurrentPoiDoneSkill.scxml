@@ -72,7 +72,9 @@
         <onentry>
             <assign location="poi_number" expr="0"/>
             <assign location="value" expr="1"/>
-            <ros_service_send_response name="/SetCurrentPoiDoneSkill/halt"/>
+            <ros_service_send_response name="/SetCurrentPoiDoneSkill/halt">
+                <field name="is_ok" expr="true"/>
+            </ros_service_send_response>
         </onentry>
         <transition target="idle"/>
     </state>
