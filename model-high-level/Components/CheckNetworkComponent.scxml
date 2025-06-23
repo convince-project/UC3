@@ -20,16 +20,16 @@
   <ros_time_rate name="publish_timer" rate_hz="1"/>
 
   <state id="waiting">
-    <transition event="status_timer.tick">
+    <ros_rate_callback name="evaluate_timer">
       <target id="evaluate" prob="0.99">
         <assign location="current_status" expr="true"/>
       </target>
       <target id="evaluate" prob="0.01">
         <assign location="current_status" expr="false"/>
       </target>
-    </transition>
+    </ros_rate_callback >
 
-    <transition event="publish_timer.tick" target="publish"/> 
+    <ros_rate_callback name="publish_timer" target="publish"/> 
 
   </state>
 

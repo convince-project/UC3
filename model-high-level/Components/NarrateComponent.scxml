@@ -34,9 +34,9 @@
       <assign location="stopped" expr="true"/>
     </ros_service_handle_request>
     <!-- periodically set narration to done -->
-    <transition event="speak_timer.tick" target="idle">
+    <ros_rate_callback name="speak_timer" target="idle">
       <assign location="is_done" expr="true"/>
-    </transition>
+    </ros_rate_callback>
   </state>
 
   <state id="HandleNarrate">

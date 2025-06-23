@@ -19,6 +19,7 @@
   <!-- publications -->
   <ros_topic_publisher topic="/PeopleDetectorFilterComponent/detection" type="people_detector_filter_interfaces/FilterStatus"/>
   <ros_topic_publisher topic="/PeopleDetectorFilterComponent/filtered_detection" type="std_msgs/Bool"/>
+  <ros_topic_publisher topic="/PeopleDetectorFilterComponent/is_followed" type="std_msgs/Bool"/>
 
   <!-- 1 Hz timer drives compute/publish -->
   <ros_time_rate name="timer" rate_hz="1"/>
@@ -41,12 +42,20 @@
         <field name="error_msg" expr="''"/>
       </ros_service_send_response>
     </ros_service_handle_request> -->
-    <transition event="timer.tick" target="evaluate"/>
+    <!-- <transition event="timer.tick" target="evaluate"/> -->
+    <ros_rate_callback name="timer">
+      <target id="publish" prob="0.8">
+        <assign location="peopleDetected" expr="true"/>
+      </target>
+      <target id="publish" prob="0.2">
+        <assign location="peopleDetected" expr="false"/>
+      </target>
+    </ros_rate_callback>
   </state>
 
 
 
-  <state id="evaluate">
+  <!-- <state id="evaluate">
 
     <transition> 
       <target id="publish" prob="0.8">
@@ -56,7 +65,7 @@
         <assign location="peopleDetected" expr="false"/>
       </target>
     </transition>
-  </state>
+  </state> -->
 
   <state id="publish">
     <onentry>
@@ -64,6 +73,10 @@
         <field name="status" expr="peopleDetected"/>
       </ros_topic_publish>
       <ros_topic_publish name="/PeopleDetectorFilterComponent/filtered_detection">
+        <field name="data" expr="peopleDetected"/>
+      </ros_topic_publish>
+      <!-- Add this missing publication -->
+      <ros_topic_publish name="/PeopleDetectorFilterComponent/is_followed">
         <field name="data" expr="peopleDetected"/>
       </ros_topic_publish>
     </onentry>

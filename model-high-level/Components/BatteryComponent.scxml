@@ -11,7 +11,7 @@
     <!-- <data id="timer_duration" type="int32" expr="1000" /> --> <!--Timer duration in milliseconds -->
 	</datamodel>
 
-  <ros_topic_publisher topic="/BatteryComponent/battery_level" type="std_msgs/Int32" />
+  <ros_topic_publisher topic="/BatteryComponent/battery_level" type="sensor_msgs/BatteryState" />
   <ros_time_rate name="control_timer" rate_hz="1" />
 
   <state id="idle">
