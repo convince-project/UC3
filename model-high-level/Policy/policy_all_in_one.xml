@@ -47,7 +47,7 @@
                        interface="ROS2SERVICE"
                        isMonitored="false"/>
     </ReactiveSequence>
-    <ReactiveFallback>
+    <!-- <ReactiveFallback>
       <Inverter>
         <ROS2Condition name="NetworkStatusChanged"
                         service_name="/NetworkStatusChangeSkill/tick"
@@ -70,7 +70,7 @@
                     interface="ROS2SERVICE"
                     isMonitored="false"/>
       </ReactiveFallback>
-    </ReactiveFallback>
+    </ReactiveFallback> -->
       <Sequence>
     <Fallback>
       <Inverter>
