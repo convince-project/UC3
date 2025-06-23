@@ -15,7 +15,9 @@
             <send event="TimerCheckForPeopleComponent.IsTimerActive.Call"/>
         </transition>
         <!-- <ros_service_handle_request name="/RunTimerSkill/halt" target="idle">
-            <ros_service_send_response name="/RunTimerSkill/halt"/>
+            <ros_service_send_response name="/RunTimerSkill/halt">
+            <field name="is_ok" expr="true"/>
+          </ros_service_send_response>
         </ros_service_handle_request> -->
     </state>
     <state id="isTimerActive">
@@ -35,7 +37,9 @@
             <send event="TimerCheckForPeopleComponent.StartTimer.Call"/>
         </transition>
         <!-- <ros_service_handle_request name="/RunTimerSkill/halt" target="idle">
-            <ros_service_send_response name="/RunTimerSkill/halt"/>
+            <ros_service_send_response name="/RunTimerSkill/halt">
+            <field name="is_ok" expr="true"/>
+          </ros_service_send_response>
         </ros_service_handle_request> -->
     </state>
     <state id="startTimer">
@@ -52,7 +56,9 @@
             </send>
         </transition>
         <!-- <ros_service_handle_request name="/RunTimerSkill/halt" target="idle">
-            <ros_service_send_response name="/RunTimerSkill/halt"/>
+            <ros_service_send_response name="/RunTimerSkill/halt">
+            <field name="is_ok" expr="true"/>
+          </ros_service_send_response>
         </ros_service_handle_request> -->
     </state>
 </scxml>

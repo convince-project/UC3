@@ -8,10 +8,7 @@
     <state id="idle">
       <onentry>
 
-        <script>
-          log("state idle");
-          m_parameter="idle";
-        </script>
+        <assign location="m_parameter" expr="'idle'"/>
         <send event="SEND_OUTSIDE">
           <param name="state" expr="m_parameter"/>
         </send>
@@ -22,10 +19,8 @@
 
     <state id="ready">
       <onentry>
-        <script>
-          log("state ready");
-          m_parameter="ready";
-        </script>
+
+        <assign location="m_parameter" expr="'ready'"/>
         <send event="SEND_OUTSIDE">
           <param name="state" expr="m_parameter"/>
         </send>
@@ -36,11 +31,6 @@
 
 
     <state id="alarm">
-      <onentry>
-        <script>
-          log("state alarm");
-        </script>
-      </onentry>
       <transition event="CMD_HALT" target="idle" />
     </state>
 </scxml>
