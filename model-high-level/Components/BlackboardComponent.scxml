@@ -9,7 +9,7 @@
 	<datamodel>
 		<data id="isCheckingForPeople" type="int32" expr="0" />
 		<!-- <data id="field_name" type="string" expr="" /> -->
-		<data id="field_name_string" type="string" expr="0" />
+		<data id="field_name_string" type="string" expr="''" />
     <data id="value_string" type="string" expr="''" />
     <data id="field_name_int" type="string" expr="''" />
     <data id="value_int" type="int32" expr="0" />
