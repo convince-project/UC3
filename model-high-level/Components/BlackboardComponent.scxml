@@ -35,9 +35,9 @@
 
   <ros_service_server service_name="/BlackboardComponent/GetInt" type="blackboard_interfaces/GetIntBlackboard"/>
   <ros_service_server service_name="/BlackboardComponent/SetInt" type="blackboard_interfaces/SetIntBlackboard"/>
-  <ros_service_client service_name="/BlackboardComponent/GetString" type="blackboard_interfaces/GetStringBlackboard"/>
-  <ros_service_client service_name="/BlackboardComponent/SetString" type="blackboard_interfaces/SetStringBlackboard"/>
-  <ros_service_client service_name="/BlackboardComponent/SetAllIntsWithPrefix" type="blackboard_interfaces/SetAllIntsWithPrefixBlackboard"/>
+  <!-- <ros_service_server service_name="/BlackboardComponent/GetString" type="blackboard_interfaces/GetStringBlackboard"/>
+  <ros_service_server service_name="/BlackboardComponent/SetString" type="blackboard_interfaces/SetStringBlackboard"/> -->
+  <ros_service_server service_name="/BlackboardComponent/SetAllIntsWithPrefix" type="blackboard_interfaces/SetAllIntsWithPrefixBlackboard"/>
 
 
   <!-- <ros_topic_publisher topic="/BlackboardComponent/Poi1Done" type="std_msgs/Int32" /> -->

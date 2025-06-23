@@ -22,7 +22,7 @@
   </datamodel>
 
   <!-- Service servers -->
-  <ros_service_server service_name="/NavigationComponent/GoToPoiByName" type="navigation_interfaces/GoToPoiByName"/>
+  <!-- <ros_service_server service_name="/NavigationComponent/GoToPoiByName" type="navigation_interfaces/GoToPoiByName"/> -->
   <ros_service_server service_name="/NavigationComponent/GetNavigationStatus" type="navigation_interfaces/GetNavigationStatus"/>
   <ros_service_server service_name="/NavigationComponent/StopNavigation" type="navigation_interfaces/StopNavigation"/>
   <ros_service_server service_name="/NavigationComponent/CheckNearToPoi" type="navigation_interfaces/CheckNearToPoi"/>

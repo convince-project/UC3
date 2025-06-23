@@ -19,7 +19,7 @@
         <input type="ros-scxml" src="./Components/BatteryComponent.scxml" />
         <input type="ros-scxml" src="./Components/BlackboardComponent.scxml" />
         <input type="ros-scxml" src="./Components/CheckNetworkComponent.scxml" />
-        <input type="ros-scxml" src="./Components/ManagePeopleDetectorComponent.scxml" />
+        <!-- <input type="ros-scxml" src="./Components/ManagePeopleDetectorComponent.scxml" /> -->
         <input type="ros-scxml" src="./Components/NarrateComponent.scxml" />
         <input type="ros-scxml" src="./Components/NavigationComponent.scxml" />
         <input type="ros-scxml" src="./Components/NotifyUserComponent.scxml" />
