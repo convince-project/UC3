@@ -15,11 +15,11 @@
     <!-- BatteryChargingSkill is a server for tick from the ROS2Condition plugin-->
     <ros_service_server service_name="/BatteryChargingSkill/tick" type ="bt_interfaces_dummy/TickCondition"/>
     <!-- BatteryChargingSkill is a subscriber for the /battery_level topic from the BatteryComponent-->
-    <ros_topic_subscriber topic="/RobotComponent/readBatteryStatus" type="sensor_msgs/BatteryState" />
+    <ros_topic_subscriber topic="/BatteryComponent/battery_level" type="sensor_msgs/BatteryState" />
 
     <state id="idle">
         <ros_service_handle_request name="/BatteryChargingSkill/tick" target="checkStatus"/>
-        <ros_topic_callback name="/RobotComponent/readBatteryStatus" target="idle">
+        <ros_topic_callback name="/BatteryComponent/battery_level" target="idle">
             <assign location="battery_status" expr="_msg.power_supply_status" />
         </ros_topic_callback>
     </state>
