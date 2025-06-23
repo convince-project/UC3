@@ -35,9 +35,9 @@
         <bt_tick target="handle_response_tick">
             <ros_service_send_request name="srv_tick"/>
         </bt_tick>
-        <transition event="bt_halt" target="handle_response_halt">
+        <bt_halt target="handle_response_halt">
             <ros_service_send_request name="srv_halt"/>
-        </transition>
+        </bt_halt>
     </state>
 
     <state id="handle_response_tick">
@@ -54,7 +54,7 @@
 
     <state id="handle_response_halt">
         <ros_service_handle_response name="srv_halt" target="idle" >
-            <send event="bt_halt_response" />
+            <bt_return_halted />
         </ros_service_handle_response>
     </state>
 

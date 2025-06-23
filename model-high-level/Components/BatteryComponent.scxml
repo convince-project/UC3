@@ -11,30 +11,29 @@
     <!-- <data id="timer_duration" type="int32" expr="1000" /> --> <!--Timer duration in milliseconds -->
 	</datamodel>
 
-  <ros_topic_publisher topic="/BatteryComponent/battery_level" type="sensor_msgs/BatteryState" />
-  <ros_time_rate name="control_timer" rate_hz="1" />
+  <ros_topic_publisher name="battery_level_pub" topic="/BatteryComponent/battery_level" type="sensor_msgs/BatteryState" />
+  <ros_time_rate name="battery_control_timer" rate_hz="1" />
 
   <state id="idle">
     <onentry>
       <!-- <send event="timer_expired" delayexpr="timer_duration + 'ms'" /> -->
       <if cond="percentage &gt; 0" >
-				<assign location="percentage" expr="percentage - 1" />
-			</if>
-      <ros_topic_publish name="/BatteryComponent/battery_level">
-        <field name="data" expr="percentage" />
+                            <assign location="percentage" expr="percentage - 1" />
+      </if>
+      <ros_topic_publish name="battery_level_pub">
+        <field name="percentage" expr="percentage" />
       </ros_topic_publish>
 
     </onentry>
     <!-- <transition event="timer_expired" target="idle"/> -->
-    <ros_rate_callback name="control_timer" >
+    <ros_rate_callback name="battery_control_timer" >
 
       <target id="idle" prob="0.99">
-        <ros_topic_publish name="/BatteryComponent/battery_level">
+        <ros_topic_publish name="battery_level_pub">
           <field name="data" expr="percentage" />
         </ros_topic_publish>
       </target>
       <target id="idle" prob="0.01"/>
-
 
     </ros_rate_callback>
     <!-- <transition target="idle"/> -->

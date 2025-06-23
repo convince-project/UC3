@@ -49,7 +49,9 @@
         </ros_service_send_response>
       </if>
     </onentry> -->
-    <transition cond="result" target="waitInc"/>
+    <transition cond="result" target="waitInc">
+      <ros_service_send_request name="/TurnBackManagerComponent/IncreaseTurnBacksCounter"/>
+    </transition>
     <transition target="idle"/>
     <!-- Aggiungere gestione halt -->
     <!-- <ros_service_handle_request name="/SetTurnedSkill/halt" target="halted"/> -->
