@@ -52,7 +52,8 @@
     <transition cond="result" target="waitInc"/>
     <transition target="idle"/>
     <!-- Aggiungere gestione halt -->
-    <ros_service_handle_request name="/SetTurnedSkill/halt" target="halted"/>
+    <!-- <ros_service_handle_request name="/SetTurnedSkill/halt" target="halted"/> -->
+    <!-- <ros_service_handle_request name="/SetTurnedSkill/halt" target="halted"/> -->
   </state>
 
   <state id="waitInc">

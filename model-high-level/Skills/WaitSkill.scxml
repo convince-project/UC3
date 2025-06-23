@@ -19,42 +19,35 @@
     <ros_service_server service_name="/WaitSkill/halt" type="bt_interfaces_dummy/HaltAction"/>
 
     <state id="idle">
-        <ros_service_handle_request name="/WaitSkill/tick" target="startWait"/>
-        <ros_service_handle_request name="/WaitSkill/halt" target="halted"/>
-    </state>
+        <ros_service_handle_request name="/WaitSkill/tick" target="wait">
+            <ros_service_send_response name="/WaitSkill/tick">
+                <field name="status" expr="SKILL_RUNNING"/>
+                <field name="is_ok" expr="true"/>
+            </ros_service_send_response>
+        </ros_service_handle_request>
 
-    <state id="startWait">
-        <onentry>
-            <assign location="start_time" expr="Date.now()"/>
-        </onentry>
-        <ros_service_handle_request name="/WaitSkill/tick" target="checkWait"/>
-        <ros_service_handle_request name="/WaitSkill/halt" target="halted"/>
-    </state>
-
-    <state id="checkWait">
-        <onentry>
-            <if cond="(Date.now() - start_time) >= wait_time_ms">
-                <ros_service_send_response name="/WaitSkill/tick">
-                    <field name="status" expr="SKILL_SUCCESS"/>
-                    <field name="is_ok" expr="true"/>
-                </ros_service_send_response>
-            <else/>
-                <ros_service_send_response name="/WaitSkill/tick">
-                    <field name="status" expr="SKILL_RUNNING"/>
-                    <field name="is_ok" expr="true"/>
-                </ros_service_send_response>
-            </if>
-        </onentry>
-        <transition target="idle"/>
-    </state>
-
-    <state id="halted">
-        <onentry>
+        <ros_service_handle_request name="/WaitSkill/halt" target="idle">
             <ros_service_send_response name="/WaitSkill/halt">
-            <field name="is_ok" expr="true"/>
-          </ros_service_send_response>
-        </onentry>
-        <transition target="idle"/>
+                <field name="is_ok" expr="true"/>
+            </ros_service_send_response>
+        </ros_service_handle_request>
+    </state>
+
+    <state id="wait">
+        <!-- <onentry>
+            <assign location="start_time" expr="Date.now()"/>
+        </onentry> -->
+        <ros_service_handle_request name="/WaitSkill/halt" target="idle">
+            <ros_service_send_response name="/WaitSkill/halt">
+                <field name="is_ok" expr="true"/>
+            </ros_service_send_response>
+        </ros_service_handle_request>
+        <ros_service_handle_request name="/WaitSkill/tick" target="wait">
+            <ros_service_send_response name="/WaitSkill/tick">
+                <field name="status" expr="SKILL_RUNNING"/>
+                <field name="is_ok" expr="true"/>
+            </ros_service_send_response>
+        </ros_service_handle_request>
     </state>
 
 </scxml>

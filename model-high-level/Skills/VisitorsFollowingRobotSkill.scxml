@@ -20,9 +20,7 @@
     <state id="idle">
         <ros_service_handle_request name="/VisitorsFollowingRobotSkill/tick" target="areFollowing"/>
         <ros_topic_callback name="/PeopleDetectorFilterComponent/is_followed" target="idle">
-            <if cond="_msg &amp;&amp; typeof _msg.data === 'bool'">
-                <assign location="is_followed" expr="_msg.data" />
-            </if>
+            <assign location="is_followed" expr="_msg.data" />  
         </ros_topic_callback>
     </state>
 
