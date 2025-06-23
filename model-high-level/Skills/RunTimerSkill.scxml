@@ -15,7 +15,7 @@
     <!-- RunTimerSkill is a server for tick from the ROS2Action plugin-->
     <ros_service_server service_name="/RunTimerSkill/tick" type ="bt_interfaces_dummy/TickAction"/>
     <!-- RunTimerSkill is a server for halt from the ROS2Action plugin-->
-    <!-- <ros_service_server service_name="/RunTimerSkill/halt" type ="bt_interface/HaltAction"/> -->
+    <ros_service_server service_name="/RunTimerSkill/halt" type ="bt_interfaces_dummy/HaltAction"/>
     <!-- RunTimerSkill is a client for IsTimerActive from the TimerCheckForPeopleComponent -->
     <ros_service_client service_name="/TimerCheckForPeopleComponent/IsTimerActive" type ="timer_check_for_people_interfaces/IsTimerActive"/>
     <!-- RunTimerSkill is a client for StartTimer from the TimerCheckForPeopleComponent -->
@@ -25,11 +25,11 @@
         <ros_service_handle_request name="/RunTimerSkill/tick" target="isTimerActive">
             <ros_service_send_request name="/TimerCheckForPeopleComponent/IsTimerActive"/>
         </ros_service_handle_request>
-        <!-- <ros_service_handle_request name="/RunTimerSkill/halt" target="idle">
+        <ros_service_handle_request name="/RunTimerSkill/halt" target="idle">
             <ros_service_send_response name="/RunTimerSkill/halt">
             <field name="is_ok" expr="true"/>
           </ros_service_send_response>
-        </ros_service_handle_request> -->
+        </ros_service_handle_request>
 
     </state>
 
@@ -49,11 +49,11 @@
         <ros_service_handle_response name="/TimerCheckForPeopleComponent/IsTimerActive" cond="(_res.is_active) == false" target="startTimer">
             <ros_service_send_request name="/TimerCheckForPeopleComponent/StartTimer"/>
         </ros_service_handle_response>
-        <!-- <ros_service_handle_request name="/RunTimerSkill/halt" target="idle">
+        <ros_service_handle_request name="/RunTimerSkill/halt" target="idle">
             <ros_service_send_response name="/RunTimerSkill/halt">
             <field name="is_ok" expr="true"/>
           </ros_service_send_response>
-        </ros_service_handle_request> -->
+        </ros_service_handle_request>
 
     </state>
 
@@ -70,10 +70,10 @@
                 <field name="is_ok" expr="true"/>
             </ros_service_send_response>
         </ros_service_handle_response>
-        <!-- <ros_service_handle_request name="/RunTimerSkill/halt" target="idle">
+        <ros_service_handle_request name="/RunTimerSkill/halt" target="idle">
             <ros_service_send_response name="/RunTimerSkill/halt">
             <field name="is_ok" expr="true"/>
           </ros_service_send_response>
-        </ros_service_handle_request> -->
+        </ros_service_handle_request>
     </state>
 </scxml>

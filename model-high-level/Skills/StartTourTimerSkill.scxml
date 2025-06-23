@@ -28,13 +28,13 @@
 
   <state id="startTimer">
     <ros_service_handle_response name="/TimeComponent/StartTourTimer" target="afterTimer">
-      <assign location="result" expr="_res.result"/>
+      <assign location="result" expr="_res.is_ok"/>
     </ros_service_handle_response>
   </state>
 
   <state id="afterTimer">
-    <transition cond="result == 'SKILL_SUCCESS'" target="resetWarn"/>
-    <transition cond="result != 'SKILL_SUCCESS'" target="failReply"/>
+    <transition cond="result" target="resetWarn"/>
+    <transition target="failReply"/>
   </state>
 
   <state id="resetWarn">
@@ -55,13 +55,13 @@
       </ros_service_send_request>
     </onentry>
     <ros_service_handle_response name="/BlackboardComponent/SetInt" target="checkResetResult">
-      <assign location="result" expr="_res.result"/>
+      <assign location="result" expr="_res.is_ok"/>
     </ros_service_handle_response>
   </state>
 
   <state id="checkResetResult">
-    <transition cond="result == 'SKILL_SUCCESS'" target="successReply"/>
-    <transition cond="result != 'SKILL_SUCCESS'" target="failReply"/>
+    <transition cond="result" target="successReply"/>
+    <transition target="failReply"/>
   </state>
 
   <state id="successReply">

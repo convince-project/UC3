@@ -28,7 +28,7 @@
                 <field name="is_ok" expr="true"/>
             </ros_service_send_response>
             <ros_service_send_request name="/SchedulerComponent/SetPoi">
-                <field name="poi_number" expr="poi_number"/>
+                <field name="poi_number" expr="3"/>
             </ros_service_send_request>
         </ros_service_handle_request>
         <ros_service_handle_request name="/SetPoi3Skill/halt" target="idle">

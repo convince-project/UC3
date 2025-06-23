@@ -37,13 +37,13 @@
 
   <state id="callTurnBack">
     <ros_service_handle_response name="/NavigationComponent/TurnBack" target="afterTurnBack">
-      <assign location="result" expr="_res.result"/>
+      <assign location="result" expr="_res.is_ok"/>
     </ros_service_handle_response>
   </state>
 
   <state id="afterTurnBack">
-    <transition cond="result == 'SKILL_SUCCESS'" target="getStatus"/>
-    <transition cond="result != 'SKILL_SUCCESS'" target="failReply"/>
+    <transition cond="result" target="getStatus"/>
+    <transition target="failReply"/>
   </state>
 
   <state id="getStatus">

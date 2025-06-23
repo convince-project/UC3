@@ -9,6 +9,12 @@
         <data id="SKILL_SUCCESS" type="int8" expr="0" />
         <data id="SKILL_FAILURE" type="int8" expr="1" />
         <data id="SKILL_RUNNING" type="int8" expr="2" />
+        <!-- <data id="poi_name_0" type="string" expr="'PoiDone0'"/>
+        <data id="poi_name_1" type="string" expr="'PoiDone1'"/>
+        <data id="poi_name_2" type="string" expr="'PoiDone2'"/>
+        <data id="poi_name_3" type="string" expr="'PoiDone3'"/>
+        <data id="poi_name_4" type="string" expr="'PoiDone4'"/>
+        <data id="poi_name_5" type="string" expr="'PoiDone5'"/> -->
     </datamodel>
 
     <!-- SetCurrentPoiDoneSkill is a server for tick from the ROS2Action plugin-->
@@ -35,11 +41,43 @@
             <!-- <script>
                 field_name = field_name_init + poi_number;
             </script> -->
-            <ros_service_send_request name="/BlackboardComponent/SetInt">
-                <!-- Correggere da poi_number a stringa appropriata -->
-                <field name="field_name" expr="'PoiDone' + poi_number"/>
-                <field name="value" expr="value"/>
-            </ros_service_send_request>
+            <if cond="poi_number == 0">
+                <ros_service_send_request name="/BlackboardComponent/SetInt">
+                    <!-- Correggere da poi_number a stringa appropriata -->
+                    <field name="field_name" expr="'PoiDone0'"/>
+                    <field name="value" expr="value"/>
+                </ros_service_send_request>
+            </if>
+            <if cond="poi_number == 1">
+                <ros_service_send_request name="/BlackboardComponent/SetInt">
+                    <field name="field_name" expr="'PoiDone1'"/>
+                    <field name="value" expr="value"/>
+                </ros_service_send_request>
+            </if>
+            <if cond="poi_number == 2">
+                <ros_service_send_request name="/BlackboardComponent/SetInt">
+                    <field name="field_name" expr="'PoiDone2'"/>
+                    <field name="value" expr="value"/>
+                </ros_service_send_request>
+            </if>
+            <if cond="poi_number == 3">
+                <ros_service_send_request name="/BlackboardComponent/SetInt">
+                    <field name="field_name" expr="'PoiDone3'"/>
+                    <field name="value" expr="value"/>
+                </ros_service_send_request>
+            </if>
+            <if cond="poi_number == 4">
+                <ros_service_send_request name="/BlackboardComponent/SetInt">
+                    <field name="field_name" expr="'PoiDone4'"/>
+                    <field name="value" expr="value"/>
+                </ros_service_send_request>
+            </if>
+            <if cond="poi_number == 5">
+                <ros_service_send_request name="/BlackboardComponent/SetInt">
+                    <field name="field_name" expr="'PoiDone5'"/>
+                    <field name="value" expr="value"/>
+                </ros_service_send_request>
+            </if>
         </ros_service_handle_response>
         <ros_service_handle_response name="/SchedulerComponent/GetCurrentPoi" cond="(_res.is_ok) == false" target="idle">
             <ros_service_send_response name="/SetCurrentPoiDoneSkill/tick">

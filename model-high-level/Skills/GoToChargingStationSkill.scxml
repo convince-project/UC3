@@ -42,6 +42,17 @@
     </ros_service_handle_request>
   </state>
 
+    <state id="sendGoal">
+        <onentry>
+            <ros_action_send_goal name="go_to_poi_action">
+                <field name="poi_name" expr="charging_station"/>
+            </ros_action_send_goal>
+            <assign location="m_status" expr="NAV_STATUS_MOVING" />
+            <assign location="m_is_near" expr="false" />
+        </onentry>
+        <transition target="goalResponse" />
+    </state>
+
   <state id="goalResponse">
       <ros_action_handle_goal_response name="go_to_poi_action" accept="wait_result" reject="send_failure" />
       <ros_service_handle_request name="/GoToChargingStationSkill/tick" target="goalResponse">

@@ -15,12 +15,12 @@
   </datamodel>
 
 
-  <ros_service_server service_name="/IsPoiDone2skill/tick" type="bt_interfaces_dummy/TickCondition"/>
+  <ros_service_server service_name="/IsPoiDone2Skill/tick" type="bt_interfaces_dummy/TickCondition"/>
   <ros_service_client service_name="/BlackboardComponent/GetInt" type="blackboard_interfaces/GetIntBlackboard"/>
 
 
   <state id="idle">
-    <ros_service_handle_request name="/IsPoiDone2skill/tick" target="checkInt">
+    <ros_service_handle_request name="/IsPoiDone2Skill/tick" target="checkInt">
       <ros_service_send_request name="/BlackboardComponent/GetInt">
         <field name="field_name" expr="m_field_name"/>
       </ros_service_send_request>
@@ -43,12 +43,12 @@
   <state id="decide">
     <onentry>
       <if cond="value == 1">
-        <ros_service_send_response name="/IsPoiDone2skill/tick">
+        <ros_service_send_response name="/IsPoiDone2Skill/tick">
           <field name="status" expr="SKILL_SUCCESS"/>
           <field name="is_ok" expr="true"/>
         </ros_service_send_response>
       <else/>
-        <ros_service_send_response name="/IsPoiDone2skill/tick">
+        <ros_service_send_response name="/IsPoiDone2Skill/tick">
           <field name="status" expr="SKILL_FAILURE"/>
           <field name="is_ok" expr="true"/>
         </ros_service_send_response>
@@ -59,7 +59,7 @@
 
   <state id="failure">
     <onentry>
-      <ros_service_send_response name="/IsPoiDone2skill/tick">
+      <ros_service_send_response name="/IsPoiDone2Skill/tick">
         <field name="status" expr="SKILL_FAILURE"/>
         <field name="is_ok" expr="true"/>
       </ros_service_send_response>
