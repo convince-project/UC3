@@ -30,7 +30,7 @@
 
   <!-- Action server -->
   <ros_action_server name="goto_act" action_name="/NavigationComponent/GoToPoi" type="navigation_interfaces/GoToPoi"/>
-  <ros_time_rate name="action_timer" rate_hz="10"/>
+  <!-- <ros_time_rate name="action_timer" rate_hz="10"/> -->
 
   <state id="idle">
 
@@ -54,7 +54,7 @@
       </ros_service_send_response>
     </ros_service_handle_request>
     <!-- TurnBack -->
-    <!-- <ros_service_handle_request name="/NavigationComponent/TurnBack" target="HandleTurnBack"/> -->
+    <ros_service_handle_request name="/NavigationComponent/TurnBack" target="HandleTurnBack"/>
     <!-- Action‐goal -->
     <ros_action_handle_goal name="goto_act" target="HandleActionGoal">
       <assign location="status" expr="MOVING"/>
@@ -144,6 +144,17 @@
 
   </state>
 
+  <state id="HandleStopNavigation">
+
+    <onentry>
+      <ros_service_send_response name="/NavigationComponent/StopNavigation">
+        <field name="is_ok"      expr="true"/>
+        <field name="error_msg"  expr="''"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
   <state id="HandleGetNavigationStatus">
     <onentry>
       <ros_service_send_response name="/NavigationComponent/GetNavigationStatus">
@@ -161,6 +172,16 @@
       <ros_service_send_response name="/NavigationComponent/CheckNearToPoi">
         <field name="is_ok"      expr="true"/>
         <field name="is_near"    expr="is_near"/>
+        <field name="error_msg"  expr="''"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="HandleTurnBack">
+    <onentry>
+      <ros_service_send_response name="/NavigationComponent/TurnBack">
+        <field name="is_ok"      expr="true"/>
         <field name="error_msg"  expr="''"/>
       </ros_service_send_response>
     </onentry>
