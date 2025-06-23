@@ -6,9 +6,9 @@
        initial="idle">
 
   <datamodel>
-    <data id="result" expr="''"/>
-    <data id="SKILL_SUCCESS" expr="0"/>
-    <data id="SKILL_FAILURE" expr="1"/>
+    <data id="result"         type="string" expr="''"/>
+    <data id="SKILL_SUCCESS"  type="int32"  expr="0"/>
+    <data id="SKILL_FAILURE"  type="int32"  expr="1"/>
   </datamodel>
 
   <ros_service_server service_name="/UpdatePoiSkill/tick"  type="bt_interfaces_dummy/TickAction"/>
@@ -25,13 +25,13 @@
 
   <state id="callUpdate">
     <ros_service_handle_response name="/SchedulerComponent/UpdatePoi" target="decideResult">
-      <assign location="result" expr="_res.result"/>
+      <assign location="result" expr="_res.is_ok"/>
     </ros_service_handle_response>
   </state>
 
   <state id="decideResult">
-    <transition cond="result == 'SKILL_SUCCESS'" target="success"/>
-    <transition cond="result != 'SKILL_SUCCESS'" target="failure"/>
+    <transition cond="result" target="success"/>
+    <transition target="failure"/>
   </state>
 
   <state id="success">

@@ -13,7 +13,7 @@
     <!-- track whether a stop was requested -->
     <data id="stopped"         type="bool" expr="false"/>
   </datamodel>
-  <ros_time_rate name="speak_timer" rate_hz="10.0"/>
+  <ros_time_rate name="speak_timer" rate_hz="10"/>
 
   <!-- ROS service servers -->
   <ros_service_server service_name="/NarrateComponent/Narrate" type="narrate_interfaces/Narrate"/>

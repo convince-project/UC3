@@ -43,13 +43,13 @@
       </ros_service_send_request>
     </onentry>
     <ros_service_handle_response name="/BlackboardComponent/SetAllIntsWithPrefix" target="decide">
-      <assign location="m_result" expr="_res.result"/>
+      <assign location="m_result" expr="_res.is_ok"/>
     </ros_service_handle_response>
   </state>
 
   <state id="decide">
     <onentry>
-      <if cond="m_result=='SKILL_SUCCESS'">
+      <if cond="m_result">
         <ros_service_send_response name="/ResetTourAndFlagsSkill/tick">
           <field name="status" expr="SKILL_SUCCESS"/> 
           <field name="is_ok" expr="true"/>

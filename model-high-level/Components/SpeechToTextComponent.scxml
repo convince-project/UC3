@@ -14,12 +14,12 @@
   </datamodel>
 
   <!-- ROS service servers -->
-  <ros_service_server service_name="/SpeechToTextComponent/SetLanguage" type="text_to_speech_interfaces/SetLanguage"/>
+  <!-- <ros_service_server service_name="/SpeechToTextComponent/SetLanguage" type="text_to_speech_interfaces/SetLanguage"/> -->
   <ros_service_server service_name="/SpeechToTextComponent/GetLanguage" type="text_to_speech_interfaces/GetLanguage"/>
 
   <state id="idle">
     <!-- Handle SetLanguage request -->
-    <ros_service_handle_request name="/SpeechToTextComponent/SetLanguage" target="HandleSetLanguage">
+    <!-- <ros_service_handle_request name="/SpeechToTextComponent/SetLanguage" target="HandleSetLanguage"> -->
       <assign location="req_new_language" expr="_req.new_language"/>
     </ros_service_handle_request>
 

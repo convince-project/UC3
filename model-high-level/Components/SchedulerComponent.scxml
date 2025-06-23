@@ -28,37 +28,37 @@
 
   <!-- service servers -->
   <ros_service_server service_name="/SchedulerComponent/Reset" type="scheduler_interfaces/Reset"/>
-  <ros_service_server service_name="/SchedulerComponent/EndTour" type="scheduler_interfaces/EndTour"/>
-  <ros_service_server service_name="/SchedulerComponent/UpdatePoi" type="scheduler_interfaces/UpdatePoi"/>
+  <!-- <ros_service_server service_name="/SchedulerComponent/EndTour" type="scheduler_interfaces/EndTour"/> -->
+  <!-- <ros_service_server service_name="/SchedulerComponent/UpdatePoi" type="scheduler_interfaces/UpdatePoi"/> -->
   <ros_service_server service_name="/SchedulerComponent/SetPoi" type="scheduler_interfaces/SetPoi"/>
   <ros_service_server service_name="/SchedulerComponent/GetCurrentPoi" type="scheduler_interfaces/GetCurrentPoi"/>
-  <ros_service_server service_name="/SchedulerComponent/UpdateAction" type="scheduler_interfaces/UpdateAction"/>
-  <ros_service_server service_name="/SchedulerComponent/GetCurrentAction" type="scheduler_interfaces/GetCurrentAction"/>
-  <ros_service_server service_name="/SchedulerComponent/GetCurrentLanguage" type="scheduler_interfaces/GetCurrentLanguage"/>
-  <ros_service_server service_name="/SchedulerComponent/SetLanguage"  type="scheduler_interfaces/SetLanguage"/>
-  <ros_service_server service_name="/SchedulerComponent/GetCurrentCommand" type="scheduler_interfaces/GetCurrentCommand"/>
-  <ros_service_server service_name="/SchedulerComponent/SetCommand" type="scheduler_interfaces/SetCommand"/>
-  <ros_service_server service_name="/SchedulerComponent/GetAvailableCommands" type="scheduler_interfaces/GetAvailableCommands"/>
+  <!-- <ros_service_server service_name="/SchedulerComponent/UpdateAction" type="scheduler_interfaces/UpdateAction"/> -->
+  <!-- <ros_service_server service_name="/SchedulerComponent/GetCurrentAction" type="scheduler_interfaces/GetCurrentAction"/> -->
+  <!-- <ros_service_server service_name="/SchedulerComponent/GetCurrentLanguage" type="scheduler_interfaces/GetCurrentLanguage"/> -->
+  <!-- <ros_service_server service_name="/SchedulerComponent/SetLanguage"  type="scheduler_interfaces/SetLanguage"/> -->
+  <!-- <ros_service_server service_name="/SchedulerComponent/GetCurrentCommand" type="scheduler_interfaces/GetCurrentCommand"/> -->
+  <!-- <ros_service_server service_name="/SchedulerComponent/SetCommand" type="scheduler_interfaces/SetCommand"/> -->
+  <!-- <ros_service_server service_name="/SchedulerComponent/GetAvailableCommands" type="scheduler_interfaces/GetAvailableCommands"/> -->
 
   <state id="idle">
     <ros_service_handle_request name="/SchedulerComponent/Reset" target="HandleReset"/>
-    <ros_service_handle_request name="/SchedulerComponent/EndTour" target="HandleEndTour"/>
-    <ros_service_handle_request name="/SchedulerComponent/UpdatePoi" target="HandleUpdatePoi"/>
+    <!-- <ros_service_handle_request name="/SchedulerComponent/EndTour" target="HandleEndTour"/> -->
+    <!-- <ros_service_handle_request name="/SchedulerComponent/UpdatePoi" target="HandleUpdatePoi"/> -->
     <ros_service_handle_request name="/SchedulerComponent/SetPoi" target="HandleSetPoi">
       <assign location="poi_number" expr="_req.poi_number"/>
     </ros_service_handle_request>
     <ros_service_handle_request name="/SchedulerComponent/GetCurrentPoi" target="HandleGetCurrentPoi"/>
-    <ros_service_handle_request name="/SchedulerComponent/UpdateAction" target="HandleUpdateAction"/>
-    <ros_service_handle_request name="/SchedulerComponent/GetCurrentAction" target="HandleGetCurrentAction"/>
-    <ros_service_handle_request name="/SchedulerComponent/GetCurrentLanguage" target="HandleGetCurrentLanguage"/>
-    <ros_service_handle_request name="/SchedulerComponent/SetLanguage" target="HandleSetLanguage">
+    <!-- <ros_service_handle_request name="/SchedulerComponent/UpdateAction" target="HandleUpdateAction"/> -->
+    <!-- <ros_service_handle_request name="/SchedulerComponent/GetCurrentAction" target="HandleGetCurrentAction"/> -->
+    <!-- <ros_service_handle_request name="/SchedulerComponent/GetCurrentLanguage" target="HandleGetCurrentLanguage"/> -->
+    <!-- <ros_service_handle_request name="/SchedulerComponent/SetLanguage" target="HandleSetLanguage">
       <assign location="current_language" expr="_req.language"/>
-    </ros_service_handle_request>
-    <ros_service_handle_request name="/SchedulerComponent/GetCurrentCommand" target="HandleGetCurrentCommand"/>
-    <ros_service_handle_request name="/SchedulerComponent/SetCommand" target="HandleSetCommand">
+    </ros_service_handle_request> -->
+    <!-- <ros_service_handle_request name="/SchedulerComponent/GetCurrentCommand" target="HandleGetCurrentCommand"/> -->
+    <!-- <ros_service_handle_request name="/SchedulerComponent/SetCommand" target="HandleSetCommand">
       <assign location="current_command" expr="_req.command"/>
-    </ros_service_handle_request>
-    <ros_service_handle_request name="/SchedulerComponent/GetAvailableCommands" target="HandleGetAvailableCommands"/>
+    </ros_service_handle_request> -->
+    <!-- <ros_service_handle_request name="/SchedulerComponent/GetAvailableCommands" target="HandleGetAvailableCommands"/> -->
   </state>
 
   <state id="HandleReset">
@@ -78,7 +78,7 @@
     <transition target="idle"/>
   </state>
 
-  <state id="HandleEndTour">
+  <!-- <state id="HandleEndTour">
     <onentry>
       <assign location="poi_number" expr="5"/>
       <assign location="poi_done_0" expr="true"/>
@@ -93,9 +93,9 @@
       </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
-  </state>
+  </state> -->
 
-  <state id="HandleUpdatePoi">
+  <!-- <state id="HandleUpdatePoi">
     <onentry>
       <ros_service_send_response name="/SchedulerComponent/UpdatePoi">
         <field name="is_ok" expr="true"/>
@@ -133,7 +133,7 @@
     </onentry>
 
     <transition target="idle"/>
-  </state>
+  </state> -->
 
   <state id="HandleSetPoi">
     <onentry>
@@ -185,7 +185,7 @@
     <transition target="idle"/>
   </state>
 
-  <state id="HandleUpdateAction">
+  <!-- <state id="HandleUpdateAction">
     <onentry>
       <ros_service_send_response name="/SchedulerComponent/UpdateAction">
         <field name="is_ok"           expr="true"/>
@@ -194,8 +194,8 @@
       </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
-  </state>
-
+  </state> -->
+<!-- 
   <state id="HandleGetCurrentAction">
     <onentry>
       <ros_service_send_response name="/SchedulerComponent/GetCurrentAction">
@@ -207,9 +207,9 @@
       </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
-  </state>
+  </state> -->
 
-  <state id="HandleGetCurrentLanguage">
+  <!-- <state id="HandleGetCurrentLanguage">
     <onentry>
       <ros_service_send_response name="/SchedulerComponent/GetCurrentLanguage">
         <field name="language" expr="current_language"/>
@@ -218,9 +218,9 @@
       </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
-  </state>
+  </state> -->
 
-  <state id="HandleSetLanguage">
+  <!-- <state id="HandleSetLanguage">
     <onentry>
       <ros_service_send_response name="/SchedulerComponent/SetLanguage">
         <field name="is_ok"      expr="true"/>
@@ -228,9 +228,9 @@
       </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
-  </state>
+  </state> -->
 
-  <state id="HandleGetCurrentCommand">
+  <!-- <state id="HandleGetCurrentCommand">
     <onentry>
       <ros_service_send_response name="/SchedulerComponent/GetCurrentCommand">
         <field name="command" expr="current_command"/>
@@ -239,9 +239,9 @@
       </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
-  </state>
+  </state> -->
 
-  <state id="HandleSetCommand">
+  <!-- <state id="HandleSetCommand">
     <onentry>
       <ros_service_send_response name="/SchedulerComponent/SetCommand">
         <field name="is_ok"      expr="true"/>  
@@ -249,9 +249,9 @@
       </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
-  </state>
+  </state> -->
 
-  <state id="HandleGetAvailableCommands">
+  <!-- <state id="HandleGetAvailableCommands">
     <onentry>
       <ros_service_send_response name="/SchedulerComponent/GetAvailableCommands">
         <field name="commands" expr="all_commands"/>
@@ -260,6 +260,6 @@
       </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
-  </state>
+  </state> -->
 
 </scxml>

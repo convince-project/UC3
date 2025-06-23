@@ -12,35 +12,35 @@
     <data id="peopleDetected"         type="bool" expr="false"/>
   </datamodel>
 
-  <!-- services -->
+  <!-- services
   <ros_service_server service_name="/PeopleDetectorFilterComponent/StopLocal" type="manage_service_interfaces/StopService"/>
-  <ros_service_server service_name="/PeopleDetectorFilterComponent/StartLocal" type="manage_service_interfaces/StartService"/>
+  <ros_service_server service_name="/PeopleDetectorFilterComponent/StartLocal" type="manage_service_interfaces/StartService"/> -->
 
   <!-- publications -->
   <ros_topic_publisher topic="/PeopleDetectorFilterComponent/detection" type="people_detector_filter_interfaces/FilterStatus"/>
   <ros_topic_publisher topic="/PeopleDetectorFilterComponent/filtered_detection" type="std_msgs/Bool"/>
 
   <!-- 1 Hz timer drives compute/publish -->
-  <ros_time_rate name="timer" rate_hz="1.0"/>
+  <ros_time_rate name="timer" rate_hz="1"/>
 
   <state id="idle">
     <!-- SetFilterTimeout -->
     <!-- subscription events update flags -->
     <!-- timer tick → compute -->
-    <ros_service_handle_request name="/PeopleDetectorFilterComponent/StartLocal" target="HandleStartLocal">
+    <!-- <ros_service_handle_request name="/PeopleDetectorFilterComponent/StartLocal" target="HandleStartLocal">
       <assign location="is_local" expr="true"/>
       <ros_service_send_response name="/PeopleDetectorFilterComponent/StartLocal">
         <field name="is_ok" expr="true"/>
         <field name="error_msg" expr="''"/>
       </ros_service_send_response>
-    </ros_service_handle_request>
-    <ros_service_handle_request name="/PeopleDetectorFilterComponent/StopLocal" target="HandleStopLocal">
+    </ros_service_handle_request> -->
+    <!-- <ros_service_handle_request name="/PeopleDetectorFilterComponent/StopLocal" target="HandleStopLocal">
       <assign location="is_local" expr="false"/>
       <ros_service_send_response name="/PeopleDetectorFilterComponent/StopLocal">
         <field name="is_ok" expr="true"/>
         <field name="error_msg" expr="''"/>
       </ros_service_send_response>
-    </ros_service_handle_request>
+    </ros_service_handle_request> -->
     <transition event="timer.tick" target="evaluate"/>
   </state>
 
@@ -48,12 +48,14 @@
 
   <state id="evaluate">
 
-    <transition target="publish" prob="0.8">
-      <assign location="peopleDetected" expr="true"/>
+    <transition> 
+      <target id="publish" prob="0.8">
+       <assign location="peopleDetected" expr="true"/>
+      </target>
+      <target id="publish" prob="0.2">
+        <assign location="peopleDetected" expr="false"/>
+      </target>
     </transition>
-    <transition target="publish" prob="0.2">
-      <assign location="peopleDetected" expr="false"/>
-    </transition>  
   </state>
 
   <state id="publish">

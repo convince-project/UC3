@@ -11,25 +11,25 @@
   </datamodel>
 
   <!-- ROS services -->
-  <ros_service_server service_name="/NotifyUserComponent/StartAlarm" type="notify_user_interfaces/StartAlarm"/>
-  <ros_service_server service_name="/NotifyUserComponent/StopAlarm" type="notify_user_interfaces/StopAlarm"/>
+  <!-- <ros_service_server service_name="/NotifyUserComponent/StartAlarm" type="notify_user_interfaces/StartAlarm"/>
+  <ros_service_server service_name="/NotifyUserComponent/StopAlarm" type="notify_user_interfaces/StopAlarm"/> -->
   <ros_service_server service_name="/NotifyUserComponent/NotifyUserCharged" type="notify_user_interfaces/NotifyUserCharged"/>
 
   <!-- timer to drive the 2 Hz alarm prints -->
-  <ros_time_rate name="alarm_timer" rate_hz="2.0"/>
+  <ros_time_rate name="alarm_timer" rate_hz="10"/>
 
   <state id="idle">
     <!-- start the alarm -->
-    <ros_service_handle_request name="/NotifyUserComponent/StartAlarm" target="HandleStartAlarm"/>
+    <!-- <ros_service_handle_request name="/NotifyUserComponent/StartAlarm" target="HandleStartAlarm"/> -->
     <!-- stop the alarm -->
 
-    <ros_service_handle_request name="/NotifyUserComponent/StopAlarm" target="HandleStopAlarm"/>
+    <!-- <ros_service_handle_request name="/NotifyUserComponent/StopAlarm" target="HandleStopAlarm"/> -->
     <!-- notify that user is charged -->
     <ros_service_handle_request name="/NotifyUserComponent/NotifyUserCharged" target="HandleNotifyUserCharged"/>
     <!-- if alarm is active, fire every tick -->
   </state>
 
-  <state id="HandleStartAlarm">
+  <!-- <state id="HandleStartAlarm">
     <onentry>
       <assign location="alarmActive" expr="true"/>
       <ros_service_send_response name="/NotifyUserComponent/StartAlarm">
@@ -49,7 +49,7 @@
       </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
-  </state>
+  </state> -->
 
   <state id="HandleNotifyUserCharged">
     <onentry>

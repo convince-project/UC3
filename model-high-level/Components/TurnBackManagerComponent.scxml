@@ -16,49 +16,49 @@
   </datamodel>
 
   <!-- ROS service servers -->
-  <ros_service_server service_name="/TurnBackManagerComponent/SetMaxTurnBacks" type="turn_back_manager_interfaces/SetMaxTurnBacks"/>
+  <!-- <ros_service_server service_name="/TurnBackManagerComponent/SetMaxTurnBacks" type="turn_back_manager_interfaces/SetMaxTurnBacks"/>
   <ros_service_server service_name="/TurnBackManagerComponent/GetMaxTurnBacks" type="turn_back_manager_interfaces/GetMaxTurnBacks"/>
   <ros_service_server service_name="/TurnBackManagerComponent/SetMaxConsecutiveFalses" type="turn_back_manager_interfaces/SetMaxConsecutiveFalses"/>
-  <ros_service_server service_name="/TurnBackManagerComponent/GetMaxConsecutiveFalses" type="turn_back_manager_interfaces/GetMaxConsecutiveFalses"/>
+  <ros_service_server service_name="/TurnBackManagerComponent/GetMaxConsecutiveFalses" type="turn_back_manager_interfaces/GetMaxConsecutiveFalses"/> -->
   <ros_service_server service_name="/TurnBackManagerComponent/ResetCounters" type="turn_back_manager_interfaces/ResetCounters"/>
   <ros_service_server service_name="/TurnBackManagerComponent/IncreaseTurnBacksCounter" type="turn_back_manager_interfaces/IncreaseTurnBacksCounter"/>
-  <ros_service_server service_name="/TurnBackManagerComponent/GetTurnBacksCounter" type="turn_back_manager_interfaces/GetTurnBacksCounter"/>
-  <ros_service_server service_name="/TurnBackManagerComponent/IsAllowedToContinue" type="turn_back_manager_interfaces/IsAllowedToContinue"/>
+  <!-- <ros_service_server service_name="/TurnBackManagerComponent/GetTurnBacksCounter" type="turn_back_manager_interfaces/GetTurnBacksCounter"/> -->
+  <!-- <ros_service_server service_name="/TurnBackManagerComponent/IsAllowedToContinue" type="turn_back_manager_interfaces/IsAllowedToContinue"/> -->
   <ros_service_server service_name="/TurnBackManagerComponent/IsAllowedToTurnBack" type="turn_back_manager_interfaces/IsAllowedToTurnBack"/>
 
   <state id="idle">
     <!-- SetMaxTurnBacks -->
-    <ros_service_handle_request name="/TurnBackManagerComponent/SetMaxTurnBacks" target="idle">
+    <!-- <ros_service_handle_request name="/TurnBackManagerComponent/SetMaxTurnBacks" target="idle">
       <assign location="max_turn_backs" expr="_req.max"/>
       <ros_service_send_response name="/TurnBackManagerComponent/SetMaxTurnBacks">
         <field name="is_ok" expr="true"/>
         <field name="error_msg" expr="''"/>
       </ros_service_send_response>
-    </ros_service_handle_request>
+    </ros_service_handle_request> -->
     <!-- GetMaxTurnBacks -->
-    <ros_service_handle_request name="/TurnBackManagerComponent/GetMaxTurnBacks" target="idle">
+    <!-- <ros_service_handle_request name="/TurnBackManagerComponent/GetMaxTurnBacks" target="idle">
       <ros_service_send_response name="/TurnBackManagerComponent/GetMaxTurnBacks">
         <field name="max" expr="max_turn_backs"/>
         <field name="is_ok" expr="true"/>
         <field name="error_msg" expr="''"/>
       </ros_service_send_response>
-    </ros_service_handle_request>
+    </ros_service_handle_request> -->
     <!-- SetMaxConsecutiveFalses -->
-    <ros_service_handle_request name="/TurnBackManagerComponent/SetMaxConsecutiveFalses" target="idle">
+    <!-- <ros_service_handle_request name="/TurnBackManagerComponent/SetMaxConsecutiveFalses" target="idle">
       <assign location="max_consecutive_falses" expr="_req.max"/>
       <ros_service_send_response name="/TurnBackManagerComponent/SetMaxConsecutiveFalses">
         <field name="is_ok" expr="true"/>
         <field name="error_msg" expr="''"/>
       </ros_service_send_response>
-    </ros_service_handle_request>
+    </ros_service_handle_request> -->
     <!-- GetMaxConsecutiveFalses -->
-    <ros_service_handle_request name="/TurnBackManagerComponent/GetMaxConsecutiveFalses" target="idle">
+    <!-- <ros_service_handle_request name="/TurnBackManagerComponent/GetMaxConsecutiveFalses" target="idle">
       <ros_service_send_response name="/TurnBackManagerComponent/GetMaxConsecutiveFalses">
         <field name="max" expr="max_consecutive_falses"/>
         <field name="is_ok" expr="true"/>
         <field name="error_msg" expr="''"/>
       </ros_service_send_response>
-    </ros_service_handle_request>
+    </ros_service_handle_request> -->
     <!-- ResetCounters -->
     <ros_service_handle_request name="/TurnBackManagerComponent/ResetCounters" target="idle">
       <assign location="turn_backs_counter" expr="0"/>
@@ -80,22 +80,22 @@
       </ros_service_send_response>
     </ros_service_handle_request>
     <!-- GetTurnBacksCounter -->
-    <ros_service_handle_request name="/TurnBackManagerComponent/GetTurnBacksCounter" target="idle">
+    <!-- <ros_service_handle_request name="/TurnBackManagerComponent/GetTurnBacksCounter" target="idle">
       <ros_service_send_response name="/TurnBackManagerComponent/GetTurnBacksCounter">
         <field name="counter" expr="turn_backs_counter"/>
         <field name="is_ok" expr="true"/>
         <field name="error_msg" expr="''"/>
       </ros_service_send_response>
-    </ros_service_handle_request>
+    </ros_service_handle_request> -->
     <!-- IsAllowedToContinue -->
-    <ros_service_handle_request name="/TurnBackManagerComponent/IsAllowedToContinue" target="idle">
+    <!-- <ros_service_handle_request name="/TurnBackManagerComponent/IsAllowedToContinue" target="idle">
       <ros_service_send_response name="/TurnBackManagerComponent/IsAllowedToContinue">
         <field name="is_allowed" expr="is_allowed_to_continue"/>
         <field name="is_ok" expr="true"/>
         <field name="error_msg" expr="''"/>
         <field name="result" expr="true"/>
       </ros_service_send_response>
-    </ros_service_handle_request>
+    </ros_service_handle_request> -->
     <!-- IsAllowedToTurnBack -->
     <ros_service_handle_request name="/TurnBackManagerComponent/IsAllowedToTurnBack" target="idle">
       <ros_service_send_response name="/TurnBackManagerComponent/IsAllowedToTurnBack">

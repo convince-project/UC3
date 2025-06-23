@@ -25,13 +25,13 @@
 
   <state id="callStop">
     <ros_service_handle_response name="/ManagePeopleDetectorComponent/StopService" target="checkResult">
-      <assign location="result" expr="_res.result"/>
+      <assign location="result" expr="_res.is_ok"/>
     </ros_service_handle_response>
   </state>
 
   <state id="checkResult">
-    <transition cond="result == 'SKILL_SUCCESS'" target="replySuccess"/>
-    <transition cond="result != 'SKILL_SUCCESS'" target="replyFailure"/>
+    <transition cond="result" target="replySuccess"/>
+    <transition target="replyFailure"/>
   </state>
 
   <state id="replySuccess">

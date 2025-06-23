@@ -37,7 +37,7 @@
 
   <state id="setCommand">
     <ros_service_handle_response name="/SchedulerComponent/SetCommand" target="onSetCommand">
-      <assign location="m_result" expr="_res.result"/>
+      <assign location="m_result" expr="_res.is_ok"/>
     </ros_service_handle_response>
   </state>
 

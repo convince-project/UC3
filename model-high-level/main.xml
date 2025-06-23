@@ -25,20 +25,20 @@
         <input type="ros-scxml" src="./Components/NotifyUserComponent.scxml" />
         <input type="ros-scxml" src="./Components/PeopleDetectorFilterComponent.scxml" />
         <input type="ros-scxml" src="./Components/SchedulerComponent.scxml" />
-        <input type="ros-scxml" src="./Components/SpeechToTextComponent.scxml" />
-        <input type="ros-scxml" src="./Components/TextToSpeechComponent.scxml" />
+        <!-- <input type="ros-scxml" src="./Components/SpeechToTextComponent.scxml" /> -->
+        <!-- <input type="ros-scxml" src="./Components/TextToSpeechComponent.scxml" /> -->
         <input type="ros-scxml" src="./Components/TimerCheckForPeopleComponent.scxml" />
         <input type="ros-scxml" src="./Components/TimerComponent.scxml" />
         <input type="ros-scxml" src="./Components/TurnBackManagerComponent.scxml" />
 
 
 
-        <input type="ros-scxml" id="AlarmBatteryLowSkill" src="Skills/AlarmBatteryLowSkill.scxml" />
-        <input type="ros-scxml" id="ArePeoplePresentSkill" src="Skills/ArePeoplePresentSkill.scxml" />
+        <!-- <input type="ros-scxml" id="AlarmBatteryLowSkill" src="Skills/AlarmBatteryLowSkill.scxml" /> -->
+        <!-- <input type="ros-scxml" id="ArePeoplePresentSkill" src="Skills/ArePeoplePresentSkill.scxml" /> -->
         <input type="ros-scxml" id="BatteryChargingSkill" src="Skills/BatteryChargingSkill.scxml" />
         <input type="ros-scxml" id="BatteryLevelSkill" src="Skills/BatteryLevelSkill.scxml" />
         <input type="ros-scxml" id="CheckIfStartSkill" src="Skills/CheckIfStartSkill.scxml" />
-        <input type="ros-scxml" id="CheckIfFirstPoiSkill" src="Skills/CheckIfFirstPoiSkill.scxml" />
+        <!-- <input type="ros-scxml" id="CheckIfFirstPoiSkill" src="Skills/CheckIfFirstPoiSkill.scxml" /> -->
         <input type="ros-scxml" id="GoToChargingStationSkill" src="Skills/GoToChargingStationSkill.scxml" />
         <input type="ros-scxml" id="GoToPoiActionSkill" src="Skills/GoToPoiActionSkill.scxml" />
         <input type="ros-scxml" id="IsAllowedToMoveSkill" src="Skills/IsAllowedToMoveSkill.scxml" />
@@ -46,7 +46,7 @@
         <input type="ros-scxml" id="IsAtChargingStationSkill" src="Skills/IsAtChargingStationSkill.scxml" />
         <input type="ros-scxml" id="IsAtCurrentPoiSkill" src="Skills/IsAtCurrentPoiSkill.scxml" />
         <input type="ros-scxml" id="IsCheckingForPeopleSkill" src="Skills/IsCheckingForPeopleSkill.scxml" />
-        <input type="ros-scxml" id="IsMaximumDurationSkill" src="Skills/IsMaximumDurationSkill.scxml" />
+        <!-- <input type="ros-scxml" id="IsMaximumDurationSkill" src="Skills/IsMaximumDurationSkill.scxml" /> -->
         <input type="ros-scxml" id="IsMuseumClosingSkill" src="Skills/IsMuseumClosingSkill.scxml" />
         <input type="ros-scxml" id="IsPoiDone0Skill" src="Skills/IsPoiDone0Skill.scxml" />
         <input type="ros-scxml" id="IsPoiDone1Skill" src="Skills/IsPoiDone1Skill.scxml" />
@@ -54,22 +54,22 @@
         <input type="ros-scxml" id="IsPoiDone3Skill" src="Skills/IsPoiDone3Skill.scxml" />
         <input type="ros-scxml" id="IsPoiDone4Skill" src="Skills/IsPoiDone4Skill.scxml" />
         <input type="ros-scxml" id="IsPoiDone5Skill" src="Skills/IsPoiDone5Skill.scxml" />
-        <input type="ros-scxml" id="IsWarningDurationSkill" src="Skills/IsWarningDurationSkill.scxml" />
+        <!-- <input type="ros-scxml" id="IsWarningDurationSkill" src="Skills/IsWarningDurationSkill.scxml" /> -->
         <input type="ros-scxml" id="NarratePoiSkill" src="Skills/NarratePoiSkill.scxml" />
         <!-- <input type="ros-scxml" id="NetworkStatusChangeSkill" src="Skills/NetworkStatusChangeSkill.scxml" />
         <input type="ros-scxml" id="NetworkUpSkill" src="Skills/NetworkUpSkill.scxml" /> -->
         <input type="ros-scxml" id="NotifyChargedSkill" src="Skills/NotifyChargedSkill.scxml" />
-        <input type="ros-scxml" id="PeopleLeftSkill" src="Skills/PeopleLeftSkill.scxml" />
+        <!-- <input type="ros-scxml" id="PeopleLeftSkill" src="Skills/PeopleLeftSkill.scxml" /> -->
         <input type="ros-scxml" id="ResetCountersSkill" src="Skills/ResetCountersSkill.scxml" />
         <input type="ros-scxml" id="ResetTourAndFlagsSkill" src="Skills/ResetTourAndFlagsSkill.scxml" />
-        <input type="ros-scxml" id="ResetTourSkill" src="Skills/ResetTourSkill.scxml" />
+        <!-- <input type="ros-scxml" id="ResetTourSkill" src="Skills/ResetTourSkill.scxml" /> -->
         <input type="ros-scxml" id="RunTimerSkill" src="Skills/RunTimerSkill.scxml" />
-        <input type="ros-scxml" id="SayByeSkill" src="Skills/SayByeSkill.scxml" />
-        <input type="ros-scxml" id="SayDurationExceededSkill" src="Skills/SayDurationExceededSkill.scxml" />
-        <input type="ros-scxml" id="SayFollowMeSkill" src="Skills/SayFollowMeSkill.scxml" />
-        <input type="ros-scxml" id="SayPeopleLeftSkill" src="Skills/SayPeopleLeftSkill.scxml" />
-        <input type="ros-scxml" id="SayWarningDurationSkill" src="Skills/SayWarningDurationSkill.scxml" />
-        <input type="ros-scxml" id="SayWhileNavigatingSkill" src="Skills/SayWhileNavigatingSkill.scxml" />
+        <!-- <input type="ros-scxml" id="SayByeSkill" src="Skills/SayByeSkill.scxml" /> -->
+        <!-- <input type="ros-scxml" id="SayDurationExceededSkill" src="Skills/SayDurationExceededSkill.scxml" /> -->
+        <!-- <input type="ros-scxml" id="SayFollowMeSkill" src="Skills/SayFollowMeSkill.scxml" /> -->
+        <!-- <input type="ros-scxml" id="SayPeopleLeftSkill" src="Skills/SayPeopleLeftSkill.scxml" /> -->
+        <!-- <input type="ros-scxml" id="SayWarningDurationSkill" src="Skills/SayWarningDurationSkill.scxml" /> -->
+        <!-- <input type="ros-scxml" id="SayWhileNavigatingSkill" src="Skills/SayWhileNavigatingSkill.scxml" /> -->
         <input type="ros-scxml" id="SetCurrentPoiDoneSkill" src="Skills/SetCurrentPoiDoneSkill.scxml" />
         <!-- <input type="ros-scxml" id="SetNavigationPositionSkill" src="Skills/SetNavigationPositionSkill.scxml" /> -->
         <input type="ros-scxml" id="SetNotTurningSkill" src="Skills/SetNotTurningSkill.scxml" />
@@ -82,10 +82,11 @@
         <input type="ros-scxml" id="SetTurnedSkill" src="Skills/SetTurnedSkill.scxml" />
         <input type="ros-scxml" id="SetTurningSkill" src="Skills/SetTurningSkill.scxml" />
         <!-- <input type="ros-scxml" id="StartServiceSkill" src="Skills/StartServiceSkill.scxml" /> -->
-        <input type="ros-scxml" id="StartTourTimerSkill" src="Skills/StartTourTimerSkill.scxml" />
+        <!-- <input type="ros-scxml" id="StartTourTimerSkill" src="Skills/StartTourTimerSkill.scxml" /> -->
         <input type="ros-scxml" id="StopAndTurnBackSkill" src="Skills/StopAndTurnBackSkill.scxml" />
         <!-- <input type="ros-scxml" id="StopServiceSkill" src="Skills/StopServiceSkill.scxml" /> -->
-        <input type="ros-scxml" id="StopTourTimerSkill" src="Skills/StopTourTimerSkill.scxml" />
+        <!-- <input type="ros-scxml" id="StopTourTimerSkill" src="Skills/StopTourTimerSkill.scxml" /> -->
+        <!-- <input type="ros-scxml" id="UpdatePoiSkill" src="Skills/UpdatePoiSkill.scxml" /> -->
         <input type="ros-scxml" id="VisitorsFollowingRobotSkill" src="Skills/VisitorsFollowingRobotSkill.scxml" />
         <input type="ros-scxml" id="WaitSkill" src="Skills/WaitSkill.scxml" />
     </node_models>

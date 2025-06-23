@@ -30,13 +30,15 @@
     <data id="saved_value_int_4" type="int32" expr="0" />
     <data id="saved_value_int_5" type="int32" expr="0" />
     <data id="saved_value_int_6" type="int32" expr="0" />
+    <data id="saved_field_name_string" type="string" expr="'turnBackState'" />
+    <data id="saved_value_string" type="string" expr="''" />
 
 	</datamodel>
 
   <ros_service_server service_name="/BlackboardComponent/GetInt" type="blackboard_interfaces/GetIntBlackboard"/>
   <ros_service_server service_name="/BlackboardComponent/SetInt" type="blackboard_interfaces/SetIntBlackboard"/>
-  <!-- <ros_service_server service_name="/BlackboardComponent/GetString" type="blackboard_interfaces/GetStringBlackboard"/>
-  <ros_service_server service_name="/BlackboardComponent/SetString" type="blackboard_interfaces/SetStringBlackboard"/> -->
+  <ros_service_server service_name="/BlackboardComponent/GetString" type="blackboard_interfaces/GetStringBlackboard"/>
+  <ros_service_server service_name="/BlackboardComponent/SetString" type="blackboard_interfaces/SetStringBlackboard"/>
   <ros_service_server service_name="/BlackboardComponent/SetAllIntsWithPrefix" type="blackboard_interfaces/SetAllIntsWithPrefixBlackboard"/>
 
 
@@ -55,17 +57,17 @@
       <assign location="field_name_int" expr="_req.field_name"/>
       <assign location="value_int" expr="_req.value"/>
     </ros_service_handle_request>
-    <!-- <ros_service_handle_request name="/BlackboardComponent/GetString" target="GetString">
-      <assign location="field_name" expr="_req.field_name"/>
+    <ros_service_handle_request name="/BlackboardComponent/GetString" target="GetString">
+      <assign location="field_name_string" expr="_req.field_name"/>
     </ros_service_handle_request>
     <ros_service_handle_request name="/BlackboardComponent/SetString" target="SetString">
-      <assign location="field_name" expr="_req.field_name"/>
-      <assign location="value" expr="_req.value"/>
+      <assign location="field_name_string" expr="_req.field_name"/>
+      <assign location="value_string" expr="_req.value"/>
     </ros_service_handle_request>
     <ros_service_handle_request name="/BlackboardComponent/SetAllIntsWithPrefix" target="SetAllIntsWithPrefix">
-      <assign location="field_name" expr="_req.field_name"/>
-      <assign location="value" expr="_req.value"/>
-    </ros_service_handle_request> -->
+      <assign location="field_name_all_int_with_prefix" expr="_req.field_name"/>
+      <assign location="value_all_int_with_prefix" expr="_req.value"/>
+    </ros_service_handle_request>
   </state>
 
   <state id="GetInt">
@@ -165,6 +167,63 @@
     <transition target="idle"/>
   </state>
 
-  
+  <state id="GetString">
+    <onentry>
+      <if cond="field_name_string == saved_field_name_string">
+        <ros_service_send_response name="/BlackboardComponent/GetString">
+          <field name="value" expr="saved_value_string"/>
+          <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
+        </ros_service_send_response>
+      <else />
+        <ros_service_send_response name="/BlackboardComponent/GetString">
+          <field name="value" expr="''"/>
+          <field name="is_ok" expr="false"/>
+          <field name="error_msg" expr="'Field not found'"/>
+        </ros_service_send_response>
+      </if>
+    </onentry>
+    <transition target="idle"/>
+  </state>
 
+  <state id="SetString">
+    <onentry>
+      <if cond="field_name_string == saved_field_name_string">
+        <ros_service_send_response name="/BlackboardComponent/SetString">
+          <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
+        </ros_service_send_response>
+        <assign location="saved_value_string" expr="value"/>
+      <else />
+        <ros_service_send_response name="/BlackboardComponent/SetString">
+          <field name="is_ok" expr="false"/>
+          <field name="error_msg" expr="'Field not found'"/>
+        </ros_service_send_response>
+      </if>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="SetAllIntsWithPrefix">
+    <onentry>
+      <if cond="field_name_all_int_with_prefix == 'PoiDone'">
+        <ros_service_send_response name="/BlackboardComponent/SetAllIntsWithPrefix">
+          <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
+        </ros_service_send_response>
+        <assign location="saved_value_int_1" expr="value_all_int_with_prefix"/>
+        <assign location="saved_value_int_2" expr="value_all_int_with_prefix"/>
+        <assign location="saved_value_int_3" expr="value_all_int_with_prefix"/>
+        <assign location="saved_value_int_4" expr="value_all_int_with_prefix"/>
+        <assign location="saved_value_int_5" expr="value_all_int_with_prefix"/>
+        <assign location="saved_value_int_6" expr="value_all_int_with_prefix"/>
+      <else />
+        <ros_service_send_response name="/BlackboardComponent/SetAllIntsWithPrefix">
+          <field name="is_ok" expr="false"/>
+          <field name="error_msg" expr="'Field not found'"/>
+        </ros_service_send_response>
+      </if>
+    </onentry>
+    <transition target="idle"/>
+  </state>
 </scxml>

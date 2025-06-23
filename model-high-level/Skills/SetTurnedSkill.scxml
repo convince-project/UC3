@@ -33,32 +33,32 @@
 
   <state id="setString">
     <ros_service_handle_response name="/BlackboardComponent/SetString" target="afterSet">
-      <assign location="result" expr="_res.result"/>
+      <assign location="result" expr="_res.is_ok"/>
     </ros_service_handle_response>
     <!-- Aggiungere gestione halt -->
     <ros_service_handle_request name="/SetTurnedSkill/halt" target="halted"/>
   </state>
 
   <state id="afterSet">
-    <onentry>
+    <!-- <onentry>
       <if cond="result=='SKILL_SUCCESS'">
-        <ros_service_send_request name="/TurnBackManagerComponent/IncreaseTurnBacksCounter"/>
       <else/>
         <ros_service_send_response name="/SetTurnedSkill/tick">
           <field name="status" expr="SKILL_FAILURE"/>
           <field name="is_ok" expr="true"/>
         </ros_service_send_response>
       </if>
-    </onentry>
-    <transition cond="result=='SKILL_SUCCESS'" target="waitInc"/>
-    <transition cond="result!='SKILL_SUCCESS'" target="idle"/>
+    </onentry> -->
+    <transition cond="result" target="waitInc"/>
+    <transition target="idle"/>
     <!-- Aggiungere gestione halt -->
     <ros_service_handle_request name="/SetTurnedSkill/halt" target="halted"/>
   </state>
 
   <state id="waitInc">
+
     <ros_service_handle_response name="/TurnBackManagerComponent/IncreaseTurnBacksCounter" target="reply">
-      <assign location="result" expr="_res.result"/>
+      <assign location="result" expr="_res.is_ok"/>
     </ros_service_handle_response>
     <!-- Aggiungere gestione halt -->
     <ros_service_handle_request name="/SetTurnedSkill/halt" target="halted"/>
@@ -66,7 +66,7 @@
 
   <state id="reply">
     <onentry>
-      <if cond="result=='SKILL_SUCCESS'">
+      <if cond="result">
         <ros_service_send_response name="/SetTurnedSkill/tick">
           <field name="status" expr="SKILL_SUCCESS"/>
           <field name="is_ok" expr="true"/>

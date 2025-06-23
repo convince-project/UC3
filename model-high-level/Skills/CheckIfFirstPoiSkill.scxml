@@ -30,8 +30,8 @@
 
   <state id="getPoi">
     <ros_service_handle_response name="/SchedulerComponent/GetCurrentPoi" target="decide">
-      <assign location="m_poi_name"   expr="m_poi_name"/>
-      <assign location="m_poi_number" expr="poi_number"/>
+      <assign location="m_poi_name"   expr="_res.poi_name"/>
+      <assign location="m_poi_number" expr="_res.poi_number"/>
     </ros_service_handle_response>
   </state>
 

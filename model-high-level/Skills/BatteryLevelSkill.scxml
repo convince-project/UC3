@@ -38,7 +38,7 @@
                 </ros_service_send_response>
             </if>
         </onentry>
-        <ros_service_handle_request name="/BatteryLevelSkill/tick" target="checkLevel"/>
+        <!-- <ros_service_handle_request name="/BatteryLevelSkill/tick" target="checkLevel"/> -->
         <transition target="idle" />
     </state>
 

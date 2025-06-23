@@ -16,16 +16,17 @@
   <ros_topic_publisher topic="/CheckNetworkComponent/NetworkChanged" type="std_msgs/Bool"/>
 
   <!-- fire at 1 Hz -->
-  <ros_time_rate name="evaluate_timer" rate_hz="10.0"/>
-  <ros_time_rate name="publish_timer" rate_hz="1.0"/>
+  <ros_time_rate name="evaluate_timer" rate_hz="10"/>
+  <ros_time_rate name="publish_timer" rate_hz="1"/>
 
   <state id="waiting">
-    <transition event="status_timer.tick" target="evaluate" prob="0.99">
-      <assign location="current_status" expr="true"/>
-    </transition>
-
-    <transition event="status_timer.tick" target="evaluate" prob="0.01">
-      <assign location="current_status" expr="false"/>
+    <transition event="status_timer.tick">
+      <target id="evaluate" prob="0.99">
+        <assign location="current_status" expr="true"/>
+      </target>
+      <target id="evaluate" prob="0.01">
+        <assign location="current_status" expr="false"/>
+      </target>
     </transition>
 
     <transition event="publish_timer.tick" target="publish"/> 
@@ -34,8 +35,6 @@
 
   <state id="evaluate">
     <onentry>
-      <!-- call runtime ping helper -->
-      <assign location="current_status" expr="checkNetwork(address, threshold_ms)"/>
       <!-- detect change -->
       <if cond="current_status != previous_status">
         <assign location="changed" expr="true"/>
