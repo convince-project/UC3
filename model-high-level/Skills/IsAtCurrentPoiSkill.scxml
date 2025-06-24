@@ -9,12 +9,11 @@
   <datamodel>
     <data id="NAV_STATUS_MOVING" type="int8"    expr="2"/>
     <data id="distance"          type="float32" expr="0.5"/>
-    <data id="m_poi_name"        type="string"  expr="''"/>
-    <data id="m_poi_result"      type="string"  expr="''"/>
-    <data id="m_nav_result"      type="string"  expr="''"/>
+    <data id="m_poi_number"     type="int32"   expr="0"/>
+    <data id="m_poi_result"      type="bool"    expr="false"/>
+    <data id="m_nav_result"      type="bool"    expr="false"/>
     <data id="m_status"          type="int8"    expr="0"/>
-    <data id="m_is_near"         type="bool" expr="false"/>
-    <data id="SUCCESS_RESULT"    type="string"  expr="'SUCCESS'"/>
+    <data id="m_is_near"         type="bool"    expr="false"/>
     <data id="SKILL_SUCCESS"     type="int8"    expr="0"/>
     <data id="SKILL_FAILURE"     type="int8"    expr="1"/>
   </datamodel>
@@ -35,31 +34,31 @@
 
   <state id="getPoi">
     <ros_service_handle_response name="/SchedulerComponent/GetCurrentPoi" target="evaluatePoi">
-      <assign location="m_poi_name"   expr="_res.poi_name"/>
-      <assign location="m_poi_result" expr="_res.result"/>
+      <assign location="m_poi_number"   expr="_res.poi_number"/>
+      <assign location="m_poi_result" expr="true"/>
     </ros_service_handle_response>
   </state>
 
   <state id="evaluatePoi">
     <!-- GetCurrentPoi failed -->
-    <transition cond="m_poi_result != SUCCESS_RESULT" target="failure"/>
+    <transition cond="!m_poi_result" target="failure"/>
     <!-- GetCurrentPoi succeeded, check navigation status -->
     <transition target="getStatus"/>
   </state>
 
   <state id="getStatus">
     <onentry>
-      <ros_service_send_request name="/NavigationComponent/GetNavigationStatus"/>
+        <ros_service_send_request name="/NavigationComponent/GetNavigationStatus"/>
     </onentry>
     <ros_service_handle_response name="/NavigationComponent/GetNavigationStatus" target="evaluateStatus">
-      <assign location="m_status"     expr="_res.status"/>
-      <assign location="m_nav_result" expr="_res.result"/>
+        <assign location="m_status"     expr="_res.status"/>
+        <assign location="m_nav_result" expr="_res.is_ok"/>
     </ros_service_handle_response>
   </state>
 
   <state id="evaluateStatus">
     <!-- GetNavigationStatus failed -->
-    <transition cond="m_nav_result != SUCCESS_RESULT" target="failure"/>
+    <transition cond="!m_nav_result" target="failure"/>
     <!-- Robot is moving, not at POI -->
     <transition cond="m_status == NAV_STATUS_MOVING" target="failure"/>
     <!-- Robot not moving, check proximity -->
@@ -68,11 +67,43 @@
 
   <state id="checkNear">
     <onentry>
+    <if cond="m_poi_number == 0">
       <ros_service_send_request name="/NavigationComponent/CheckNearToPoi">
-        <field name="poi_name" expr="m_poi_name"/>
+        <field name="poi_name" expr="'Poi0'"/>
         <field name="distance" expr="distance"/>
         <field name="angle"    expr="360"/>
       </ros_service_send_request>
+    <elseif cond="m_poi_number == 1"/>
+      <ros_service_send_request name="/NavigationComponent/CheckNearToPoi">
+        <field name="poi_name" expr="'Poi1'"/>
+        <field name="distance" expr="distance"/>
+        <field name="angle"    expr="360"/>
+      </ros_service_send_request>
+    <elseif cond="m_poi_number == 2"/>
+      <ros_service_send_request name="/NavigationComponent/CheckNearToPoi">
+        <field name="poi_name" expr="'Poi2'"/>
+        <field name="distance" expr="distance"/>
+        <field name="angle"    expr="360"/>
+      </ros_service_send_request>
+    <elseif cond="m_poi_number == 3"/>
+      <ros_service_send_request name="/NavigationComponent/CheckNearToPoi">
+        <field name="poi_name" expr="'Poi3'"/>
+        <field name="distance" expr="distance"/>
+        <field name="angle"    expr="360"/>
+      </ros_service_send_request>
+    <elseif cond="m_poi_number == 4"/>
+      <ros_service_send_request name="/NavigationComponent/CheckNearToPoi">
+        <field name="poi_name" expr="'Poi4'"/>
+        <field name="distance" expr="distance"/>
+        <field name="angle"    expr="360"/>
+      </ros_service_send_request>
+    <elseif cond="m_poi_number == 5"/>
+      <ros_service_send_request name="/NavigationComponent/CheckNearToPoi">
+        <field name="poi_name" expr="'Poi5'"/>
+        <field name="distance" expr="distance"/>
+        <field name="angle"    expr="360"/>
+      </ros_service_send_request>
+    </if>
     </onentry>
     <ros_service_handle_response name="/NavigationComponent/CheckNearToPoi" target="finalize">
       <assign location="m_is_near" expr="_res.is_near"/>

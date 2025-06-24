@@ -22,6 +22,7 @@
       </if>
       <ros_topic_publish name="battery_level_pub">
         <field name="percentage" expr="percentage" />
+        <field name="power_supply_status" expr="2" />
       </ros_topic_publish>
     </onentry>
     <!-- <transition event="timer_expired" target="idle"/> -->
@@ -30,6 +31,7 @@
       <target id="idle" prob="0.99">
         <ros_topic_publish name="battery_level_pub">
           <field name="percentage" expr="percentage"/>
+          <field name="power_supply_status" expr="2"/>
         </ros_topic_publish>
       </target>
       <target id="idle" prob="0.01"/>
