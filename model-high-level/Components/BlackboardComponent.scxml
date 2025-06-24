@@ -22,8 +22,8 @@
     <data id="saved_field_name_int_4" type="string" expr='"PoiDone3"' />
     <data id="saved_field_name_int_5" type="string" expr='"PoiDone4"' />
     <data id="saved_field_name_int_6" type="string" expr='"PoiDone5"' />
-		<!-- <data id="saved_field_name_1" type="int32" expr="1" />
-		<data id="saved_field_name_2" type="int32" expr="2" /> -->
+		<data id="saved_field_name_1" type="int32" expr="1" />
+		<data id="saved_field_name_2" type="int32" expr="2" />
 		<data id="saved_value_int_1" type="int32" expr="0" />
 		<data id="saved_value_int_2" type="int32" expr="0" />
     <data id="saved_value_int_3" type="int32" expr="0" />
