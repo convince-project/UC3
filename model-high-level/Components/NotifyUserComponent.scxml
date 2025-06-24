@@ -16,7 +16,7 @@
   <ros_service_server service_name="/NotifyUserComponent/NotifyUserCharged" type="notify_user_interfaces/NotifyUserCharged"/>
 
   <!-- timer to drive the 2 Hz alarm prints -->
-  <ros_time_rate name="alarm_timer" rate_hz="10"/>
+  <!-- <ros_time_rate name="alarm_timer" rate_hz="10"/> -->
 
   <state id="idle">
     <!-- start the alarm -->

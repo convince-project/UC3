@@ -23,7 +23,6 @@
       <ros_topic_publish name="battery_level_pub">
         <field name="percentage" expr="percentage" />
       </ros_topic_publish>
-
     </onentry>
     <!-- <transition event="timer_expired" target="idle"/> -->
     <ros_rate_callback name="battery_control_timer" >
