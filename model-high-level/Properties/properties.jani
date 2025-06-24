@@ -15,12 +15,12 @@
                     "op": "⇒",
                     "left": {
                       "op": "≤",
-                      "left": "topic_BatteryComponent__battery_level_msg.ros_fields__data",
+                      "left": "topic_BatteryComponent__battery_level_msg__ros_fields__percentage",
                       "right": 30
                     },
                     "right": {
                       "op": "=",
-                      "left": "topic_NotifyUserComponent_alarm_msg.ros_fields__data"
+                      "left": "topic_NotifyUserComponent_alarm_msg__ros_fields__data"
                       },
                       "right": true
                   }
@@ -44,15 +44,15 @@
                   "op": "∨",
                   "left": {
                       "op": ">",
-                      "left": "topic_BatteryComponent__battery_level_msg.ros_fields__data",
+                      "left": "topic_BatteryComponent__battery_level_msg__ros_fields__percentage",
                       "right": 26
                   },
                   "right": {
                       "op": "¬",
-                      "exp": "topic_BatteryComponent__battery_level_msg.valid"
+                      "exp": "topic_BatteryComponent__battery_level_msg__valid"
                   }
                 },
-                "right": "topic_NotifyUserComponent__alarm_msg.ros_fields__data"
+                "right": "srv_GoToChargingStationSkill__tick_response__ros_fields__is_ok"
             }
           },
           "states": {

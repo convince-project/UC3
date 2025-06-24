@@ -33,7 +33,7 @@
   <state id="HandleIsAllowedToMove">
     <onentry>
       <ros_service_send_response name="/AllowedToMoveComponent/IsAllowedToMove">
-        <field name="is_allowed_to_move" expr="is_robot_allowed_to_move"/>
+        <field name="is_a1llowed_to_move" expr="is_robot_allowed_to_move"/>
         <field name="is_ok" expr="true"/>
         <field name="error_msg" expr="''"/>        
       </ros_service_send_response>

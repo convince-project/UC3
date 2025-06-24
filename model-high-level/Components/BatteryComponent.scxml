@@ -18,7 +18,7 @@
     <onentry>
       <!-- <send event="timer_expired" delayexpr="timer_duration + 'ms'" /> -->
       <if cond="percentage &gt; 0" >
-                            <assign location="percentage" expr="percentage - 1" />
+        <assign location="percentage" expr="percentage - 1" />
       </if>
       <ros_topic_publish name="battery_level_pub">
         <field name="percentage" expr="percentage" />
@@ -29,7 +29,7 @@
 
       <target id="idle" prob="0.99">
         <ros_topic_publish name="battery_level_pub">
-          <field name="data" expr="percentage" />
+          <field name="percentage" expr="percentage"/>
         </ros_topic_publish>
       </target>
       <target id="idle" prob="0.01"/>
