@@ -3,8 +3,8 @@
     <datamodel>
         <data id="poi_number" type="int32" expr="0"/>
         <!-- <data id="poi_name" type="string" expr=""/> -->
-        <!-- <data id="field_name" type="string" expr='"PoiDone"'/>
-        <data id="field_name_init" type="string" expr='"PoiDone"'/> -->
+        <!-- <data id="field_name" type="string" expr="'PoiDone'"/>
+        <data id="field_name_init" type="string" expr="'PoiDone'"/> -->
         <data id="value" type="int32" expr="1"/>
         <data id="SKILL_SUCCESS" type="int8" expr="0" />
         <data id="SKILL_FAILURE" type="int8" expr="1" />

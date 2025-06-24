@@ -16,14 +16,12 @@
     <data id="field_name_all_int_with_prefix" type="string" expr="''" />
     <data id="value_all_int_with_prefix" type="int32" expr="0" />
 
-		<data id="saved_field_name_int_1" type="string" expr='"PoiDone0"' />
-		<data id="saved_field_name_int_2" type="string" expr='"PoiDone1"' />
-    <data id="saved_field_name_int_3" type="string" expr='"PoiDone2"' />
-    <data id="saved_field_name_int_4" type="string" expr='"PoiDone3"' />
-    <data id="saved_field_name_int_5" type="string" expr='"PoiDone4"' />
-    <data id="saved_field_name_int_6" type="string" expr='"PoiDone5"' />
-		<data id="saved_field_name_1" type="int32" expr="1" />
-		<data id="saved_field_name_2" type="int32" expr="2" />
+		<data id="saved_field_name_int_1" type="string" expr="'PoiDone0'" />
+		<data id="saved_field_name_int_2" type="string" expr="'PoiDone1'" />
+    <data id="saved_field_name_int_3" type="string" expr="'PoiDone2'" />
+    <data id="saved_field_name_int_4" type="string" expr="'PoiDone3'" />
+    <data id="saved_field_name_int_5" type="string" expr="'PoiDone4'" />
+    <data id="saved_field_name_int_6" type="string" expr="'PoiDone5'" />
 		<data id="saved_value_int_1" type="int32" expr="0" />
 		<data id="saved_value_int_2" type="int32" expr="0" />
     <data id="saved_value_int_3" type="int32" expr="0" />
@@ -72,13 +70,13 @@
 
   <state id="GetInt">
     <onentry>
-      <if cond="field_name_int == saved_field_name_1">
+      <if cond="field_name_int == saved_field_name_int_1">
         <ros_service_send_response name="/BlackboardComponent/GetInt">
           <field name="value" expr="saved_value_int_1"/>
           <field name="is_ok" expr="true"/>
           <field name="error_msg" expr="''"/>
         </ros_service_send_response>
-      <elseif cond="field_name_int == saved_field_name_2"/>
+      <elseif cond="field_name_int == saved_field_name_int_2"/>
         <ros_service_send_response name="/BlackboardComponent/GetInt">
           <field name="value" expr="saved_value_int_2"/>
           <field name="is_ok" expr="true"/>
@@ -121,13 +119,13 @@
 
   <state id="SetInt">
     <onentry>
-      <if cond="field_name_int == saved_field_name_1">
+      <if cond="field_name_int == saved_field_name_int_1">
         <ros_service_send_response name="/BlackboardComponent/SetInt">
           <field name="is_ok" expr="true"/>
           <field name="error_msg" expr="''"/>
         </ros_service_send_response>
         <assign location="saved_value_int_1" expr="value_int"/>
-      <elseif cond="field_name_int == saved_field_name_2"/>
+      <elseif cond="field_name_int == saved_field_name_int_2"/>
         <ros_service_send_response name="/BlackboardComponent/SetInt">
           <field name="is_ok" expr="true"/>
           <field name="error_msg" expr="''"/>

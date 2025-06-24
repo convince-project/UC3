@@ -8,7 +8,7 @@
     <datamodel>
         <data id="m_result"      type="bool"   expr="false"/>
         <!-- <data id="m_value"       type="int8"   expr="1"/> -->
-        <data id="m_field_name"  type="string" expr='"PoiDone4"'/>
+        <data id="m_field_name"  type="string" expr="'PoiDone4'"/>
         <data id="SKILL_SUCCESS" type="int8"   expr="0" />
         <data id="SKILL_FAILURE" type="int8"   expr="1" />
         <data id="SKILL_RUNNING" type="int8"   expr="2" />
