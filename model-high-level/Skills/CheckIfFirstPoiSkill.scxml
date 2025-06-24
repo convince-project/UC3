@@ -7,7 +7,7 @@
 
   <datamodel> 
     <data id="FIRST_POI"     type="int32" expr="1"/>
-    <data id="m_poi_name"    type="string" expr="''"/>
+    <!-- <data id="m_poi_name"    type="string" expr="''"/> -->
     <data id="m_poi_number"  type="int32"  expr="0"/>
     <data id="SKILL_SUCCESS" type="int8"   expr="0"/>
     <data id="SKILL_FAILURE" type="int8"   expr="1"/>
@@ -30,7 +30,7 @@
 
   <state id="getPoi">
     <ros_service_handle_response name="/SchedulerComponent/GetCurrentPoi" target="decide">
-      <assign location="m_poi_name"   expr="_res.poi_name"/>
+      <!-- <assign location="m_poi_name"   expr="_res.poi_name"/> -->
       <assign location="m_poi_number" expr="_res.poi_number"/>
     </ros_service_handle_response>
   </state>

@@ -7,7 +7,7 @@
 
   <datamodel>
     <data id="status" type="int8" expr="0"/>
-    <data id="result" type="string" expr="''"/>
+    <data id="result" type="bool" expr="false"/>
     <data id="NAV_MOVING" type="int8" expr="2"/>
     <data id="NAV_REACHED" type="int8" expr="4"/>
     <data id="BB_FIELD" type="string" expr="'isCheckingForPeople'"/>

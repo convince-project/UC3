@@ -49,7 +49,7 @@
                   },
                   "right": {
                       "op": "¬",
-                      "exp": "topic_BatteryComponent__battery_level_msg__valid"
+                      "exp": "topic_BatteryComponent__battery_level_msg.valid"
                   }
                 },
                 "right": "srv_GoToChargingStationSkill__tick_response__ros_fields__is_ok"

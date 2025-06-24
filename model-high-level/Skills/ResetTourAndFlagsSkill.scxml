@@ -17,7 +17,7 @@
   <datamodel>
     <data id="m_name"        type="string" expr="'PoiDone'"/>
     <data id="m_value"       type="int32"  expr="0"/>
-    <data id="m_result"      type="string" expr="''"/>
+    <data id="m_result"      type="bool"   expr="false"/>
     <data id="SKILL_SUCCESS" type="int8"   expr="0"/>
     <data id="SKILL_FAILURE" type="int8"   expr="1"/>
   </datamodel>
@@ -31,11 +31,19 @@
 
   <state id="resetTour">
     <ros_service_handle_response name="/SchedulerComponent/Reset" target="setFlags">
-      <assign location="m_result" expr="_res.result"/>
+      <!-- Fix: Use is_ok instead of non-existent result field -->
+      <assign location="m_result" expr="_res.is_ok"/>
     </ros_service_handle_response>
   </state>
 
   <state id="setFlags">
+    <!-- Check if reset was successful -->
+    <transition cond="!m_result" target="failure"/>
+    <!-- Reset succeeded, now set flags -->
+    <transition target="requestSetFlags"/>
+  </state>
+
+  <state id="requestSetFlags">
     <onentry>
       <ros_service_send_request name="/BlackboardComponent/SetAllIntsWithPrefix">
         <field name="field_name" expr="m_name"/>
@@ -43,6 +51,7 @@
       </ros_service_send_request>
     </onentry>
     <ros_service_handle_response name="/BlackboardComponent/SetAllIntsWithPrefix" target="decide">
+      <!-- Fix: Use is_ok field consistently -->
       <assign location="m_result" expr="_res.is_ok"/>
     </ros_service_handle_response>
   </state>
@@ -60,6 +69,16 @@
           <field name="is_ok" expr="true"/>
         </ros_service_send_response>
       </if>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="failure">
+    <onentry>
+      <ros_service_send_response name="/ResetTourAndFlagsSkill/tick">
+        <field name="status" expr="SKILL_FAILURE"/>
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
   </state>

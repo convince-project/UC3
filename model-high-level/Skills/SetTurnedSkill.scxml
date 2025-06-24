@@ -9,7 +9,7 @@
   <datamodel>
     <data id="FIELD_NAME" type="string" expr="'turnBackState'"/>
     <data id="VALUE_STR" type="string" expr="'turned'"/>
-    <data id="result" type="string" expr="''"/>
+    <data id="result" type="bool" expr="false"/>
     <data id="SKILL_SUCCESS" type="int8" expr="0"/>
     <data id="SKILL_FAILURE" type="int8" expr="1"/>
     <data id="SKILL_RUNNING" type="int8" expr="2"/>
@@ -86,7 +86,7 @@
 
   <state id="halted">
     <onentry>
-      <assign location="result" expr="''"/>
+      <assign location="result" expr="false"/>
       <ros_service_send_response name="/SetTurnedSkill/halt">
             <field name="is_ok" expr="true"/>
           </ros_service_send_response>

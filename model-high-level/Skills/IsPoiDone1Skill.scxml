@@ -14,10 +14,8 @@
     <data id="SKILL_FAILURE"  type="int8"   expr="1"/>
   </datamodel>
 
-
   <ros_service_server service_name="/IsPoiDone1Skill/tick" type="bt_interfaces_dummy/TickCondition"/>
   <ros_service_client service_name="/BlackboardComponent/GetInt" type="blackboard_interfaces/GetIntBlackboard"/>
-
 
   <state id="idle">
     <ros_service_handle_request name="/IsPoiDone1Skill/tick" target="checkInt">
@@ -26,7 +24,6 @@
       </ros_service_send_request>
     </ros_service_handle_request>
   </state>
-
 
   <state id="checkInt">
     <ros_service_handle_response name="/BlackboardComponent/GetInt" target="evaluate">
@@ -42,7 +39,8 @@
 
   <state id="decide">
     <onentry>
-      <if cond="value == 1">
+      <!-- Fix: Use m_value instead of undefined 'value' -->
+      <if cond="m_value == 1">
         <ros_service_send_response name="/IsPoiDone1Skill/tick">
           <field name="status" expr="SKILL_SUCCESS"/>
           <field name="is_ok" expr="true"/>
@@ -66,6 +64,5 @@
     </onentry>
     <transition target="idle"/>
   </state>
-
 
 </scxml>

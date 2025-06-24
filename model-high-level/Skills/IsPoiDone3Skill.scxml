@@ -42,7 +42,7 @@
 
   <state id="decide">
     <onentry>
-      <if cond="value == 1">
+      <if cond="m_value == 1">
         <ros_service_send_response name="/IsPoiDone3Skill/tick">
           <field name="status" expr="SKILL_SUCCESS"/>
           <field name="is_ok" expr="true"/>

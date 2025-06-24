@@ -9,6 +9,7 @@
     <!-- request and response placeholders -->
     <!-- response fields -->
     <data id="poi_number" type="int32" expr="0"/>
+    
     <data id="max_poi_number" type="int32" expr="6"/>
     <data id="poi_done_0" type="bool" expr="false"/>
     <data id="poi_done_1" type="bool" expr="false"/>
@@ -176,7 +177,7 @@
   <state id="HandleGetCurrentPoi">
     <onentry>
       <ros_service_send_response name="/SchedulerComponent/GetCurrentPoi">
-        <field name="poi_name"   expr="poi_number"/>
+        <!-- <field name="poi_name"   expr="poi_name"/> -->
         <field name="poi_number" expr="poi_number"/>
         <field name="is_ok"      expr="true"/>
         <field name="error_msg"  expr="''"/>
