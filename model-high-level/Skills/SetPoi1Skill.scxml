@@ -6,10 +6,12 @@
     initial="idle"> 
 
     <datamodel>
-        <data id="poi_number" type="int32" expr="1"/>
-        <data id="SKILL_SUCCESS" type="int8" expr="0" />
-        <data id="SKILL_FAILURE" type="int8" expr="1" />
-        <data id="SKILL_RUNNING" type="int8" expr="2" />
+        <data id="m_result"      type="bool"   expr="false"/>
+        <!-- <data id="m_value"       type="int8"   expr="1"/> -->
+        <data id="m_field_name"  type="string" expr="'PoiDone1'"/>
+        <data id="SKILL_SUCCESS" type="int8"   expr="0" />
+        <data id="SKILL_FAILURE" type="int8"   expr="1" />
+        <data id="SKILL_RUNNING" type="int8"   expr="2" />
     </datamodel>
 
     <!-- SetPoiSkill is a server for tick from the ROS2Action plugin-->
@@ -21,34 +23,74 @@
 
     <state id="idle">
         <ros_service_handle_request name="/SetPoi1Skill/tick" target="setPoi">
+            <ros_service_send_response name="/SetPoi1Skill/tick">
+                <field name="status" expr="SKILL_RUNNING"/>
+                <field name="is_ok" expr="true"/>
+            </ros_service_send_response>
             <ros_service_send_request name="/SchedulerComponent/SetPoi">
-                <field name="poi_number" expr="poi_number"/>
+                <field name="poi_number" expr="1"/>
             </ros_service_send_request>
         </ros_service_handle_request>
-        <ros_service_handle_request name="/SetPoi1Skill/halt" target="halted"/>
+        <ros_service_handle_request name="/SetPoi1Skill/halt" target="idle">
+            <ros_service_send_response name="/SetPoi1Skill/halt">
+            <field name="is_ok" expr="true"/>
+          </ros_service_send_response>
+        </ros_service_handle_request>
     </state>
 
     <state id="setPoi">
-        <ros_service_handle_response name="/SchedulerComponent/SetPoi" cond="_res.is_ok" target="idle">
+        <ros_service_handle_response name="/SchedulerComponent/SetPoi" target="checkResponse">
+            <assign location="m_result" expr="_res.is_ok"/>
+        </ros_service_handle_response>
+        <ros_service_handle_request name="/SetPoi1Skill/tick" target="setPoi">
+            <ros_service_send_response name="/SetPoi1Skill/tick">
+                <field name="status" expr="SKILL_RUNNING"/>
+                <field name="is_ok" expr="true"/>
+            </ros_service_send_response>
+        </ros_service_handle_request>
+        <ros_service_handle_request name="/SetPoi1Skill/halt" target="wait_for_halt"/>
+    </state>
+
+
+    <state id="wait_for_halt">
+        <ros_service_handle_response name="/SchedulerComponent/SetPoi" target="idle">
+          <ros_service_send_response name="/SetPoi1Skill/halt">
+            <field name="is_ok" expr="true"/>
+          </ros_service_send_response>
+        </ros_service_handle_response>
+
+    </state>
+
+    <state id="checkResponse">
+        <transition cond="m_result" target="sendSuccess"/>
+        <transition target="sendFailure"/>
+    </state>
+
+    <state id="sendSuccess">
+        <ros_service_handle_request name="/SetPoi1Skill/tick" target="idle">
             <ros_service_send_response name="/SetPoi1Skill/tick">
                 <field name="status" expr="SKILL_SUCCESS"/>
                 <field name="is_ok" expr="true"/>
             </ros_service_send_response>
-        </ros_service_handle_response>
-        <ros_service_handle_response name="/SchedulerComponent/SetPoi" cond="(_res.is_ok) == false" target="idle">
+        </ros_service_handle_request>      
+        <ros_service_handle_request name="/SetPoi1Skill/halt" target="idle">
+            <ros_service_send_response name="/SetPoi1Skill/halt">
+            <field name="is_ok" expr="true"/>
+          </ros_service_send_response>
+        </ros_service_handle_request>
+    </state>
+    
+    <state id="sendFailure">
+        <ros_service_handle_request name="/SetPoi1Skill/tick" target="idle">
             <ros_service_send_response name="/SetPoi1Skill/tick">
                 <field name="status" expr="SKILL_FAILURE"/>
                 <field name="is_ok" expr="true"/>
             </ros_service_send_response>
-        </ros_service_handle_response>
-        <ros_service_handle_request name="/SetPoi1Skill/halt" target="halted"/>
-    </state>
-
-    <state id="halted">
-        <onentry>
-            <assign location="poi_number" expr="1"/>
-            <ros_service_send_response name="/SetPoi1Skill/halt"/>
-        </onentry>
-        <transition target="idle"/>
+        </ros_service_handle_request>      
+        <ros_service_handle_request name="/SetPoi1Skill/halt" target="idle">
+            <ros_service_send_response name="/SetPoi1Skill/halt">
+            <field name="is_ok" expr="true"/>
+          </ros_service_send_response>
+        </ros_service_handle_request>
     </state>
 </scxml>

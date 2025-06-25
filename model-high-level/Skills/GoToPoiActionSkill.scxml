@@ -1,7 +1,7 @@
 <scxml version="1.0" xmlns="..." datamodel="ecmascript" name="GoToPoiActionSkill" initial="idle"> 
 
     <datamodel>
-        <data id="poi_name" type="string" expr="''"/>
+        <data id="poi_number" type="int32" expr="0"/>
         <data id="status" type="int32" expr="0"/>
         <data id="result" type="bool" expr="true"/>
         <data id="SKILL_SUCCESS" type="int8" expr="0" />
@@ -24,16 +24,39 @@
         </ros_service_handle_request>
         <ros_service_handle_request name="/GoToPoiActionSkill/halt" target="idle">
             <ros_service_send_response name="/GoToPoiActionSkill/halt">
+                <field name="is_ok" expr="true"/>
             </ros_service_send_response>
         </ros_service_handle_request>
     </state>
 
     <state id="getPoi">
         <ros_service_handle_response name="/SchedulerComponent/GetCurrentPoi" target="goalResponse"> 
-            <assign location="poi_name" expr="_res.poi_name" />
-            <ros_action_send_goal name="go_to_poi_action">
-                <field name="poi_name" expr="poi_name"/>
-            </ros_action_send_goal>
+            <assign location="poi_number" expr="_res.poi_number" />
+            <if cond="poi_number == 0">
+                <ros_action_send_goal name="go_to_poi_action">
+                    <field name="poi_name" expr="'Poi0'"/>
+                </ros_action_send_goal>
+            <elseif cond="poi_number == 1"/>
+                <ros_action_send_goal name="go_to_poi_action">
+                    <field name="poi_name" expr="'Poi1'"/>
+                </ros_action_send_goal>
+            <elseif cond="poi_number == 2"/>
+                <ros_action_send_goal name="go_to_poi_action">
+                    <field name="poi_name" expr="'Poi2'"/>
+                </ros_action_send_goal>
+            <elseif cond="poi_number == 3"/>
+                <ros_action_send_goal name="go_to_poi_action">
+                    <field name="poi_name" expr="'Poi3'"/>
+                </ros_action_send_goal>
+            <elseif cond="poi_number == 4"/>
+                <ros_action_send_goal name="go_to_poi_action">
+                    <field name="poi_name" expr="'Poi4'"/>
+                </ros_action_send_goal>
+            <elseif cond="poi_number == 5"/>
+                <ros_action_send_goal name="go_to_poi_action">
+                    <field name="poi_name" expr="'Poi5'"/>
+                </ros_action_send_goal>
+            </if>
             <ros_service_send_response name="/GoToPoiActionSkill/tick">
                 <field name="is_ok" expr="true"/>
                 <field name="status" expr="SKILL_RUNNING"/>

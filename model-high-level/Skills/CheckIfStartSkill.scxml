@@ -35,10 +35,12 @@
       <if cond="m_poi_number == START_POI">
         <ros_service_send_response name="/CheckIfStartSkill/tick">
           <field name="status" expr="SKILL_SUCCESS"/>
+          <field name="is_ok" expr="true"/>
         </ros_service_send_response>
       <else/>
         <ros_service_send_response name="/CheckIfStartSkill/tick">
           <field name="status" expr="SKILL_FAILURE"/>
+          <field name="is_ok" expr="true"/>
         </ros_service_send_response>
       </if>
     </onentry>

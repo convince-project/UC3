@@ -7,124 +7,54 @@
 
   <datamodel>
     <!-- parameters -->
-    <data id="filterTimeout"          type="number"  expr="0"/>
-    <data id="filterCounter"          type="number"  expr="0"/>
+    <data id="is_local"               type="bool" expr="false"/>
     <!-- input flags -->
-    <data id="peopleDetected"         type="boolean" expr="false"/>
-    <data id="neutralStatusDetected"  type="boolean" expr="false"/>
-    <data id="neutralTurningDetected" type="boolean" expr="false"/>
-    <data id="turningBackStatus"      type="string"  expr="''"/>
-    <!-- state tracking -->
-    <data id="oldStatus"              type="number"  expr="0"/>
-    <data id="outputStatus"           type="number"  expr="0"/>
-    <data id="filteredStatus"         type="boolean" expr="false"/>
+    <data id="peopleDetected"         type="bool" expr="false"/>
   </datamodel>
 
-  <!-- services -->
-  <ros_service_server service_name="/PeopleDetectorFilterComponent/SetFilterTimeout" type="people_detector_filter_interfaces/srv/SetFilterTimeout"/>
-  <ros_service_server service_name="/PeopleDetectorFilterComponent/GetFilterTimeout" type="people_detector_filter_interfaces/srv/GetFilterTimeout"/>
-
-  <!-- subscriptions -->
-  <ros_topic_subscriber topic_name="is_followed_timeout" type="std_msgs/Bool"/>
-  <ros_topic_subscriber topic_name="odometry" type="nav_msgs/Odometry"/>
-
   <!-- publications -->
-  <ros_topic_publisher topic_name="/PeopleDetectorFilterComponent/detection" type="people_detector_filter_interfaces/msg/FilterStatus"/>
-  <ros_topic_publisher topic_name="/PeopleDetectorFilterComponent/filtered_detection" type="std_msgs/Bool"/>
+  <ros_topic_publisher topic="/PeopleDetectorFilterComponent/detection" type="people_detector_filter_interfaces/FilterStatus"/>
+  <ros_topic_publisher topic="/PeopleDetectorFilterComponent/filtered_detection" type="std_msgs/Bool"/>
+  <ros_topic_publisher topic="/PeopleDetectorFilterComponent/is_followed" type="std_msgs/Bool"/>
 
   <!-- 1 Hz timer drives compute/publish -->
-  <ros_time_rate name="timer" rate_hz="1.0"/>
+  <ros_time_rate name="timer" rate_hz="1"/>
 
   <state id="idle">
-    <!-- SetFilterTimeout -->
-    <ros_service_handle_request name="/PeopleDetectorFilterComponent/SetFilterTimeout" target="HandleSetFilterTimeout">
-      <assign location="filterTimeout" expr="_req.timeout"/>
-    </ros_service_handle_request>
-    <!-- GetFilterTimeout -->
-    <ros_service_handle_request name="/PeopleDetectorFilterComponent/GetFilterTimeout" target="HandleGetFilterTimeout"/>
-    <!-- subscription events update flags -->
-    <ros_topic_subscribe_handle_event name="is_followed_timeout" target="idle">
-      <assign location="peopleDetected" expr="_event.data"/>
-    </ros_topic_subscribe_handle_event>
-    <ros_topic_subscribe_handle_event name="odometry" target="idle">
-      <assign location="neutralTurningDetected" expr="_event.data.twist.twist.angular.z > 0.2"/>
-    </ros_topic_subscribe_handle_event>
-    <!-- timer tick → compute -->
-    <transition event="timer.tick" target="evaluate"/>
+    <ros_rate_callback name="timer">
+      <target id="publish" prob="0.8">
+        <assign location="peopleDetected" expr="true"/>
+      </target>
+      <target id="publish" prob="0.2">
+        <assign location="peopleDetected" expr="false"/>
+      </target>
+    </ros_rate_callback>
   </state>
 
-  <state id="HandleSetFilterTimeout">
-    <onentry>
-      <ros_service_send_response name="/PeopleDetectorFilterComponent/SetFilterTimeout">
-        <field name="is_ok" expr="true"/>
-      </ros_service_send_response>
-    </onentry>
-    <transition target="idle"/>
-  </state>
 
-  <state id="HandleGetFilterTimeout">
-    <onentry>
-      <ros_service_send_response name="/PeopleDetectorFilterComponent/GetFilterTimeout">
-        <field name="timeout" expr="filterTimeout"/>
-        <field name="is_ok"   expr="true"/>
-      </ros_service_send_response>
-    </onentry>
-    <transition target="idle"/>
-  </state>
 
-  <state id="evaluate">
-    <onentry>
-      <if cond="neutralStatusDetected">
-        <assign location="outputStatus" expr="0"/>
-        <assign location="neutralStatusDetected" expr="false"/>
-      </if>
-      <if cond="!neutralStatusDetected && neutralTurningDetected">
-        <assign location="outputStatus" expr="1"/>
-        <assign location="neutralTurningDetected" expr="false"/>
-      </if>
-      <if cond="!neutralStatusDetected && !neutralTurningDetected && turningBackStatus === 'TURNING'">
-        <assign location="outputStatus" expr="2"/>
-      </if>
-      <if cond="!neutralStatusDetected && !neutralTurningDetected && turningBackStatus === 'TURNED'">
-        <assign location="outputStatus" expr="3"/>
-      </if>
-      <if cond="!neutralStatusDetected && !neutralTurningDetected && turningBackStatus !== 'TURNING' && turningBackStatus !== 'TURNED'">
-        <assign location="outputStatus" expr="peopleDetected ? 4 : 5"/>
-      </if>
+  <!-- <state id="evaluate">
 
-      <!-- enforce timeout hold for neutral -->
-      <if cond="outputStatus !== oldStatus">
-        <if cond="(oldStatus === 0 || oldStatus === 1) && (outputStatus !== 2 && outputStatus !== 3) && filterCounter < filterTimeout">
-          <assign location="outputStatus" expr="oldStatus"/>
-        </if>
-      </if>
-      <assign location="filterCounter" expr="filterCounter + 1"/>
-      <assign location="oldStatus" expr="outputStatus"/>
-
-      <!-- Determina filteredStatus senza switch -->
-      <if cond="outputStatus === 0 || outputStatus === 1">
-        <assign location="filteredStatus" expr="true"/>
-      </if>
-      <if cond="outputStatus === 2">
-        <assign location="filteredStatus" expr="false"/>
-      </if>
-      <if cond="outputStatus === 3">
-        <assign location="filteredStatus" expr="peopleDetected"/>
-      </if>
-      <if cond="outputStatus !== 0 && outputStatus !== 1 && outputStatus !== 2 && outputStatus !== 3">
-        <assign location="filteredStatus" expr="outputStatus === 4"/>
-      </if>
-    </onentry>
-    <transition target="publish"/>
-  </state>
+    <transition> 
+      <target id="publish" prob="0.8">
+       <assign location="peopleDetected" expr="true"/>
+      </target>
+      <target id="publish" prob="0.2">
+        <assign location="peopleDetected" expr="false"/>
+      </target>
+    </transition>
+  </state> -->
 
   <state id="publish">
     <onentry>
       <ros_topic_publish name="/PeopleDetectorFilterComponent/detection">
-        <field name="status" expr="outputStatus"/>
+        <field name="status" expr="peopleDetected"/>
       </ros_topic_publish>
       <ros_topic_publish name="/PeopleDetectorFilterComponent/filtered_detection">
-        <field name="data" expr="filteredStatus"/>
+        <field name="data" expr="peopleDetected"/>
+      </ros_topic_publish>
+      <ros_topic_publish name="/PeopleDetectorFilterComponent/is_followed">
+        <field name="data" expr="peopleDetected"/>
       </ros_topic_publish>
     </onentry>
     <transition target="idle"/>

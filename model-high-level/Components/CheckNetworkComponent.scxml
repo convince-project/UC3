@@ -6,11 +6,9 @@
        datamodel="ecmascript">
 
   <datamodel>
-    <data id="address"            type="string"  expr="'192.168.100.103'"/>
-    <data id="threshold_ms"       type="number"  expr="3000"/>
-    <data id="current_status"     type="boolean" expr="true"/>
-    <data id="previous_status"    type="boolean" expr="true"/>
-    <data id="changed"            type="boolean" expr="false"/>
+    <data id="current_status"     type="bool" expr="true"/>
+    <data id="previous_status"    type="bool" expr="true"/>
+    <data id="changed"            type="bool" expr="false"/>
   </datamodel>
 
   <!-- publish two Bool topics -->
@@ -18,16 +16,25 @@
   <ros_topic_publisher topic="/CheckNetworkComponent/NetworkChanged" type="std_msgs/Bool"/>
 
   <!-- fire at 1 Hz -->
-  <ros_time_rate name="status_timer" rate_hz="1.0"/>
+  <ros_time_rate name="evaluate_timer" rate_hz="10"/>
+  <ros_time_rate name="publish_timer" rate_hz="1"/>
 
   <state id="waiting">
-    <transition event="status_timer.tick" target="evaluate"/>
+    <ros_rate_callback name="evaluate_timer">
+      <target id="evaluate" prob="0.99">
+        <assign location="current_status" expr="true"/>
+      </target>
+      <target id="evaluate" prob="0.01">
+        <assign location="current_status" expr="false"/>
+      </target>
+    </ros_rate_callback >
+
+    <ros_rate_callback name="publish_timer" target="publish"/> 
+
   </state>
 
   <state id="evaluate">
     <onentry>
-      <!-- call runtime ping helper -->
-      <assign location="current_status" expr="checkNetwork(address, threshold_ms)"/>
       <!-- detect change -->
       <if cond="current_status != previous_status">
         <assign location="changed" expr="true"/>
@@ -37,7 +44,8 @@
       <!-- remember for next tick -->
       <assign location="previous_status" expr="current_status"/>
     </onentry>
-    <transition target="publish"/>
+    <!-- <transition target="publish"/> -->
+    <transition target="waiting"/>
   </state>
 
   <state id="publish">

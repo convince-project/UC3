@@ -8,7 +8,7 @@
 
 
   <datamodel>
-    <data id="m_is_closing"  type="boolean" expr="false"/>
+    <data id="m_is_closing"  type="bool" expr="false"/>
     <data id="SKILL_SUCCESS" type="int8"   expr="0"/>
     <data id="SKILL_FAILURE" type="int8"   expr="1"/>
   </datamodel>

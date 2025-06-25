@@ -9,7 +9,7 @@
   <datamodel>
     <data id="m_command"     type="string"  expr="'sayFollowMe'"/>
     <data id="m_param"       type="string"  expr="''"/>
-    <data id="m_is_speaking" type="boolean" expr="false"/>
+    <data id="m_is_speaking" type="bool" expr="false"/>
     <data id="m_result"      type="string"  expr="''"/>
     <data id="SKILL_SUCCESS" type="int8"    expr="0"/>
     <data id="SKILL_FAILURE" type="int8"    expr="1"/>
@@ -37,35 +37,37 @@
 
   <state id="setCommand">
     <ros_service_handle_response name="/SchedulerComponent/SetCommand" target="onSetCommand">
-      <assign location="m_result" expr="_res.result"/>
+      <assign location="m_result" expr="_res.is_ok"/>
     </ros_service_handle_response>
   </state>
 
   <state id="onSetCommand">
     <onentry>
-      <if cond="m_result=='SKILL_SUCCESS'">
+      <if cond="m_result">
         <ros_service_send_request name="/SchedulerComponent/GetCurrentAction"/>
       <else/>
         <ros_service_send_response name="/SayFollowMeSkill/tick">
           <field name="status" expr="SKILL_FAILURE"/>
+          <field name="is_ok" expr="true"/>
         </ros_service_send_response>
       </if>
     </onentry>
-    <transition cond="m_result=='SKILL_SUCCESS'" target="getText"/>
-    <transition cond="m_result!='SKILL_SUCCESS'" target="idle"/>
+    <transition cond="m_result" target="getText"/>
+    <transition target="idle"/>
   </state>
 
   <state id="getText">
     <ros_service_handle_response name="/SchedulerComponent/GetCurrentAction" target="talk">
       <assign location="m_param" expr="_res.param"/>
     </ros_service_handle_response>
-    <ros_service_handle_response name="/SchedulerComponent/GetCurrentAction" cond="_res.result!='SKILL_SUCCESS'" target="failure"/>
+    <!-- <ros_service_handle_response name="/SchedulerComponent/GetCurrentAction" cond="!_res.is_ok" target="failure"/> -->
   </state>
 
   <state id="talk">
     <onentry>
       <ros_service_send_response name="/SayFollowMeSkill/tick">
         <field name="status" expr="SKILL_RUNNING"/>
+        <field name="is_ok" expr="false"/>
       </ros_service_send_response>
       <ros_service_send_request name="/TextToSpeechComponent/Speak">
         <field name="text" expr="m_param"/>
@@ -79,14 +81,14 @@
       <ros_service_send_request name="/TextToSpeechComponent/IsSpeaking"/>
     </ros_service_handle_request>
     <ros_service_handle_request name="/SayFollowMeSkill/halt" target="halted"/>
-    <ros_service_handle_response name="/TextToSpeechComponent/Speak" cond="_res.result!='SKILL_SUCCESS'" target="failure"/>
+    <ros_service_handle_response name="/TextToSpeechComponent/Speak" cond="!_res.is_ok" target="failure"/>
   </state>
 
   <state id="checkSpeaking">
     <ros_service_handle_response name="/TextToSpeechComponent/IsSpeaking" target="onCheck">
       <assign location="m_is_speaking" expr="_res.is_speaking"/>
     </ros_service_handle_response>
-    <ros_service_handle_response name="/TextToSpeechComponent/IsSpeaking" cond="_res.result!='SKILL_SUCCESS'" target="failure"/>
+    <ros_service_handle_response name="/TextToSpeechComponent/IsSpeaking" cond="!_res.result" target="failure"/>
   </state>
 
   <state id="onCheck">
@@ -94,10 +96,12 @@
       <if cond="m_is_speaking">
         <ros_service_send_response name="/SayFollowMeSkill/tick">
           <field name="status" expr="SKILL_RUNNING"/>
+          <field name="is_ok" expr="true"/>
         </ros_service_send_response>
       <else/>
         <ros_service_send_response name="/SayFollowMeSkill/tick">
           <field name="status" expr="SKILL_SUCCESS"/>
+          <field name="is_ok" expr="true"/>
         </ros_service_send_response>
       </if>
     </onentry>
@@ -108,6 +112,7 @@
     <onentry>
       <ros_service_send_response name="/SayFollowMeSkill/tick">
         <field name="status" expr="SKILL_FAILURE"/>
+        <field name="is_ok" expr="true"/>
       </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
@@ -118,7 +123,9 @@
       <assign location="m_is_speaking" expr="false"/>
       <assign location="m_result" expr="''"/>
       <assign location="m_param" expr="''"/>
-      <ros_service_send_response name="/SayFollowMeSkill/halt"/>
+      <ros_service_send_response name="/SayFollowMeSkill/halt">
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
   </state>

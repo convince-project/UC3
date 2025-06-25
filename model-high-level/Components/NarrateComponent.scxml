@@ -9,15 +9,16 @@
     <!-- store the requested command text -->
     <data id="temp_command"    type="string"  expr="''"/>
     <!-- track whether the narration has completed -->
-    <data id="is_done"         type="boolean" expr="true"/>
+    <data id="is_done"         type="bool" expr="true"/>
     <!-- track whether a stop was requested -->
-    <data id="stopped"         type="boolean" expr="false"/>
+    <data id="stopped"         type="bool" expr="false"/>
   </datamodel>
+  <ros_time_rate name="speak_timer" rate_hz="10"/>
 
   <!-- ROS service servers -->
-  <ros_service_server service_name="/NarrateComponent/Narrate" type="narrate_interfaces/srv/Narrate"/>
-  <ros_service_server service_name="/NarrateComponent/IsDone" type="narrate_interfaces/srv/IsDone"/>
-  <ros_service_server service_name="/NarrateComponent/Stop" type="narrate_interfaces/srv/Stop"/>
+  <ros_service_server service_name="/NarrateComponent/Narrate" type="narrate_interfaces/Narrate"/>
+  <ros_service_server service_name="/NarrateComponent/IsDone" type="narrate_interfaces/IsDone"/>
+  <ros_service_server service_name="/NarrateComponent/Stop" type="narrate_interfaces/Stop"/>
 
   <state id="idle">
     <!-- handle a new narrate request -->
@@ -32,6 +33,10 @@
     <ros_service_handle_request name="/NarrateComponent/Stop" target="HandleStop">
       <assign location="stopped" expr="true"/>
     </ros_service_handle_request>
+    <!-- periodically set narration to done -->
+    <ros_rate_callback name="speak_timer" target="idle">
+      <assign location="is_done" expr="true"/>
+    </ros_rate_callback>
   </state>
 
   <state id="HandleNarrate">
@@ -39,6 +44,7 @@
       <!-- respond OK to the client -->
       <ros_service_send_response name="/NarrateComponent/Narrate">
         <field name="is_ok" expr="true"/>
+        <field name="error_msg" expr="''"/>
       </ros_service_send_response>
       <!-- reset flags for a new narration cycle -->
       <assign location="is_done" expr="false"/>
@@ -54,6 +60,7 @@
       <ros_service_send_response name="/NarrateComponent/IsDone">
         <field name="is_ok"   expr="true"/>
         <field name="is_done" expr="is_done"/>
+        <field name="error_msg" expr="''"/>
       </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
@@ -64,9 +71,10 @@
       <!-- acknowledge the stop command -->
       <ros_service_send_response name="/NarrateComponent/Stop">
         <field name="is_ok" expr="true"/>
+        <field name="error_msg" expr="''"/>
       </ros_service_send_response>
       <!-- set the stopped flag so the running task can observe it -->
-      <assign location="stopped" expr="true"/>
+      <assign location="is_done" expr="true"/>
     </onentry>
     <transition target="idle"/>
   </state>

@@ -8,7 +8,7 @@
 
   <datamodel>
     <!-- Network status variable - initialized to false (no network) -->
-    <data id="network_status" type="boolean" expr="false"/>
+    <data id="network_status" type="bool" expr="false"/>
     <!-- Provided by C++ DataModel -->
     <data id="SKILL_SUCCESS" type="int8" expr="0"/>
     <data id="SKILL_FAILURE" type="int8" expr="1"/>
@@ -18,11 +18,12 @@
   <ros_service_server service_name="/CheckNetworkSkill/tick" type="bt_interfaces_dummy/TickCondition"/>
 
   <!-- Add network status subscriber -->
-  <ros_topic_subscriber topic="/NetworkComponent/status" type="network_interfaces/NetworkStatus"/>
+  <ros_topic_subscriber topic="/CheckNetworkComponent/status" type="network_interfaces/NetworkStatus"/>
+  
 
   <state id="idle">
     <!-- Update network status when message arrives -->
-    <ros_topic_callback name="/NetworkComponent/status" target="idle">
+    <ros_topic_callback name="/CheckNetworkComponent/status" target="idle">
       <assign location="network_status" expr="_msg.data"/>
     </ros_topic_callback>
     

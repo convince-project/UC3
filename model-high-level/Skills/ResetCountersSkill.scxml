@@ -7,8 +7,7 @@
   initial="idle">
 
   <datamodel>
-    <data id="m_result"       type="string" expr="''"/>
-    <data id="SUCCESS_RESULT" type="string" expr="'SUCCESS'"/>
+    <data id="m_result"       type="bool" expr="false"/>
     <data id="SKILL_SUCCESS"  type="int8"   expr="0"/>
     <data id="SKILL_FAILURE"  type="int8"   expr="1"/>
   </datamodel>
@@ -18,7 +17,7 @@
   <ros_service_server service_name="/ResetCountersSkill/halt" type="bt_interfaces_dummy/HaltAction"/>
 
   <!-- Client for TurnBackManagerComponent.ResetCounters -->
-  <ros_service_client service_name="/TurnBackManagerComponent/ResetCounters" type="turnbackmanager_interfaces/ResetCounters"/>
+  <ros_service_client service_name="/TurnBackManagerComponent/ResetCounters" type="turn_back_manager_interfaces/ResetCounters"/>
 
   <state id="idle">
     <ros_service_handle_request name="/ResetCountersSkill/tick" target="resetCounters">
@@ -29,12 +28,12 @@
 
   <state id="resetCounters">
     <ros_service_handle_response name="/TurnBackManagerComponent/ResetCounters" target="evaluate">
-      <assign location="m_result" expr="_res.result"/>
+      <assign location="m_result" expr="_res.is_ok"/>
     </ros_service_handle_response>
   </state>
 
   <state id="evaluate">
-    <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+    <transition cond="!m_result" target="failure"/>
     <transition target="success"/>
   </state>
 

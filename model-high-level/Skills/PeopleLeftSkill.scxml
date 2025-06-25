@@ -15,7 +15,7 @@
 
   <!-- Clients for resetting tour, counters, and timer -->
   <ros_service_client service_name="/SchedulerComponent/Reset" type="scheduler_interfaces/Reset"/>
-  <ros_service_client service_name="/TurnBackManagerComponent/ResetCounters" type="turnbackmanager_interfaces/ResetCounters"/>
+  <ros_service_client service_name="/TurnBackManagerComponent/ResetCounters" type="turn_back_manager_interfaces/ResetCounters"/>
   <ros_service_client service_name="/TimeComponent/StopTourTimer" type="time_interfaces/StopTourTimer"/>
 
   <!-- Action skill: tick + halt servers -->

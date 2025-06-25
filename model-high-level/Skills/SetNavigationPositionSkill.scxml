@@ -8,7 +8,7 @@
 
   <datamodel>
     <data id="DANCE_NAME"          expr="'navigationPosition'"/>
-    <data id="is_dancing"  type="boolean" expr="false"/>
+    <data id="is_dancing"  type="bool" expr="false"/>
     <data id="result"      type="string"  expr="''"/>
     <data id="SKILL_SUCCESS" type="int8" expr="0"/>
     <data id="SKILL_FAILURE" type="int8" expr="1"/>
@@ -39,7 +39,7 @@
   <!-- First service reply (start dance) -->
   <state id="executeDance">
     <ros_service_handle_response name="/ExecuteDanceComponent/ExecuteDance" target="afterExecute">
-      <assign location="result" expr="_res.result"/>
+      <assign location="result" expr="_res.is_ok"/>
     </ros_service_handle_response>
     <!-- Aggiungere gestione halt -->
     <ros_service_handle_request name="/SetNavigationPositionSkill/halt" target="halted"/>
@@ -58,8 +58,8 @@
         </ros_service_send_response>
       </if>
     </onentry>
-    <transition cond="result == 'SKILL_SUCCESS'"  target="wait_dance_done"/>
-    <transition cond="result != 'SKILL_SUCCESS'"  target="idle"/>
+    <transition cond="result"  target="wait_dance_done"/>
+    <transition  target="idle"/>
   </state>
 
   <!-- Running loop: check IsDancing until finished -->
@@ -74,7 +74,7 @@
     <ros_service_handle_response name="/ExecuteDanceComponent/IsDancing" target="onQuery">
       <assign location="is_dancing" expr="_res.is_dancing"/>
     </ros_service_handle_response>
-    <ros_service_handle_response name="/ExecuteDanceComponent/IsDancing" cond="_res.result!='SKILL_SUCCESS'" target="failure"/>
+    <ros_service_handle_response name="/ExecuteDanceComponent/IsDancing" cond="_res.is_ok" target="failure"/>
     <!-- Aggiungere gestione halt -->
     <ros_service_handle_request name="/SetNavigationPositionSkill/halt" target="halted"/>
   </state>
@@ -102,7 +102,9 @@
     <onentry>
       <assign location="is_dancing" expr="false"/>
       <assign location="result" expr="''"/>
-      <ros_service_send_response name="/SetNavigationPositionSkill/halt"/>
+      <ros_service_send_response name="/SetNavigationPositionSkill/halt">
+            <field name="is_ok" expr="true"/>
+          </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
   </state>
