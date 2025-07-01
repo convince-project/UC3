@@ -13,7 +13,7 @@ RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/r
 RUN apt update
 RUN apt-cache policy | grep universe && apt-get install -y libczmq-dev ros-iron-zmqpp-vendor-dbgsym ros-iron-zmqpp-vendor libczmq-dev libczmq4 curl 
 
-RUN apt install qtbase5-dev libqt5svg5-dev libzmq3-dev libdw-dev libboost-all-dev -y
+RUN apt install qtbase5-dev libqt5svg5-dev libzmq3-dev libdw-dev libboost-all-dev zip -y
 
 RUN usermod -a -G audio user1
 # install behavior tree.cpp v3.8
@@ -110,13 +110,16 @@ USER user1
 # model2code
 
 RUN /bin/bash -c "cd /home/user1 && \
-    git clone https://github.com/Microsoft/vcpkg.git && \
+    git clone https://github.com/Microsoft/vcpkg.git"
+    
+RUN /bin/bash -c "cd /home/user1 && \ 
     cd vcpkg && \
     ./bootstrap-vcpkg.sh    && \
     ./vcpkg integrate install && \
     ./vcpkg install tinyxml2" 
 
 ENV LD_LIBRARY_PATH=/home/user1/vcpkg/installed/x64-linux/share/tinyxml2/:${LD_LIBRARY_PATH}
+
 ENV CMAKE_PREFIX_PATH=/home/user1/vcpkg/installed/x64-linux/share/tinyxml2/:${CMAKE_PREFIX_PATH}
 
 
