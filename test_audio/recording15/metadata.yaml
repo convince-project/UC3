@@ -1,0 +1,66 @@
+rosbag2_bagfile_information:
+  version: 9
+  storage_identifier: mcap
+  duration:
+    nanoseconds: 0
+  starting_time:
+    nanoseconds_since_epoch: 1752162902624402419
+  message_count: 1
+  topics_with_message_count:
+    - topic_metadata:
+        name: /TextToSpeechComponent/Speak/_service_event
+        type: text_to_speech_interfaces/srv/Speak_Event
+        serialization_format: cdr
+        offered_qos_profiles:
+          - history: keep_last
+            depth: 1
+            reliability: reliable
+            durability: volatile
+            deadline:
+              sec: 9223372036
+              nsec: 854775807
+            lifespan:
+              sec: 9223372036
+              nsec: 854775807
+            liveliness: automatic
+            liveliness_lease_duration:
+              sec: 9223372036
+              nsec: 854775807
+            avoid_ros_namespace_conventions: false
+        type_description_hash: RIHS01_f5a1033f51a9d679cebeee1e8cc97d9fb6554f0b8830cf7b0d5906517be158f1
+      message_count: 0
+    - topic_metadata:
+        name: /DialogComponent/WaitForInteractionAction/_action/status
+        type: action_msgs/msg/GoalStatusArray
+        serialization_format: cdr
+        offered_qos_profiles:
+          - history: keep_last
+            depth: 1
+            reliability: reliable
+            durability: transient_local
+            deadline:
+              sec: 9223372036
+              nsec: 854775807
+            lifespan:
+              sec: 9223372036
+              nsec: 854775807
+            liveliness: automatic
+            liveliness_lease_duration:
+              sec: 9223372036
+              nsec: 854775807
+            avoid_ros_namespace_conventions: false
+        type_description_hash: RIHS01_6c1684b00f177d37438febe6e709fc4e2b0d4248dca4854946f9ed8b30cda83e
+      message_count: 1
+  compression_format: ""
+  compression_mode: ""
+  relative_file_paths:
+    - recording15_0.mcap
+  files:
+    - path: recording15_0.mcap
+      starting_time:
+        nanoseconds_since_epoch: 1752162902624402419
+      duration:
+        nanoseconds: 0
+      message_count: 1
+  custom_data: ~
+  ros_distro: jazzy
