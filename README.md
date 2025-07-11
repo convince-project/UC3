@@ -6,7 +6,7 @@ first run the docker
 
 ```
 sudo xhost + 
-docker run --rm -it --privileged --network host --pid host -e DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -e QT_X11_NO_MITSHM=1  ste93/convince:ubuntu_22.04_qt_6.8.3_sim
+docker run --rm -it --privileged --network host --pid host -e DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -e QT_X11_NO_MITSHM=1  ste93/convince:tour_sim_ubuntu_22.04_qt_6.8.3_iron_devel
 ```
 
 
@@ -38,8 +38,7 @@ then launch the various files from the application **convince_bt.xml**
 
 to compile the docker with ros2 iron:
 ```
-git checkout iron_docker;
-cd UC3/docker/; docker build -t ste93/convince:ubuntu_22.04_qt_6.8.3_sim  -f Dockerfile.bt --build-arg base_img=ste93/r1images:tourCore2_ubuntu22.04_iron_stable_qt_6.8.3 .
+cd UC3/docker/; docker build -t ste93/convince:tour_sim_ubuntu_22.04_qt_6.8.3_iron_devel  -f Dockerfile.bt_iron --build-arg base_img=ste93/r1images:tourCore2_ubuntu22.04_iron_stable_qt_6.8.3 .
 ```
 <!-- 
 <div align="center">
