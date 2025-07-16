@@ -15,14 +15,6 @@
           "m_joints": []
         }]
       },
-      "wave": {
-        "m_movements": [{
-          "m_partName": "all_joints",
-          "m_time": 9,
-          "m_offset": 0,
-          "m_joints": []
-        }]
-      },
       "navigationPosition": {
         "m_movements": [
           {
