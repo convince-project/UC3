@@ -170,7 +170,6 @@ bool ExecuteDanceComponent::SendMovementToYAP(const std::string &actionName, flo
     yarp::os::Bottle res;
     yarp::os::Bottle cmd;
 
-
     cmd.clear();
     res.clear();
     cmd.addString("choose_action");
@@ -220,7 +219,6 @@ bool ExecuteDanceComponent::SendMovementToYAP(const std::string &actionName, flo
     {
         RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP YAP accepted the speed factor: " << speedFactor);
     }
-
 
     cmd.clear();
     res.clear();
