@@ -7,6 +7,14 @@
       "torso"
     ],
     "m_dances": {
+      "gesture": {
+        "m_movements": [{
+          "m_partName": "all_joints",
+          "m_time": 16,
+          "m_offset": 0,
+          "m_joints": []
+        }]
+      },
       "navigationPosition": {
         "m_movements": [
           {
