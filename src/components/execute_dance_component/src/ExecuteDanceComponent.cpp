@@ -168,10 +168,12 @@ bool ExecuteDanceComponent::SendMovementToYAP(const std::string &actionName)
 {
     yarp::os::Bottle res;
     yarp::os::Bottle cmd;
+
+
     cmd.clear();
     res.clear();
-    cmd.addString("start");
-    // cmd.addString(actionName);
+    cmd.addString("choose_action");
+    cmd.addString(actionName);
 
     std::cout << "ExecuteDanceComponent::SendMovementToYAP sending bottle content: " << cmd.toString() << " and action name is " << actionName << std::endl;
 
@@ -183,7 +185,7 @@ bool ExecuteDanceComponent::SendMovementToYAP(const std::string &actionName)
         return false;
     }
 
-    if (res.get(0).asVocab32() != yarp::os::createVocab32('a', 'c', 'k'))
+    if (res.get(0).asVocab32() != yarp::os::createVocab32('o', 'k'))
     {
         RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP YAP did not accept the action: " << actionName);
         return false;
@@ -194,6 +196,37 @@ bool ExecuteDanceComponent::SendMovementToYAP(const std::string &actionName)
     }
 
 
+    cmd.clear();
+    res.clear();
+    cmd.addString("start");
+
+    std::cout << "ExecuteDanceComponent::SendMovementToYAP sending bottle content: " << cmd.toString() << " and action name is " << actionName << std::endl;
+
+    status = m_yAPClientPort.write(cmd, res);
+
+    if (!status)
+    {
+        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP Failed to send start command to YAP");
+        return false;
+    }
+
+    if (res.get(0).asVocab32() != yarp::os::createVocab32('o', 'k'))
+    {
+        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP YAP did not accept the action: " << actionName);
+        return false;
+    }
+    else
+    {
+        RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP YAP accepted the action: " << actionName);
+    }
+
+    while (m_timerTask)
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
+    cmd.clear();
+    res.clear();
     cmd.addString("reset");
 
     status = m_yAPClientPort.write(cmd, res);
