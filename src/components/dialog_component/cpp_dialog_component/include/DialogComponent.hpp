@@ -50,6 +50,8 @@
 #include <scheduler_interfaces/srv/update_poi.hpp>
 #include <scheduler_interfaces/srv/set_language.hpp>
 
+// ExecuteDance Interfaces
+#include <execute_dance_interfaces/srv/execute_dance.hpp>
 
 #include "nlohmann/json.hpp"
 #include <random>
@@ -94,6 +96,7 @@ protected:
     bool CommandManager(const std::string &command, std::shared_ptr<dialog_interfaces::srv::ManageContext::Response> &response); // Manages the command received from the PoiChat LLM and returns the response to the caller
     void WaitForSpeakEnd(); // ROS2 service client to TextToSpeechComponent to get if the TTS is speaking. Wait until it is not
     bool UpdatePoILLMPrompt(); // Updates the prompt of the PoIChat LLM based on the current PoI. Leverages the SchedulerComponent service to get the current PoI name
+    void ExecuteDance(std::string danceName); // ROS2 service client to ExecuteDanceComponent to execute the dance with the given name
 
 private:
 
