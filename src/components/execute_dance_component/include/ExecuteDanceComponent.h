@@ -23,7 +23,8 @@
 #include <dance_interfaces/srv/update_movement.hpp>
 #include <execute_dance_interfaces/srv/execute_dance.hpp>
 #include <execute_dance_interfaces/srv/is_dancing.hpp>
-
+#include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
+#include <map>
 
 class ExecuteDanceComponent 
 {
@@ -60,4 +61,19 @@ private:
     yarp::os::Port m_yAPClientPort;
 
     bool m_timerTask{false};
+
+    // per leggere pose da /amcl_pose
+    rclcpp::Subscription<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr m_amclSub;
+    double m_currentX{0.0}, m_currentY{0.0}, m_currentYaw{0.0};
+
+    // placeholder per le coordinate dei quadri
+    std::map<std::string,std::pair<double,double>> m_poiCoords;
+
+    // YARP Cartesian controller
+    yarp::dev::PolyDriver             m_cartesianClient;
+    yarp::dev::ICartesianControl*     m_cartesianCtrl{nullptr};
+
+    // callback & helper
+    void amclPoseCallback(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg);
+    std::map<std::string,std::pair<double,double>> loadPoiCoordinates(const std::string& filename);
 };
