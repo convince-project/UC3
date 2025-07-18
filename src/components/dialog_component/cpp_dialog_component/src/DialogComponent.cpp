@@ -458,8 +458,11 @@ bool DialogComponent::CommandManager(const std::string &command, std::shared_ptr
     yDebug() << "DialogComponent::CommandManager" << __LINE__;
     std::string action = languageActionTopicList->get(1).asString();
     yDebug() << "DialogComponent::CommandManager" << __LINE__;
+    std::string dance = languageActionTopicList->get(2).asString();
+    yDebug() << "DialogComponent::CommandManager" << __LINE__;
 
     response->language = newLang;
+    response->dance = dance;
 
     // Get the poi object from the Tour manager
     PoI currentPoI;
@@ -479,8 +482,8 @@ bool DialogComponent::CommandManager(const std::string &command, std::shared_ptr
     // Let's check what to do with the action
     if (action == "epl1")
     {
-        // Check the second element for determining the exact action: artist, art_piece, historical_period, technique
-        std::string topic = languageActionTopicList->get(2).asString();
+        // Check the fourth element to get the topic of the request
+        std::string topic = languageActionTopicList->get(3).asString();
 
         if (topic == "function")
         {
@@ -532,7 +535,6 @@ bool DialogComponent::CommandManager(const std::string &command, std::shared_ptr
     // }
     else if (action == "next_poi" || action == "start_tour") // means that it has been found // NEXT POI
     {
-
 
         m_state = SUCCESS;
         yInfo() << "[DialogComponent::CommandManager] Next Poi Detected" << __LINE__;
@@ -1096,6 +1098,38 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitFor
 }
 
 // WaitForInteraction action fragment of code end
+
+// Protected function to actually speak given the text
+void DialogComponent::ExecuteDance(std::string danceName)
+{
+
+    // ---------------------------------Text to Speech Service SPEAK------------------------------
+    yInfo() << "[DialogComponent::ExecuteDance] Starting Text to Speech Service";
+    auto executeDanceClientNode = rclcpp::Node::make_shared("ExecuteDanceComponentExecuteDanceNode");
+
+    auto danceClient = executeDanceClientNode->create_client<execute_dance_interfaces::srv::ExecuteDance>("/ExecuteDanceComponent/ExecuteDance");
+    auto dance_request = std::make_shared<execute_dance_interfaces::srv::ExecuteDance::Request>();
+    dance_request->dance_name = danceName;
+    // Wait for service
+    while (!danceClient->wait_for_service(std::chrono::seconds(1)))
+    {
+        if (!rclcpp::ok())
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'ExecuteDance'. Exiting.");
+        }
+    }
+    auto dance_result = danceClient->async_send_request(dance_request);
+
+    if (rclcpp::spin_until_future_complete(executeDanceClientNode, dance_result) == rclcpp::FutureReturnCode::SUCCESS)
+    {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Execute Dance succeeded");
+    }
+    else
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service execute_dance");
+        return;
+    }
+}
 
 // Protected function to actually speak given the text
 void DialogComponent::SpeakFromText(std::string text)

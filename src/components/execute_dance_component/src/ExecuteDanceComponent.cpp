@@ -15,40 +15,6 @@ bool ExecuteDanceComponent::start(int argc, char*argv[])
     {
         rclcpp::init(/*argc*/ argc, /*argv*/ argv);
     }
-    // Ctp Service
-    // calls the GetPartNames service
-    auto getPartNamesClientNode = rclcpp::Node::make_shared("ExecuteDanceComponentGetPartNamesNode");
-    std::shared_ptr<rclcpp::Client<dance_interfaces::srv::GetPartNames>> getPartNamesClient =
-        getPartNamesClientNode->create_client<dance_interfaces::srv::GetPartNames>("/DanceComponent/GetPartNames");
-    auto getPartNamesRequest = std::make_shared<dance_interfaces::srv::GetPartNames::Request>();
-    while (!getPartNamesClient->wait_for_service(std::chrono::seconds(1))) {
-        if (!rclcpp::ok()) {
-            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'getPartNamesClient'. Exiting.");
-        }
-    }
-    auto getPartNamesResult = getPartNamesClient->async_send_request(getPartNamesRequest);
-    auto futureGetPartNamesResult = rclcpp::spin_until_future_complete(getPartNamesClientNode, getPartNamesResult);
-    auto ctpServiceParts = getPartNamesResult.get()->parts;
-    if (!ctpServiceParts.empty())
-    {
-        for (std::string part : ctpServiceParts)
-        {
-            yarp::os::Port *ctpPort = new yarp::os::Port;
-            std::string portName = "/ExecuteDanceComponentCtpServiceClient/" + part + "/rpc";
-            bool b = ctpPort->open(portName);
-            if (!b)
-            {
-                yError() << "Cannot open" << part << " ctpService port";
-                return false;
-            }
-            m_pCtpService.insert({part, *ctpPort});
-            yarp::os::Network::connect(portName, "/ctpservice/" + part + "/rpc");
-        }
-    }
-    else
-    {
-        yWarning() << "Movement part names are empty. No movements will be executed!";
-    }
 
     yAPClientPortName = "/ExecuteDanceComponent/yarpActionsPlayerClient/rpc";
     bool b = m_yAPClientPort.open(yAPClientPortName);
@@ -190,41 +156,6 @@ void ExecuteDanceComponent::IsDancing(const std::shared_ptr<execute_dance_interf
     response->is_ok = true;
 }
 
-bool ExecuteDanceComponent::SendMovementToQueue(float time, int offset, std::vector<float> joints, yarp::os::Port &port)
-{
-    yarp::os::Bottle res;
-    yarp::os::Bottle cmd;
-    cmd.addVocab32("ctpq");
-    cmd.addVocab32("time");
-    cmd.addFloat64(time);
-    cmd.addVocab32("off");
-    cmd.addFloat64(offset);
-    cmd.addVocab32("pos");
-    yarp::os::Bottle &list = cmd.addList();
-    for (auto joint : joints)
-    {
-        list.addFloat64(joint);
-    }
-    return port.write(cmd, res);
-}
-
-bool ExecuteDanceComponent::SendMovementNow(float time, int offset, std::vector<float> joints, yarp::os::Port &port)
-{
-    yarp::os::Bottle res;
-    yarp::os::Bottle cmd;
-    cmd.addVocab32("ctpn");
-    cmd.addVocab32("time");
-    cmd.addFloat64(time);
-    cmd.addVocab32("off");
-    cmd.addFloat64(offset);
-    cmd.addVocab32("pos");
-    yarp::os::Bottle &list = cmd.addList();
-    for (auto joint : joints)
-    {
-        list.addFloat64(joint);
-    }
-    return port.write(cmd, res);
-}
 
 bool ExecuteDanceComponent::SendMovementToYAP(const std::string &actionName)
 {
