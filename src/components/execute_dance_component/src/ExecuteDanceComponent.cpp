@@ -23,14 +23,6 @@ bool ExecuteDanceComponent::start(int argc, char*argv[])
         yError() << "Cannot open yarpActionsPlayer client port";
         return false;
     }
-
-    yAPClientPortName = "/ExecuteDanceComponent/yarpActionsPlayerClient/rpc";
-    bool b = m_yAPClientPort.open(yAPClientPortName);
-    if (!b)
-    {
-        yError() << "Cannot open yarpActionsPlayer client port";
-        return false;
-    }
     yarp::os::Network::connect(yAPClientPortName, "/yarpActionsPlayer/rpc");
 
     
@@ -173,28 +165,6 @@ void ExecuteDanceComponent::IsDancing(const std::shared_ptr<execute_dance_interf
     response->is_ok = true;
 }
 
-
-bool ExecuteDanceComponent::SendMovementToYAP(const std::string &actionName, float speedFactor)
-{
-    yarp::os::Bottle res;
-    yarp::os::Bottle cmd;
-
-    cmd.clear();
-    res.clear();
-    cmd.addString("choose_action");
-    cmd.addString(actionName);
-
-    std::cout << "ExecuteDanceComponent::SendMovementToYAP sending bottle content: " << cmd.toString() << " and action name is " << actionName << std::endl;
-
-    bool status = m_yAPClientPort.write(cmd, res);
-
-    if (!status)
-    {
-        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP Failed to send choose_action command to YAP");
-        return false;
-    }
-    return port.write(cmd, res);
-}
 
 bool ExecuteDanceComponent::SendMovementToYAP(const std::string &actionName)
 {
