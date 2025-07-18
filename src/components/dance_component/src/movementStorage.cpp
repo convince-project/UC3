@@ -35,7 +35,7 @@ nlohmann::ordered_json MovementStorage::ReadFileAsJSON(const std::string &path)
 {
     std::cout << "Reading file: " << path << std::endl;
     std::ifstream file(path);
-     if (!file.is_open()) {
+    if (!file.is_open()) {
         std::cerr << "Failed to open file" << std::endl;
         return nlohmann::ordered_json();
     }

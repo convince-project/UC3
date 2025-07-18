@@ -50,7 +50,7 @@ private:
     rclcpp::Service<dance_interfaces::srv::GetDanceDuration>::SharedPtr m_getDanceDurationService;
     rclcpp::Service<dance_interfaces::srv::GetPartNames>::SharedPtr m_getPartNamesService;
 
-    std::mutex m_mutex;
+    // std::mutex m_mutex; actually not used
     int32_t m_currentMovement{0};
     std::string m_currentDance;
     std::shared_ptr<MovementStorage> m_movementStorage;
