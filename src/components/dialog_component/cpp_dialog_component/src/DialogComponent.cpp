@@ -1106,7 +1106,7 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitFor
 
 // WaitForInteraction action fragment of code end
 
-// Protected function to actually speak given the text
+
 void DialogComponent::ExecuteDance(std::string danceName, float estimatedSpeechTime)
 {
 
