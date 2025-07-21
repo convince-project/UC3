@@ -38,9 +38,8 @@ public:
     void IsDancing(const std::shared_ptr<execute_dance_interfaces::srv::IsDancing::Request> request,
                    std::shared_ptr<execute_dance_interfaces::srv::IsDancing::Response> response);
 private:
-    bool SendMovementToQueue(float time, int offset, std::vector<float> joints, yarp::os::Port &port);
-    bool SendMovementNow(float time, int offset, std::vector<float> joints, yarp::os::Port &port);
-    bool SendMovementToYAP(const std::string &actionName);
+    
+    bool SendMovementToYAP(const std::string &actionName, float speedFactor);
 
     void executeTask(const std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Request> request);
     void timerTask(float time);
