@@ -1,3 +1,5 @@
 string context # the command to be interpreted
 ---
+string reply # The interpreted command
+bool is_reply_finished # indicates if the reply is finished or if it is a partial reply
 bool is_ok

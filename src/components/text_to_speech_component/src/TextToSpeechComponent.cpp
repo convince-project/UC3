@@ -232,6 +232,7 @@ void TextToSpeechComponent::spin()
     rclcpp::spin(m_node);
 }
 
+
 void TextToSpeechComponent::Speak(const std::shared_ptr<text_to_speech_interfaces::srv::Speak::Request> request,
                         std::shared_ptr<text_to_speech_interfaces::srv::Speak::Response> response)
 {
@@ -265,6 +266,9 @@ void TextToSpeechComponent::Speak(const std::shared_ptr<text_to_speech_interface
         auto end_time =  yarp::os::Time::now();
         yInfo() << "elapsed time = " << end_time - init_time ;
         yInfo() << "[TextToSpeechComponent::Speak] synthesized with size: " << sound.getSamples();
+        float speech_time = (float)(sound.getSamples()) / 44100.0f * 2; // AUDIO_BASE::rate * 2 because maybe my laptop rate is twice the one of the robot
+        response->speech_time = speech_time;
+        yInfo() << "[TextToSpeechComponent::Speak] speech time: " << response->speech_time;
         m_audioPort.write();
         response->is_ok=true;
     }
@@ -367,6 +371,7 @@ void TextToSpeechComponent::IsSpeaking(const std::shared_ptr<text_to_speech_inte
         if (player_status->current_buffer_size > 0)
         {
             response->seconds_left = player_status->current_buffer_size / 44100; //AUDIO_BASE::rate
+            std::cout << "Seconds left: " << response->seconds_left << std::endl;
             response->is_speaking = true;
         }
         else

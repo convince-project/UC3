@@ -1,4 +1,5 @@
 string dance_name
+float32 speech_time
 ---
 bool is_ok
 string error_msg
