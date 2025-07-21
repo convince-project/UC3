@@ -276,7 +276,7 @@
     </transition>
   </state>
 
-  <state id="shortenReplyResult">
+  <state id="shortenAndSpeakResult">
     <transition cond="m_result == 'SUCCESS'" target="speak" />
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
   </state>
@@ -321,7 +321,7 @@
 
   <state id="answer">
     <onentry>
-      <log label="State answer" expr="m_result"/>
+      <log label="State answerAndSpeak" expr="m_result"/>
       <log label="Interaction" expr="m_interaction"/>
       <log label="Language" expr="m_language"/>
       <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/> 
@@ -331,19 +331,19 @@
       <log label="Dance" expr="m_dance"/>
     </onentry>
     <transition event="CMD_HALT" target="stop"/>
-    <transition event="CMD_TICK" target="answer">
+    <transition event="CMD_TICK" target="answerAndSpeak">
       <send event="TICK_RESPONSE">
         <param name="result" expr='"RUNNING"'/>
       </send>
     </transition>
-    <transition event="DialogComponent.Answer.Return" target="answerResult">
+    <transition event="DialogComponent.AnswerAndSpeak.Return" target="answerAndSpeakResult">
       <assign expr="_event.data.result" location="m_result"/>
       <assign expr="_event.data.reply" location="m_reply"/>
       <assign expr="_event.data.is_reply_finished" location="m_is_reply_finished"/>
     </transition>
   </state>
 
-  <state id="answerResult">
+  <state id="answerAndSpeakResult">
     <onentry>
 
     </onentry>
@@ -377,7 +377,7 @@
 
   <state id="speakResult">
 
-    <transition cond ="m_is_reply_finished == false" target="evaluateDuplicate"/>
+    <transition cond ="m_is_reply_finished == 'false'" target="interpretCommand"/>
     
     <transition cond="m_result == 'SUCCESS'" target="waitForInteraction">
         <send event="DialogComponent.WaitForInteraction.Call">

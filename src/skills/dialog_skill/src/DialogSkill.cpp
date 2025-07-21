@@ -331,8 +331,8 @@ bool DialogSkill::start(int argc, char *argv[])
                     data.insert("result", "SUCCESS");
                     data.insert("reply", QString::fromStdString(response->reply));
                     data.insert("is_reply_finished", response->is_reply_finished);
-                    m_stateMachine.submitEvent("DialogComponent.ShortenReply.Return", data);
-                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.ShortenReply.Return");
+                    m_stateMachine.submitEvent("DialogComponent.ShortenAndSpeak.Return", data);
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.ShortenAndSpeak.Return");
                 } else {
                     QVariantMap data;
                     data.insert("result", "FAILURE");
@@ -416,8 +416,8 @@ bool DialogSkill::start(int argc, char *argv[])
                     data.insert("result", "SUCCESS");
                     data.insert("reply", QString::fromStdString(response->reply));
                     data.insert("is_reply_finished", response->is_reply_finished);
-                    m_stateMachine.submitEvent("DialogComponent.Answer.Return", data);
-                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.Answer.Return");
+                    m_stateMachine.submitEvent("DialogComponent.AnswerAndSpeak.Return", data);
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.AnswerAndSpeak.Return");
                 } else {
                     QVariantMap data;
                     data.insert("result", "FAILURE");
