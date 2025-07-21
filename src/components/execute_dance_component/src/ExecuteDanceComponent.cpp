@@ -93,13 +93,14 @@ void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_inte
         }
         m_threadTimer = std::thread([this, speech_time]() { timerTask(speech_time); });
     }
-    
-    bool status;
 
-    status = SendMovementToYAP(request->dance_name);
+    std::cout << "Dance duration: " << danceDuration->duration << " and speech time: " << request->speech_time << std::endl;
+    std::cout << "ExecuteDanceComponent::executeTask sending dance: " << request->dance_name << " with speed factor: " << speech_dance_synchronization_speed_factor << std::endl;
+
+    status = SendMovementToYAP(request->dance_name, speech_dance_synchronization_speed_factor);
     if (!status)
     {
-        RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "Movement failed to sent to YAP");
+        RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "Movement failed to send to YAP");
         return;
     }
 
@@ -164,7 +165,7 @@ void ExecuteDanceComponent::IsDancing(const std::shared_ptr<execute_dance_interf
 }
 
 
-bool ExecuteDanceComponent::SendMovementToYAP(const std::string &actionName)
+bool ExecuteDanceComponent::SendMovementToYAP(const std::string &actionName, float speedFactor)
 {
     yarp::os::Bottle res;
     yarp::os::Bottle cmd;
@@ -193,6 +194,31 @@ bool ExecuteDanceComponent::SendMovementToYAP(const std::string &actionName)
     else
     {
         RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP YAP accepted the action: " << actionName);
+    }
+
+    cmd.clear();
+    res.clear();
+    cmd.addString("speed_factor");
+    cmd.addFloat32(speedFactor);
+
+    std::cout << "ExecuteDanceComponent::SendMovementToYAP sending bottle content: " << cmd.toString() << " and speed factor is " << speedFactor << std::endl;
+
+    status = m_yAPClientPort.write(cmd, res);
+
+    if (!status)
+    {
+        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP Failed to send speed_factor command to YAP");
+        return false;
+    }
+
+    if (res.get(0).asVocab32() != yarp::os::createVocab32('o', 'k'))
+    {
+        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP YAP did not accept the speed factor: " << speedFactor);
+        return false;
+    }
+    else
+    {
+        RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP YAP accepted the speed factor: " << speedFactor);
     }
 
 
@@ -238,6 +264,32 @@ bool ExecuteDanceComponent::SendMovementToYAP(const std::string &actionName)
     }
 
     RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP Reset status: " << res.get(0).toString());
+
+
+    cmd.clear();
+    res.clear();
+    cmd.addString("speed_factor");
+    cmd.addFloat32(1.0f);
+
+    std::cout << "ExecuteDanceComponent::SendMovementToYAP sending bottle content: " << cmd.toString() << " and speed factor is " << 1 << std::endl;
+
+    status = m_yAPClientPort.write(cmd, res);
+
+    if (!status)
+    {
+        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP Failed to send speed_factor command to YAP");
+        return false;
+    }
+
+    if (res.get(0).asVocab32() != yarp::os::createVocab32('o', 'k'))
+    {
+        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP YAP did not accept the speed factor: " << 1);
+        return false;
+    }
+    else
+    {
+        RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP YAP accepted the speed factor: " << 1);
+    }
 
     return true;
 }
