@@ -1144,16 +1144,17 @@ void DialogComponent::ExecuteDance(std::string danceName, float estimatedSpeechT
 }
 
 // Protected function to actually speak given the text
-void DialogComponent::ExecuteDance(std::string danceName)
+void DialogComponent::ExecuteDance(std::string danceName, float estimatedSpeechTime)
 {
 
     // ---------------------------------Text to Speech Service SPEAK------------------------------
-    yInfo() << "[DialogComponent::ExecuteDance] Starting Text to Speech Service";
+    yInfo() << "[DialogComponent::ExecuteDance] Starting Execute Dance Service";
     auto executeDanceClientNode = rclcpp::Node::make_shared("ExecuteDanceComponentExecuteDanceNode");
 
     auto danceClient = executeDanceClientNode->create_client<execute_dance_interfaces::srv::ExecuteDance>("/ExecuteDanceComponent/ExecuteDance");
     auto dance_request = std::make_shared<execute_dance_interfaces::srv::ExecuteDance::Request>();
     dance_request->dance_name = danceName;
+    dance_request->speech_time = estimatedSpeechTime;
     // Wait for service
     while (!danceClient->wait_for_service(std::chrono::seconds(1)))
     {
@@ -1176,7 +1177,7 @@ void DialogComponent::ExecuteDance(std::string danceName)
 }
 
 // Protected function to actually speak given the text
-void DialogComponent::SpeakFromText(std::string text)
+void DialogComponent::SpeakFromText(std::string text, std::string dance)
 {
 
     // ---------------------------------Text to Speech Service SPEAK------------------------------
