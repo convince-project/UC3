@@ -24,8 +24,8 @@
 #include <dialog_interfaces/srv/answer_and_speak.hpp>
 #include <dialog_interfaces/srv/set_language.hpp>
 #include <dialog_interfaces/srv/interpret_command.hpp>
+#include <dialog_interfaces/srv/speak.hpp>
 
-// #include <dialog_interfaces/srv/wait_for_interaction.hpp>
 #include <dialog_interfaces/action/wait_for_interaction.hpp>
 
 #include <text_to_speech_interfaces/srv/set_microphone.hpp>
