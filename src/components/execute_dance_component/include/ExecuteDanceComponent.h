@@ -11,10 +11,9 @@
 #include <rclcpp/rclcpp.hpp>
 #include <yarp/os/Network.h>
 #include <yarp/os/Port.h>
-#include <yarp/os/RpcClient.h>
-#include <yarp/os/RpcServer.h>
-#include <yarp/os/Time.h>
 #include <yarp/os/LogStream.h>
+#include <yarp/dev/PolyDriver.h>
+#include <yarp/dev/CartesianControl.h>  // Changed to match YARP documentation
 #include <dance_interfaces/srv/get_dance.hpp>
 #include <dance_interfaces/srv/get_dance_duration.hpp>
 #include <dance_interfaces/srv/get_movement.hpp>
