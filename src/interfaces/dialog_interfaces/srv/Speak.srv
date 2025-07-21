@@ -1,0 +1,4 @@
+string text # The text to be spoken
+string dance # The dance to be performed while speaking
+---
+bool is_ok
