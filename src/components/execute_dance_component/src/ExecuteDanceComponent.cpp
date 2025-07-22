@@ -107,7 +107,7 @@ void ExecuteDanceComponent::spin()
 
 void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Request> request)
 {
-    // --- VERSIONE COMPLETA ORIENTAMENTO verso POI ---
+   
     auto it = m_poiCoords.find(request->dance_name);
     if (it != m_poiCoords.end() && m_cartesianCtrl) {
         double dx     = it->second.first  - m_currentX;
