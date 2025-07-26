@@ -489,7 +489,7 @@ std::string ExecuteDanceComponent::extractArtworkName(const std::vector<float>& 
         if (!m_artworkCoords.empty()) {
             return m_artworkCoords.begin()->first;
         }
-        return "quadro_1";  // Ultimate fallback
+        return "";  // Ultimate fallback
     }
     
     // Convert first element from float to integer (artwork index)
