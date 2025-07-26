@@ -69,26 +69,40 @@ bool ExecuteDanceComponent::start(int argc, char*argv[])
                                                                                 std::placeholders::_1,
                                                                                 std::placeholders::_2));
 
-    // 1) sottoscrivo /amcl_pose
+    // 1) subscribe to /amcl_pose
     m_amclSub = m_node->create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>(
         "/amcl_pose", 10,
         std::bind(&ExecuteDanceComponent::amclPoseCallback, this, std::placeholders::_1));
 
-    // 2) carico le coordinate dei POI dal JSON
+    // 2) load POI coordinates from JSON
+    // m_poiCoords: Map storing Point of Interest (POI) coordinates for UC3 tour guidance
+    // - Key (std::string): POI name (e.g., "sala_delle_guardie", "madama_start") 
+    // - Value (std::pair<double, double>): X,Y coordinates in global map frame
+    //   used for robot orientation calculations before executing movements
+    // 
+    // Data loaded from "conf/board_coords.json" at startup
+    // Essential for robot positioning strategy during guided museum tours
     m_poiCoords = loadPoiCoordinates("conf/board_coords.json");
 
-    // 3) carico le coordinate delle opere d'arte dal JSON
+    // 3) load artwork coordinates from JSON
+    // m_artworkCoords: Map storing 3D coordinates of artworks for precise pointing
+    // - Key (std::string): Artwork name (e.g., "quadro_1", "quadro_principale")
+    // - Value (std::vector<double>): [X, Y, Z] coordinates in global map frame
+    //   used for robot arm pointing
+    // Data loaded from "conf/artwork_coords.json" at startup
+    // Used by ExecutePointingMovement() for Cartesian control commands
+    // This allows the robot to accurately point to artworks during tours   
     m_artworkCoords = loadArtworkCoordinates("conf/artwork_coords.json");
 
-    // 4) apro il client CartesianController di YARP
+    // 4) open YARP CartesianController client
     {
-        yarp::os::Property opts;
-        opts.put("device","cartesiancontrollerclient");
-        opts.put("local", "/ExecuteDanceComponent/cartesian:o");
-        opts.put("remote","/cartesianController/rpc:i");
+        yarp::os::Property opts; // Options for CartesianControllerClient
+        opts.put("device","cartesiancontrollerclient"); // Device type
+        opts.put("local", "/ExecuteDanceComponent/cartesian:o"); // Local port name
+        opts.put("remote","/cartesianController/rpc:i"); // Remote port to connect to
         m_cartesianClient.open(opts);
-        if (m_cartesianClient.isValid()) {
-            m_cartesianClient.view(m_cartesianCtrl);
+        if (m_cartesianClient.isValid()) { 
+            m_cartesianClient.view(m_cartesianCtrl); // View the CartesianControl interface
         }
     }
 
@@ -344,8 +358,7 @@ void ExecuteDanceComponent::amclPoseCallback(const geometry_msgs::msg::PoseWithC
            qw = msg->pose.pose.orientation.w;
     
     // Quaternion to yaw conversion formula
-    m_currentYaw = std::atan2(2*(qw*qz + qx*qy),
-                              1 - 2*(qy*qy + qz*qz));
+    m_currentYaw = std::atan2(2*(qw*qz + qx*qy),1 - 2*(qy*qy + qz*qz));
     
     // Periodic logging for debugging (uncomment for development)
     // static int callback_count = 0;
