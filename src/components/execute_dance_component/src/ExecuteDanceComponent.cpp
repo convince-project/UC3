@@ -118,27 +118,34 @@ void ExecuteDanceComponent::spin()
 
 void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Request> request)
 {
-    // --- VERSIONE COMPLETA ORIENTAMENTO verso POI ---
+    // STRATEGY: Robot must orient towards the POI before executing any movement
+    // This ensures proper positioning for artwork pointing
     auto it = m_poiCoords.find(request->dance_name);
     if (it != m_poiCoords.end() && m_cartesianCtrl) {
-        double dx     = it->second.first  - m_currentX;
-        double dy     = it->second.second - m_currentY;
-        double goal   = std::atan2(dy, dx);
-        double dtheta = goal - m_currentYaw;
+        // Calculate direction towards POI from current robot position
+        double dx     = it->second.first  - m_currentX;   // Delta X towards POI
+        double dy     = it->second.second - m_currentY;   // Delta Y towards POI
+        double goal   = std::atan2(dy, dx);               // Target angle towards POI
+        double dtheta = goal - m_currentYaw;              // Angular difference to correct
         
+        // Normalize angle to [-π, π] range
         while (dtheta > M_PI)  dtheta -= 2*M_PI;
         while (dtheta < -M_PI) dtheta += 2*M_PI;
         
         RCLCPP_INFO(m_node->get_logger(),
-                    "Orientation through POI '%s': dθ=%.2f rad",
+                    "STRATEGY: Orienting towards POI '%s': angular correction=%.2f rad", 
                     request->dance_name.c_str(), dtheta);
         
+        // IMPLEMENTATION: Use Cartesian controller to orient robot torso
+        // instead of base to avoid navigation issues
         yarp::sig::Vector currentPos(3), currentOri(4);
         if (m_cartesianCtrl->getPose(currentPos, currentOri)) {
             yarp::sig::Vector newOri = currentOri;
-            newOri[2] = sin(dtheta/2);
-            newOri[3] = cos(dtheta/2);
+            // Apply rotation around Z-axis (yaw)
+            newOri[2] = sin(dtheta/2);  // Z component of quaternion
+            newOri[3] = cos(dtheta/2);  // W component of quaternion
             
+            // Execute synchronous orientation movement
             m_cartesianCtrl->goToPoseSync(currentPos, newOri);
             m_cartesianCtrl->waitMotionDone();
         }
@@ -322,17 +329,31 @@ bool ExecuteDanceComponent::SendMovementNow(float time, int offset, std::vector<
 
 void ExecuteDanceComponent::amclPoseCallback(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg)
 {
-    m_currentX   = msg->pose.pose.position.x;
-    m_currentY   = msg->pose.pose.position.y;
+    // STRATEGY: Keep robot pose updated for coordinate transformations
+    // This information is CRITICAL for accurate artwork pointing
     
-    // estraggo yaw da quaternion
+    // Extract position from AMCL message
+    m_currentX = msg->pose.pose.position.x;
+    m_currentY = msg->pose.pose.position.y;
+    
+    // STRATEGY: Extract yaw orientation from quaternion
+    // Convert quaternion to Euler yaw angle for 2D transformations
     double qx = msg->pose.pose.orientation.x,
            qy = msg->pose.pose.orientation.y,
            qz = msg->pose.pose.orientation.z,
            qw = msg->pose.pose.orientation.w;
     
+    // Quaternion to yaw conversion formula
     m_currentYaw = std::atan2(2*(qw*qz + qx*qy),
                               1 - 2*(qy*qy + qz*qz));
+    
+    // Periodic logging for debugging (uncomment for development)
+    // static int callback_count = 0;
+    // if (++callback_count % 100 == 0) {
+    //     RCLCPP_DEBUG(m_node->get_logger(), 
+    //                 "LOCALIZATION: Robot @ [%.2f, %.2f, %.2f rad] (update #%d)", 
+    //                 m_currentX, m_currentY, m_currentYaw, callback_count);
+    // }
 }
 
 std::map<std::string, std::pair<double, double>> ExecuteDanceComponent::loadPoiCoordinates(const std::string& filename)
@@ -370,23 +391,33 @@ std::map<std::string, std::vector<double>> ExecuteDanceComponent::loadArtworkCoo
     try {
         std::ifstream file(filename);
         if (!file.is_open()) {
-            RCLCPP_ERROR(m_node->get_logger(), "Impossibile aprire il file artwork: '%s'", filename.c_str());
+            RCLCPP_ERROR(m_node->get_logger(), "Unable to open artwork coordinates file: '%s'", filename.c_str());
             return artworkMap;
         }
         
         auto config = nlohmann::ordered_json::parse(file);
         
+        // STRATEGY: Load complete X,Y,Z coordinates for each artwork
+        // Coordinates are in the global museum map reference frame
         for (auto& [name, data] : config.at("artworks").items()) {
-            double x = data.at("x").get<double>();
-            double y = data.at("y").get<double>();
-            double z = data.at("z").get<double>();
+            double x = data.at("x").get<double>();  // Absolute X position in map frame
+            double y = data.at("y").get<double>();  // Absolute Y position in map frame  
+            double z = data.at("z").get<double>();  // Z height of artwork (for precise pointing)
+            
+            // Store as vector [x, y, z] for use with CartesianControl
             artworkMap.emplace(name, std::vector<double>{x, y, z});
+            
+            RCLCPP_INFO(m_node->get_logger(), 
+                       "Loaded artwork '%s' at coordinates [%.2f, %.2f, %.2f]", 
+                       name.c_str(), x, y, z);
         }
         
-        RCLCPP_INFO(m_node->get_logger(), "Caricate %zu opere d'arte da '%s'", artworkMap.size(), filename.c_str());
+        RCLCPP_INFO(m_node->get_logger(), "Loaded %zu artworks from '%s'", 
+                   artworkMap.size(), filename.c_str());
         
     } catch (const std::exception& ex) {
-        RCLCPP_ERROR(m_node->get_logger(), "Errore parsing artwork file '%s': %s", filename.c_str(), ex.what());
+        RCLCPP_ERROR(m_node->get_logger(), "Error parsing artwork file '%s': %s", 
+                    filename.c_str(), ex.what());
     }
     
     return artworkMap;
@@ -394,98 +425,180 @@ std::map<std::string, std::vector<double>> ExecuteDanceComponent::loadArtworkCoo
 
 bool ExecuteDanceComponent::ExecutePointingMovement(const std::shared_ptr<dance_interfaces::srv::GetMovement::Response> movement)
 {
+    RCLCPP_INFO_STREAM(m_node->get_logger(), 
+                      "POINTING STRATEGY: Starting pointing_command (NOT normal dance movement)");
+    
+    // STRATEGY: For pointing_command, joints[0] is the artwork index to point to
+    // This is DIFFERENT from normal movements where joints contains actual angles
     std::string artworkName = extractArtworkName(movement->joints);
     
-    RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::ExecutePointingMovement to: " << artworkName);
-    
-    auto it = m_artworkCoords.find(artworkName);
-    if (it == m_artworkCoords.end()) {
-        RCLCPP_ERROR_STREAM(m_node->get_logger(), "Artwork not found: " << artworkName);
+    if (artworkName.empty()) {
+        RCLCPP_ERROR(m_node->get_logger(), "ERROR: Invalid artwork name for pointing");
         return false;
     }
     
+    RCLCPP_INFO_STREAM(m_node->get_logger(), 
+                      "STRATEGY: Executing pointing towards artwork: " << artworkName);
+    
+    // STRATEGY: Lookup absolute coordinates of artwork from loaded database
+    auto it = m_artworkCoords.find(artworkName);
+    if (it == m_artworkCoords.end()) {
+        RCLCPP_ERROR_STREAM(m_node->get_logger(), 
+                           "ERROR: Artwork '" << artworkName << "' not found in database");
+        return false;
+    }
+    
+    // Absolute coordinates of artwork in map frame
     std::vector<double> mapCoords = it->second;
+    RCLCPP_INFO(m_node->get_logger(), 
+               "STRATEGY: Artwork coordinates [%.2f, %.2f, %.2f] in map frame", 
+               mapCoords[0], mapCoords[1], mapCoords[2]);
+    
+    // STRATEGY: Transform from map coordinates to robot coordinates
     std::vector<double> robotCoords = transformMapToRobot(mapCoords);
     
+    if (robotCoords.empty()) {
+        RCLCPP_ERROR(m_node->get_logger(), "ERROR: Coordinate transformation failed");
+        return false;
+    }
+    
+    // STRATEGY: Send Cartesian command (NOT joint command like normal dance)
     return sendCartesianCommand(robotCoords);
 }
 
 std::string ExecuteDanceComponent::extractArtworkName(const std::vector<float>& joints)
 {
+    // SPECIAL STRATEGY: For pointing_command, joints[0] contains artwork INDEX
+    // NOT joint angles like for normal dance movements
     if (joints.empty()) {
+        RCLCPP_ERROR(m_node->get_logger(), "ERROR: Empty joints vector for pointing_command");
+        // Fallback to first artwork if no index provided
         if (!m_artworkCoords.empty()) {
             return m_artworkCoords.begin()->first;
         }
-        return "quadro_1"; 
+        return "quadro_1";  // Ultimate fallback
     }
     
-    int index = static_cast<int>(joints[0]);
+    // Convert first element from float to integer (artwork index)
+    int artworkIndex = static_cast<int>(joints[0]);
     
+    RCLCPP_INFO(m_node->get_logger(), 
+               "STRATEGY: Requested pointing towards artwork with index %d", artworkIndex);
+    
+    // STRATEGY: Convert numeric index to artwork string name
+    // Create ordered list of artwork names for consistent indexing
     std::vector<std::string> artworkNames;
     for (const auto& pair : m_artworkCoords) {
         artworkNames.push_back(pair.first);
     }
     
-    if (index >= 0 && index < static_cast<int>(artworkNames.size())) {
-        return artworkNames[index];
+    // Validate index range and return corresponding artwork name
+    if (artworkIndex >= 0 && artworkIndex < static_cast<int>(artworkNames.size())) {
+        std::string artworkName = artworkNames[artworkIndex];
+        RCLCPP_INFO(m_node->get_logger(), 
+                   "STRATEGY: Index %d corresponds to artwork '%s'", 
+                   artworkIndex, artworkName.c_str());
+        return artworkName;
     }
+    
+    // Index out of range - fallback to first artwork
+    RCLCPP_ERROR(m_node->get_logger(), 
+                "ERROR: Artwork index %d out of range [0-%zu], using fallback", 
+                artworkIndex, artworkNames.size()-1);
     
     if (!artworkNames.empty()) {
         return artworkNames[0];
     }
     
-    return "quadro_1"; 
+    return "quadro_1";  // Ultimate fallback
 }
-
 std::vector<double> ExecuteDanceComponent::transformMapToRobot(const std::vector<double>& mapCoords)
 {
-    double dx = mapCoords[0] - m_currentX;
-    double dy = mapCoords[1] - m_currentY;
-    double dz = mapCoords[2];
+    // STRATEGY: Transform artwork coordinates from map frame to robot frame
+    // Uses current robot pose provided by AMCL for accurate transformation
     
-    double cos_theta = std::cos(-m_currentYaw);
+    if (mapCoords.size() < 3) {
+        RCLCPP_ERROR(m_node->get_logger(), "ERROR: Incomplete map coordinates");
+        return {};
+    }
+    
+    // Absolute coordinates of artwork in map frame
+    double artworkX_map = mapCoords[0];
+    double artworkY_map = mapCoords[1]; 
+    double artworkZ_map = mapCoords[2];
+    
+    RCLCPP_INFO(m_node->get_logger(), 
+               "TRANSFORMATION: Artwork in map frame [%.2f, %.2f, %.2f]", 
+               artworkX_map, artworkY_map, artworkZ_map);
+    
+    RCLCPP_INFO(m_node->get_logger(), 
+               "TRANSFORMATION: Robot pose [%.2f, %.2f, %.2f rad]", 
+               m_currentX, m_currentY, m_currentYaw);
+    
+    // STRATEGY: Calculate relative artwork coordinates with respect to robot
+    // 2D transformation for X,Y + height adjustment for Z
+    
+    // Delta in map frame
+    double dx_map = artworkX_map - m_currentX;
+    double dy_map = artworkY_map - m_currentY;
+    
+    // Inverse rotation to transform from map to robot frame
+    double cos_theta = std::cos(-m_currentYaw);  // Inverse rotation matrix
     double sin_theta = std::sin(-m_currentYaw);
     
-    double x_robot = dx * cos_theta - dy * sin_theta;
-    double y_robot = dx * sin_theta + dy * cos_theta;
-    double z_robot = dz - 1.0;
+    // Apply 2D rotation transformation
+    double x_robot = dx_map * cos_theta - dy_map * sin_theta;
+    double y_robot = dx_map * sin_theta + dy_map * cos_theta;
+    double z_robot = artworkZ_map - 1.0;  // Adjust for robot base height (1m offset)
     
-    RCLCPP_INFO_STREAM(m_node->get_logger(), 
-        "Transformed coords - Map: [" << mapCoords[0] << ", " << mapCoords[1] << ", " << mapCoords[2] << 
-        "] -> Robot: [" << x_robot << ", " << y_robot << ", " << z_robot << "]");
+    RCLCPP_INFO(m_node->get_logger(), 
+               "TRANSFORMATION: Artwork in robot frame [%.2f, %.2f, %.2f]", 
+               x_robot, y_robot, z_robot);
     
     return {x_robot, y_robot, z_robot};
 }
 
 bool ExecuteDanceComponent::sendCartesianCommand(const std::vector<double>& coords)
 {
+    // STRATEGY: Use YARP CartesianControl instead of CTP service (used for dance)
     if (!m_cartesianCtrl) {
-        RCLCPP_ERROR_STREAM(m_node->get_logger(), "Cartesian controller not available");
+        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ERROR: Cartesian controller not initialized");
         return false;
     }
     
+    if (coords.size() < 3) {
+        RCLCPP_ERROR(m_node->get_logger(), "ERROR: Incomplete coordinates for Cartesian command");
+        return false;
+    }
+    
+    // STRATEGY: Prepare command for 3D pointing
     yarp::sig::Vector targetPos(3);
-    targetPos[0] = coords[0];
-    targetPos[1] = coords[1];
-    targetPos[2] = coords[2];
+    targetPos[0] = coords[0];  // X relative to robot
+    targetPos[1] = coords[1];  // Y relative to robot  
+    targetPos[2] = coords[2];  // Z adjusted for robot height
     
-    yarp::sig::Vector targetOri(4);
-    targetOri[0] = 0.0;
-    targetOri[1] = 0.0;
-    targetOri[2] = 0.0;
-    targetOri[3] = 1.0;
+    // STRATEGY: Set pointing orientation (end-effector pointing forward)
+    yarp::sig::Vector targetOri(4);  // Quaternion [x, y, z, w]
+    targetOri[0] = 0.0;  // No rotation around X
+    targetOri[1] = 0.0;  // No rotation around Y
+    targetOri[2] = 0.0;  // No rotation around Z
+    targetOri[3] = 1.0;  // Identity quaternion (no rotation)
     
-    RCLCPP_INFO_STREAM(m_node->get_logger(), 
-        "Sending cartesian command: [" << coords[0] << ", " << coords[1] << ", " << coords[2] << "]");
+    RCLCPP_INFO(m_node->get_logger(), 
+               "CARTESIAN COMMAND: Pointing towards [%.2f, %.2f, %.2f]", 
+               coords[0], coords[1], coords[2]);
     
+    // STRATEGY: Send synchronous command to YARP Cartesian controller
+    // This will move the robot's end-effector towards target coordinates
     bool success = m_cartesianCtrl->goToPoseSync(targetPos, targetOri);
     
     if (success) {
+        // Wait for motion completion before proceeding
         m_cartesianCtrl->waitMotionDone();
-        RCLCPP_INFO_STREAM(m_node->get_logger(), "Pointing command executed successfully");
+        RCLCPP_INFO_STREAM(m_node->get_logger(), "SUCCESS: Pointing command executed successfully");
         return true;
     } else {
-        RCLCPP_ERROR_STREAM(m_node->get_logger(), "Failed to send pointing command");
+        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ERROR: Failed to send pointing command");
         return false;
     }
 }
