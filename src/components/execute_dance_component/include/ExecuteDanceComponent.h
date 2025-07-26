@@ -122,10 +122,13 @@ private:
      * @return true if pointing executed successfully, false otherwise
      * 
      * This method processes pointing_command movements by:
-     * 1. Extracting artwork name from joints parameter
-     * 2. Looking up artwork coordinates
-     * 3. Transforming coordinates to robot reference frame
-     * 4. Executing Cartesian pointing movement
+     * 1. Extracting artwork name from joints parameter (joints[0] as artwork index)
+     * 2. Looking up artwork coordinates from loaded configuration
+     * 3. Transforming coordinates from map frame to robot reference frame
+     * 4. Executing Cartesian pointing movement via YARP CartesianControl
+     * 
+     * NOTE: pointing_command is a special movement type, separate from regular dance movements
+     * defined in tour configuration files. It uses Cartesian control instead of joint control.
      */
     bool ExecutePointingMovement(const std::shared_ptr<dance_interfaces::srv::GetMovement::Response> movement);
     
@@ -135,7 +138,8 @@ private:
      * @return String name of the artwork to point to
      * 
      * **IMPORTANT**: This function is ONLY used for pointing_command movements.
-     * For
+     * For regular dance movements, joints contains actual joint angles.
+     * For pointing_command, joints[0] is cast to int and used as artwork index.
      */
     std::string extractArtworkName(const std::vector<float>& joints);
     
@@ -254,7 +258,7 @@ private:
      * @return Map of POI names to 2D coordinates
      * 
      * Loads Points of Interest coordinates from a JSON configuration file.
-     * Expected format: {"pois": {"poi_name": {"x": value, "y": value}}}
+     * Expected format: {"boards": {"board_name": {"poi": {"x": value, "y": value, "yaw": value}}}}
      */
     std::map<std::string, std::pair<double, double>> loadPoiCoordinates(const std::string& filename);
     
@@ -264,7 +268,8 @@ private:
      * @return Map of artwork names to 3D coordinates
      * 
      * Loads artwork coordinates from a JSON configuration file.
-     * Expected format: {"artworks": {"artwork_name": {"x": value, "y": value, "z": value}}}
+     * Expected format: {"artworks": {"artwork_name": {"z": value}}}
+     * Note: X,Y coordinates are calculated dynamically from robot's current position and POI orientation.
      */
     std::map<std::string, std::vector<double>> loadArtworkCoordinates(const std::string& filename);
 };
