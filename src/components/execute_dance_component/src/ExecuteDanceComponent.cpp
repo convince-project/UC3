@@ -77,7 +77,10 @@ bool ExecuteDanceComponent::start(int argc, char*argv[])
     // 2) carico le coordinate dei POI dal JSON
     m_poiCoords = loadPoiCoordinates("conf/board_coords.json");
 
-    // 3) apro il client CartesianController di YARP
+    // 3) carico le coordinate delle opere d'arte dal JSON
+    m_artworkCoords = loadArtworkCoordinates("conf/artwork_coords.json");
+
+    // 4) apro il client CartesianController di YARP
     {
         yarp::os::Property opts;
         opts.put("device","cartesiancontrollerclient");
@@ -343,15 +346,12 @@ std::map<std::string, std::pair<double, double>> ExecuteDanceComponent::loadPoiC
             return poiMap;
         }
         
-        std::string line;
-        while (std::getline(file, line)) {
-            std::istringstream iss(line);
-            std::string name;
-            double x, y;
-            
-            if (iss >> name >> x >> y) {
-                poiMap[name] = std::make_pair(x, y);
-            }
+        auto config = nlohmann::ordered_json::parse(file);
+        
+        for (auto& [name, data] : config.at("boards").items()) {
+            double x = data.at("poi").at("x").get<double>();
+            double y = data.at("poi").at("y").get<double>();
+            poiMap.emplace(name, std::make_pair(x, y));
         }
         
         RCLCPP_INFO(m_node->get_logger(), "Caricate %zu POI da '%s'", poiMap.size(), filename.c_str());
@@ -363,21 +363,43 @@ std::map<std::string, std::pair<double, double>> ExecuteDanceComponent::loadPoiC
     return poiMap;
 }
 
+std::map<std::string, std::vector<double>> ExecuteDanceComponent::loadArtworkCoordinates(const std::string& filename)
+{
+    std::map<std::string, std::vector<double>> artworkMap;
+    
+    try {
+        std::ifstream file(filename);
+        if (!file.is_open()) {
+            RCLCPP_ERROR(m_node->get_logger(), "Impossibile aprire il file artwork: '%s'", filename.c_str());
+            return artworkMap;
+        }
+        
+        auto config = nlohmann::ordered_json::parse(file);
+        
+        for (auto& [name, data] : config.at("artworks").items()) {
+            double x = data.at("x").get<double>();
+            double y = data.at("y").get<double>();
+            double z = data.at("z").get<double>();
+            artworkMap.emplace(name, std::vector<double>{x, y, z});
+        }
+        
+        RCLCPP_INFO(m_node->get_logger(), "Caricate %zu opere d'arte da '%s'", artworkMap.size(), filename.c_str());
+        
+    } catch (const std::exception& ex) {
+        RCLCPP_ERROR(m_node->get_logger(), "Errore parsing artwork file '%s': %s", filename.c_str(), ex.what());
+    }
+    
+    return artworkMap;
+}
+
 bool ExecuteDanceComponent::ExecutePointingMovement(const std::shared_ptr<dance_interfaces::srv::GetMovement::Response> movement)
 {
     std::string artworkName = extractArtworkName(movement->joints);
     
     RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::ExecutePointingMovement to: " << artworkName);
     
-    std::map<std::string, std::vector<double>> artworkCoordinates = {
-        {"quadro_1", {2.5, 1.0, 1.5}},
-        {"scultura_1", {4.0, 2.0, 1.2}},
-        {"dipinto_1", {1.5, 3.5, 1.8}},
-        {"statua_1", {3.0, 0.5, 1.0}}
-    };
-    
-    auto it = artworkCoordinates.find(artworkName);
-    if (it == artworkCoordinates.end()) {
+    auto it = m_artworkCoords.find(artworkName);
+    if (it == m_artworkCoords.end()) {
         RCLCPP_ERROR_STREAM(m_node->get_logger(), "Artwork not found: " << artworkName);
         return false;
     }
@@ -390,16 +412,29 @@ bool ExecuteDanceComponent::ExecutePointingMovement(const std::shared_ptr<dance_
 
 std::string ExecuteDanceComponent::extractArtworkName(const std::vector<float>& joints)
 {
-    if (joints.empty()) return "quadro_1";
-    
-    int index = static_cast<int>(joints[0]);
-    std::vector<std::string> artworks = {"quadro_1", "scultura_1", "dipinto_1", "statua_1"};
-    
-    if (index >= 0 && index < artworks.size()) {
-        return artworks[index];
+    if (joints.empty()) {
+        if (!m_artworkCoords.empty()) {
+            return m_artworkCoords.begin()->first;
+        }
+        return "quadro_1"; 
     }
     
-    return "quadro_1";
+    int index = static_cast<int>(joints[0]);
+    
+    std::vector<std::string> artworkNames;
+    for (const auto& pair : m_artworkCoords) {
+        artworkNames.push_back(pair.first);
+    }
+    
+    if (index >= 0 && index < static_cast<int>(artworkNames.size())) {
+        return artworkNames[index];
+    }
+    
+    if (!artworkNames.empty()) {
+        return artworkNames[0];
+    }
+    
+    return "quadro_1"; 
 }
 
 std::vector<double> ExecuteDanceComponent::transformMapToRobot(const std::vector<double>& mapCoords)
