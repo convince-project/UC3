@@ -174,8 +174,6 @@ private:
      */
     void timerTask(float time);
 
-    // ========== Core Component Data ==========
-    
     /// Current dance name being executed
     std::string m_danceName;
     
