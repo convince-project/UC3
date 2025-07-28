@@ -103,7 +103,7 @@ void DanceComponent::UpdateMovement([[maybe_unused]] const std::shared_ptr<dance
     std::vector<Movement> movements_vec = dance.GetMovements();
     m_currentMovement = (m_currentMovement + 1);
     response->done_with_dance = false;
-    if(m_currentMovement >= movements_vec.size())
+    if(static_cast<std::size_t>(m_currentMovement) >= movements_vec.size())
     {
         response->done_with_dance = true;
         m_currentMovement = m_currentMovement % movements_vec.size();
