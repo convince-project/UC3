@@ -82,7 +82,7 @@ bool ExecuteDanceComponent::start(int argc, char*argv[])
     // 
     // Data loaded from "conf/board_coords.json" at startup
     // Essential for robot positioning strategy during guided museum tours
-    m_poiCoords = loadPoiCoordinates("conf/board_coords.json");
+    m_poiCoords = loadPoiCoordinates("/home/user1/UC3/conf/board_coords.json");
 
     // 3) load artwork coordinates from JSON
     // m_artworkCoords: Map storing 3D coordinates of artworks for precise pointing
@@ -92,7 +92,7 @@ bool ExecuteDanceComponent::start(int argc, char*argv[])
     // Data loaded from "conf/artwork_coords.json" at startup
     // Used by ExecutePointingMovement() for Cartesian control commands
     // This allows the robot to accurately point to artworks during tours   
-    m_artworkCoords = loadArtworkCoordinates("conf/artwork_coords.json");
+    m_artworkCoords = loadArtworkCoordinates("/home/user1/UC3/conf/artwork_coords.json");
 
     // 4) open YARP CartesianController client
     {
