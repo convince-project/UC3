@@ -21,6 +21,15 @@ bool ExecuteDanceComponent::start(int argc, char*argv[])
     
     // STRATEGY: Initialize YarpActionPlayer connection instead of CTP service
     yAPClientPortName = "/ExecuteDanceComponent/yarpActionsPlayerClient/rpc";
+    
+    // Clean up any existing port with same name
+    if (yarp::os::Network::exists(yAPClientPortName)) {
+        yWarning() << "Port" << yAPClientPortName << "already exists, attempting cleanup";
+        // Force disconnect any existing connections
+        yarp::os::Network::disconnect(yAPClientPortName, "/yarpActionsPlayer/rpc");
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+    
     bool b = m_yAPClientPort.open(yAPClientPortName);
     if (!b)
     {
@@ -72,9 +81,26 @@ bool ExecuteDanceComponent::start(int argc, char*argv[])
         opts.put("device","cartesiancontrollerclient"); // Device type
         opts.put("local", "/ExecuteDanceComponent/cartesian:o"); // Local port name
         opts.put("remote","/cartesianController/rpc:i"); // Remote port to connect to
-        m_cartesianClient.open(opts);
-        if (m_cartesianClient.isValid()) { 
+        
+        RCLCPP_INFO(m_node->get_logger(), "Attempting to connect to CartesianController...");
+        
+        if (!m_cartesianClient.open(opts)) {
+            RCLCPP_ERROR(m_node->get_logger(), 
+                        "CRITICAL: Failed to open CartesianController client");
+            RCLCPP_ERROR(m_node->get_logger(), 
+                        "Please ensure CartesianController server is running at /cartesianController/rpc:i");
+            RCLCPP_WARN(m_node->get_logger(), 
+                       "ExecuteDanceComponent will continue without CartesianControl (pointing disabled)");
+            m_cartesianCtrl = nullptr;
+        } else if (m_cartesianClient.isValid()) { 
             m_cartesianClient.view(m_cartesianCtrl); // View the CartesianControl interface
+            if (!m_cartesianCtrl) {
+                RCLCPP_ERROR(m_node->get_logger(), 
+                            "Failed to get CartesianControl interface");
+            } else {
+                RCLCPP_INFO(m_node->get_logger(), 
+                           "Successfully connected to CartesianController");
+            }
         }
     }
 
@@ -166,7 +192,7 @@ void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_inte
             }
             else {
                 // STRATEGY: Use YarpActionPlayer instead of CTP service for dance movements
-                status = SendMovementToYAP(movement->part_name, 1.0f); // Using part_name as action name
+                status = SendMovementToYAP(request->dance_name, 1.0f); // Using part_name as action name
             }
             
             if (!status) {
