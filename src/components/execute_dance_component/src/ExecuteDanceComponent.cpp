@@ -19,43 +19,15 @@ bool ExecuteDanceComponent::start(int argc, char*argv[])
         rclcpp::init(/*argc*/ argc, /*argv*/ argv);
     }
     
-    // Ctp Service
-    // calls the GetPartNames service
-    auto getPartNamesClientNode = rclcpp::Node::make_shared("ExecuteDanceComponentGetPartNamesNode");
-    std::shared_ptr<rclcpp::Client<dance_interfaces::srv::GetPartNames>> getPartNamesClient =
-        getPartNamesClientNode->create_client<dance_interfaces::srv::GetPartNames>("/DanceComponent/GetPartNames");
-    auto getPartNamesRequest = std::make_shared<dance_interfaces::srv::GetPartNames::Request>();
-    
-    while (!getPartNamesClient->wait_for_service(std::chrono::seconds(1))) {
-        if (!rclcpp::ok()) {
-            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'getPartNamesClient'. Exiting.");
-        }
-    }
-    
-    auto getPartNamesResult = getPartNamesClient->async_send_request(getPartNamesRequest);
-    rclcpp::spin_until_future_complete(getPartNamesClientNode, getPartNamesResult);
-    auto ctpServiceParts = getPartNamesResult.get()->parts;
-    
-    if (!ctpServiceParts.empty())
+    // STRATEGY: Initialize YarpActionPlayer connection instead of CTP service
+    yAPClientPortName = "/ExecuteDanceComponent/yarpActionsPlayerClient/rpc";
+    bool b = m_yAPClientPort.open(yAPClientPortName);
+    if (!b)
     {
-        for (std::string part : ctpServiceParts)
-        {
-            yarp::os::Port *ctpPort = new yarp::os::Port;
-            std::string portName = "/ExecuteDanceComponentCtpServiceClient/" + part + "/rpc";
-            bool b = ctpPort->open(portName);
-            if (!b)
-            {
-                yError() << "Cannot open" << part << " ctpService port";
-                return false;
-            }
-            m_pCtpService.insert({part, *ctpPort});
-            yarp::os::Network::connect(portName, "/ctpservice/" + part + "/rpc");
-        }
+        yError() << "Cannot open yarpActionsPlayer client port";
+        return false;
     }
-    else
-    {
-        yWarning() << "Movement part names are empty. No movements will be executed!";
-    }
+    yarp::os::Network::connect(yAPClientPortName, "/yarpActionsPlayer/rpc");
     
     m_node = rclcpp::Node::make_shared("ExecuteDanceComponentNode");
     m_executeDanceService = m_node->create_service<execute_dance_interfaces::srv::ExecuteDance>("/ExecuteDanceComponent/ExecuteDance",  
@@ -112,11 +84,6 @@ bool ExecuteDanceComponent::start(int argc, char*argv[])
 
 bool ExecuteDanceComponent::close()
 {
-    for (auto port : m_pCtpService)
-    {
-        delete &port.second;
-    }
-    
     if (m_cartesianClient.isValid()) {
         m_cartesianClient.close();
     }
@@ -197,15 +164,13 @@ void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_inte
             if (movement->part_name == "pointing_command") {
                 status = ExecutePointingMovement(movement);
             }
-            else if(m_danceName == "idleMove" || m_danceName == "navigationPosition") {
-                status = SendMovementNow(movement->time, movement->offset, movement->joints, m_pCtpService.at(movement->part_name));
-            } 
             else {
-                status = SendMovementToQueue(movement->time, movement->offset, movement->joints, m_pCtpService.at(movement->part_name));
+                // STRATEGY: Use YarpActionPlayer instead of CTP service for dance movements
+                status = SendMovementToYAP(movement->part_name, 1.0f); // Using part_name as action name
             }
             
             if (!status) {
-                RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "Movement failed to sent. Is ctpService for part" << movement->part_name << "running?");
+                RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "Movement failed to send. Is YarpActionPlayer running?");
                 continue;
             }
         }
@@ -300,45 +265,131 @@ void ExecuteDanceComponent::IsDancing(const std::shared_ptr<execute_dance_interf
     response->is_ok = true;
 }
 
-bool ExecuteDanceComponent::SendMovementToQueue(float time, int offset, std::vector<float> joints, yarp::os::Port &port)
+// STRATEGY: YarpActionPlayer methods instead of CTP service
+bool ExecuteDanceComponent::SendMovementToYAP(const std::string &actionName, float speedFactor)
 {
     yarp::os::Bottle res;
     yarp::os::Bottle cmd;
-    
-    cmd.addVocab32("ctpq");
-    cmd.addVocab32("time");
-    cmd.addFloat64(time);
-    cmd.addVocab32("off");
-    cmd.addFloat64(offset);
-    cmd.addVocab32("pos");
-    
-    yarp::os::Bottle &list = cmd.addList();
-    for (auto joint : joints)
-    {
-        list.addFloat64(joint);
-    }
-    
-    return port.write(cmd, res);
-}
 
-bool ExecuteDanceComponent::SendMovementNow(float time, int offset, std::vector<float> joints, yarp::os::Port &port)
-{
-    yarp::os::Bottle res;
-    yarp::os::Bottle cmd;
-    
-    cmd.addVocab32("ctpn");
-    cmd.addVocab32("time");
-    cmd.addFloat64(time);
-    cmd.addVocab32("off");
-    cmd.addFloat64(offset);
-    cmd.addVocab32("pos");
-    
-    yarp::os::Bottle &list = cmd.addList();
-    for (auto joint : joints)
+    cmd.clear();
+    res.clear();
+    cmd.addString("choose_action");
+    cmd.addString(actionName);
+
+    std::cout << "ExecuteDanceComponent::SendMovementToYAP sending bottle content: " << cmd.toString() << " and action name is " << actionName << std::endl;
+
+    bool status = m_yAPClientPort.write(cmd, res);
+
+    if (!status)
     {
-        list.addFloat64(joint);
+        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP Failed to send choose_action command to YAP");
+        return false;
     }
-    return port.write(cmd, res);
+
+    if (res.get(0).asVocab32() != yarp::os::createVocab32('o', 'k'))
+    {
+        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP YAP did not accept the action: " << actionName);
+        return false;
+    }
+    else
+    {
+        RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP YAP accepted the action: " << actionName);
+    }
+
+    cmd.clear();
+    res.clear();
+    cmd.addString("speed_factor");
+    cmd.addFloat32(speedFactor);
+
+    std::cout << "ExecuteDanceComponent::SendMovementToYAP sending bottle content: " << cmd.toString() << " and speed factor is " << speedFactor << std::endl;
+
+    status = m_yAPClientPort.write(cmd, res);
+
+    if (!status)
+    {
+        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP Failed to send speed_factor command to YAP");
+        return false;
+    }
+
+    if (res.get(0).asVocab32() != yarp::os::createVocab32('o', 'k'))
+    {
+        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP YAP did not accept the speed factor: " << speedFactor);
+        return false;
+    }
+    else
+    {
+        RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP YAP accepted the speed factor: " << speedFactor);
+    }
+
+    cmd.clear();
+    res.clear();
+    cmd.addString("start");
+
+    std::cout << "ExecuteDanceComponent::SendMovementToYAP sending bottle content: " << cmd.toString() << " and action name is " << actionName << std::endl;
+
+    status = m_yAPClientPort.write(cmd, res);
+
+    if (!status)
+    {
+        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP Failed to send start command to YAP");
+        return false;
+    }
+
+    if (res.get(0).asVocab32() != yarp::os::createVocab32('o', 'k'))
+    {
+        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP YAP did not accept the action: " << actionName);
+        return false;
+    }
+    else
+    {
+        RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP YAP accepted the action: " << actionName);
+    }
+
+    while (m_timerTask)
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
+    cmd.clear();
+    res.clear();
+    cmd.addString("reset");
+
+    status = m_yAPClientPort.write(cmd, res);
+
+    if (!status)
+    {
+        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP Failed to send reset command to YAP");
+        return false;
+    }
+
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP Reset status: " << res.get(0).toString());
+
+    cmd.clear();
+    res.clear();
+    cmd.addString("speed_factor");
+    cmd.addFloat32(1.0f);
+
+    std::cout << "ExecuteDanceComponent::SendMovementToYAP sending bottle content: " << cmd.toString() << " and speed factor is " << 1 << std::endl;
+
+    status = m_yAPClientPort.write(cmd, res);
+
+    if (!status)
+    {
+        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP Failed to send speed_factor command to YAP");
+        return false;
+    }
+
+    if (res.get(0).asVocab32() != yarp::os::createVocab32('o', 'k'))
+    {
+        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP YAP did not accept the speed factor: " << 1);
+        return false;
+    }
+    else
+    {
+        RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP YAP accepted the speed factor: " << 1);
+    }
+
+    return true;
 }
 
 void ExecuteDanceComponent::amclPoseCallback(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg)
@@ -359,14 +410,6 @@ void ExecuteDanceComponent::amclPoseCallback(const geometry_msgs::msg::PoseWithC
     
     // Quaternion to yaw conversion formula
     m_currentYaw = std::atan2(2*(qw*qz + qx*qy),1 - 2*(qy*qy + qz*qz));
-    
-    // Periodic logging for debugging (uncomment for development)
-    // static int callback_count = 0;
-    // if (++callback_count % 100 == 0) {
-    //     RCLCPP_DEBUG(m_node->get_logger(), 
-    //                 "LOCALIZATION: Robot @ [%.2f, %.2f, %.2f rad] (update #%d)", 
-    //                 m_currentX, m_currentY, m_currentYaw, callback_count);
-    // }
 }
 
 std::map<std::string, std::pair<double, double>> ExecuteDanceComponent::loadPoiCoordinates(const std::string& filename)
@@ -525,6 +568,7 @@ std::string ExecuteDanceComponent::extractArtworkName(const std::vector<float>& 
     
     return "quadro_1";  // Ultimate fallback
 }
+
 std::vector<double> ExecuteDanceComponent::transformMapToRobot(const std::vector<double>& mapCoords)
 {
     // STRATEGY: Transform artwork coordinates from map frame to robot frame

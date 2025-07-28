@@ -31,13 +31,13 @@
  * 
  * This component manages the execution of dance movements for tour guiding activities,
  * including pointing gestures towards artworks in museums.
- * It integrates ROS2 services with YARP controllers for robot motion control.
+ * It integrates ROS2 services with YARP ActionPlayer and CartesianController for robot motion control.
  * 
  * Key features:
- * - Dance movement execution via YARP CTP services
+ * - Dance movement execution via YARP ActionPlayer
  * - Pointing gestures towards specific artworks using Cartesian control
  * - Real-time robot localization integration
- * - Thread-safe movement queue management
+ * - POI orientation before movement execution
  */
 class ExecuteDanceComponent 
 {
@@ -85,63 +85,39 @@ public:
                    std::shared_ptr<execute_dance_interfaces::srv::IsDancing::Response> response);
 
 private:
-    // ========== Movement Execution Methods ==========
-    
-    /**
-     * @brief Send movement to YARP queue for delayed execution
-     * @param time Movement duration in seconds
-     * @param offset Time offset before execution in milliseconds
-     * @param joints Joint angles or movement parameters
-     * @param port YARP port for communication with robot part
-     * @return true if command sent successfully, false otherwise
-     */
-    bool SendMovementToQueue(float time, int offset, std::vector<float> joints, yarp::os::Port &port);
-    
-    /**
-     * @brief Send movement for immediate execution
-     * @param time Movement duration in seconds
-     * @param offset Time offset before execution in milliseconds
-     * @param joints Joint angles or movement parameters
-     * @param port YARP port for communication with robot part
-     * @return true if command sent successfully, false otherwise
-     */
-    bool SendMovementNow(float time, int offset, std::vector<float> joints, yarp::os::Port &port);
+    // ========== YAP Movement Execution Methods ==========
     
     /**
      * @brief Send action command to YARP Actions Player
      * @param actionName Name of the action to execute
+     * @param speedFactor Speed factor for action execution
      * @return true if command sent successfully, false otherwise
      */
-    bool SendMovementToYAP(const std::string &actionName);
+    bool SendMovementToYAP(const std::string &actionName, float speedFactor);
 
-    // ========== Pointing Functionality Methods ==========
+    // ========== Dance Movement Integration Methods ==========
     
     /**
-     * @brief Execute pointing movement towards an artwork
+     * @brief Execute pointing movement from DanceComponent service
      * @param movement Movement response containing pointing parameters
      * @return true if pointing executed successfully, false otherwise
      * 
-     * This method processes pointing_command movements by:
-     * 1. Extracting artwork name from joints parameter (joints[0] as artwork index)
-     * 2. Looking up artwork coordinates from loaded configuration
-     * 3. Transforming coordinates from map frame to robot reference frame
-     * 4. Executing Cartesian pointing movement via YARP CartesianControl
-     * 
-     * NOTE: pointing_command is a special movement type, separate from regular dance movements
-     * defined in tour configuration files. It uses Cartesian control instead of joint control.
+     * This method handles pointing commands received from DanceComponent's GetMovement service.
+     * It processes the movement data to extract artwork information and execute pointing gestures.
      */
     bool ExecutePointingMovement(const std::shared_ptr<dance_interfaces::srv::GetMovement::Response> movement);
     
     /**
-     * @brief Extract artwork name from movement joints parameter
-     * @param joints Vector where joints[0] contains the artwork index as float
-     * @return String name of the artwork to point to
+     * @brief Extract artwork name from joints vector
+     * @param joints Vector containing artwork index (for pointing commands)
+     * @return Artwork name string
      * 
-     * **IMPORTANT**: This function is ONLY used for pointing_command movements.
-     * For regular dance movements, joints contains actual joint angles.
-     * For pointing_command, joints[0] is cast to int and used as artwork index.
+     * For pointing commands, joints[0] contains the artwork index instead of joint angles.
+     * This method converts the numeric index to the corresponding artwork name.
      */
     std::string extractArtworkName(const std::vector<float>& joints);
+
+    // ========== Coordinate Transformation Methods ==========
     
     /**
      * @brief Transform coordinates from map frame to robot frame
@@ -174,6 +150,8 @@ private:
      */
     void timerTask(float time);
 
+    // ========== Member Variables ==========
+    
     /// Current dance name being executed
     std::string m_danceName;
     
@@ -185,9 +163,6 @@ private:
     
     /// Is dancing status service server
     rclcpp::Service<execute_dance_interfaces::srv::IsDancing>::SharedPtr m_isDancingService;
-    
-    /// Map of robot parts to YARP CTP service ports
-    std::map<std::string, yarp::os::Port &> m_pCtpService;
     
     /// Thread for dance execution
     std::thread m_threadExecute;
@@ -201,7 +176,7 @@ private:
     /// Timer task active flag
     bool m_timerTask{false};
 
-    // ========== YARP Actions Players ==========
+    // ========== YARP Actions Player ==========
     
     /// YARP Actions Player client port name
     std::string yAPClientPortName;
@@ -256,7 +231,7 @@ private:
      * @return Map of POI names to 2D coordinates
      * 
      * Loads Points of Interest coordinates from a JSON configuration file.
-     * Expected format: {"boards": {"board_name": {"poi": {"x": value, "y": value, "yaw": value}}}}
+     * Expected format: {"boards": {"board_name": {"poi": {"x": value, "y": value}}}}
      */
     std::map<std::string, std::pair<double, double>> loadPoiCoordinates(const std::string& filename);
     
@@ -266,8 +241,7 @@ private:
      * @return Map of artwork names to 3D coordinates
      * 
      * Loads artwork coordinates from a JSON configuration file.
-     * Expected format: {"artworks": {"artwork_name": {"z": value}}}
-     * Note: X,Y coordinates are calculated dynamically from robot's current position and POI orientation.
+     * Expected format: {"artworks": {"artwork_name": {"x": value, "y": value, "z": value}}}
      */
     std::map<std::string, std::vector<double>> loadArtworkCoordinates(const std::string& filename);
 };
