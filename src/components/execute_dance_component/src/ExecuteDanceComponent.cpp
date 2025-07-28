@@ -685,3 +685,43 @@ bool ExecuteDanceComponent::sendCartesianCommand(const std::vector<double>& coor
         return false;
     }
 }
+
+bool ExecuteDanceComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
+{
+    // CartesianController client configuration
+    bool okCartesian = rf.check("CARTESIAN-CLIENT");
+    std::string device = "cartesiancontrollerclient";
+    std::string local = "/ExecuteDanceComponent/cartesian:o";
+    std::string remote = "/cartesianController/rpc:i";
+    
+    if (okCartesian) {
+        yarp::os::Searchable &cartesian_config = rf.findGroup("CARTESIAN-CLIENT");
+        if (cartesian_config.check("device")) {
+            device = cartesian_config.find("device").asString();
+        }
+        if (cartesian_config.check("local")) {
+            local = cartesian_config.find("local").asString();
+        }
+        if (cartesian_config.check("remote")) {
+            remote = cartesian_config.find("remote").asString();
+        }
+    }
+    
+    yarp::os::Property opts;
+    opts.put("device", device);
+    opts.put("local", local);
+    opts.put("remote", remote);
+    
+    if (!m_cartesianClient.open(opts)) {
+        yWarning() << "Failed to open CartesianController client - pointing functionality disabled";
+        return true; // Continue without CartesianController
+    }
+    
+    m_cartesianClient.view(m_cartesianCtrl);
+    if (!m_cartesianCtrl) {
+        yError() << "Failed to get CartesianControl interface";
+        return false;
+    }
+    
+    return true;
+}
