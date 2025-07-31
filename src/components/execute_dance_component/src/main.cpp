@@ -9,6 +9,6 @@ int main(int argc, char *argv[])
         return 1;
     }
     executeDanceComponent.spin();
-    executeDanceComponent.close();
+    // executeDanceComponent.close();
     return 0;
 }

@@ -24,6 +24,7 @@
 #include <execute_dance_interfaces/srv/is_dancing.hpp>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
 #include <map>
+#include <yarp/os/ResourceFinder.h>
 
 /**
  * @class ExecuteDanceComponent
@@ -39,7 +40,7 @@
  * - Real-time robot localization integration
  * - POI orientation before movement execution
  */
-class ExecuteDanceComponent 
+class ExecuteDanceComponent
 {
 public:
     /**
@@ -214,6 +215,10 @@ private:
     /// YARP Cartesian control interface
     yarp::dev::ICartesianControl* m_cartesianCtrl{nullptr};
 
+    // Porta YARP per il controller cartesiano (come per YarpActionPlayer)
+    std::string m_cartesianPortName;
+    yarp::os::Port m_cartesianPort;
+
     // ========== Callback and Helper Methods ==========
     
     /**
@@ -244,4 +249,18 @@ private:
      * Expected format: {"artworks": {"artwork_name": {"x": value, "y": value, "z": value}}}
      */
     std::map<std::string, std::vector<double>> loadArtworkCoordinates(const std::string& filename);
+
+    /**
+     * @brief Configure YARP interfaces and connections
+     * @param rf ResourceFinder object for loading configuration
+     * @return true if configuration successful, false otherwise
+     * 
+     * This method configures the YARP interfaces used for communication with the robot
+     * and other components. It initializes the Actions Player client port, Cartesian controller,
+     * and other necessary YARP devices.
+     */
+    bool ConfigureYARP(yarp::os::ResourceFinder &rf);
+
+    // Path al file di configurazione del controller cartesiano (modificare qui se necessario)
+    std::string cartesianControllerIniPath = "/home/user1/ergocub-cartesian-control/src/r1_cartesian_control/app/conf/config_left_sim_r1_hand_pointing.ini";
 };
