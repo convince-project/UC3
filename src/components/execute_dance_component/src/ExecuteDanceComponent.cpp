@@ -10,7 +10,6 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
 
-
 bool ExecuteDanceComponent::start(int argc, char*argv[])
 {
     if(!rclcpp::ok())
