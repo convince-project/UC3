@@ -8,14 +8,11 @@
 #include "ExecuteDanceComponent.h"
 #include <fstream>
 #include <nlohmann/json.hpp>
-<<<<<<< HEAD
-=======
 #include <cmath>
 #include <map>
 #include <sstream>
 #include <cstdlib> // Per std::system
 #include <thread> // Per sleep_for
->>>>>>> 7edaaa961d635c046af1c3f6467948f9f2991f11
 
 bool ExecuteDanceComponent::start(int argc, char*argv[])
 {
@@ -37,7 +34,7 @@ bool ExecuteDanceComponent::start(int argc, char*argv[])
             return false;
         }
         else {
-            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "r1-cartesian-control avviato con successo.");
+            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "r1-cartesian-control per braccio sinistro avviato con successo.");
         }
     }
 
@@ -51,7 +48,7 @@ bool ExecuteDanceComponent::start(int argc, char*argv[])
             return false;
         }
         else {
-            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "r1-cartesian-control avviato con successo.");
+            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "r1-cartesian-control per braccio destro avviato con successo.");
         }
     }
     
@@ -68,7 +65,7 @@ bool ExecuteDanceComponent::start(int argc, char*argv[])
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "r1-cartesian-control attivo e porta disponibile.");
     }
 
-    // STRATEGY: Initialize YarpActionPlayer connection 
+    // Initialize YarpActionPlayer connection 
     yAPClientPortName = "/ExecuteDanceComponent/yarpActionsPlayerClient/rpc";
     
     // Clean up any existing port with same name
@@ -127,48 +124,68 @@ bool ExecuteDanceComponent::start(int argc, char*argv[])
     // This allows the robot to accurately point to artworks during tours   
     m_artworkCoords = loadArtworkCoordinates("/home/user1/UC3/conf/artwork_coords.json");
 
-    // 4) open YARP CartesianController port (simple port, not device)
+    // 4) open YARP CartesianController ports for both arms
     {
-        m_cartesianPortName = "/ExecuteDanceComponent/cartesianClient/rpc";
-        const std::string cartesianServerPort = "/r1-cartesian-control/left_arm/rpc:i";
+        // Left arm controller
+        m_cartesianPortNameLeft = "/ExecuteDanceComponent/cartesianClientLeft/rpc";
+        const std::string cartesianServerPortLeft = "/r1-cartesian-control/left_arm/rpc:i";
 
         // Clean up any existing port with same name
-        if (yarp::os::Network::exists(m_cartesianPortName)) {
-            yWarning() << "Port" << m_cartesianPortName << " already exists, attempting cleanup";
-            yarp::os::Network::disconnect(m_cartesianPortName, cartesianServerPort);
+        if (yarp::os::Network::exists(m_cartesianPortNameLeft)) {
+            yWarning() << "Port" << m_cartesianPortNameLeft << " already exists, attempting cleanup";
+            yarp::os::Network::disconnect(m_cartesianPortNameLeft, cartesianServerPortLeft);
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
         }
 
-        bool ok = m_cartesianPort.open(m_cartesianPortName);
-        if (!ok) {
-            yError() << "Cannot open CartesianController client port";
+        bool okLeft = m_cartesianPortLeft.open(m_cartesianPortNameLeft);
+        if (!okLeft) {
+            yError() << "Cannot open Left CartesianController client port";
             return false;
         }
-        yarp::os::Network::connect(m_cartesianPortName, cartesianServerPort);
-        RCLCPP_INFO(m_node->get_logger(), "Connected to CartesianController via simple YARP port.");
+        yarp::os::Network::connect(m_cartesianPortNameLeft, cartesianServerPortLeft);
+        RCLCPP_INFO(m_node->get_logger(), "Connected to LEFT CartesianController via YARP port.");
+
+        // Right arm controller
+        m_cartesianPortNameRight = "/ExecuteDanceComponent/cartesianClientRight/rpc";
+        const std::string cartesianServerPortRight = "/r1-cartesian-control/right_arm/rpc:i";
+
+        // Clean up any existing port with same name
+        if (yarp::os::Network::exists(m_cartesianPortNameRight)) {
+            yWarning() << "Port" << m_cartesianPortNameRight << " already exists, attempting cleanup";
+            yarp::os::Network::disconnect(m_cartesianPortNameRight, cartesianServerPortRight);
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        }
+
+        bool okRight = m_cartesianPortRight.open(m_cartesianPortNameRight);
+        if (!okRight) {
+            yError() << "Cannot open Right CartesianController client port";
+            return false;
+        }
+        yarp::os::Network::connect(m_cartesianPortNameRight, cartesianServerPortRight);
+        RCLCPP_INFO(m_node->get_logger(), "Connected to RIGHT CartesianController via YARP port.");
     }
 
     RCLCPP_DEBUG(m_node->get_logger(), "ExecuteDanceComponent::start");      
 
-    // Test automatico: chiama il servizio ExecuteDance con "inizio" dopo l'avvio
-    {
-        auto client = m_node->create_client<execute_dance_interfaces::srv::ExecuteDance>("/ExecuteDanceComponent/ExecuteDance");
-        // Attendi che il servizio sia disponibile
-        while (!client->wait_for_service(std::chrono::seconds(1))) {
-            RCLCPP_INFO(m_node->get_logger(), "Waiting for /ExecuteDanceComponent/ExecuteDance service...");
-        }
-        auto request = std::make_shared<execute_dance_interfaces::srv::ExecuteDance::Request>();
-        request->dance_name = "inizio";
-        RCLCPP_INFO(m_node->get_logger(), "Calling ExecuteDance service with dance_name='inizio'");
-        auto result = client->async_send_request(request);
-        // Attendi la risposta (sincrono per debug)
-        if (rclcpp::spin_until_future_complete(m_node, result) == rclcpp::FutureReturnCode::SUCCESS) {
-            auto response = result.get();
-            RCLCPP_INFO(m_node->get_logger(), "Service response: is_ok=%d, error_msg=%s", response->is_ok, response->error_msg.c_str());
-        } else {
-            RCLCPP_ERROR(m_node->get_logger(), "Failed to call ExecuteDance service");
-        }
-    }
+    // // Test automatico: chiama il servizio ExecuteDance con "inizio" dopo l'avvio
+    // {
+    //     auto client = m_node->create_client<execute_dance_interfaces::srv::ExecuteDance>("/ExecuteDanceComponent/ExecuteDance");
+    //     // Attendi che il servizio sia disponibile
+    //     while (!client->wait_for_service(std::chrono::seconds(1))) {
+    //         RCLCPP_INFO(m_node->get_logger(), "Waiting for /ExecuteDanceComponent/ExecuteDance service...");
+    //     }
+    //     auto request = std::make_shared<execute_dance_interfaces::srv::ExecuteDance::Request>();
+    //     request->dance_name = "inizio";
+    //     RCLCPP_INFO(m_node->get_logger(), "Calling ExecuteDance service with dance_name='inizio'");
+    //     auto result = client->async_send_request(request);
+    //     // Attendi la risposta (sincrono per debug)
+    //     if (rclcpp::spin_until_future_complete(m_node, result) == rclcpp::FutureReturnCode::SUCCESS) {
+    //         auto response = result.get();
+    //         RCLCPP_INFO(m_node->get_logger(), "Service response: is_ok=%d, error_msg=%s", response->is_ok, response->error_msg.c_str());
+    //     } else {
+    //         RCLCPP_ERROR(m_node->get_logger(), "Failed to call ExecuteDance service");
+    //     }
+    // }
 
     return true;
 }
@@ -177,6 +194,14 @@ bool ExecuteDanceComponent::close()
 {
     if (m_cartesianClient.isValid()) {
         m_cartesianClient.close();
+    }
+    
+    // Close both cartesian ports
+    if (m_cartesianPortLeft.isOpen()) {
+        m_cartesianPortLeft.close();
+    }
+    if (m_cartesianPortRight.isOpen()) {
+        m_cartesianPortRight.close();
     }
     
     rclcpp::shutdown();  
@@ -191,16 +216,18 @@ void ExecuteDanceComponent::spin()
 void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Request> request)
 {
     RCLCPP_INFO(m_node->get_logger(), "DEBUG: Requested dance_name: '%s'", request->dance_name.c_str());
-    for (const auto& [name, coords] : m_poiCoords) {
-        RCLCPP_INFO(m_node->get_logger(), "DEBUG: POI loaded: '%s'", name.c_str());
-    }
-
-    auto it = m_poiCoords.find(request->dance_name);
-    if (it != m_poiCoords.end()) {
-        // Calculate direction towards POI from current robot position
-        double dx     = it->second.first  - m_currentX;
-        double dy     = it->second.second - m_currentY;
-        double goal   = std::atan2(dy, dx);
+    
+    // NUOVA STRATEGIA: Cerca l'artwork invece del POI per l'orientamento
+    auto artworkIt = m_artworkCoords.find(request->dance_name);
+    if (artworkIt != m_artworkCoords.end()) {
+        // Use artwork coordinates for robot orientation
+        double artwork_x = artworkIt->second[0];  // X coordinate from artwork
+        double artwork_y = artworkIt->second[1];  // Y coordinate from artwork
+        
+        // Calculate direction towards ARTWORK from current robot position
+        double dx = artwork_x - m_currentX;
+        double dy = artwork_y - m_currentY;
+        double goal = std::atan2(dy, dx);
         double dtheta = goal - m_currentYaw;
 
         // Normalize angle to [-π, π] range
@@ -208,33 +235,43 @@ void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_inte
         while (dtheta < -M_PI) dtheta += 2*M_PI;
 
         RCLCPP_INFO(m_node->get_logger(),
-                    "STRATEGY: Orienting towards POI '%s': angular correction=%.2f rad",
-                    request->dance_name.c_str(), dtheta);
+                    "NUOVA STRATEGIA: Orienting towards ARTWORK '%s' at [%.2f, %.2f]: angular correction=%.2f rad (%.1f degrees)",
+                    request->dance_name.c_str(), artwork_x, artwork_y, dtheta, dtheta * 180.0 / M_PI);
 
         // Send rotation command to Cartesian controller (if dtheta is significant)
         if (std::abs(dtheta) > 1e-3) {
             yarp::os::Bottle cmd, res;
-            cmd.addString("rotate_rad");
+            cmd.addString("rotate_rad"); 
             cmd.addFloat64(dtheta);
-            cmd.addFloat64(m_currentX); // x: posizione attuale robot
-            cmd.addFloat64(m_currentY); // y: posizione attuale robot
-            cmd.addFloat64(0.0);        // z: altezza base (se la base è a z=0)
-            cmd.addFloat64(3.0);        // durata traiettoria
+            cmd.addFloat64(artwork_x);    // Use ARTWORK coordinates, not robot coordinates
+            cmd.addFloat64(artwork_y);    // Use ARTWORK coordinates, not robot coordinates
+            cmd.addFloat64(0.0);          // z: altezza base
+            cmd.addFloat64(10.0);         // durata traiettoria
 
             RCLCPP_INFO(m_node->get_logger(),
-                        "Sending rotate_rad %.2f [x=%.2f, y=%.2f, z=%.2f, duration=%.2f] to Cartesian controller",
-                        dtheta, m_currentX, m_currentY, 0.0, 3.0);
+                        "COMMAND DETAILS: rotate_rad %.2f [x=%.2f, y=%.2f, z=%.2f, duration=%.2f]",
+                        dtheta, artwork_x, artwork_y, 0.0, 10.0);
 
-            bool ok = m_cartesianPort.write(cmd, res);
+            RCLCPP_INFO(m_node->get_logger(),
+                        "SENDING TO PORT: %s -> /r1-cartesian-control/left_arm/rpc:i",
+                        m_cartesianPortNameLeft.c_str());
+
+            // Use LEFT arm for rotation by default
+            bool ok = m_cartesianPortLeft.write(cmd, res);
             if (!ok || res.size() == 0 || res.get(0).asVocab32() != yarp::os::createVocab32('o','k')) {
                 RCLCPP_WARN(m_node->get_logger(),
-                            "Cartesian controller did not accept rotate_rad command: %s", res.toString().c_str());
+                            "PORT RESPONSE: %s did not accept rotate_rad command: %s", 
+                            m_cartesianPortNameLeft.c_str(), res.toString().c_str());
+            } else {
+                RCLCPP_INFO(m_node->get_logger(), 
+                            "PORT RESPONSE: %s rotation command accepted successfully", 
+                            m_cartesianPortNameLeft.c_str());
             }
         }
     }
     else {
         RCLCPP_WARN(m_node->get_logger(),
-                    "No POI found '%s', skipping orientation.",
+                    "No ARTWORK found '%s', skipping orientation.",
                     request->dance_name.c_str());
     }
 
@@ -747,22 +784,27 @@ bool ExecuteDanceComponent::sendCartesianCommand(const std::vector<double>& coor
     cmd.addFloat64(0.0); // qz
     cmd.addFloat64(1.0); // qw
 
-    RCLCPP_INFO(m_node->get_logger(),
-        "CARTESIAN COMMAND: Sending go_to_pose [%.2f, %.2f, %.2f, 0,0,0,1]",
-        coords[0], coords[1], coords[2]);
+    // STRATEGY: Choose arm based on Y coordinate (left/right side)
+    bool useLeftArm = coords[1] >= 0.0; // Left side of robot
+    yarp::os::Port* activePort = useLeftArm ? &m_cartesianPortLeft : &m_cartesianPortRight;
+    std::string armName = useLeftArm ? "LEFT" : "RIGHT";
 
-    bool success = m_cartesianPort.write(cmd, res);
+    RCLCPP_INFO(m_node->get_logger(),
+        "CARTESIAN COMMAND: Sending go_to_pose [%.2f, %.2f, %.2f, 0,0,0,1] to %s arm",
+        coords[0], coords[1], coords[2], armName.c_str());
+
+    bool success = activePort->write(cmd, res);
 
     if (!success) {
-        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ERROR: Failed to send Bottle to Cartesian controller");
+        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ERROR: Failed to send Bottle to " << armName << " Cartesian controller");
         return false;
     }
 
     if (res.size() > 0 && res.get(0).asVocab32() == yarp::os::createVocab32('o','k')) {
-        RCLCPP_INFO_STREAM(m_node->get_logger(), "SUCCESS: Pointing command executed successfully");
+        RCLCPP_INFO_STREAM(m_node->get_logger(), "SUCCESS: " << armName << " arm pointing command executed successfully");
         return true;
     } else {
-        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ERROR: Cartesian controller did not accept the command: " << res.toString());
+        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ERROR: " << armName << " Cartesian controller did not accept the command: " << res.toString());
         return false;
     }
 }

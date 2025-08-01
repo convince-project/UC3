@@ -219,6 +219,12 @@ private:
     std::string m_cartesianPortName;
     yarp::os::Port m_cartesianPort;
 
+    // Cartesian controllers - Left and Right
+    std::string m_cartesianPortNameLeft;
+    std::string m_cartesianPortNameRight;
+    yarp::os::Port m_cartesianPortLeft;
+    yarp::os::Port m_cartesianPortRight;
+    
     // ========== Callback and Helper Methods ==========
     
     /**
