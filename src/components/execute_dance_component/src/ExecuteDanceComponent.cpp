@@ -20,13 +20,14 @@ bool ExecuteDanceComponent::start(int argc, char*argv[])
     {
         rclcpp::init(/*argc*/ argc, /*argv*/ argv);
     }
-    const std::string cartesianPort = "/r1-cartesian-control/left_arm/rpc:i"; 
+    const std::string cartesianPortLeft  = "/r1-cartesian-control/left_arm/rpc:i";
+    const std::string cartesianPortRight = "/r1-cartesian-control/right_arm/rpc:i";
     const int max_retries = 10;
 
     // 1. Avvia il cartesian controller se non è già attivo
-    if (!yarp::os::Network::exists(cartesianPort)) {
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Avvio r1-cartesian-control...");
-        std::string cmd = "r1-cartesian-control --from " + cartesianControllerIniPath + " > /dev/null 2>&1 &";
+    if (!yarp::os::Network::exists(cartesianPortLeft)) {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Avvio r1-cartesian-control LEFT...");
+        std::string cmd = "r1-cartesian-control --from " + cartesianControllerIniPathLeft + " > /dev/null 2>&1 &";
         int ret = std::system(cmd.c_str());
         if (ret == -1) {
             RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Errore nell'avvio di r1-cartesian-control");
@@ -37,15 +38,28 @@ bool ExecuteDanceComponent::start(int argc, char*argv[])
         }
     }
 
+    // Avvia il controller destro
+    if (!yarp::os::Network::exists(cartesianPortRight)) {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Avvio r1-cartesian-control RIGHT...");
+        std::string cmd = "r1-cartesian-control --from " + cartesianControllerIniPathRight + " > /dev/null 2>&1 &";
+        int ret = std::system(cmd.c_str());
+        if (ret == -1) {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Errore nell'avvio di r1-cartesian-control");
+            return false;
+        }
+        else {
+            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "r1-cartesian-control avviato con successo.");
+        }
+    }
     
     // 2. Attendi che la porta sia disponibile
     int retries = max_retries;
-    while (!yarp::os::Network::exists(cartesianPort) && retries-- > 0) {
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Attendo che la porta %s sia disponibile...", cartesianPort.c_str());
+    while (!yarp::os::Network::exists(cartesianPortLeft) && retries-- > 0) {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Attendo che la porta %s sia disponibile...", cartesianPortLeft.c_str());
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
-    if (!yarp::os::Network::exists(cartesianPort)) {
-        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "La porta %s non è disponibile dopo %d secondi.", cartesianPort.c_str(), max_retries);
+    if (!yarp::os::Network::exists(cartesianPortLeft)) {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "La porta %s non è disponibile dopo %d secondi.", cartesianPortLeft.c_str(), max_retries);
         return false;
     } else {
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "r1-cartesian-control attivo e porta disponibile.");
