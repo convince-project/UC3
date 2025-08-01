@@ -262,5 +262,6 @@ private:
     bool ConfigureYARP(yarp::os::ResourceFinder &rf);
 
     // Path al file di configurazione del controller cartesiano (modificare qui se necessario)
-    std::string cartesianControllerIniPath = "/home/user1/ergocub-cartesian-control/src/r1_cartesian_control/app/conf/config_left_sim_r1_hand_pointing.ini";
+    std::string cartesianControllerIniPathLeft  = "/home/user1/ergocub-cartesian-control/src/r1_cartesian_control/app/conf/config_left_sim_r1.ini";
+    std::string cartesianControllerIniPathRight = "/home/user1/ergocub-cartesian-control/src/r1_cartesian_control/app/conf/config_right_sim_r1.ini";
 };
