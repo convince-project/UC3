@@ -15,6 +15,13 @@ project(execute_dance_component)
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
+
+# Silence CMP0074 warning
+if(POLICY CMP0074)
+  cmake_policy(SET CMP0074 NEW)
+endif()
+
+# Find packages with components specified explicitly
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(dance_interfaces REQUIRED)

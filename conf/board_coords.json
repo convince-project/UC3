@@ -1,21 +1,9 @@
 {
   "version": 1,
   "boards": {
-    "board_madama_orologio": {
-      "poi":    { "x":  2.00, "y":  1.50, "yaw":  90.0 },
-      "offset": { "x":  0.20, "y":  0.10, "yaw":  30.0 }
-    },
-    "board_sala_delle_feste": {
-      "poi":    { "x":  5.00, "y":  3.20, "yaw": 180.0 },
-      "offset": { "x": -0.15, "y":  0.05, "yaw": -45.0 }
-    },
-    "board_office_table": {
-      "poi":    { "x":  4.20, "y": -0.50, "yaw":  45.0 },
-      "offset": { "x":  0.10, "y":  0.00, "yaw":  15.0 }
-    },
-    "board_cris_icub3": {
-      "poi":    { "x":  0.00, "y":  0.00, "yaw":   0.0 },
-      "offset": { "x":  0.00, "y": -0.10, "yaw":   0.0 }
+    "inizio": {
+      "poi":    { "x":  0.07168197631835938, "y":  0.02518749237060547, "z": 1.0983161926269531 },
+      "offset": { "x":  0.0, "y":  0.0, "yaw":  0.0 }
     }
   }
 }
