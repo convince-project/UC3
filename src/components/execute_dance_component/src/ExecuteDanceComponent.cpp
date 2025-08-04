@@ -99,20 +99,20 @@ bool ExecuteDanceComponent::start(int argc, char*argv[])
         "/amcl_pose", 10,
         std::bind(&ExecuteDanceComponent::amclPoseCallback, this, std::placeholders::_1));
 
-    // 2) load POI coordinates from JSON
-    // m_poiCoords: Map storing Point of Interest (POI) coordinates for UC3 tour guidance
-    // - Key (std::string): POI name (e.g., "sala_delle_guardie", "madama_start") 
-    // - Value (std::pair<double, double>): X,Y coordinates in global map frame
-    //   used for robot orientation calculations before executing movements
-    // 
-    // Data loaded from "conf/board_coords.json" at startup
-    // Essential for robot positioning strategy during guided museum tours
-    m_poiCoords = loadPoiCoordinates("/home/user1/UC3/conf/board_coords.json");
+    // // 2) load POI coordinates from JSON
+    // // m_poiCoords: Map storing Point of Interest (POI) coordinates for UC3 tour guidance
+    // // - Key (std::string): POI name (e.g., "sala_delle_guardie", "madama_start") 
+    // // - Value (std::pair<double, double>): X,Y coordinates in global map frame
+    // //   used for robot orientation calculations before executing movements
+    // // 
+    // // Data loaded from "conf/board_coords.json" at startup
+    // // Essential for robot positioning strategy during guided museum tours
+    // m_poiCoords = loadPoiCoordinates("/home/user1/UC3/conf/board_coords.json");
 
-    // DEBUG: Log loaded POI coordinates
-    for (const auto& [name, coords] : m_poiCoords) {
-        RCLCPP_INFO(m_node->get_logger(), "DEBUG: POI loaded: '%s' [%.2f, %.2f]", name.c_str(), coords.first, coords.second);
-    }
+    // // DEBUG: Log loaded POI coordinates
+    // for (const auto& [name, coords] : m_poiCoords) {
+    //     RCLCPP_INFO(m_node->get_logger(), "DEBUG: POI loaded: '%s' [%.2f, %.2f]", name.c_str(), coords.first, coords.second);
+    // }
 
     // 3) load artwork coordinates from JSON
     // m_artworkCoords: Map storing 3D coordinates of artworks for precise pointing
@@ -305,7 +305,7 @@ void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_inte
                 status = ExecutePointingMovement(movement);
             }
             else {
-                // STRATEGY: Use YarpActionPlayer instead of CTP service for dance movements
+                // Use YarpActionPlayer instead of CTP service for dance movements
                 status = SendMovementToYAP(request->dance_name, 1.0f); // Using part_name as action name
             }
             
@@ -360,40 +360,38 @@ void ExecuteDanceComponent::ExecuteDance(
 {
     RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::ExecuteDance " << request->dance_name);
 
-    // --- COMMENTATO BLOCCO SERVIZIO DANZA ---
-    /*
-    // calls the SetDance service
-    auto setDanceClientNode = rclcpp::Node::make_shared("ExecuteDanceComponentSetDanceNode");
-    std::shared_ptr<rclcpp::Client<dance_interfaces::srv::SetDance>> setDanceClient =
-        setDanceClientNode->create_client<dance_interfaces::srv::SetDance>("/DanceComponent/SetDance");
-    auto setDanceRequest = std::make_shared<dance_interfaces::srv::SetDance::Request>();
-    setDanceRequest->dance = request->dance_name;
-    m_danceName = request->dance_name;
+    // --- COMMENTATO BLOCCO SERVIZIO DANCE ---
+    // // calls the SetDance service
+    // auto setDanceClientNode = rclcpp::Node::make_shared("ExecuteDanceComponentSetDanceNode");
+    // std::shared_ptr<rclcpp::Client<dance_interfaces::srv::SetDance>> setDanceClient =
+    //     setDanceClientNode->create_client<dance_interfaces::srv::SetDance>("/DanceComponent/SetDance");
+    // auto setDanceRequest = std::make_shared<dance_interfaces::srv::SetDance::Request>();
+    // setDanceRequest->dance = request->dance_name;
+    // m_danceName = request->dance_name;
 
-    while (!setDanceClient->wait_for_service(std::chrono::seconds(1))) {
-        if (!rclcpp::ok()) {
-            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setDanceClient'. Exiting.");
-        }
-    }
+    // while (!setDanceClient->wait_for_service(std::chrono::seconds(1))) {
+    //     if (!rclcpp::ok()) {
+    //         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setDanceClient'. Exiting.");
+    //     }
+    // }
 
-    auto setDanceResult = setDanceClient->async_send_request(setDanceRequest);
-    rclcpp::spin_until_future_complete(setDanceClientNode, setDanceResult);
-    auto setDanceResponse = setDanceResult.get();
+    // auto setDanceResult = setDanceClient->async_send_request(setDanceRequest);
+    // rclcpp::spin_until_future_complete(setDanceClientNode, setDanceResult);
+    // auto setDanceResponse = setDanceResult.get();
 
-    if (setDanceResponse->is_ok != true) {
-        RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::ExecuteDance name: " << request->dance_name);
-        response->is_ok = false;
-        response->error_msg = "Dance not found";
-        return;
-    }
-    */
-    if (m_threadExecute.joinable()) {
-        m_threadExecute.join();
-    }
+    // if (setDanceResponse->is_ok != true) {
+    //     RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::ExecuteDance name: " << request->dance_name);
+    //     response->is_ok = false;
+    //     response->error_msg = "Dance not found";
+    //     return;
+    // }
+    // if (m_threadExecute.joinable()) {
+    //     m_threadExecute.join();
+    // }
 
-    m_threadExecute = std::thread([this, request]() { executeTask(request); });
+    // m_threadExecute = std::thread([this, request]() { executeTask(request); });
 
-    response->is_ok = true;
+    // response->is_ok = true;
 }
 
 void ExecuteDanceComponent::IsDancing(const std::shared_ptr<execute_dance_interfaces::srv::IsDancing::Request> request,
@@ -409,7 +407,7 @@ void ExecuteDanceComponent::IsDancing(const std::shared_ptr<execute_dance_interf
     response->is_ok = true;
 }
 
-// STRATEGY: YarpActionPlayer methods instead of CTP service
+// YarpActionPlayer methods instead of CTP service
 bool ExecuteDanceComponent::SendMovementToYAP(const std::string &actionName, float speedFactor)
 {
     yarp::os::Bottle res;
@@ -538,21 +536,21 @@ bool ExecuteDanceComponent::SendMovementToYAP(const std::string &actionName, flo
 
 void ExecuteDanceComponent::amclPoseCallback(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg)
 {
-    // STRATEGY: Keep robot pose updated for coordinate transformations
+    // Keep robot pose updated for coordinate transformations
     // This information is CRITICAL for accurate artwork pointing
 
     // Extract position from AMCL message
     m_currentX = msg->pose.pose.position.x;
     m_currentY = msg->pose.pose.position.y;
 
-    // STRATEGY: Extract yaw orientation from quaternion
+    // Extract yaw orientation from quaternion
     // Convert quaternion to Euler yaw angle for 2D transformations
     double qx = msg->pose.pose.orientation.x,
            qy = msg->pose.pose.orientation.y,
            qz = msg->pose.pose.orientation.z,
            qw = msg->pose.pose.orientation.w;
 
-    // Quaternion to yaw conversion formula
+    // Quaternion to yaw conversion 
     m_currentYaw = std::atan2(2*(qw*qz + qx*qy),1 - 2*(qy*qy + qz*qz));
 
     // Print coordinates for debugging
@@ -561,33 +559,33 @@ void ExecuteDanceComponent::amclPoseCallback(const geometry_msgs::msg::PoseWithC
         m_currentX, m_currentY, m_currentYaw);
 }
 
-std::map<std::string, std::pair<double, double>> ExecuteDanceComponent::loadPoiCoordinates(const std::string& filename)
-{
-    std::map<std::string, std::pair<double, double>> poiMap;
+// std::map<std::string, std::pair<double, double>> ExecuteDanceComponent::loadPoiCoordinates(const std::string& filename)
+// {
+//     std::map<std::string, std::pair<double, double>> poiMap;
     
-    try {
-        std::ifstream file(filename);
-        if (!file.is_open()) {
-            RCLCPP_ERROR(m_node->get_logger(), "Impossibile aprire il file POI: '%s'", filename.c_str());
-            return poiMap;
-        }
+//     try {
+//         std::ifstream file(filename);
+//         if (!file.is_open()) {
+//             RCLCPP_ERROR(m_node->get_logger(), "Impossibile aprire il file POI: '%s'", filename.c_str());
+//             return poiMap;
+//         }
         
-        auto config = nlohmann::ordered_json::parse(file);
+//         auto config = nlohmann::ordered_json::parse(file);
         
-        for (auto& [name, data] : config.at("boards").items()) {
-            double x = data.at("poi").at("x").get<double>();
-            double y = data.at("poi").at("y").get<double>();
-            poiMap.emplace(name, std::make_pair(x, y));
-        }
+//         for (auto& [name, data] : config.at("boards").items()) {
+//             double x = data.at("poi").at("x").get<double>();
+//             double y = data.at("poi").at("y").get<double>();
+//             poiMap.emplace(name, std::make_pair(x, y));
+//         }
         
-        RCLCPP_INFO(m_node->get_logger(), "Caricate %zu POI da '%s'", poiMap.size(), filename.c_str());
+//         RCLCPP_INFO(m_node->get_logger(), "Caricate %zu POI da '%s'", poiMap.size(), filename.c_str());
         
-    } catch (const std::exception& ex) {
-        RCLCPP_ERROR(m_node->get_logger(), "Errore parsing POI file '%s': %s", filename.c_str(), ex.what());
-    }
+//     } catch (const std::exception& ex) {
+//         RCLCPP_ERROR(m_node->get_logger(), "Errore parsing POI file '%s': %s", filename.c_str(), ex.what());
+//     }
     
-    return poiMap;
-}
+//     return poiMap;
+// }
 
 std::map<std::string, std::vector<double>> ExecuteDanceComponent::loadArtworkCoordinates(const std::string& filename)
 {
@@ -602,7 +600,7 @@ std::map<std::string, std::vector<double>> ExecuteDanceComponent::loadArtworkCoo
         
         auto config = nlohmann::ordered_json::parse(file);
         
-        // STRATEGY: Load complete X,Y,Z coordinates for each artwork
+        // Load complete X,Y,Z coordinates for each artwork
         // Coordinates are in the global museum map reference frame
         for (auto& [name, data] : config.at("artworks").items()) {
             double x = data.at("x").get<double>();  // Absolute X position in map frame
@@ -631,9 +629,9 @@ std::map<std::string, std::vector<double>> ExecuteDanceComponent::loadArtworkCoo
 bool ExecuteDanceComponent::ExecutePointingMovement(const std::shared_ptr<dance_interfaces::srv::GetMovement::Response> movement)
 {
     RCLCPP_INFO_STREAM(m_node->get_logger(), 
-                      "POINTING STRATEGY: Starting pointing_command (NOT normal dance movement)");
+                      "POINTING Starting pointing_command (NOT normal dance movement)");
     
-    // STRATEGY: For pointing_command, joints[0] is the artwork index to point to
+    // For pointing_command, joints[0] is the artwork index to point to
     // This is DIFFERENT from normal movements where joints contains actual angles
     std::string artworkName = extractArtworkName(movement->joints);
     
@@ -643,9 +641,9 @@ bool ExecuteDanceComponent::ExecutePointingMovement(const std::shared_ptr<dance_
     }
     
     RCLCPP_INFO_STREAM(m_node->get_logger(), 
-                      "STRATEGY: Executing pointing towards artwork: " << artworkName);
+                      "Executing pointing towards artwork: " << artworkName);
     
-    // STRATEGY: Lookup absolute coordinates of artwork from loaded database
+    // Lookup absolute coordinates of artwork from loaded database
     auto it = m_artworkCoords.find(artworkName);
     if (it == m_artworkCoords.end()) {
         RCLCPP_ERROR_STREAM(m_node->get_logger(), 
@@ -656,10 +654,10 @@ bool ExecuteDanceComponent::ExecutePointingMovement(const std::shared_ptr<dance_
     // Absolute coordinates of artwork in map frame
     std::vector<double> mapCoords = it->second;
     RCLCPP_INFO(m_node->get_logger(), 
-               "STRATEGY: Artwork coordinates [%.2f, %.2f, %.2f] in map frame", 
+               "Artwork coordinates [%.2f, %.2f, %.2f] in map frame", 
                mapCoords[0], mapCoords[1], mapCoords[2]);
     
-    // STRATEGY: Transform from map coordinates to robot coordinates
+    // Transform from map coordinates to robot coordinates
     std::vector<double> robotCoords = transformMapToRobot(mapCoords);
     
     if (robotCoords.empty()) {
@@ -667,13 +665,13 @@ bool ExecuteDanceComponent::ExecutePointingMovement(const std::shared_ptr<dance_
         return false;
     }
     
-    // STRATEGY: Send Cartesian command (NOT joint command like normal dance)
+    // Send Cartesian command (NOT joint command like normal dance)
     return sendCartesianCommand(robotCoords);
 }
 
 std::string ExecuteDanceComponent::extractArtworkName(const std::vector<float>& joints)
 {
-    // SPECIAL STRATEGY: For pointing_command, joints[0] contains artwork INDEX
+    // SPECIAL For pointing_command, joints[0] contains artwork INDEX
     // NOT joint angles like for normal dance movements
     if (joints.empty()) {
         RCLCPP_ERROR(m_node->get_logger(), "ERROR: Empty joints vector for pointing_command");
@@ -688,9 +686,9 @@ std::string ExecuteDanceComponent::extractArtworkName(const std::vector<float>& 
     int artworkIndex = static_cast<int>(joints[0]);
     
     RCLCPP_INFO(m_node->get_logger(), 
-               "STRATEGY: Requested pointing towards artwork with index %d", artworkIndex);
+               "Requested pointing towards artwork with index %d", artworkIndex);
     
-    // STRATEGY: Convert numeric index to artwork string name
+    // Convert numeric index to artwork string name
     // Create ordered list of artwork names for consistent indexing
     std::vector<std::string> artworkNames;
     for (const auto& pair : m_artworkCoords) {
@@ -701,7 +699,7 @@ std::string ExecuteDanceComponent::extractArtworkName(const std::vector<float>& 
     if (artworkIndex >= 0 && artworkIndex < static_cast<int>(artworkNames.size())) {
         std::string artworkName = artworkNames[artworkIndex];
         RCLCPP_INFO(m_node->get_logger(), 
-                   "STRATEGY: Index %d corresponds to artwork '%s'", 
+                   "Index %d corresponds to artwork '%s'", 
                    artworkIndex, artworkName.c_str());
         return artworkName;
     }
@@ -720,18 +718,19 @@ std::string ExecuteDanceComponent::extractArtworkName(const std::vector<float>& 
 
 std::vector<double> ExecuteDanceComponent::transformMapToRobot(const std::vector<double>& mapCoords)
 {
-    // Transform artwork coordinates from map frame to robot frame
-    // Uses current robot pose provided by AMCL for accurate transformation
+    // SCOPO: Trasforma coordinate dell'artwork dal sistema di riferimento globale (mappa)
+    // al sistema di riferimento locale (robot) per controllo cartesiano accurato
     
     if (mapCoords.size() < 3) {
         RCLCPP_ERROR(m_node->get_logger(), "ERROR: Incomplete map coordinates");
         return {};
     }
     
-    // Absolute coordinates of artwork in map frame
-    double artworkX_map = mapCoords[0];
-    double artworkY_map = mapCoords[1]; 
-    double artworkZ_map = mapCoords[2];
+    // STEP 1: Estrai coordinate assolute dell'artwork nel frame mappa
+    // Queste sono le coordinate GLOBALI fornite dal file JSON artwork_coords.json
+    double artworkX_map = mapCoords[0];  // Posizione X assoluta nel museo
+    double artworkY_map = mapCoords[1];  // Posizione Y assoluta nel museo
+    double artworkZ_map = mapCoords[2];  // Altezza Z dell'artwork (per puntamento preciso)
     
     RCLCPP_INFO(m_node->get_logger(), 
                "TRANSFORMATION: Artwork in map frame [%.2f, %.2f, %.2f]", 
@@ -741,21 +740,40 @@ std::vector<double> ExecuteDanceComponent::transformMapToRobot(const std::vector
                "TRANSFORMATION: Robot pose [%.2f, %.2f, %.2f rad]", 
                m_currentX, m_currentY, m_currentYaw);
     
-    // STRATEGY: Calculate relative artwork coordinates with respect to robot
-    // 2D transformation for X,Y + height adjustment for Z
+    // STEP 2: Calcola le coordinate relative dell'artwork rispetto al robot
+    // IMPORTANTE: Questa è una trasformazione roto-traslazionale 2D completa
     
-    // Delta in map frame
-    double dx_map = artworkX_map - m_currentX;
-    double dy_map = artworkY_map - m_currentY;
+    // TRASLAZIONE: Sottrae la posizione del robot per ottenere coordinate relative
+    // Questo sposta l'origine del sistema di coordinate dal centro della mappa al robot
+    double dx_map = artworkX_map - m_currentX;  // Differenza X nel frame mappa
+    double dy_map = artworkY_map - m_currentY;  // Differenza Y nel frame mappa
     
-    // Inverse rotation to transform from map to robot frame
-    double cos_theta = std::cos(-m_currentYaw);  // Inverse rotation matrix
-    double sin_theta = std::sin(-m_currentYaw);
+    // ROTAZIONE INVERSA: Compensa l'orientamento del robot
+    // PERCHÉ -m_currentYaw? Perché trasformiamo DA mappa A robot (rotazione inversa)
+    // 
+    // ESEMPIO PRATICO:
+    // - Se robot è ruotato 90° (π/2 rad), un oggetto "davanti" nella mappa
+    //   appare "a destra" rispetto al robot
+    // - La rotazione inversa (-π/2) corregge questa discrepanza
+    double cos_theta = std::cos(-m_currentYaw);  // Matrice di rotazione inversa 2D
+    double sin_theta = std::sin(-m_currentYaw);  // [cos(-θ) -sin(-θ)]
+                                                 // [sin(-θ)  cos(-θ)]
     
-    // Apply 2D rotation transformation
+    // STEP 3: Applica la trasformazione di rotazione 2D
+    // FORMULA MATEMATICA della matrice di rotazione inversa:
+    // [x_robot]   [cos(-θ)  -sin(-θ)] [dx_map]
+    // [y_robot] = [sin(-θ)   cos(-θ)] [dy_map]
+    //
+    // ESPANSIONE:
+    // x_robot = dx_map * cos(-θ) - dy_map * sin(-θ)
+    // y_robot = dx_map * sin(-θ) + dy_map * cos(-θ)
     double x_robot = dx_map * cos_theta - dy_map * sin_theta;
     double y_robot = dx_map * sin_theta + dy_map * cos_theta;
-    double z_robot = artworkZ_map - 1.0;  // Adjust for robot base height (1m offset)
+    
+    // STEP 4: Gestione coordinata Z
+    // Sottrae 1m assumendo che la base del robot sia a 1 metro dal suolo
+    // Questo allinea il sistema Z del robot con quello degli artwork
+    double z_robot = artworkZ_map - 1.0;  // Compensazione altezza base robot
     
     RCLCPP_INFO(m_node->get_logger(), 
                "TRANSFORMATION: Artwork in robot frame [%.2f, %.2f, %.2f]", 
@@ -784,7 +802,7 @@ bool ExecuteDanceComponent::sendCartesianCommand(const std::vector<double>& coor
     cmd.addFloat64(0.0); // qz
     cmd.addFloat64(1.0); // qw
 
-    // STRATEGY: Choose arm based on Y coordinate (left/right side)
+    // Choose arm based on Y coordinate (left/right side)
     bool useLeftArm = coords[1] >= 0.0; // Left side of robot
     yarp::os::Port* activePort = useLeftArm ? &m_cartesianPortLeft : &m_cartesianPortRight;
     std::string armName = useLeftArm ? "LEFT" : "RIGHT";
