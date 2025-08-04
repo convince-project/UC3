@@ -27,6 +27,7 @@ find_package(rclcpp REQUIRED)
 find_package(dance_interfaces REQUIRED)
 find_package(execute_dance_interfaces REQUIRED)
 find_package(YARP 3.7 REQUIRED COMPONENTS dev os)
+find_package(Eigen3 REQUIRED)
 
 add_executable(${PROJECT_NAME} )
 
@@ -42,6 +43,7 @@ target_include_directories(${PROJECT_NAME}
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
+target_include_directories(${PROJECT_NAME} PRIVATE ${EIGEN3_INCLUDE_DIR})
 target_sources( ${PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/ExecuteDanceComponent.cpp  
   ${CMAKE_CURRENT_SOURCE_DIR}/include/ExecuteDanceComponent.h 

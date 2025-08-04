@@ -74,16 +74,16 @@ public:
      * @param request Execute dance request containing dance name and parameters
      * @param response Execute dance response with execution status
      */
-    void ExecuteDance(const std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Request> request,
-                      std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Response> response);
+    // void ExecuteDance(const std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Request> request,
+    //                   std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Response> response);
     
-    /**
-     * @brief Handle is dancing status requests
-     * @param request Is dancing request
-     * @param response Is dancing response with current dancing status
-     */
-    void IsDancing(const std::shared_ptr<execute_dance_interfaces::srv::IsDancing::Request> request,
-                   std::shared_ptr<execute_dance_interfaces::srv::IsDancing::Response> response);
+    // /**
+    //  * @brief Handle is dancing status requests
+    //  * @param request Is dancing request
+    //  * @param response Is dancing response with current dancing status
+    //  */
+    // void IsDancing(const std::shared_ptr<execute_dance_interfaces::srv::IsDancing::Request> request,
+    //                std::shared_ptr<execute_dance_interfaces::srv::IsDancing::Response> response);
 
 private:
     // ========== YAP Movement Execution Methods ==========
@@ -96,46 +96,6 @@ private:
      */
     bool SendMovementToYAP(const std::string &actionName, float speedFactor);
 
-    // ========== Dance Movement Integration Methods ==========
-    
-    /**
-     * @brief Execute pointing movement from DanceComponent service
-     * @param movement Movement response containing pointing parameters
-     * @return true if pointing executed successfully, false otherwise
-     * 
-     * This method handles pointing commands received from DanceComponent's GetMovement service.
-     * It processes the movement data to extract artwork information and execute pointing gestures.
-     */
-    bool ExecutePointingMovement(const std::shared_ptr<dance_interfaces::srv::GetMovement::Response> movement);
-    
-    /**
-     * @brief Extract artwork name from joints vector
-     * @param joints Vector containing artwork index (for pointing commands)
-     * @return Artwork name string
-     * 
-     * For pointing commands, joints[0] contains the artwork index instead of joint angles.
-     * This method converts the numeric index to the corresponding artwork name.
-     */
-    std::string extractArtworkName(const std::vector<float>& joints);
-
-    // ========== Coordinate Transformation Methods ==========
-    
-    /**
-     * @brief Transform coordinates from map frame to robot frame
-     * @param mapCoords 3D coordinates in map reference frame [x, y, z]
-     * @return 3D coordinates in robot reference frame [x, y, z]
-     * 
-     * Uses current robot pose from AMCL to transform artwork coordinates
-     * from the global map frame to the robot's local coordinate system.
-     */
-    std::vector<double> transformMapToRobot(const std::vector<double>& mapCoords);
-    
-    /**
-     * @brief Send Cartesian command to robot arm controller
-     * @param coords Target coordinates for robot end-effector [x, y, z]
-     * @return true if command sent successfully, false otherwise
-     */
-    bool sendCartesianCommand(const std::vector<double>& coords);
 
     // ========== Task Execution Methods ==========
     
@@ -227,13 +187,13 @@ private:
     
     // ========== Callback and Helper Methods ==========
     
-    /**
-     * @brief Callback for AMCL pose updates
-     * @param msg AMCL pose message with covariance
-     * 
-     * Updates internal robot pose variables (m_currentX, m_currentY, m_currentYaw)
-     * used for coordinate transformations in pointing movements.
-     */
+    // /**
+    //  * @brief Callback for AMCL pose updates
+    //  * @param msg AMCL pose message with covariance
+    //  * 
+    //  * Updates internal robot pose variables (m_currentX, m_currentY, m_currentYaw)
+    //  * used for coordinate transformations in pointing movements.
+    //  */
     void amclPoseCallback(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg);
     
     /**
@@ -270,4 +230,33 @@ private:
     // Path al file di configurazione del controller cartesiano (modificare qui se necessario)
     std::string cartesianControllerIniPathLeft  = "/home/user1/ergocub-cartesian-control/src/r1_cartesian_control/app/conf/config_left_sim_r1.ini";
     std::string cartesianControllerIniPathRight = "/home/user1/ergocub-cartesian-control/src/r1_cartesian_control/app/conf/config_right_sim_r1.ini";
+
+    /**
+     * @brief Check if a 3D pose is reachable by a specific robot arm
+     * @param x Target X coordinate in robot frame
+     * @param y Target Y coordinate in robot frame  
+     * @param z Target Z coordinate in robot frame
+     * @param armName Arm identifier ("LEFT" or "RIGHT")
+     * @return true if pose is reachable, false otherwise
+     */
+    bool checkPoseReachabilityForArm(double x, double y, double z, const std::string& armName);
+    
+    /**
+     * @brief Send go_to_position command to a specific robot arm
+     * @param x Target X coordinate in robot frame
+     * @param y Target Y coordinate in robot frame  
+     * @param z Target Z coordinate in robot frame
+     * @param armName Arm identifier ("LEFT" or "RIGHT")
+     * @return true if command accepted, false otherwise
+     */
+    bool sendPositionCommand(double x, double y, double z, const std::string& armName);
+    
+    /**
+     * @brief Check if a 3D pose is reachable by the robot arm (legacy method)
+     * @param x Target X coordinate in robot frame
+     * @param y Target Y coordinate in robot frame  
+     * @param z Target Z coordinate in robot frame
+     * @return true if pose is reachable, false otherwise
+     */
+    bool checkPoseReachability(double x, double y, double z);
 };

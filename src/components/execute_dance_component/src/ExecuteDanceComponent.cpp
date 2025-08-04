@@ -13,6 +13,8 @@
 #include <sstream>
 #include <cstdlib> // Per std::system
 #include <thread> // Per sleep_for
+#include <Eigen/Dense>
+#include <Eigen/Geometry>
 
 bool ExecuteDanceComponent::start(int argc, char*argv[])
 {
@@ -85,43 +87,12 @@ bool ExecuteDanceComponent::start(int argc, char*argv[])
     yarp::os::Network::connect(yAPClientPortName, "/yarpActionsPlayer/rpc");
     
     m_node = rclcpp::Node::make_shared("ExecuteDanceComponentNode");
-    m_executeDanceService = m_node->create_service<execute_dance_interfaces::srv::ExecuteDance>("/ExecuteDanceComponent/ExecuteDance",
-        std::bind(&ExecuteDanceComponent::ExecuteDance, this,
-        std::placeholders::_1,
-        std::placeholders::_2));
-    m_isDancingService = m_node->create_service<execute_dance_interfaces::srv::IsDancing>("/ExecuteDanceComponent/IsDancing",
-        std::bind(&ExecuteDanceComponent::IsDancing, this,
-        std::placeholders::_1,
-        std::placeholders::_2));
 
-    // 1) subscribe to /amcl_pose
-    m_amclSub = m_node->create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>(
-        "/amcl_pose", 10,
-        std::bind(&ExecuteDanceComponent::amclPoseCallback, this, std::placeholders::_1));
-
-    // // 2) load POI coordinates from JSON
-    // // m_poiCoords: Map storing Point of Interest (POI) coordinates for UC3 tour guidance
-    // // - Key (std::string): POI name (e.g., "sala_delle_guardie", "madama_start") 
-    // // - Value (std::pair<double, double>): X,Y coordinates in global map frame
-    // //   used for robot orientation calculations before executing movements
-    // // 
-    // // Data loaded from "conf/board_coords.json" at startup
-    // // Essential for robot positioning strategy during guided museum tours
-    // m_poiCoords = loadPoiCoordinates("/home/user1/UC3/conf/board_coords.json");
-
-    // // DEBUG: Log loaded POI coordinates
-    // for (const auto& [name, coords] : m_poiCoords) {
-    //     RCLCPP_INFO(m_node->get_logger(), "DEBUG: POI loaded: '%s' [%.2f, %.2f]", name.c_str(), coords.first, coords.second);
-    // }
-
-    // 3) load artwork coordinates from JSON
-    // m_artworkCoords: Map storing 3D coordinates of artworks for precise pointing
-    // - Key (std::string): Artwork name (e.g., "quadro_1", "quadro_principale")
-    // - Value (std::vector<double>): [X, Y, Z] coordinates in global map frame
-    //   used for robot arm pointing
-    // Data loaded from "conf/artwork_coords.json" at startup
-    // Used by ExecutePointingMovement() for Cartesian control commands
-    // This allows the robot to accurately point to artworks during tours   
+    // // 1) subscribe to /amcl_pose
+    // m_amclSub = m_node->create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>(
+    //     "/amcl_pose", 10,
+    //     std::bind(&ExecuteDanceComponent::amclPoseCallback, this, std::placeholders::_1));
+    
     m_artworkCoords = loadArtworkCoordinates("/home/user1/UC3/conf/artwork_coords.json");
 
     // 4) open YARP CartesianController ports for both arms
@@ -187,6 +158,18 @@ bool ExecuteDanceComponent::start(int argc, char*argv[])
     //     }
     // }
 
+    m_executeDanceService = m_node->create_service<execute_dance_interfaces::srv::ExecuteDance>(
+        "/ExecuteDanceComponent/ExecuteDance",
+        [this](
+            const std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Request> request,
+            std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Response> response)
+        {
+            this->executeTask(request);
+            response->is_ok = true;
+            response->error_msg = "";
+        }
+    );
+
     return true;
 }
 
@@ -216,376 +199,232 @@ void ExecuteDanceComponent::spin()
 void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Request> request)
 {
     RCLCPP_INFO(m_node->get_logger(), "DEBUG: Requested dance_name: '%s'", request->dance_name.c_str());
-    
-    // NUOVA STRATEGIA: Cerca l'artwork invece del POI per l'orientamento
+
     auto artworkIt = m_artworkCoords.find(request->dance_name);
-    if (artworkIt != m_artworkCoords.end()) {
-        // Use artwork coordinates for robot orientation
-        double artwork_x = artworkIt->second[0];  // X coordinate from artwork
-        double artwork_y = artworkIt->second[1];  // Y coordinate from artwork
-        
-        // Calculate direction towards ARTWORK from current robot position
-        double dx = artwork_x - m_currentX;
-        double dy = artwork_y - m_currentY;
-        double goal = std::atan2(dy, dx);
-        double dtheta = goal - m_currentYaw;
-
-        // Normalize angle to [-π, π] range
-        while (dtheta > M_PI)  dtheta -= 2*M_PI;
-        while (dtheta < -M_PI) dtheta += 2*M_PI;
-
-        RCLCPP_INFO(m_node->get_logger(),
-                    "NUOVA STRATEGIA: Orienting towards ARTWORK '%s' at [%.2f, %.2f]: angular correction=%.2f rad (%.1f degrees)",
-                    request->dance_name.c_str(), artwork_x, artwork_y, dtheta, dtheta * 180.0 / M_PI);
-
-        // Send rotation command to Cartesian controller (if dtheta is significant)
-        if (std::abs(dtheta) > 1e-3) {
-            yarp::os::Bottle cmd, res;
-            cmd.addString("rotate_rad"); 
-            cmd.addFloat64(dtheta);
-            cmd.addFloat64(artwork_x);    // Use ARTWORK coordinates, not robot coordinates
-            cmd.addFloat64(artwork_y);    // Use ARTWORK coordinates, not robot coordinates
-            cmd.addFloat64(0.0);          // z: altezza base
-            cmd.addFloat64(10.0);         // durata traiettoria
-
-            RCLCPP_INFO(m_node->get_logger(),
-                        "COMMAND DETAILS: rotate_rad %.2f [x=%.2f, y=%.2f, z=%.2f, duration=%.2f]",
-                        dtheta, artwork_x, artwork_y, 0.0, 10.0);
-
-            RCLCPP_INFO(m_node->get_logger(),
-                        "SENDING TO PORT: %s -> /r1-cartesian-control/left_arm/rpc:i",
-                        m_cartesianPortNameLeft.c_str());
-
-            // Use LEFT arm for rotation by default
-            bool ok = m_cartesianPortLeft.write(cmd, res);
-            if (!ok || res.size() == 0 || res.get(0).asVocab32() != yarp::os::createVocab32('o','k')) {
-                RCLCPP_WARN(m_node->get_logger(),
-                            "PORT RESPONSE: %s did not accept rotate_rad command: %s", 
-                            m_cartesianPortNameLeft.c_str(), res.toString().c_str());
-            } else {
-                RCLCPP_INFO(m_node->get_logger(), 
-                            "PORT RESPONSE: %s rotation command accepted successfully", 
-                            m_cartesianPortNameLeft.c_str());
-            }
-        }
-    }
-    else {
+    if (artworkIt == m_artworkCoords.end()) {
         RCLCPP_WARN(m_node->get_logger(),
-                    "No ARTWORK found '%s', skipping orientation.",
+                    "No ARTWORK found '%s', skipping positioning.",
                     request->dance_name.c_str());
+        return;
     }
 
-    // --- COMMENTATO BLOCCO YARP ACTION PLAYER ---
-    /*
-    bool done_with_getting_dance = false;
-    do {
-        //calls the GetMovement service
-        auto getMovementClientNode = rclcpp::Node::make_shared("ExecuteDanceComponentGetMovementNode");
-        std::shared_ptr<rclcpp::Client<dance_interfaces::srv::GetMovement>> getMovementClient =
-        getMovementClientNode->create_client<dance_interfaces::srv::GetMovement>("/DanceComponent/GetMovement");
-        auto getMovementRequest = std::make_shared<dance_interfaces::srv::GetMovement::Request>();
-        
-        while(!getMovementClient->wait_for_service(std::chrono::seconds(1))) {
-            if (!rclcpp::ok()) {
-                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'getMovementClient'. Exiting.");
-                return;
+    double artwork_x = artworkIt->second[0];
+    double artwork_y = artworkIt->second[1];
+    double artwork_z = artworkIt->second[2];
+
+    // Per ogni mano (LEFT, RIGHT)
+    for (const std::string armName : {"LEFT", "RIGHT"}) {
+        yarp::os::Port* activePort = (armName == "LEFT") ? &m_cartesianPortLeft : &m_cartesianPortRight;
+
+        // 1. Verifica che la porta sia aperta e connessa
+        if (!activePort->isOpen()) {
+            RCLCPP_ERROR(m_node->get_logger(),
+                "YARP port for %s arm is not open!", armName.c_str());
+            continue;
+        }
+        std::string remotePort = (armName == "LEFT")
+            ? "/r1-cartesian-control/left_arm/rpc:i"
+            : "/r1-cartesian-control/right_arm/rpc:i";
+        if (!yarp::os::Network::isConnected(activePort->getName(), remotePort)) {
+            RCLCPP_ERROR(m_node->get_logger(),
+                "YARP port %s is not connected to %s!", activePort->getName().c_str(), remotePort.c_str());
+            continue;
+        }
+
+        // 2. Ottieni la posa attuale della mano
+        yarp::os::Bottle cmd_get, res_get;
+        cmd_get.addString("get_pose");
+        bool write_ok = activePort->write(cmd_get, res_get);
+
+        // Logga la risposta grezza
+        std::ostringstream oss;
+        for (size_t i = 0; i < res_get.size(); ++i) {
+            oss << res_get.get(i).toString() << " ";
+        }
+        RCLCPP_DEBUG(m_node->get_logger(),
+            "get_pose response from %s: write_ok=%d, size=%ld, content=[%s]",
+            armName.c_str(), write_ok, res_get.size(), oss.str().c_str());
+
+        if (!write_ok) {
+            RCLCPP_ERROR(m_node->get_logger(),
+                "GET_POSE ERROR: write() failed for %s arm (artwork: '%s' at [%.2f, %.2f, %.2f])",
+                armName.c_str(), request->dance_name.c_str(), artwork_x, artwork_y, artwork_z);
+            continue;
+        }
+
+        // dopo aver ricevuto res_get...
+
+        // Appiattisci la risposta se contiene liste annidate
+        std::vector<double> pose_values;
+        for (size_t i = 0; i < res_get.size(); ++i) {
+            if (res_get.get(i).isList()) {
+                yarp::os::Bottle* sub = res_get.get(i).asList();
+                for (size_t j = 0; j < sub->size(); ++j) {
+                    pose_values.push_back(sub->get(j).asFloat64());
+                }
+            } else {
+                pose_values.push_back(res_get.get(i).asFloat64());
             }
         }
-        
-        auto getMovementResult = getMovementClient->async_send_request(getMovementRequest);
-        rclcpp::spin_until_future_complete(getMovementClientNode, getMovementResult);
-        auto movement = getMovementResult.get();
-        
-        if (movement->is_ok == false) {
-            RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "ExecuteDanceComponent::ExecuteDance. Movement not found, skipping...");
+
+        if (pose_values.size() != 18 && pose_values.size() != 16) {
+            RCLCPP_ERROR(m_node->get_logger(),
+                "GET_POSE ERROR: Unexpected total value count (%zu) from %s arm. Content: [%s]",
+                pose_values.size(), armName.c_str(), oss.str().c_str());
+            continue;
+        }
+
+        size_t offset = (pose_values.size() == 18) ? 2 : 0;
+
+        // Parsing posizione e rotazione
+        double hand_x = pose_values[offset + 3];   // m03
+        double hand_y = pose_values[offset + 7];   // m13
+        double hand_z = pose_values[offset + 11];  // m23
+
+        Eigen::Matrix3d R_hand;
+        R_hand << pose_values[offset + 0], pose_values[offset + 1], pose_values[offset + 2],
+                  pose_values[offset + 4], pose_values[offset + 5], pose_values[offset + 6],
+                  pose_values[offset + 8], pose_values[offset + 9], pose_values[offset + 10];
+
+        // 2. Calcola la direzione artwork-mano e l'orientamento target lungo X
+        Eigen::Vector3d hand_pos(hand_x, hand_y, hand_z);
+        Eigen::Vector3d artwork_pos(artwork_x, artwork_y, artwork_z);
+        Eigen::Vector3d vec_hand_to_artwork = (artwork_pos - hand_pos).normalized();
+
+        // Orientamento attuale X della mano (prima colonna della matrice di rotazione)
+        Eigen::Vector3d hand_x_axis = R_hand.col(0);
+
+        // Calcola angolo tra X della mano e direzione verso l'artwork (solo su X)
+        double cos_angle = hand_x_axis.dot(vec_hand_to_artwork);
+        cos_angle = std::clamp(cos_angle, -1.0, 1.0);
+        double angle_x = std::acos(cos_angle);
+
+        // Determina il verso della rotazione (asse Z della mano)
+        Eigen::Vector3d axis = hand_x_axis.cross(vec_hand_to_artwork);
+        double sign = (axis.z() >= 0) ? 1.0 : -1.0;
+        angle_x *= sign;
+
+        // 3. Crea la nuova orientazione ruotando attorno all'asse X della mano
+        Eigen::AngleAxisd rot_x(angle_x, Eigen::Vector3d::UnitX());
+        Eigen::Matrix3d R_target = rot_x * R_hand;
+
+        // 4. Converti la rotazione in quaternion per go_to_pose
+        Eigen::Quaterniond q_target(R_target);
+
+        // 5. Verifica raggiungibilità della nuova posa
+        yarp::os::Bottle cmd_check, res_check;
+        cmd_check.addString("is_pose_reachable");
+        cmd_check.addFloat64(hand_x);
+        cmd_check.addFloat64(hand_y);
+        cmd_check.addFloat64(hand_z);
+        cmd_check.addFloat64(q_target.x());
+        cmd_check.addFloat64(q_target.y());
+        cmd_check.addFloat64(q_target.z());
+        cmd_check.addFloat64(q_target.w());
+        if (!activePort->write(cmd_check, res_check) || res_check.size() == 0 || res_check.get(0).asVocab32() != yarp::os::createVocab32('o','k')) {
+            RCLCPP_WARN(m_node->get_logger(),
+                        "POSE NOT REACHABLE: %s hand cannot reach rotated pose at [%.2f, %.2f, %.2f]", armName.c_str(), hand_x, hand_y, hand_z);
+            continue;
+        }
+
+        // 6. Invia comando go_to_pose
+        yarp::os::Bottle cmd_pose, res_pose;
+        cmd_pose.addString("go_to_pose");
+        cmd_pose.addFloat64(hand_x);
+        cmd_pose.addFloat64(hand_y);
+        cmd_pose.addFloat64(hand_z);
+        cmd_pose.addFloat64(q_target.x());
+        cmd_pose.addFloat64(q_target.y());
+        cmd_pose.addFloat64(q_target.z());
+        cmd_pose.addFloat64(q_target.w());
+        cmd_pose.addFloat64(3.0); // durata traiettoria
+
+        if (!activePort->write(cmd_pose, res_pose) || res_pose.size() == 0 || res_pose.get(0).asVocab32() != yarp::os::createVocab32('o','k')) {
+            RCLCPP_WARN(m_node->get_logger(),
+                        "POSITIONING FAILED: %s hand could not move to rotated pose", armName.c_str());
         } else {
-            bool status;
-            
-            if (movement->part_name == "pointing_command") {
-                status = ExecutePointingMovement(movement);
-            }
-            else {
-                // Use YarpActionPlayer instead of CTP service for dance movements
-                status = SendMovementToYAP(request->dance_name, 1.0f); // Using part_name as action name
-            }
-            
-            if (!status) {
-                RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "Movement failed to send. Is YarpActionPlayer running?");
-                continue;
-            }
+            RCLCPP_INFO(m_node->get_logger(),
+                        "POSITIONING SUCCESS: %s hand moved to rotated pose aligned with artwork [%s]", armName.c_str(), request->dance_name.c_str());
         }
-
-        //calls the UpdateMovement service
-        auto updateMovementClientNode = rclcpp::Node::make_shared("ExecuteDanceComponentUpdateMovementNode");
-        std::shared_ptr<rclcpp::Client<dance_interfaces::srv::UpdateMovement>> updateMovementClient =
-        updateMovementClientNode->create_client<dance_interfaces::srv::UpdateMovement>("/DanceComponent/UpdateMovement");
-        auto updateMovementRequest = std::make_shared<dance_interfaces::srv::UpdateMovement::Request>();
-        
-        while(!updateMovementClient->wait_for_service(std::chrono::seconds(1))) {
-            if (!rclcpp::ok()) {
-                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'updateMovementClient'. Exiting.");
-                return;
-            }
-        }
-        
-        auto updateMovementResult = updateMovementClient->async_send_request(updateMovementRequest);
-        rclcpp::spin_until_future_complete(updateMovementClientNode, updateMovementResult);
-        auto updateMovementResponse = updateMovementResult.get();
-        done_with_getting_dance = updateMovementResponse->done_with_dance;
-        
-    } while (!done_with_getting_dance);
-    */
+    }
 }
 
-void ExecuteDanceComponent::timerTask(float time)
+// NUOVA FUNZIONE: Verifica raggiungibilità per un braccio specifico
+bool ExecuteDanceComponent::checkPoseReachabilityForArm(double x, double y, double z, const std::string& armName)
 {
-    m_timerMutex.lock();
-    m_timerTask = true;
-    m_timerMutex.unlock();
-    
-    RCLCPP_INFO_STREAM(m_node->get_logger(), "Start Timer seconds: " << static_cast<int>(time));
-    
-    std::this_thread::sleep_for(std::chrono::seconds(static_cast<int>(time)));
-
-    m_timerMutex.lock();
-    m_timerTask = false;
-    m_timerMutex.unlock();
-    
-    RCLCPP_INFO_STREAM(m_node->get_logger(), "End Timer ");
-}
-
-void ExecuteDanceComponent::ExecuteDance(
-    const std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Request> request,
-    std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Response> response) 
-{
-    RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::ExecuteDance " << request->dance_name);
-
-    // --- COMMENTATO BLOCCO SERVIZIO DANCE ---
-    // // calls the SetDance service
-    // auto setDanceClientNode = rclcpp::Node::make_shared("ExecuteDanceComponentSetDanceNode");
-    // std::shared_ptr<rclcpp::Client<dance_interfaces::srv::SetDance>> setDanceClient =
-    //     setDanceClientNode->create_client<dance_interfaces::srv::SetDance>("/DanceComponent/SetDance");
-    // auto setDanceRequest = std::make_shared<dance_interfaces::srv::SetDance::Request>();
-    // setDanceRequest->dance = request->dance_name;
-    // m_danceName = request->dance_name;
-
-    // while (!setDanceClient->wait_for_service(std::chrono::seconds(1))) {
-    //     if (!rclcpp::ok()) {
-    //         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setDanceClient'. Exiting.");
-    //     }
-    // }
-
-    // auto setDanceResult = setDanceClient->async_send_request(setDanceRequest);
-    // rclcpp::spin_until_future_complete(setDanceClientNode, setDanceResult);
-    // auto setDanceResponse = setDanceResult.get();
-
-    // if (setDanceResponse->is_ok != true) {
-    //     RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::ExecuteDance name: " << request->dance_name);
-    //     response->is_ok = false;
-    //     response->error_msg = "Dance not found";
-    //     return;
-    // }
-    // if (m_threadExecute.joinable()) {
-    //     m_threadExecute.join();
-    // }
-
-    // m_threadExecute = std::thread([this, request]() { executeTask(request); });
-
-    // response->is_ok = true;
-}
-
-void ExecuteDanceComponent::IsDancing(const std::shared_ptr<execute_dance_interfaces::srv::IsDancing::Request> request,
-             std::shared_ptr<execute_dance_interfaces::srv::IsDancing::Response> response) 
-{
-    (void)request;
-    
-    m_timerMutex.lock();
-    response->is_dancing = m_timerTask;
-    m_timerMutex.unlock();
-    
-    RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::IsDancing " << response->is_dancing);
-    response->is_ok = true;
-}
-
-// YarpActionPlayer methods instead of CTP service
-bool ExecuteDanceComponent::SendMovementToYAP(const std::string &actionName, float speedFactor)
-{
-    yarp::os::Bottle res;
-    yarp::os::Bottle cmd;
-
-    cmd.clear();
-    res.clear();
-    cmd.addString("choose_action");
-    cmd.addString(actionName);
-
-    std::cout << "ExecuteDanceComponent::SendMovementToYAP sending bottle content: " << cmd.toString() << " and action name is " << actionName << std::endl;
-
-    bool status = m_yAPClientPort.write(cmd, res);
-
-    if (!status)
-    {
-        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP Failed to send choose_action command to YAP");
-        return false;
-    }
-
-    if (res.get(0).asVocab32() != yarp::os::createVocab32('o', 'k'))
-    {
-        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP YAP did not accept the action: " << actionName);
-        return false;
-    }
-    else
-    {
-        RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP YAP accepted the action: " << actionName);
-    }
-
-    cmd.clear();
-    res.clear();
-    cmd.addString("speed_factor");
-    cmd.addFloat32(speedFactor);
-
-    std::cout << "ExecuteDanceComponent::SendMovementToYAP sending bottle content: " << cmd.toString() << " and speed factor is " << speedFactor << std::endl;
-
-    status = m_yAPClientPort.write(cmd, res);
-
-    if (!status)
-    {
-        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP Failed to send speed_factor command to YAP");
-        return false;
-    }
-
-    if (res.get(0).asVocab32() != yarp::os::createVocab32('o', 'k'))
-    {
-        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP YAP did not accept the speed factor: " << speedFactor);
-        return false;
-    }
-    else
-    {
-        RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP YAP accepted the speed factor: " << speedFactor);
-    }
-
-    cmd.clear();
-    res.clear();
-    cmd.addString("start");
-
-    std::cout << "ExecuteDanceComponent::SendMovementToYAP sending bottle content: " << cmd.toString() << " and action name is " << actionName << std::endl;
-
-    status = m_yAPClientPort.write(cmd, res);
-
-    if (!status)
-    {
-        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP Failed to send start command to YAP");
-        return false;
-    }
-
-    if (res.get(0).asVocab32() != yarp::os::createVocab32('o', 'k'))
-    {
-        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP YAP did not accept the action: " << actionName);
-        return false;
-    }
-    else
-    {
-        RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP YAP accepted the action: " << actionName);
-    }
-
-    while (m_timerTask)
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
-
-    cmd.clear();
-    res.clear();
-    cmd.addString("reset");
-
-    status = m_yAPClientPort.write(cmd, res);
-
-    if (!status)
-    {
-        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP Failed to send reset command to YAP");
-        return false;
-    }
-
-    RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP Reset status: " << res.get(0).toString());
-
-    cmd.clear();
-    res.clear();
-    cmd.addString("speed_factor");
-    cmd.addFloat32(1.0f);
-
-    std::cout << "ExecuteDanceComponent::SendMovementToYAP sending bottle content: " << cmd.toString() << " and speed factor is " << 1 << std::endl;
-
-    status = m_yAPClientPort.write(cmd, res);
-
-    if (!status)
-    {
-        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP Failed to send speed_factor command to YAP");
-        return false;
-    }
-
-    if (res.get(0).asVocab32() != yarp::os::createVocab32('o', 'k'))
-    {
-        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP YAP did not accept the speed factor: " << 1);
-        return false;
-    }
-    else
-    {
-        RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP YAP accepted the speed factor: " << 1);
-    }
-
-    return true;
-}
-
-void ExecuteDanceComponent::amclPoseCallback(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg)
-{
-    // Keep robot pose updated for coordinate transformations
-    // This information is CRITICAL for accurate artwork pointing
-
-    // Extract position from AMCL message
-    m_currentX = msg->pose.pose.position.x;
-    m_currentY = msg->pose.pose.position.y;
-
-    // Extract yaw orientation from quaternion
-    // Convert quaternion to Euler yaw angle for 2D transformations
-    double qx = msg->pose.pose.orientation.x,
-           qy = msg->pose.pose.orientation.y,
-           qz = msg->pose.pose.orientation.z,
-           qw = msg->pose.pose.orientation.w;
-
-    // Quaternion to yaw conversion 
-    m_currentYaw = std::atan2(2*(qw*qz + qx*qy),1 - 2*(qy*qy + qz*qz));
-
-    // Print coordinates for debugging
     RCLCPP_INFO(m_node->get_logger(),
-        "AMCL Pose Update: x=%.3f, y=%.3f, yaw=%.3f rad",
-        m_currentX, m_currentY, m_currentYaw);
+               "REACHABILITY CHECK: Testing position [%.2f, %.2f, %.2f] for %s arm", 
+               x, y, z, armName.c_str());
+
+    yarp::os::Port* activePort = (armName == "LEFT") ? &m_cartesianPortLeft : &m_cartesianPortRight;
+
+    // Usa l'API ufficiale is_pose_reachable
+    yarp::os::Bottle cmd, res;
+    cmd.addString("is_pose_reachable");
+    cmd.addFloat64(x);     // Target X coordinate
+    cmd.addFloat64(y);     // Target Y coordinate  
+    cmd.addFloat64(z);     // Target Z coordinate
+    cmd.addFloat64(0.0);   // Quaternion X (orientamento neutro)
+    cmd.addFloat64(0.0);   // Quaternion Y (orientamento neutro)
+    cmd.addFloat64(0.0);   // Quaternion Z (orientamento neutro)
+    cmd.addFloat64(1.0);   // Quaternion W (orientamento neutro)
+
+    bool ok = activePort->write(cmd, res);
+    if (!ok || res.size() == 0) {
+        RCLCPP_ERROR(m_node->get_logger(),
+                    "REACHABILITY ERROR: Failed to communicate with %s CartesianController", armName.c_str());
+        return false;
+    }
+
+    if (res.get(0).asVocab32() == yarp::os::createVocab32('o','k')) {
+        RCLCPP_INFO(m_node->get_logger(),
+                   "✅ REACHABILITY RESULT: Position [%.2f, %.2f, %.2f] is REACHABLE by %s arm",
+                   x, y, z, armName.c_str());
+        return true;
+    } else {
+        RCLCPP_WARN(m_node->get_logger(),
+                   "❌ REACHABILITY RESULT: Position [%.2f, %.2f, %.2f] is NOT REACHABLE by %s arm: %s",
+                   x, y, z, armName.c_str(), res.toString().c_str());
+        return false;
+    }
 }
 
-// std::map<std::string, std::pair<double, double>> ExecuteDanceComponent::loadPoiCoordinates(const std::string& filename)
-// {
-//     std::map<std::string, std::pair<double, double>> poiMap;
-    
-//     try {
-//         std::ifstream file(filename);
-//         if (!file.is_open()) {
-//             RCLCPP_ERROR(m_node->get_logger(), "Impossibile aprire il file POI: '%s'", filename.c_str());
-//             return poiMap;
-//         }
-        
-//         auto config = nlohmann::ordered_json::parse(file);
-        
-//         for (auto& [name, data] : config.at("boards").items()) {
-//             double x = data.at("poi").at("x").get<double>();
-//             double y = data.at("poi").at("y").get<double>();
-//             poiMap.emplace(name, std::make_pair(x, y));
-//         }
-        
-//         RCLCPP_INFO(m_node->get_logger(), "Caricate %zu POI da '%s'", poiMap.size(), filename.c_str());
-        
-//     } catch (const std::exception& ex) {
-//         RCLCPP_ERROR(m_node->get_logger(), "Errore parsing POI file '%s': %s", filename.c_str(), ex.what());
-//     }
-    
-//     return poiMap;
-// }
+// NUOVA FUNZIONE: Invia comando di posizione a un braccio specifico
+bool ExecuteDanceComponent::sendPositionCommand(double x, double y, double z, const std::string& armName)
+{
+    yarp::os::Port* activePort = (armName == "LEFT") ? &m_cartesianPortLeft : &m_cartesianPortRight;
+
+    yarp::os::Bottle cmd, res;
+    cmd.addString("go_to_position");
+    cmd.addFloat64(x);     // Posizione X target
+    cmd.addFloat64(y);     // Posizione Y target  
+    cmd.addFloat64(z);     // Posizione Z target
+    cmd.addFloat64(30.0);  // Trajectory duration
+
+    RCLCPP_INFO(m_node->get_logger(),
+                "SENDING POSITIONING COMMAND: %s arm go_to_position [%.2f, %.2f, %.2f], duration=%.2f",
+                armName.c_str(), x, y, z, 30.0);
+
+    bool ok = activePort->write(cmd, res);
+    if (!ok || res.size() == 0 || res.get(0).asVocab32() != yarp::os::createVocab32('o','k')) {
+        RCLCPP_WARN(m_node->get_logger(),
+                    "POSITIONING FAILED: %s arm did not accept go_to_position command: %s", 
+                    armName.c_str(), res.toString().c_str());
+        return false;
+    } else {
+        RCLCPP_INFO(m_node->get_logger(), 
+                    "POSITIONING COMMAND SENT: %s arm accepted go_to_position command", 
+                    armName.c_str());
+        return true;
+    }
+}
+
+// FUNZIONE LEGACY: Manteniamo per compatibilità
+bool ExecuteDanceComponent::checkPoseReachability(double x, double y, double z)
+{
+    // Usa la nuova implementazione per il braccio sinistro come default
+    return checkPoseReachabilityForArm(x, y, z, "LEFT");
+}
 
 std::map<std::string, std::vector<double>> ExecuteDanceComponent::loadArtworkCoordinates(const std::string& filename)
 {
@@ -626,203 +465,3 @@ std::map<std::string, std::vector<double>> ExecuteDanceComponent::loadArtworkCoo
     return artworkMap;
 }
 
-bool ExecuteDanceComponent::ExecutePointingMovement(const std::shared_ptr<dance_interfaces::srv::GetMovement::Response> movement)
-{
-    RCLCPP_INFO_STREAM(m_node->get_logger(), 
-                      "POINTING Starting pointing_command (NOT normal dance movement)");
-    
-    // For pointing_command, joints[0] is the artwork index to point to
-    // This is DIFFERENT from normal movements where joints contains actual angles
-    std::string artworkName = extractArtworkName(movement->joints);
-    
-    if (artworkName.empty()) {
-        RCLCPP_ERROR(m_node->get_logger(), "ERROR: Invalid artwork name for pointing");
-        return false;
-    }
-    
-    RCLCPP_INFO_STREAM(m_node->get_logger(), 
-                      "Executing pointing towards artwork: " << artworkName);
-    
-    // Lookup absolute coordinates of artwork from loaded database
-    auto it = m_artworkCoords.find(artworkName);
-    if (it == m_artworkCoords.end()) {
-        RCLCPP_ERROR_STREAM(m_node->get_logger(), 
-                           "ERROR: Artwork '" << artworkName << "' not found in database");
-        return false;
-    }
-    
-    // Absolute coordinates of artwork in map frame
-    std::vector<double> mapCoords = it->second;
-    RCLCPP_INFO(m_node->get_logger(), 
-               "Artwork coordinates [%.2f, %.2f, %.2f] in map frame", 
-               mapCoords[0], mapCoords[1], mapCoords[2]);
-    
-    // Transform from map coordinates to robot coordinates
-    std::vector<double> robotCoords = transformMapToRobot(mapCoords);
-    
-    if (robotCoords.empty()) {
-        RCLCPP_ERROR(m_node->get_logger(), "ERROR: Coordinate transformation failed");
-        return false;
-    }
-    
-    // Send Cartesian command (NOT joint command like normal dance)
-    return sendCartesianCommand(robotCoords);
-}
-
-std::string ExecuteDanceComponent::extractArtworkName(const std::vector<float>& joints)
-{
-    // SPECIAL For pointing_command, joints[0] contains artwork INDEX
-    // NOT joint angles like for normal dance movements
-    if (joints.empty()) {
-        RCLCPP_ERROR(m_node->get_logger(), "ERROR: Empty joints vector for pointing_command");
-        // Fallback to first artwork if no index provided
-        if (!m_artworkCoords.empty()) {
-            return m_artworkCoords.begin()->first;
-        }
-        return "";  // Ultimate fallback
-    }
-    
-    // Convert first element from float to integer (artwork index)
-    int artworkIndex = static_cast<int>(joints[0]);
-    
-    RCLCPP_INFO(m_node->get_logger(), 
-               "Requested pointing towards artwork with index %d", artworkIndex);
-    
-    // Convert numeric index to artwork string name
-    // Create ordered list of artwork names for consistent indexing
-    std::vector<std::string> artworkNames;
-    for (const auto& pair : m_artworkCoords) {
-        artworkNames.push_back(pair.first);
-    }
-    
-    // Validate index range and return corresponding artwork name
-    if (artworkIndex >= 0 && artworkIndex < static_cast<int>(artworkNames.size())) {
-        std::string artworkName = artworkNames[artworkIndex];
-        RCLCPP_INFO(m_node->get_logger(), 
-                   "Index %d corresponds to artwork '%s'", 
-                   artworkIndex, artworkName.c_str());
-        return artworkName;
-    }
-    
-    // Index out of range - fallback to first artwork
-    RCLCPP_ERROR(m_node->get_logger(), 
-                "ERROR: Artwork index %d out of range [0-%zu], using fallback", 
-                artworkIndex, artworkNames.size()-1);
-    
-    if (!artworkNames.empty()) {
-        return artworkNames[0];
-    }
-    
-    return "quadro_1";  // Ultimate fallback
-}
-
-std::vector<double> ExecuteDanceComponent::transformMapToRobot(const std::vector<double>& mapCoords)
-{
-    // SCOPO: Trasforma coordinate dell'artwork dal sistema di riferimento globale (mappa)
-    // al sistema di riferimento locale (robot) per controllo cartesiano accurato
-    
-    if (mapCoords.size() < 3) {
-        RCLCPP_ERROR(m_node->get_logger(), "ERROR: Incomplete map coordinates");
-        return {};
-    }
-    
-    // STEP 1: Estrai coordinate assolute dell'artwork nel frame mappa
-    // Queste sono le coordinate GLOBALI fornite dal file JSON artwork_coords.json
-    double artworkX_map = mapCoords[0];  // Posizione X assoluta nel museo
-    double artworkY_map = mapCoords[1];  // Posizione Y assoluta nel museo
-    double artworkZ_map = mapCoords[2];  // Altezza Z dell'artwork (per puntamento preciso)
-    
-    RCLCPP_INFO(m_node->get_logger(), 
-               "TRANSFORMATION: Artwork in map frame [%.2f, %.2f, %.2f]", 
-               artworkX_map, artworkY_map, artworkZ_map);
-    
-    RCLCPP_INFO(m_node->get_logger(), 
-               "TRANSFORMATION: Robot pose [%.2f, %.2f, %.2f rad]", 
-               m_currentX, m_currentY, m_currentYaw);
-    
-    // STEP 2: Calcola le coordinate relative dell'artwork rispetto al robot
-    // IMPORTANTE: Questa è una trasformazione roto-traslazionale 2D completa
-    
-    // TRASLAZIONE: Sottrae la posizione del robot per ottenere coordinate relative
-    // Questo sposta l'origine del sistema di coordinate dal centro della mappa al robot
-    double dx_map = artworkX_map - m_currentX;  // Differenza X nel frame mappa
-    double dy_map = artworkY_map - m_currentY;  // Differenza Y nel frame mappa
-    
-    // ROTAZIONE INVERSA: Compensa l'orientamento del robot
-    // PERCHÉ -m_currentYaw? Perché trasformiamo DA mappa A robot (rotazione inversa)
-    // 
-    // ESEMPIO PRATICO:
-    // - Se robot è ruotato 90° (π/2 rad), un oggetto "davanti" nella mappa
-    //   appare "a destra" rispetto al robot
-    // - La rotazione inversa (-π/2) corregge questa discrepanza
-    double cos_theta = std::cos(-m_currentYaw);  // Matrice di rotazione inversa 2D
-    double sin_theta = std::sin(-m_currentYaw);  // [cos(-θ) -sin(-θ)]
-                                                 // [sin(-θ)  cos(-θ)]
-    
-    // STEP 3: Applica la trasformazione di rotazione 2D
-    // FORMULA MATEMATICA della matrice di rotazione inversa:
-    // [x_robot]   [cos(-θ)  -sin(-θ)] [dx_map]
-    // [y_robot] = [sin(-θ)   cos(-θ)] [dy_map]
-    //
-    // ESPANSIONE:
-    // x_robot = dx_map * cos(-θ) - dy_map * sin(-θ)
-    // y_robot = dx_map * sin(-θ) + dy_map * cos(-θ)
-    double x_robot = dx_map * cos_theta - dy_map * sin_theta;
-    double y_robot = dx_map * sin_theta + dy_map * cos_theta;
-    
-    // STEP 4: Gestione coordinata Z
-    // Sottrae 1m assumendo che la base del robot sia a 1 metro dal suolo
-    // Questo allinea il sistema Z del robot con quello degli artwork
-    double z_robot = artworkZ_map - 1.0;  // Compensazione altezza base robot
-    
-    RCLCPP_INFO(m_node->get_logger(), 
-               "TRANSFORMATION: Artwork in robot frame [%.2f, %.2f, %.2f]", 
-               x_robot, y_robot, z_robot);
-    
-    return {x_robot, y_robot, z_robot};
-}
-
-bool ExecuteDanceComponent::sendCartesianCommand(const std::vector<double>& coords)
-{
-    // Use YARP port to send Bottle command to Cartesian controller
-    if (coords.size() < 3) {
-        RCLCPP_ERROR(m_node->get_logger(), "ERROR: Incomplete coordinates for Cartesian command");
-        return false;
-    }
-
-    yarp::os::Bottle cmd, res;
-    cmd.addString("go_to_pose");
-    cmd.addFloat64(coords[0]); // X
-    cmd.addFloat64(coords[1]); // Y
-    cmd.addFloat64(coords[2]); // Z
-
-    // Orientation: identity quaternion (no rotation)
-    cmd.addFloat64(0.0); // qx
-    cmd.addFloat64(0.0); // qy
-    cmd.addFloat64(0.0); // qz
-    cmd.addFloat64(1.0); // qw
-
-    // Choose arm based on Y coordinate (left/right side)
-    bool useLeftArm = coords[1] >= 0.0; // Left side of robot
-    yarp::os::Port* activePort = useLeftArm ? &m_cartesianPortLeft : &m_cartesianPortRight;
-    std::string armName = useLeftArm ? "LEFT" : "RIGHT";
-
-    RCLCPP_INFO(m_node->get_logger(),
-        "CARTESIAN COMMAND: Sending go_to_pose [%.2f, %.2f, %.2f, 0,0,0,1] to %s arm",
-        coords[0], coords[1], coords[2], armName.c_str());
-
-    bool success = activePort->write(cmd, res);
-
-    if (!success) {
-        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ERROR: Failed to send Bottle to " << armName << " Cartesian controller");
-        return false;
-    }
-
-    if (res.size() > 0 && res.get(0).asVocab32() == yarp::os::createVocab32('o','k')) {
-        RCLCPP_INFO_STREAM(m_node->get_logger(), "SUCCESS: " << armName << " arm pointing command executed successfully");
-        return true;
-    } else {
-        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ERROR: " << armName << " Cartesian controller did not accept the command: " << res.toString());
-        return false;
-    }
-}
