@@ -377,7 +377,7 @@
 
   <state id="speakResult">
 
-    <transition cond ="m_is_reply_finished == 'false'" target="interpretCommand"/>
+    <transition cond ="m_is_reply_finished == false" target="evaluateDuplicate"/>
     
     <transition cond="m_result == 'SUCCESS'" target="waitForInteraction">
         <send event="DialogComponent.WaitForInteraction.Call">
