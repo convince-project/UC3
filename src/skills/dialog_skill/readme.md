@@ -10,7 +10,7 @@ The dialog pipeline is supposed to define the sequences of actions of a generic 
         <em>
             Dialog Flow Chart (made with 
             <a href="https://app.diagrams.net/" target="_blank">diagrams.net</a>, 
-            last update: May 27th, 2025)
+            last update: August 4th, 2025)
         </em>
     </p>
 </figure>
@@ -61,7 +61,7 @@ Below is a graphical representation of the communication between the component, 
         <em>
             Sequence Diagram representing the communication among the Dialog Component, Skill and State Machine (made with 
             <a href="https://app.diagrams.net/" target="_blank" style="color: #007acc; text-decoration: none;">diagrams.net</a>
-            , last update: May 14th, 2025)
+            , last update: Aug 4th, 2025)
         </em>
     </p>
 </figure>
