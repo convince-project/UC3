@@ -299,29 +299,29 @@ bool DialogSkill::start(int argc, char *argv[])
             }
         } });
 
-    m_stateMachine.connectToEvent("DialogComponent.ShortenAndSpeak.Call", [this]([[maybe_unused]] const QScxmlEvent &event)
+    m_stateMachine.connectToEvent("DialogComponent.ShortenReply.Call", [this]([[maybe_unused]] const QScxmlEvent &event)
                                   {
-        std::shared_ptr<rclcpp::Node> nodeShortenAndSpeak = rclcpp::Node::make_shared(m_name + "SkillShortenAndSpeak");
-        std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::ShortenAndSpeak>> clientShortenAndSpeak = nodeShortenAndSpeak->create_client<dialog_interfaces::srv::ShortenAndSpeak>("/DialogComponent/ShortenAndSpeak");
-        auto request = std::make_shared<dialog_interfaces::srv::ShortenAndSpeak::Request>();
+        std::shared_ptr<rclcpp::Node> nodeShortenReply = rclcpp::Node::make_shared(m_name + "SkillShortenReply");
+        std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::ShortenReply>> clientShortenReply = nodeShortenReply->create_client<dialog_interfaces::srv::ShortenReply>("/DialogComponent/ShortenReply");
+        auto request = std::make_shared<dialog_interfaces::srv::ShortenReply::Request>();
         auto eventParams = event.data().toMap();
         request->duplicate_index = convert<decltype(request->duplicate_index)>(eventParams["index"].toString().toStdString());
         request->context = convert<decltype(request->context)>(eventParams["context"].toString().toStdString());
         request->interaction = convert<decltype(request->interaction)>(eventParams["interaction"].toString().toStdString());
         std::cout << "Request: " << request->duplicate_index << std::endl;
         bool wait_succeded{true};
-        while (!clientShortenAndSpeak->wait_for_service(std::chrono::seconds(1))) {
+        while (!clientShortenReply->wait_for_service(std::chrono::seconds(1))) {
             if (!rclcpp::ok()) {
-                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'ShortenAndSpeak'. Exiting.");
+                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'ShortenReply'. Exiting.");
                 wait_succeded = false;
-                m_stateMachine.submitEvent("DialogComponent.ShortenAndSpeak.Return");
+                m_stateMachine.submitEvent("DialogComponent.ShortenReply.Return");
             } 
         }
-        // std::cout << "DialogComponent::ShortenAndSpeak.Call 2" << std::endl;
+        // std::cout << "DialogComponent::ShortenReply.Call 2" << std::endl;
         if (wait_succeded) {
             // send the request                                                                    
-            auto result = clientShortenAndSpeak->async_send_request(request);
-            auto futureResult = rclcpp::spin_until_future_complete(nodeShortenAndSpeak, result);
+            auto result = clientShortenReply->async_send_request(request);
+            auto futureResult = rclcpp::spin_until_future_complete(nodeShortenReply, result);
             auto response = result.get();
             if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
             {
@@ -331,13 +331,13 @@ bool DialogSkill::start(int argc, char *argv[])
                     data.insert("result", "SUCCESS");
                     data.insert("reply", QString::fromStdString(response->reply));
                     data.insert("is_reply_finished", response->is_reply_finished);
-                    m_stateMachine.submitEvent("DialogComponent.ShortenAndSpeak.Return", data);
-                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.ShortenAndSpeak.Return");
+                    m_stateMachine.submitEvent("DialogComponent.ShortenReply.Return", data);
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.ShortenReply.Return");
                 } else {
                     QVariantMap data;
                     data.insert("result", "FAILURE");
-                    m_stateMachine.submitEvent("DialogComponent.ShortenAndSpeak.Return", data);
-                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.ShortenAndSpeak.Return");
+                    m_stateMachine.submitEvent("DialogComponent.ShortenReply.Return", data);
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.ShortenReply.Return");
                 }
             }
         } });
@@ -385,28 +385,28 @@ bool DialogSkill::start(int argc, char *argv[])
             }
         } });
 
-    m_stateMachine.connectToEvent("DialogComponent.AnswerAndSpeak.Call", [this]([[maybe_unused]] const QScxmlEvent &event)
+    m_stateMachine.connectToEvent("DialogComponent.Answer.Call", [this]([[maybe_unused]] const QScxmlEvent &event)
                                   {
-        std::shared_ptr<rclcpp::Node> nodeAnswerAndSpeak = rclcpp::Node::make_shared(m_name + "SkillAnswerAndSpeak");
-        std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::AnswerAndSpeak>> clientAnswerAndSpeak = nodeAnswerAndSpeak->create_client<dialog_interfaces::srv::AnswerAndSpeak>("/DialogComponent/AnswerAndSpeak");
-        auto request = std::make_shared<dialog_interfaces::srv::AnswerAndSpeak::Request>();
+        std::shared_ptr<rclcpp::Node> nodeAnswer = rclcpp::Node::make_shared(m_name + "SkillAnswer");
+        std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::Answer>> clientAnswer = nodeAnswer->create_client<dialog_interfaces::srv::Answer>("/DialogComponent/Answer");
+        auto request = std::make_shared<dialog_interfaces::srv::Answer::Request>();
         auto eventParams = event.data().toMap();
         request->interaction = convert<decltype(request->interaction)>(eventParams["interaction"].toString().toStdString());
         request->context = convert<decltype(request->context)>(eventParams["context"].toString().toStdString());
         bool wait_succeded{true};
-        // std::cout << "DialogComponent::AnswerAndSpeak.Call 1" << std::endl;
-        while (!clientAnswerAndSpeak->wait_for_service(std::chrono::seconds(1))) {
+        // std::cout << "DialogComponent::Answer.Call 1" << std::endl;
+        while (!clientAnswer->wait_for_service(std::chrono::seconds(1))) {
             if (!rclcpp::ok()) {
-                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'AnswerAndSpeak'. Exiting.");
+                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'Answer'. Exiting.");
                 wait_succeded = false;
-                m_stateMachine.submitEvent("DialogComponent.AnswerAndSpeak.Return");
+                m_stateMachine.submitEvent("DialogComponent.Answer.Return");
             } 
         }
-        // std::cout << "DialogComponent::AnswerAndSpeak.Call 2" << std::endl;
+        // std::cout << "DialogComponent::Answer.Call 2" << std::endl;
         if (wait_succeded) {
             // send the request                                                                    
-            auto result = clientAnswerAndSpeak->async_send_request(request);
-            auto futureResult = rclcpp::spin_until_future_complete(nodeAnswerAndSpeak, result);
+            auto result = clientAnswer->async_send_request(request);
+            auto futureResult = rclcpp::spin_until_future_complete(nodeAnswer, result);
             auto response = result.get();
             if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
             {
@@ -416,13 +416,13 @@ bool DialogSkill::start(int argc, char *argv[])
                     data.insert("result", "SUCCESS");
                     data.insert("reply", QString::fromStdString(response->reply));
                     data.insert("is_reply_finished", response->is_reply_finished);
-                    m_stateMachine.submitEvent("DialogComponent.AnswerAndSpeak.Return", data);
-                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.AnswerAndSpeak.Return");
+                    m_stateMachine.submitEvent("DialogComponent.Answer.Return", data);
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.Answer.Return");
                 } else {
                     QVariantMap data;
                     data.insert("result", "FAILURE");
-                    m_stateMachine.submitEvent("DialogComponent.AnswerAndSpeak.Return", data);
-                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.AnswerAndSpeak.Return");
+                    m_stateMachine.submitEvent("DialogComponent.Answer.Return", data);
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.Answer.Return");
                 }
             }
         } });
