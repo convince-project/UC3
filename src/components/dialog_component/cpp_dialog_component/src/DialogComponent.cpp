@@ -334,14 +334,14 @@ bool DialogComponent::start(int argc, char *argv[])
     //                                                                                                            std::placeholders::_1,
     //                                                                                                            std::placeholders::_2));
 
-    m_ShortenAndSpeakService = m_node->create_service<dialog_interfaces::srv::ShortenAndSpeak>("/DialogComponent/ShortenAndSpeak",
-                                                                                               std::bind(&DialogComponent::ShortenAndSpeak,
+    m_ShortenReplyService = m_node->create_service<dialog_interfaces::srv::ShortenReply>("/DialogComponent/ShortenReply",
+                                                                                               std::bind(&DialogComponent::ShortenReply,
                                                                                                          this,
                                                                                                          std::placeholders::_1,
                                                                                                          std::placeholders::_2));
 
-    m_AnswerAndSpeakService = m_node->create_service<dialog_interfaces::srv::AnswerAndSpeak>("/DialogComponent/AnswerAndSpeak",
-                                                                                             std::bind(&DialogComponent::AnswerAndSpeak,
+    m_AnswerService = m_node->create_service<dialog_interfaces::srv::Answer>("/DialogComponent/Answer",
+                                                                                             std::bind(&DialogComponent::Answer,
                                                                                                        this,
                                                                                                        std::placeholders::_1,
                                                                                                        std::placeholders::_2));
@@ -1197,14 +1197,14 @@ void DialogComponent::SpeakFromText(std::string text, std::string dance)
     WaitForSpeakEnd();
 }
 
-void DialogComponent::ShortenAndSpeak(const std::shared_ptr<dialog_interfaces::srv::ShortenAndSpeak::Request> request,
-                                      std::shared_ptr<dialog_interfaces::srv::ShortenAndSpeak::Response> response)
+void DialogComponent::ShortenReply(const std::shared_ptr<dialog_interfaces::srv::ShortenReply::Request> request,
+                                      std::shared_ptr<dialog_interfaces::srv::ShortenReply::Response> response)
 {
 
-    yDebug() << "[DialogComponent::ShortenAndSpeak] call received with request: " << request->interaction;
-    yDebug() << "[DialogComponent::ShortenAndSpeak] call received with context: " << request->context;
+    yDebug() << "[DialogComponent::ShortenReply] call received with request: " << request->interaction;
+    yDebug() << "[DialogComponent::ShortenReply] call received with context: " << request->context;
 
-    std::cout << "DialogComponent::ShortenAndSpeak call received" << __LINE__ << std::endl;
+    std::cout << "DialogComponent::ShortenReply call received" << __LINE__ << std::endl;
     for (auto &reply : m_replies[request->context])
     {
         std::cout << "Reply at index " << &reply - &m_replies[request->context][0] << ": " << reply << std::endl;
@@ -1225,7 +1225,7 @@ void DialogComponent::ShortenAndSpeak(const std::shared_ptr<dialog_interfaces::s
     {
         if (!m_iGenericChat->ask(LLMQuestion, answer))
         {
-            yError() << "[DialogComponent::AnswerAndSpeak] Unable to interact with chatGPT with question: " << request->interaction;
+            yError() << "[DialogComponent::ShortenReply] Unable to interact with chatGPT with question: " << request->interaction;
             std::this_thread::sleep_for(wait_ms);
         }
     }
@@ -1233,13 +1233,13 @@ void DialogComponent::ShortenAndSpeak(const std::shared_ptr<dialog_interfaces::s
     {
         if (!m_iMuseumChat->ask(LLMQuestion, answer))
         {
-            yError() << "[DialogComponent::AnswerAndSpeak] Unable to interact with chatGPT with question: " << request->interaction;
+            yError() << "[DialogComponent::ShortenReply] Unable to interact with chatGPT with question: " << request->interaction;
             std::this_thread::sleep_for(wait_ms);
         }
     }
     else
     {
-        yError() << "[DialogComponent::AnswerAndSpeak] Unknown context: " << request->context;
+        yError() << "[DialogComponent::ShortenReply] Unknown context: " << request->context;
         response->is_ok = false;
         return;
     }
@@ -1256,8 +1256,8 @@ void DialogComponent::ShortenAndSpeak(const std::shared_ptr<dialog_interfaces::s
     response->is_reply_finished = true; // We are finished with the reply
 }
 
-void DialogComponent::AnswerAndSpeak(const std::shared_ptr<dialog_interfaces::srv::AnswerAndSpeak::Request> request,
-                                     std::shared_ptr<dialog_interfaces::srv::AnswerAndSpeak::Response> response)
+void DialogComponent::Answer(const std::shared_ptr<dialog_interfaces::srv::Answer::Request> request,
+                                     std::shared_ptr<dialog_interfaces::srv::Answer::Response> response)
 {
 
     std::string LLMQuestion = "You have received a question: " + request->interaction + ". " +
@@ -1270,7 +1270,7 @@ void DialogComponent::AnswerAndSpeak(const std::shared_ptr<dialog_interfaces::sr
     {
         if (!m_iGenericChat->ask(LLMQuestion, answer))
         {
-            yError() << "[DialogComponent::AnswerAndSpeak] Unable to interact with chatGPT with question: " << request->interaction;
+            yError() << "[DialogComponent::Answer] Unable to interact with chatGPT with question: " << request->interaction;
             std::this_thread::sleep_for(wait_ms);
         }
     }
@@ -1278,13 +1278,13 @@ void DialogComponent::AnswerAndSpeak(const std::shared_ptr<dialog_interfaces::sr
     {
         if (!m_iMuseumChat->ask(LLMQuestion, answer))
         {
-            yError() << "[DialogComponent::AnswerAndSpeak] Unable to interact with chatGPT with question: " << request->interaction;
+            yError() << "[DialogComponent::Answer] Unable to interact with chatGPT with question: " << request->interaction;
             std::this_thread::sleep_for(wait_ms);
         }
     }
     else
     {
-        yError() << "[DialogComponent::AnswerAndSpeak] Unknown context: " << request->context;
+        yError() << "[DialogComponent::Answer] Unknown context: " << request->context;
         response->is_ok = false;
         return;
     }
