@@ -25,8 +25,8 @@
 // Dialog Component Interfaces
 #include <dialog_interfaces/srv/manage_context.hpp>
 #include <dialog_interfaces/srv/remember_interactions.hpp> // auto-generated from the .srv file
-#include <dialog_interfaces/srv/shorten_and_speak.hpp>
-#include <dialog_interfaces/srv/answer_and_speak.hpp>
+#include <dialog_interfaces/srv/shorten_reply.hpp>
+#include <dialog_interfaces/srv/answer.hpp>
 #include <dialog_interfaces/srv/set_language.hpp>
 #include <dialog_interfaces/srv/interpret_command.hpp>
 #include <dialog_interfaces/srv/speak.hpp>
@@ -79,11 +79,11 @@ public:
 
     void WaitForInteraction(const std::shared_ptr<GoalHandleWaitForInteraction> goal_handle);
 
-    void ShortenAndSpeak(const std::shared_ptr<dialog_interfaces::srv::ShortenAndSpeak::Request> request,
-                        std::shared_ptr<dialog_interfaces::srv::ShortenAndSpeak::Response> response);
+    void ShortenReply(const std::shared_ptr<dialog_interfaces::srv::ShortenReply::Request> request,
+                        std::shared_ptr<dialog_interfaces::srv::ShortenReply::Response> response);
 
-    void AnswerAndSpeak(const std::shared_ptr<dialog_interfaces::srv::AnswerAndSpeak::Request> request,
-                        std::shared_ptr<dialog_interfaces::srv::AnswerAndSpeak::Response> response);
+    void Answer(const std::shared_ptr<dialog_interfaces::srv::Answer::Request> request,
+                        std::shared_ptr<dialog_interfaces::srv::Answer::Response> response);
 
     void SetLanguage(const std::shared_ptr<dialog_interfaces::srv::SetLanguage::Request> request,
                         std::shared_ptr<dialog_interfaces::srv::SetLanguage::Response> response);
@@ -131,8 +131,8 @@ private:
     rclcpp::Node::SharedPtr m_node;
     
     rclcpp::Service<dialog_interfaces::srv::ManageContext>::SharedPtr m_manageContextService;
-    rclcpp::Service<dialog_interfaces::srv::ShortenAndSpeak>::SharedPtr m_ShortenAndSpeakService;
-    rclcpp::Service<dialog_interfaces::srv::AnswerAndSpeak>::SharedPtr m_AnswerAndSpeakService;
+    rclcpp::Service<dialog_interfaces::srv::ShortenReply>::SharedPtr m_ShortenReplyService;
+    rclcpp::Service<dialog_interfaces::srv::Answer>::SharedPtr m_AnswerService;
     rclcpp::Service<dialog_interfaces::srv::SetLanguage>::SharedPtr m_SetLanguageService;
     rclcpp::Service<dialog_interfaces::srv::InterpretCommand>::SharedPtr m_InterpretCommandService;
     rclcpp::Service<dialog_interfaces::srv::Speak>::SharedPtr m_SpeakService;
