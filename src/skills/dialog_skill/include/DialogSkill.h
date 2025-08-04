@@ -20,7 +20,7 @@
 
 #include <dialog_interfaces/srv/manage_context.hpp>
 #include <dialog_interfaces/srv/remember_interactions.hpp> // auto-generated from the .srv file
-#include <dialog_interfaces/srv/shorten_reply.hpp>
+#include <dialog_interfaces/srv/shorten.hpp>
 #include <dialog_interfaces/srv/answer.hpp>
 #include <dialog_interfaces/srv/set_language.hpp>
 #include <dialog_interfaces/srv/interpret_command.hpp>
