@@ -223,11 +223,11 @@
       <log label="Dance" expr="m_dance"/>
 
     </onentry>
-    <!-- <transition cond="m_duplicate_index &gt; 0" target="shortenAndSpeak"/>
+    <!-- <transition cond="m_duplicate_index &gt; 0" target="shortenReply"/>
     <transition cond="m_duplicate_index &lt; 0" target="interpret"/> -->
     <!-- undesirable solution, but I couldn't make the integer comparison work -->
-    <transition cond="m_duplicate_index != '-1'" target="shortenAndSpeak">
-        <send event="DialogComponent.ShortenAndSpeak.Call">
+    <transition cond="m_duplicate_index != '-1'" target="shortenReply">
+        <send event="DialogComponent.ShortenReply.Call">
           <param name="index" expr="m_duplicate_index"/>
           <param name="context" expr="m_context"/>
           <param name="interaction" expr="m_interaction"/>
@@ -240,8 +240,8 @@
         </send>
     </transition>
     <!-- <transition cond="" target="interpretCommand"/> -->
-    <transition target="answerAndSpeak">
-        <send event="DialogComponent.AnswerAndSpeak.Call">
+    <transition target="answer">
+        <send event="DialogComponent.Answer.Call">
           <param name="interaction" expr="m_interaction"/>
           <param name="context" expr="m_context"/>
         </send>
@@ -252,9 +252,9 @@
   <!-- STATE END -->
   <!-- TODO: Discuss if adding 2 evaluateDuplicateResult states, to evaluate the correct execution of evaluateDuplicate state -->
 
-  <state id="shortenAndSpeak">
+  <state id="shortenReply">
     <onentry>
-        <log label="State shortenAndSpeak" expr="m_result"/>
+        <log label="State shortenReply" expr="m_result"/>
         <log label="Interaction" expr="m_interaction"/>
         <log label="Language" expr="m_language"/>
         <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/> 
@@ -264,19 +264,19 @@
         <log label="Dance" expr="m_dance"/>
     </onentry>
     <transition event="CMD_HALT" target="stop"/>
-    <transition event="CMD_TICK" target="shortenAndSpeak">
+    <transition event="CMD_TICK" target="shortenReply">
       <send event="TICK_RESPONSE">
         <param name="result" expr='"RUNNING"'/>
       </send>
     </transition>
-    <transition event="DialogComponent.ShortenAndSpeak.Return" target="shortenAndSpeakResult">
+    <transition event="DialogComponent.ShortenReply.Return" target="shortenReplyResult">
       <assign expr="_event.data.result" location="m_result"/>
       <assign expr="_event.data.reply" location="m_reply"/>
       <assign expr="_event.data.is_reply_finished" location="m_is_reply_finished"/>
     </transition>
   </state>
 
-  <state id="shortenAndSpeakResult">
+  <state id="shortenReplyResult">
     <transition cond="m_result == 'SUCCESS'" target="speak" />
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
   </state>
@@ -319,9 +319,9 @@
 
   <!-- STATE END -->
 
-  <state id="answerAndSpeak">
+  <state id="answer">
     <onentry>
-      <log label="State answerAndSpeak" expr="m_result"/>
+      <log label="State answer" expr="m_result"/>
       <log label="Interaction" expr="m_interaction"/>
       <log label="Language" expr="m_language"/>
       <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/> 
@@ -331,19 +331,19 @@
       <log label="Dance" expr="m_dance"/>
     </onentry>
     <transition event="CMD_HALT" target="stop"/>
-    <transition event="CMD_TICK" target="answerAndSpeak">
+    <transition event="CMD_TICK" target="answer">
       <send event="TICK_RESPONSE">
         <param name="result" expr='"RUNNING"'/>
       </send>
     </transition>
-    <transition event="DialogComponent.AnswerAndSpeak.Return" target="answerAndSpeakResult">
+    <transition event="DialogComponent.Answer.Return" target="answerResult">
       <assign expr="_event.data.result" location="m_result"/>
       <assign expr="_event.data.reply" location="m_reply"/>
       <assign expr="_event.data.is_reply_finished" location="m_is_reply_finished"/>
     </transition>
   </state>
 
-  <state id="answerAndSpeakResult">
+  <state id="answerResult">
     <onentry>
 
     </onentry>
