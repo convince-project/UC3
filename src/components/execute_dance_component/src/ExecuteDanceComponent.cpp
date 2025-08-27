@@ -238,6 +238,7 @@ void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_inte
 {
     // Log iniziale: quale danza/opera è stata richiesta
     RCLCPP_INFO(m_node->get_logger(), "DEBUG: Requested dance_name: '%s'", request->dance_name.c_str());
+    RCLCPP_INFO(m_node->get_logger(), "EXECUTE TASK: starting executeTask thread for '%s'", request->dance_name.c_str());
 
     // Recupera coordinate artwork; se non presente, abortiamo rapidamente.
     auto artworkIt = m_artworkCoords.find(request->dance_name);
@@ -253,311 +254,218 @@ void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_inte
     double artwork_y = artworkIt->second[1];
     double artwork_z = artworkIt->second[2];
 
+    RCLCPP_INFO(m_node->get_logger(),
+                "ARTWORK coords: name='%s' x=%.3f y=%.3f z=%.3f",
+                request->dance_name.c_str(), artwork_x, artwork_y, artwork_z);
+
     // Ciclo sulle due mani: LEFT e RIGHT
     // Perché: il componente può puntare con entrambe le mani (configurabile dal comportamento).
-    for (const std::string armName : {"LEFT", "RIGHT"}) {
-        // Facciamo uso di un pointer alla porta attiva (sinistra/destra)
-        yarp::os::Port* activePort = (armName == "LEFT") ? &m_cartesianPortLeft : &m_cartesianPortRight;
+    // --- PRE-SCAN: interroghiamo entrambe le mani per ottenere la posa corrente,
+    // calcoliamo la distanza all'artwork e ordiniamo le mani per distanza crescente.
+    std::vector<std::pair<std::string,double>> armDistances;
+    std::map<std::string, std::vector<double>> cachedPoseValues;
 
-        // 1) Verifica che la porta sia aperta e connessa al server previsto
-        if (!activePort->isOpen()) {
-            RCLCPP_ERROR(m_node->get_logger(),
-                "YARP port for %s arm is not open!", armName.c_str());
+    for (const std::string arm : {"LEFT", "RIGHT"}) {
+        yarp::os::Port* port = (arm == "LEFT") ? &m_cartesianPortLeft : &m_cartesianPortRight;
+        std::string remotePort = (arm == "LEFT") ? "/r1-cartesian-control/left_arm/rpc:i" : "/r1-cartesian-control/right_arm/rpc:i";
+
+        if (!port->isOpen()) {
+            RCLCPP_WARN(m_node->get_logger(), "PRE-SCAN: %s port not open, skipping pre-scan for this arm", arm.c_str());
             continue;
         }
-        std::string remotePort = (armName == "LEFT")
-            ? "/r1-cartesian-control/left_arm/rpc:i"
-            : "/r1-cartesian-control/right_arm/rpc:i";
-        if (!yarp::os::Network::isConnected(activePort->getName(), remotePort)) {
-            RCLCPP_ERROR(m_node->get_logger(),
-                "YARP port %s is not connected to %s!", activePort->getName().c_str(), remotePort.c_str());
+        if (!yarp::os::Network::isConnected(port->getName(), remotePort)) {
+            RCLCPP_WARN(m_node->get_logger(), "PRE-SCAN: %s port not connected to %s, skipping", arm.c_str(), remotePort.c_str());
             continue;
         }
 
-        // 2) Otteniamo la posa attuale dell'end-effector dal controller cartesiano
-        //    Il server cartesiano fornisce una RPC 'get_pose' che risponde con una Bottle
         yarp::os::Bottle cmd_get, res_get;
         cmd_get.addString("get_pose");
-        bool write_ok = activePort->write(cmd_get, res_get);
-
-        // Log della risposta grezza per debug: utile per verificare formato della Bottle
-        std::ostringstream oss;
-        for (size_t i = 0; i < res_get.size(); ++i) {
-            oss << res_get.get(i).toString() << " ";
-        }
-        RCLCPP_DEBUG(m_node->get_logger(),
-            "get_pose response from %s: write_ok=%d, size=%ld, content=[%s]",
-            armName.c_str(), write_ok, res_get.size(), oss.str().c_str());
-
-        if (!write_ok) {
-            RCLCPP_ERROR(m_node->get_logger(),
-                "GET_POSE ERROR: write() failed for %s arm (artwork: '%s' at [%.2f, %.2f, %.2f])",
-                armName.c_str(), request->dance_name.c_str(), artwork_x, artwork_y, artwork_z);
+        bool ok = port->write(cmd_get, res_get);
+        RCLCPP_INFO(m_node->get_logger(), "PRE-SCAN: %s get_pose write_ok=%d res_size=%ld", arm.c_str(), ok, res_get.size());
+        if (!ok) {
+            RCLCPP_WARN(m_node->get_logger(), "PRE-SCAN: get_pose failed for %s", arm.c_str());
             continue;
         }
 
-        // Dopo aver ricevuto res_get -> appiattisco eventuali liste annidate in un vettore di double
-        // Perché: alcune risposte YARP contengono una matrice 4x4 serializzata come list or nested lists.
+        // parse response into vector<double>
         std::vector<double> pose_values;
         for (size_t i = 0; i < res_get.size(); ++i) {
             if (res_get.get(i).isList()) {
                 yarp::os::Bottle* sub = res_get.get(i).asList();
-                for (size_t j = 0; j < sub->size(); ++j) {
-                    pose_values.push_back(sub->get(j).asFloat64());
-                }
+                for (size_t j = 0; j < sub->size(); ++j) pose_values.push_back(sub->get(j).asFloat64());
             } else {
                 pose_values.push_back(res_get.get(i).asFloat64());
             }
         }
-
-        // Controllo della dimensione attesa (16 o 18) — dipende dal formato restituito
-        // Perché: difformità nel server possono cambiare il numero di entry; gestiamo entrambe le casistiche.
         if (pose_values.size() != 18 && pose_values.size() != 16) {
-            RCLCPP_ERROR(m_node->get_logger(),
-                "GET_POSE ERROR: Unexpected total value count (%zu) from %s arm. Content: [%s]",
-                pose_values.size(), armName.c_str(), oss.str().c_str());
+            RCLCPP_WARN(m_node->get_logger(), "PRE-SCAN: unexpected pose size=%zu for %s, skipping", pose_values.size(), arm.c_str());
             continue;
         }
 
-        // Calcoliamo offset: alcuni formati includono header (2 valori) prima della matrice 4x4
         size_t offset = (pose_values.size() == 18) ? 2 : 0;
+        double hx = pose_values[offset + 3];
+        double hy = pose_values[offset + 7];
+        double hz = pose_values[offset + 11];
+        double dist = std::hypot(std::hypot(artwork_x - hx, artwork_y - hy), artwork_z - hz);
 
-        // Parsing: estraiamo la posizione hand_x, hand_y, hand_z dalla colonna di traslazione della 4x4
-        // Indici scelti coerenti con come il server serializza la matrice (m03, m13, m23)
-        double hand_x = pose_values[offset + 3];   // m03
-        double hand_y = pose_values[offset + 7];   // m13
-        double hand_z = pose_values[offset + 11];  // m23
-
-        // Log della posa iniziale
-        RCLCPP_INFO(m_node->get_logger(),
-            "%s arm: START pose [x=%.3f, y=%.3f, z=%.3f] -> TARGET artwork '%s' [x=%.3f, y=%.3f, z=%.3f]",
-            armName.c_str(), hand_x, hand_y, hand_z,
-            request->dance_name.c_str(), artwork_x, artwork_y, artwork_z);
-
-        // Ricostruiamo la matrice di rotazione 3x3 estratta dai valori della Bottle
-        Eigen::Matrix3d R_hand;
-        R_hand << pose_values[offset + 0], pose_values[offset + 1], pose_values[offset + 2],
-                  pose_values[offset + 4], pose_values[offset + 5], pose_values[offset + 6],
-                  pose_values[offset + 8], pose_values[offset + 9], pose_values[offset + 10];
-
-        // 2) Calcola la direzione dal hand all'artwork e normalizzala.
-        Eigen::Vector3d hand_pos(hand_x, hand_y, hand_z);
-        Eigen::Vector3d artwork_pos(artwork_x, artwork_y, artwork_z);
-        Eigen::Vector3d vec_hand_to_artwork = (artwork_pos - hand_pos).normalized();
-
-        // Otteniamo l'asse X corrente della mano dalla matrice di rotazione (prima colonna)
-        Eigen::Vector3d hand_x_axis = R_hand.col(0);
-
-        // Calcolo angolo PRE-rotazione tra asse X della mano e la direzione verso l'opera (solo per logging)
-        double cos_angle_before = hand_x_axis.dot(vec_hand_to_artwork);
-        cos_angle_before = std::clamp(cos_angle_before, -1.0, 1.0);
-        double angle_before_rad = std::acos(cos_angle_before);
-        double angle_before_deg = angle_before_rad * 180.0 / M_PI;
-
-        RCLCPP_INFO(m_node->get_logger(),
-            "%s arm: ANGLE between hand X axis and artwork direction BEFORE rotation: %.2f deg",
-            armName.c_str(), angle_before_deg);
-
-        // Calcolo dell'asse ortogonale e dell'angolo per allineare X della mano verso l'opera.
-        // Metodo: axis = cross(hand_x, vec_target), angle = acos(dot(hand_x, vec_target))
-        // Perché: rotazione minima che allinea gli assi.
-        double cos_angle = hand_x_axis.dot(vec_hand_to_artwork);
-        cos_angle = std::clamp(cos_angle, -1.0, 1.0);
-        double angle_x = std::acos(cos_angle);
-
-        // Direzione (segno) della rotazione: usiamo la componente Z dell'asse di cross come indicatore
-        Eigen::Vector3d axis = hand_x_axis.cross(vec_hand_to_artwork);
-        double sign = (axis.z() >= 0) ? 1.0 : -1.0;
-        angle_x *= sign;
-
-        // Costruzione della rotazione completa attorno all'asse ortogonale se necessario
-        Eigen::Vector3d rotation_axis = hand_x_axis.cross(vec_hand_to_artwork);
-        double axis_norm = rotation_axis.norm();
-        if (axis_norm > 1e-6) {
-            // Normalizziamo l'asse e calcoliamo l'angle
-            rotation_axis.normalize();
-            double angle = std::acos(std::clamp(hand_x_axis.dot(vec_hand_to_artwork), -1.0, 1.0));
-
-            // Creiamo rotazione AngleAxis e applichiamola all'orientamento corrente della mano
-            Eigen::AngleAxisd rot(angle, rotation_axis);
-            Eigen::Matrix3d R_target = rot * R_hand;
-
-            // Convertiamo in quaternion per inviarla al controller tramite go_to_pose (se supportato)
-            Eigen::Quaterniond q_target(R_target);
-            Eigen::Quaterniond q_hand(R_hand);
-
-            // Calcolo delta orientamento (solo a scopo di log)
-            double dot = std::abs(q_hand.dot(q_target));
-            dot = std::clamp(dot, -1.0, 1.0);
-            double delta_angle_rad = 2.0 * std::acos(dot);
-            double delta_angle_deg = delta_angle_rad * 180.0 / M_PI;
-
-            RCLCPP_INFO(m_node->get_logger(),
-                "%s arm: ORIENTATION DELTA = %.2f deg (from START to ROTATED TARGET)", armName.c_str(), delta_angle_deg);
-
-            // Log della posa target (posizione invariata, solo orientamento cambiato)
-            RCLCPP_INFO(m_node->get_logger(),
-                "%s arm: ROTATED TARGET pose [x=%.3f, y=%.3f, z=%.3f, qx=%.3f, qy=%.3f, qz=%.3f, qw=%.3f] (aligned with artwork '%s')",
-                armName.c_str(), hand_x, hand_y, hand_z,
-                q_target.x(), q_target.y(), q_target.z(), q_target.w(),
-                request->dance_name.c_str());
-
-            // Controlliamo l'angolo dopo la rotazione (solo per conferma)
-            Eigen::Vector3d hand_x_axis_after = R_target.col(0);
-            double cos_angle_after = hand_x_axis_after.dot(vec_hand_to_artwork);
-            cos_angle_after = std::clamp(cos_angle_after, -1.0, 1.0);
-            double angle_after_rad = std::acos(cos_angle_after);
-            double angle_after_deg = angle_after_rad * 180.0 / M_PI;
-
-            RCLCPP_INFO(m_node->get_logger(),
-                "%s arm: ANGLE between hand X axis and artwork direction AFTER rotation: %.2f deg",
-                armName.c_str(), angle_after_deg);
-
-            // 5) Verifica raggiungibilità della nuova pose chiamando is_pose_reachable sul controller
-            //    Perché: il controller può rifiutare pose fuori portata; importante verificare prima di muovere.
-            yarp::os::Bottle cmd_check, res_check;
-            cmd_check.addString("is_pose_reachable");
-            cmd_check.addFloat64(hand_x);
-            cmd_check.addFloat64(hand_y);
-            cmd_check.addFloat64(hand_z);
-            cmd_check.addFloat64(q_target.x());
-            cmd_check.addFloat64(q_target.y());
-            cmd_check.addFloat64(q_target.z());
-            cmd_check.addFloat64(q_target.w());
-            if (!activePort->write(cmd_check, res_check) || res_check.size() == 0 || res_check.get(0).asVocab32() != yarp::os::createVocab32('o','k')) {
-                RCLCPP_WARN(m_node->get_logger(),
-                            "POSE NOT REACHABLE: %s hand cannot reach rotated pose at [%.2f, %.2f, %.2f]", armName.c_str(), hand_x, hand_y, hand_z);
-                continue;
-            }
-
-            // 6) Invia comando go_to_pose al controller con durata predeterminata (15s qui)
-            //    Perché: go_to_pose è la primitive che richiede l'esecuzione della traiettoria.
-            yarp::os::Bottle cmd_pose, res_pose;
-            cmd_pose.addString("go_to_pose");
-            cmd_pose.addFloat64(hand_x);
-            cmd_pose.addFloat64(hand_y);
-            cmd_pose.addFloat64(hand_z);
-            cmd_pose.addFloat64(q_target.x());
-            cmd_pose.addFloat64(q_target.y());
-            cmd_pose.addFloat64(q_target.z());
-            cmd_pose.addFloat64(q_target.w());
-            cmd_pose.addFloat64(15.0); // durata traiettoria (s)
-
-            if (!activePort->write(cmd_pose, res_pose) || res_pose.size() == 0 || res_pose.get(0).asVocab32() != yarp::os::createVocab32('o','k')) {
-                RCLCPP_WARN(m_node->get_logger(),
-                            "POSITIONING FAILED: %s hand could not move to rotated pose", armName.c_str());
-            } else {
-                RCLCPP_INFO(m_node->get_logger(),
-                            "POSITIONING SUCCESS: %s hand moved to rotated pose aligned with artwork [%s]", armName.c_str(), request->dance_name.c_str());
-            }
-        } else {
-            // Se l'asse norm è ~0 => già allineato o direzione nulla; la target pose è uguale alla corrente
-            Eigen::Matrix3d R_target = R_hand;
-            Eigen::Quaterniond q_target(R_target);
-            Eigen::Quaterniond q_hand(R_hand);
-
-            double dot = std::abs(q_hand.dot(q_target));
-            dot = std::clamp(dot, -1.0, 1.0);
-            double delta_angle_rad = 2.0 * std::acos(dot);
-            double delta_angle_deg = delta_angle_rad * 180.0 / M_PI;
-
-            RCLCPP_INFO(m_node->get_logger(),
-                "%s arm: ORIENTATION DELTA = %.2f deg (from START to ROTATED TARGET)", armName.c_str(), delta_angle_deg);
-
-            RCLCPP_INFO(m_node->get_logger(),
-                "%s arm: ROTATED TARGET pose [x=%.3f, y=%.3f, z=%.3f, qx=%.3f, qy=%.3f, qz=%.3f, qw=%.3f] (aligned with artwork '%s')",
-                armName.c_str(), hand_x, hand_y, hand_z,
-                q_target.x(), q_target.y(), q_target.z(), q_target.w(),
-                request->dance_name.c_str());
-
-            Eigen::Vector3d hand_x_axis_after = R_target.col(0);
-            double cos_angle_after = hand_x_axis_after.dot(vec_hand_to_artwork);
-            cos_angle_after = std::clamp(cos_angle_after, -1.0, 1.0);
-            double angle_after_rad = std::acos(cos_angle_after);
-            double angle_after_deg = angle_after_rad * 180.0 / M_PI;
-
-            RCLCPP_INFO(m_node->get_logger(),
-                "%s arm: ANGLE between hand X axis and artwork direction AFTER rotation: %.2f deg",
-                armName.c_str(), angle_after_deg);
-
-            // Controllo e invio go_to_pose come sopra (duplica logica per semplicità)
-            yarp::os::Bottle cmd_check, res_check;
-            cmd_check.addString("is_pose_reachable");
-            cmd_check.addFloat64(hand_x);
-            cmd_check.addFloat64(hand_y);
-            cmd_check.addFloat64(hand_z);
-            cmd_check.addFloat64(q_target.x());
-            cmd_check.addFloat64(q_target.y());
-            cmd_check.addFloat64(q_target.z());
-            cmd_check.addFloat64(q_target.w());
-            if (!activePort->write(cmd_check, res_check) || res_check.size() == 0 || res_check.get(0).asVocab32() != yarp::os::createVocab32('o','k')) {
-                RCLCPP_WARN(m_node->get_logger(),
-                            "POSE NOT REACHABLE: %s hand cannot reach rotated pose at [%.2f, %.2f, %.2f]", armName.c_str(), hand_x, hand_y, hand_z);
-                continue;
-            }
-
-            yarp::os::Bottle cmd_pose, res_pose;
-            cmd_pose.addString("go_to_pose");
-            cmd_pose.addFloat64(hand_x);
-            cmd_pose.addFloat64(hand_y);
-            cmd_pose.addFloat64(hand_z);
-            cmd_pose.addFloat64(q_target.x());
-            cmd_pose.addFloat64(q_target.y());
-            cmd_pose.addFloat64(q_target.z());
-            cmd_pose.addFloat64(q_target.w());
-            cmd_pose.addFloat64(15.0); // durata traiettoria
-
-            if (!activePort->write(cmd_pose, res_pose) || res_pose.size() == 0 || res_pose.get(0).asVocab32() != yarp::os::createVocab32('o','k')) {
-                RCLCPP_WARN(m_node->get_logger(),
-                            "POSITIONING FAILED: %s hand could not move to rotated pose", armName.c_str());
-            } else {
-                RCLCPP_INFO(m_node->get_logger(),
-                            "POSITIONING SUCCESS: %s hand moved to rotated pose aligned with artwork [%s]", armName.c_str(), request->dance_name.c_str());
-            }
-        }
+        RCLCPP_INFO(m_node->get_logger(), "PRE-SCAN: %s hand pos=[%.3f,%.3f,%.3f] dist_to_artwork=%.3f", arm.c_str(), hx, hy, hz, dist);
+        armDistances.emplace_back(arm, dist);
+        cachedPoseValues.emplace(arm, pose_values);
     }
 
-    // ---
-    // Nota: il blocco successivo (ri-allineamento via axis-angle utilizzando m_cartesianCtrl)
-    // è un tentativo alternativo per comandare il controller direttamente via ICartesianControl
-    // (se disponibile). Qui solo logging e fallback a relativeMove se m_cartesianCtrl è connesso.
-    { 
-        auto it = m_poiCoords.find(request->dance_name);
-        if (it != m_poiCoords.end() && m_cartesianCtrl) {
-            // Costruiamo un vettore di direzione a partire dalla mappa (map frame -> robot frame conversione)
-            Eigen::Vector3d target_dir(it->second.first - m_currentX,
-                                       it->second.second - m_currentY,
-                                       0.0);
-            if (target_dir.norm() < 1e-6) {
-                RCLCPP_WARN(m_node->get_logger(), "Target very close to robot position, skipping pointing");
-            } else {
-                target_dir.normalize();
-                // ipotesi: asse X della mano è approssimabile dall'orientamento yaw del robot
-                Eigen::Vector3d hand_x(std::cos(m_currentYaw), std::sin(m_currentYaw), 0.0);
-                hand_x.normalize();
-                Eigen::Vector3d rot_axis = hand_x.cross(target_dir);
-                double dotp = hand_x.dot(target_dir);
-                dotp = std::min(1.0, std::max(-1.0, dotp)); // clamp
-                double angle = std::acos(dotp); // radians
-                if (rot_axis.norm() < 1e-6 || std::abs(angle) < 1e-3) {
-                    RCLCPP_INFO(m_node->get_logger(), "Hand already aligned (angle=%.6f)", angle);
+    if (armDistances.empty()) {
+        RCLCPP_ERROR(m_node->get_logger(), "No available arms (ports) to perform pointing. Aborting executeTask.");
+        return;
+    }
+
+    // ordina per distanza crescente (prima la mano più vicina)
+    std::sort(armDistances.begin(), armDistances.end(), [](const auto &a, const auto &b){
+        return a.second < b.second;
+    });
+
+    // ora proviamo le mani nell'ordine calcolato
+    for (const auto &entry : armDistances) {
+        const std::string armName = entry.first;
+        RCLCPP_INFO(m_node->get_logger(), "ARM LOOP (ordered): trying arm '%s' (closer first)...", armName.c_str());
+
+        yarp::os::Port* activePort = (armName == "LEFT") ? &m_cartesianPortLeft : &m_cartesianPortRight;
+        std::string remotePort = (armName == "LEFT") ? "/r1-cartesian-control/left_arm/rpc:i" : "/r1-cartesian-control/right_arm/rpc:i";
+        if (!activePort->isOpen() || !yarp::os::Network::isConnected(activePort->getName(), remotePort)) {
+            RCLCPP_WARN(m_node->get_logger(), "ARM %s: port not ready at execution time, skipping", armName.c_str());
+            continue;
+        }
+
+        // Recupera pose_values dalla cache (pre-scan)
+        auto it_cached = cachedPoseValues.find(armName);
+        if (it_cached == cachedPoseValues.end()) {
+            RCLCPP_WARN(m_node->get_logger(), "No cached pose for %s, skipping", armName.c_str());
+            continue;
+        }
+        std::vector<double> pose_values = it_cached->second;
+        size_t offset = (pose_values.size() == 18) ? 2 : 0;
+        double hand_x = pose_values[offset + 3];
+        double hand_y = pose_values[offset + 7];
+        double hand_z = pose_values[offset + 11];
+
+        RCLCPP_INFO(m_node->get_logger(), "ARM %s: hand pos [x=%.3f y=%.3f z=%.3f] (using cached pre-scan)", armName.c_str(), hand_x, hand_y, hand_z);
+
+        // costruiamo R_hand come prima
+        // assume pose_values è std::vector<double> (o array) e contiene 16 valori di una 4x4
+        // Proviamo il mapping row-major direttamente (M_row deve essere visibile nel scope seguente)
+        Eigen::Map<const Eigen::Matrix<double,4,4,Eigen::RowMajor>> M_row(pose_values.data() + offset);
+            Eigen::Matrix3d R_hand_row = M_row.topLeftCorner<3,3>();
+
+            // --- mapping alternativa (col-major) ---
+            Eigen::Map<const Eigen::Matrix<double,4,4,Eigen::ColMajor>> M_col(pose_values.data() + offset);
+            Eigen::Matrix3d R_hand_col = M_col.topLeftCorner<3,3>();
+
+            // --- debug: stampo entrambi in output per verificare quale è corretto ---
+            // (sostituisci con il logger del tuo progetto se presente)
+            std::cout << "Mapped (row-major) 4x4:\n" << M_row << "\n";
+            std::cout << "Top-left 3x3 (row-major mapping):\n" << R_hand_row << "\n";
+            std::cout << "Mapped (col-major) 4x4:\n" << M_col << "\n";
+            std::cout << "Top-left 3x3 (col-major mapping):\n" << R_hand_col << "\n";
+
+            // Scegli quello giusto per l'uso successivo:
+            // Se i dati sono row-major, mantenere R_hand = R_hand_row;
+            // altrimenti usare R_hand_col o trasporre:
+            Eigen::Matrix3d R_hand = R_hand_row; // <-- modifica qui se necessario
+
+            // calcolo direzione, axis-angle, check is_pose_reachable, go_to_pose...
+            // Per evitare duplicazione qui riutilizziamo il blocco esistente invocando la stessa logica
+            // (copia del flusso già presente sotto lo stesso file) — per brevità riusiamo lo stesso codice
+            // che segue esattamente le stesse operazioni (calcoli e chiamate RPC) con hand_x/hand_y/hand_z e R_hand.
+
+            // 2) Calcola la direzione dal hand all'artwork e normalizzala.
+            Eigen::Vector3d hand_pos(hand_x, hand_y, hand_z);
+            Eigen::Vector3d artwork_pos(artwork_x, artwork_y, artwork_z);
+            Eigen::Vector3d vec_hand_to_artwork = (artwork_pos - hand_pos);
+            double vec_norm = vec_hand_to_artwork.norm();
+            if (vec_norm > 1e-9) vec_hand_to_artwork.normalize();
+            else {
+                RCLCPP_WARN(m_node->get_logger(), "ARM %s: degenerate vector from hand to artwork (norm=%.6f)", armName.c_str(), vec_norm);
+                continue;
+            }
+
+            RCLCPP_INFO(m_node->get_logger(), "ARM %s: vec_hand_to_artwork = [%.4f, %.4f, %.4f] (norm=%.6f)", armName.c_str(),
+                        vec_hand_to_artwork.x(), vec_hand_to_artwork.y(), vec_hand_to_artwork.z(), vec_norm);
+
+            Eigen::Vector3d hand_x_axis = R_hand.col(0);
+            double cos_angle = std::clamp(hand_x_axis.dot(vec_hand_to_artwork), -1.0, 1.0);
+            Eigen::Vector3d rotation_axis = hand_x_axis.cross(vec_hand_to_artwork);
+            double axis_norm = rotation_axis.norm();
+            if (axis_norm <= 1e-6) {
+                RCLCPP_INFO(m_node->get_logger(), "ARM %s: rotation axis negligible, orientation likely already aligned", armName.c_str());
+                // build q_target = current orientation
+                Eigen::Quaterniond q_target(R_hand);
+                // reachability + go_to_pose as in original flow
+                yarp::os::Bottle cmd_check, res_check;
+                cmd_check.addString("is_pose_reachable");
+                cmd_check.addFloat64(hand_x);
+                cmd_check.addFloat64(hand_y);
+                cmd_check.addFloat64(hand_z);
+                cmd_check.addFloat64(q_target.x());
+                cmd_check.addFloat64(q_target.y());
+                cmd_check.addFloat64(q_target.z());
+                cmd_check.addFloat64(q_target.w());
+                bool ok_check = activePort->write(cmd_check, res_check);
+                RCLCPP_INFO(m_node->get_logger(), "ARM %s: is_pose_reachable write_ok=%d, res_size=%ld", armName.c_str(), ok_check, res_check.size());
+                if (!ok_check || res_check.size() == 0 || res_check.get(0).asVocab32() != yarp::os::createVocab32('o','k')) {
+                    RCLCPP_WARN(m_node->get_logger(), "POSE NOT REACHABLE: %s hand cannot reach current pose", armName.c_str());
+                    continue;
+                }
+                yarp::os::Bottle cmd_pose, res_pose;
+                cmd_pose.addString("go_to_pose");
+                cmd_pose.addFloat64(hand_x); cmd_pose.addFloat64(hand_y); cmd_pose.addFloat64(hand_z);
+                cmd_pose.addFloat64(q_target.x()); cmd_pose.addFloat64(q_target.y()); cmd_pose.addFloat64(q_target.z()); cmd_pose.addFloat64(q_target.w());
+                cmd_pose.addFloat64(15.0);
+                bool ok_pose = activePort->write(cmd_pose, res_pose);
+                RCLCPP_INFO(m_node->get_logger(), "ARM %s: go_to_pose write_ok=%d, res_size=%ld", armName.c_str(), ok_pose, res_pose.size());
+                if (ok_pose && res_pose.size() > 0 && res_pose.get(0).asVocab32() == yarp::os::createVocab32('o','k')) {
+                    RCLCPP_INFO(m_node->get_logger(), "POSITIONING SUCCESS: %s hand aligned with artwork [%s]", armName.c_str(), request->dance_name.c_str());
+                    break; // done
                 } else {
-                    rot_axis.normalize();
-                    // Convert axis-angle to small RPY deltas (approx) per relativeMove
-                    double rx = rot_axis.x() * angle;
-                    double ry = rot_axis.y() * angle;
-                    double rz = rot_axis.z() * angle;
-                    RCLCPP_INFO(m_node->get_logger(), "Pointing: axis=(%.3f,%.3f,%.3f) angle=%.3f",
-                                rot_axis.x(), rot_axis.y(), rot_axis.z(), angle);
-                    // Se m_cartesianCtrl disponibile, usiamo relativeMove (nota: controller non fa collision checking)
-                    // m_cartesianCtrl->relativeMove(0.0, 0.0, 0.0, rx, ry, rz);
-                    m_cartesianCtrl->waitMotionDone();
+                    RCLCPP_WARN(m_node->get_logger(), "POSITIONING FAILED: %s hand could not move (no-rotation case)", armName.c_str());
+                    continue;
+                }
+            } else {
+                rotation_axis.normalize();
+                double angle = std::acos(cos_angle);
+                Eigen::AngleAxisd rot(angle, rotation_axis);
+                Eigen::Matrix3d R_target = rot * R_hand;
+                Eigen::Quaterniond q_target(R_target);
+
+                // reachability
+                yarp::os::Bottle cmd_check, res_check;
+                cmd_check.addString("is_pose_reachable");
+                cmd_check.addFloat64(hand_x); cmd_check.addFloat64(hand_y); cmd_check.addFloat64(hand_z);
+                cmd_check.addFloat64(q_target.x()); cmd_check.addFloat64(q_target.y()); cmd_check.addFloat64(q_target.z()); cmd_check.addFloat64(q_target.w());
+                bool ok_check = activePort->write(cmd_check, res_check);
+                RCLCPP_INFO(m_node->get_logger(), "ARM %s: is_pose_reachable write_ok=%d, res_size=%ld", armName.c_str(), ok_check, res_check.size());
+                if (!ok_check || res_check.size() == 0 || res_check.get(0).asVocab32() != yarp::os::createVocab32('o','k')) {
+                    RCLCPP_WARN(m_node->get_logger(), "POSE NOT REACHABLE: %s hand cannot reach rotated pose", armName.c_str());
+                    continue;
+                }
+                // go_to_pose
+                yarp::os::Bottle cmd_pose, res_pose;
+                cmd_pose.addString("go_to_pose");
+                cmd_pose.addFloat64(hand_x); cmd_pose.addFloat64(hand_y); cmd_pose.addFloat64(hand_z);
+                cmd_pose.addFloat64(q_target.x()); cmd_pose.addFloat64(q_target.y()); cmd_pose.addFloat64(q_target.z()); cmd_pose.addFloat64(q_target.w());
+                cmd_pose.addFloat64(15.0);
+                bool ok_pose = activePort->write(cmd_pose, res_pose);
+                RCLCPP_INFO(m_node->get_logger(), "ARM %s: go_to_pose write_ok=%d, res_size=%ld", armName.c_str(), ok_pose, res_pose.size());
+                if (ok_pose && res_pose.size() > 0 && res_pose.get(0).asVocab32() == yarp::os::createVocab32('o','k')) {
+                    RCLCPP_INFO(m_node->get_logger(), "POSITIONING SUCCESS: %s hand moved to rotated pose aligned with artwork [%s]", armName.c_str(), request->dance_name.c_str());
+                    break; // success, don't try the other arm
+                } else {
+                    RCLCPP_WARN(m_node->get_logger(), "POSITIONING FAILED: %s hand could not move to rotated pose", armName.c_str());
+                    continue;
                 }
             }
-        } else {
-            RCLCPP_WARN(m_node->get_logger(), "POI not found or CartesianCtrl unavailable");
         }
     }
+
+    RCLCPP_INFO(m_node->get_logger(), "executeTask finished for '%s'", request->dance_name.c_str());
 }
 
 // =============================================================================
