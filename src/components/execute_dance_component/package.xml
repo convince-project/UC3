@@ -10,6 +10,9 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
   <depend>dance_interfaces</depend>
   <depend>execute_dance_interfaces</depend>
+  <depend>tf2_ros</depend>
+  <depend>tf2_geometry_msgs</depend>
+  <depend>eigen3_cmake_module</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

@@ -23,9 +23,14 @@
 #include <execute_dance_interfaces/srv/execute_dance.hpp>
 #include <execute_dance_interfaces/srv/is_dancing.hpp>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
+#include <geometry_msgs/msg/point.hpp>
 #include <map>
 #include <yarp/os/ResourceFinder.h>
-
+#include <Eigen/Dense>
+#include <Eigen/Geometry>
+#include <tf2_ros/buffer.h>
+#include <tf2_ros/transform_listener.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp> // updated header
 /**
  * @class ExecuteDanceComponent
  * @brief Main component for executing dance movements and pointing gestures on UC3 robot
@@ -259,4 +264,38 @@ private:
      * @return true if pose is reachable, false otherwise
      */
     bool checkPoseReachability(double x, double y, double z);
+
+    // helper: pre-scan delle pose dei due bracci (popola armDistances e cachedPoseValues)
+    bool preScanArticulatedArms(const Eigen::Vector3d& artwork_pos,
+                                std::vector<std::pair<std::string,double>>& armDistances,
+                                std::map<std::string, std::vector<double>>& cachedPoseValues);
+
+    // Trasforma un punto dal frame "map" al frame robot (es. base_link)
+    bool transformPointMapToRobot(const geometry_msgs::msg::Point& map_point,
+                                  geometry_msgs::msg::Point& out_robot_point,
+                                  const std::string& robot_frame,
+                                  double timeout_sec);
+    
+    // helper: calcola hand_pos, vec_to_artwork, vec_norm, R_hand e q_target da flat_pose
+    bool computeOrientationFromFlatPose(const std::vector<double>& flat_pose,
+                                        const Eigen::Vector3d& artwork_pos,
+                                        Eigen::Vector3d& hand_pos,
+                                        Eigen::Vector3d& vec_to_artwork,
+                                        double& vec_norm,
+                                        Eigen::Matrix3d& R_hand,
+                                        Eigen::Quaterniond& q_target);
+
+    // helper: verifica reachability (invoca is_pose_reachable RPC sul port passato)
+    bool isPoseReachable(yarp::os::Port* activePort,
+                         const Eigen::Vector3d& candidate,
+                         const Eigen::Quaterniond& q_target);
+
+    // helper: probing binary search lungo la retta hand->artwork, ritorna best candidate
+    bool probeBinarySearch(yarp::os::Port* activePort,
+                           const Eigen::Vector3d& hand_pos,
+                           const Eigen::Vector3d& artwork_pos,
+                           const Eigen::Vector3d& vec_to_artwork,
+                           double vec_norm,
+                           const Eigen::Quaterniond& q_target,
+                           Eigen::Vector3d& out_best_candidate);
 };
