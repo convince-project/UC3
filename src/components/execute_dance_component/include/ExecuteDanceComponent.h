@@ -134,10 +134,11 @@ private:
 
     // Nomi dei frame (override da config se vuoi)
     std::string m_mapFrame        {"map"};
-    std::string m_baseFrame      {"mobile_base_body_link"}
-    std::string m_torsoFrame     {"chest_link"};
-    std::m_lShoulderFrame {"l_shoulder_1"};
-    std::string m_rShoulderFrame {"r_shoulder_1"};
+    std::string m_baseFrame       {"mobile_base_body_link"};
+    std::string m_torsoFrame      {"chest_link"};
+    std::string m_lShoulderFrame  {"l_shoulder_1"};
+    std::string m_rShoulderFrame  {"r_shoulder_1"};
+
 
     // Parametri di pointing (tarabili)
     double m_reachRadius   {0.60};   // raggio max su cui proiettare il candidato dalla spalla
