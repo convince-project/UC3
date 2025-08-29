@@ -1,9 +1,10 @@
 #include "ExecuteDanceComponent.h"
+#include <yarp/os/Network.h>
 
 
 int main(int argc, char *argv[])
 {
-    yarp::os::Network yarp(yarp::os::YARP_CLOCK_SYSTEM);
+    yarp::os::Network::init();
     ExecuteDanceComponent executeDanceComponent;
     if (!executeDanceComponent.start(argc, argv)) {
         return 1;

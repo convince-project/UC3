@@ -6,296 +6,90 @@
  ******************************************************************************/
 #pragma once
 
-#include <mutex>
-#include <thread>
 #include <rclcpp/rclcpp.hpp>
-#include <yarp/os/Network.h>
-#include <yarp/os/Port.h>
-#include <yarp/os/LogStream.h>
-#include <yarp/dev/PolyDriver.h>
-#include <yarp/dev/CartesianControl.h>
-#include <dance_interfaces/srv/get_dance.hpp>
-#include <dance_interfaces/srv/get_dance_duration.hpp>
-#include <dance_interfaces/srv/get_movement.hpp>
-#include <dance_interfaces/srv/set_dance.hpp>
-#include <dance_interfaces/srv/get_part_names.hpp>
-#include <dance_interfaces/srv/update_movement.hpp>
-#include <execute_dance_interfaces/srv/execute_dance.hpp>
-#include <execute_dance_interfaces/srv/is_dancing.hpp>
-#include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
-#include <geometry_msgs/msg/point.hpp>
-#include <map>
-#include <yarp/os/ResourceFinder.h>
-#include <Eigen/Dense>
-#include <Eigen/Geometry>
+#include "execute_dance_interfaces/srv/execute_dance.hpp"
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp> // updated header
+#include <Eigen/Dense>
+#include <Eigen/Geometry>
+#include <yarp/os/Port.h>
+#include <map>
+#include <vector>
+#include <string>
+#include <yarp/os/Port.h>
+#include <memory>
+#include <tuple>
+
 /**
- * @class ExecuteDanceComponent
- * @brief Main component for executing dance movements and pointing gestures on UC3 robot
- * 
- * This component manages the execution of dance movements for tour guiding activities,
- * including pointing gestures towards artworks in museums.
- * It integrates ROS2 services with YARP ActionPlayer and CartesianController for robot motion control.
- * 
- * Key features:
- * - Dance movement execution via YARP ActionPlayer
- * - Pointing gestures towards specific artworks using Cartesian control
- * - Real-time robot localization integration
- * - POI orientation before movement execution
+ * Minimal ExecuteDanceComponent header — shoulder-only pointing, YARP Cartesian controller only.
  */
 class ExecuteDanceComponent
 {
 public:
-    /**
-     * @brief Default constructor
-     */
     ExecuteDanceComponent() = default;
-    
-    /**
-     * @brief Initialize and start the component
-     * @param argc Command line argument count
-     * @param argv Command line arguments
-     * @return true if initialization successful, false otherwise
-     */
-    bool start(int argc, char*argv[]);
-    
-    /**
-     * @brief Close and cleanup the component
-     * @return true if cleanup successful, false otherwise
-     */
+    bool start(int argc, char* argv[]);
     bool close();
-    
-    /**
-     * @brief Main execution loop for ROS2 node spinning
-     */
     void spin();
-    
-    // ========== ROS2 Service Handlers ==========
-    
-    /**
-     * @brief Handle execute dance service requests
-     * @param request Execute dance request containing dance name and parameters
-     * @param response Execute dance response with execution status
-     */
-    // void ExecuteDance(const std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Request> request,
-    //                   std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Response> response);
-    
-    // /**
-    //  * @brief Handle is dancing status requests
-    //  * @param request Is dancing request
-    //  * @param response Is dancing response with current dancing status
-    //  */
-    // void IsDancing(const std::shared_ptr<execute_dance_interfaces::srv::IsDancing::Request> request,
-    //                std::shared_ptr<execute_dance_interfaces::srv::IsDancing::Response> response);
 
 private:
-    // ========== YAP Movement Execution Methods ==========
-    
-    /**
-     * @brief Send action command to YARP Actions Player
-     * @param actionName Name of the action to execute
-     * @param speedFactor Speed factor for action execution
-     * @return true if command sent successfully, false otherwise
-     */
-    bool SendMovementToYAP(const std::string &actionName, float speedFactor);
-
-
-    // ========== Task Execution Methods ==========
-    
-    /**
-     * @brief Execute dance task in separate thread
-     * @param request Execute dance request with task parameters
-     */
+    // Core task
     void executeTask(const std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Request> request);
-    
-    /**
-     * @brief Timer task for time-based operations
-     * @param time Duration for timer task
-     */
-    void timerTask(float time);
 
-    // ========== Member Variables ==========
-    
-    /// Current dance name being executed
-    std::string m_danceName;
-    
-    /// ROS2 node shared pointer
-    rclcpp::Node::SharedPtr m_node;
-    
-    /// Execute dance service server
-    rclcpp::Service<execute_dance_interfaces::srv::ExecuteDance>::SharedPtr m_executeDanceService;
-    
-    /// Is dancing status service server
-    rclcpp::Service<execute_dance_interfaces::srv::IsDancing>::SharedPtr m_isDancingService;
-    
-    /// Thread for dance execution
-    std::thread m_threadExecute;
-    
-    /// Thread for timer operations
-    std::thread m_threadTimer;
-    
-    /// Mutex for timer synchronization
-    std::mutex m_timerMutex;
-    
-    /// Timer task active flag
-    bool m_timerTask{false};
-
-    // ========== YARP Actions Player ==========
-    
-    /// YARP Actions Player client port name
-    std::string yAPClientPortName;
-    
-    /// YARP port for Actions Player communication
-    yarp::os::Port m_yAPClientPort;
-
-    // ========== Robot Localization ==========
-    
-    /// AMCL pose subscription for robot localization
-    rclcpp::Subscription<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr m_amclSub;
-    
-    /// Current robot X position in map frame
-    double m_currentX{0.0};
-    
-    /// Current robot Y position in map frame
-    double m_currentY{0.0};
-    
-    /// Current robot yaw orientation in map frame
-    double m_currentYaw{0.0};
-
-    // ========== Points of Interest and Artworks ==========
-    
-    /// Map of POI names to 2D coordinates (x, y)
-    std::map<std::string, std::pair<double, double>> m_poiCoords;
-    
-    /// Map of artwork names to 3D coordinates (x, y, z)
-    std::map<std::string, std::vector<double>> m_artworkCoords;
-
-    // ========== YARP Cartesian Controller ==========
-    
-    /// YARP polydriver for Cartesian control
-    yarp::dev::PolyDriver m_cartesianClient;
-    
-    /// YARP Cartesian control interface
-    yarp::dev::ICartesianControl* m_cartesianCtrl{nullptr};
-
-    // Porta YARP per il controller cartesiano (come per YarpActionPlayer)
-    std::string m_cartesianPortName;
-    yarp::os::Port m_cartesianPort;
-
-    // Cartesian controllers - Left and Right
-    std::string m_cartesianPortNameLeft;
-    std::string m_cartesianPortNameRight;
-    yarp::os::Port m_cartesianPortLeft;
-    yarp::os::Port m_cartesianPortRight;
-    
-    // ========== Callback and Helper Methods ==========
-    
-    // /**
-    //  * @brief Callback for AMCL pose updates
-    //  * @param msg AMCL pose message with covariance
-    //  * 
-    //  * Updates internal robot pose variables (m_currentX, m_currentY, m_currentYaw)
-    //  * used for coordinate transformations in pointing movements.
-    //  */
-    void amclPoseCallback(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg);
-    
-    /**
-     * @brief Load POI coordinates from configuration file
-     * @param filename Path to JSON file containing POI coordinates
-     * @return Map of POI names to 2D coordinates
-     * 
-     * Loads Points of Interest coordinates from a JSON configuration file.
-     * Expected format: {"boards": {"board_name": {"poi": {"x": value, "y": value}}}}
-     */
-    std::map<std::string, std::pair<double, double>> loadPoiCoordinates(const std::string& filename);
-    
-    /**
-     * @brief Load artwork coordinates from configuration file
-     * @param filename Path to JSON file containing artwork coordinates
-     * @return Map of artwork names to 3D coordinates
-     * 
-     * Loads artwork coordinates from a JSON configuration file.
-     * Expected format: {"artworks": {"artwork_name": {"x": value, "y": value, "z": value}}}
-     */
+    // Utilities
     std::map<std::string, std::vector<double>> loadArtworkCoordinates(const std::string& filename);
-
-    /**
-     * @brief Configure YARP interfaces and connections
-     * @param rf ResourceFinder object for loading configuration
-     * @return true if configuration successful, false otherwise
-     * 
-     * This method configures the YARP interfaces used for communication with the robot
-     * and other components. It initializes the Actions Player client port, Cartesian controller,
-     * and other necessary YARP devices.
-     */
-    bool ConfigureYARP(yarp::os::ResourceFinder &rf);
-
-    // Path al file di configurazione del controller cartesiano (modificare qui se necessario)
-    std::string cartesianControllerIniPathLeft  = "/home/user1/ergocub-cartesian-control/src/r1_cartesian_control/app/conf/config_left_sim_r1.ini";
-    std::string cartesianControllerIniPathRight = "/home/user1/ergocub-cartesian-control/src/r1_cartesian_control/app/conf/config_right_sim_r1.ini";
-
-    /**
-     * @brief Check if a 3D pose is reachable by a specific robot arm
-     * @param x Target X coordinate in robot frame
-     * @param y Target Y coordinate in robot frame  
-     * @param z Target Z coordinate in robot frame
-     * @param armName Arm identifier ("LEFT" or "RIGHT")
-     * @return true if pose is reachable, false otherwise
-     */
-    bool checkPoseReachabilityForArm(double x, double y, double z, const std::string& armName);
-    
-    /**
-     * @brief Send go_to_position command to a specific robot arm
-     * @param x Target X coordinate in robot frame
-     * @param y Target Y coordinate in robot frame  
-     * @param z Target Z coordinate in robot frame
-     * @param armName Arm identifier ("LEFT" or "RIGHT")
-     * @return true if command accepted, false otherwise
-     */
-    bool sendPositionCommand(double x, double y, double z, const std::string& armName);
-    
-    /**
-     * @brief Check if a 3D pose is reachable by the robot arm (legacy method)
-     * @param x Target X coordinate in robot frame
-     * @param y Target Y coordinate in robot frame  
-     * @param z Target Z coordinate in robot frame
-     * @return true if pose is reachable, false otherwise
-     */
-    bool checkPoseReachability(double x, double y, double z);
-
-    // helper: pre-scan delle pose dei due bracci (popola armDistances e cachedPoseValues)
     bool preScanArticulatedArms(const Eigen::Vector3d& artwork_pos,
                                 std::vector<std::pair<std::string,double>>& armDistances,
-                                std::map<std::string, std::vector<double>>& cachedPoseValues);
+                                std::map<std::string, std::vector<double>>& /*cachedPoseValues*/);
 
-    // Trasforma un punto dal frame "map" al frame robot (es. base_link)
-    bool transformPointMapToRobot(const geometry_msgs::msg::Point& map_point,
-                                  geometry_msgs::msg::Point& out_robot_point,
-                                  const std::string& robot_frame,
-                                  double timeout_sec);
-    
-    // helper: calcola hand_pos, vec_to_artwork, vec_norm, R_hand e q_target da flat_pose
-    bool computeOrientationFromFlatPose(const std::vector<double>& flat_pose,
-                                        const Eigen::Vector3d& artwork_pos,
-                                        Eigen::Vector3d& hand_pos,
-                                        Eigen::Vector3d& vec_to_artwork,
-                                        double& vec_norm,
-                                        Eigen::Matrix3d& R_hand,
-                                        Eigen::Quaterniond& q_target);
+    // TF2 for shoulder lookups
+    std::shared_ptr<tf2_ros::Buffer> m_tf_buffer;
+    std::shared_ptr<tf2_ros::TransformListener> m_tf_listener;
+    std::string m_r_shoulder_frame_id = "r_shoulder_link";
+    std::string m_l_shoulder_frame_id = "l_shoulder_link";
 
-    // helper: verifica reachability (invoca is_pose_reachable RPC sul port passato)
+    // ROS2 node + service
+    rclcpp::Node::SharedPtr m_node;
+    rclcpp::Service<execute_dance_interfaces::srv::ExecuteDance>::SharedPtr m_executeDanceService;
+
+    // YARP Cartesian controller ports (we always send to cartesian controller)
+    yarp::os::Port m_cartesianPortLeft;
+    yarp::os::Port m_cartesianPortRight;
+
+    // Artworks
+    std::map<std::string, std::vector<double>> m_artworkCoords;
+
+    // Parameters
+    double m_reach_radius = 0.6;
+
+    // Pointing helpers (shoulder-based)
+    Eigen::Vector3d reachablePointSphere(const Eigen::Vector3d& shoulder,
+                                         const Eigen::Vector3d& target,
+                                         double reach_radius) const;
+    Eigen::Matrix3d getAlignedRotation(const Eigen::Vector3d& v) const;
+    std::tuple<double,double,double,double> rot2quats(const Eigen::Matrix3d& R) const;
+
     bool isPoseReachable(yarp::os::Port* activePort,
                          const Eigen::Vector3d& candidate,
                          const Eigen::Quaterniond& q_target);
 
-    // helper: probing binary search lungo la retta hand->artwork, ritorna best candidate
     bool probeBinarySearch(yarp::os::Port* activePort,
-                           const Eigen::Vector3d& hand_pos,
-                           const Eigen::Vector3d& artwork_pos,
-                           const Eigen::Vector3d& vec_to_artwork,
-                           double vec_norm,
+                           const Eigen::Vector3d& start_pos,
+                           const Eigen::Vector3d& end_pos,
+                           const Eigen::Vector3d& dir,
+                           double dir_norm,
                            const Eigen::Quaterniond& q_target,
                            Eigen::Vector3d& out_best_candidate);
+
+    // Local names for YARP client ports (used by start())
+    std::string yAPClientPortName;
+    yarp::os::Port m_yAPClientPort;
+
+    std::string m_cartesianPortNameLeft;
+    std::string m_cartesianPortNameRight;
+
+    // Paths for cartesian controller INI files (can be overridden via env or CLI)
+    std::string cartesianControllerIniPathLeft;
+    std::string cartesianControllerIniPathRight;
+
+    // Note: m_cartesianPortLeft / m_cartesianPortRight likely already declared as yarp::os::Port
 };
