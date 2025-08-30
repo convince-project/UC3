@@ -71,15 +71,12 @@ public:
     void spin();
 
 private:
-    // ======= Invio di azioni all'Action Player (se lo usi nella pipeline) =======
-    bool SendMovementToYAP(const std::string &actionName, float speedFactor);
-
     // ======= Esecuzione del task (entrypoint del servizio ExecuteDance) =======
     void executeTask(const std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Request> request);
     void timerTask(float time);
 
-    // ======= Callback ROS2 (es. AMCL) =======
-    void amclPoseCallback(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg);
+    // // ======= Callback ROS2 (es. AMCL) =======
+    // void amclPoseCallback(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg);
 
     // ======= Caricamento configurazioni/coordinate =======
     std::map<std::string, std::pair<double,double>> loadPoiCoordinates(const std::string& filename);
@@ -90,7 +87,7 @@ private:
 
     // ======= Reachability & motion helpers (RPC) =======
     bool checkPoseReachabilityForArm(double x, double y, double z, const std::string& armName);
-    bool sendPositionCommand(double x, double y, double z, const std::string& armName);
+    // bool sendPositionCommand(double x, double y, double z, const std::string& armName);
     bool checkPoseReachability(double x, double y, double z);
 
     // Pre-scan: interroga i controller per ottenere la posa mano e distanza dal target
@@ -98,14 +95,14 @@ private:
                                 std::vector<std::pair<std::string,double>>& armDistances,
                                 std::map<std::string, std::vector<double>>& cachedPoseValues);
 
-    // (Legacy) orientazione basata sulla posa mano corrente (asse X → target)
-    bool computeOrientationFromFlatPose(const std::vector<double>& flat_pose,
-                                        const Eigen::Vector3d& artwork_pos,
-                                        Eigen::Vector3d& hand_pos,
-                                        Eigen::Vector3d& vec_to_artwork,
-                                        double& vec_norm,
-                                        Eigen::Matrix3d& R_hand,
-                                        Eigen::Quaterniond& q_target);
+    // // (Legacy) orientazione basata sulla posa mano corrente (asse X → target)
+    // bool computeOrientationFromFlatPose(const std::vector<double>& flat_pose,
+    //                                     const Eigen::Vector3d& artwork_pos,
+    //                                     Eigen::Vector3d& hand_pos,
+    //                                     Eigen::Vector3d& vec_to_artwork,
+    //                                     double& vec_norm,
+    //                                     Eigen::Matrix3d& R_hand,
+    //                                     Eigen::Quaterniond& q_target);
 
     // Wrapper RPC per `is_pose_reachable`
     bool isPoseReachable(yarp::os::Port* activePort,
@@ -169,6 +166,11 @@ private:
 
 private:
     // ======= Stato runtime =======
+
+    //Porte RPC dei controller cartesiani che ci aspettiamo di usare
+    const std::string cartesianPortLeft  = "/r1-cartesian-control/left_arm/rpc:i";
+    const std::string cartesianPortRight = "/r1-cartesian-control/right_arm/rpc:i";
+
     std::string m_danceName;                          // nome dell'opera richiesto
     rclcpp::Node::SharedPtr m_node;                   // nodo ROS2
 
@@ -186,8 +188,6 @@ private:
     std::string   yAPClientPortName;
     yarp::os::Port m_yAPClientPort;
 
-    // (opzionale) stato di localizzazione corrente (es. AMCL)
-    rclcpp::Subscription<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr m_amclSub;
     double m_currentX{0.0};
     double m_currentY{0.0};
     double m_currentYaw{0.0};
@@ -197,9 +197,9 @@ private:
     std::map<std::string, std::vector<double>>       m_artworkCoords;
 
     // Porte RPC verso i controller cartesiani (LEFT/RIGHT)
-    yarp::dev::PolyDriver m_cartesianClient; // compatibilità, non usato direttamente
-    std::string m_cartesianPortNameLeft;
-    std::string m_cartesianPortNameRight;
+    yarp::dev::PolyDriver m_cartesianClient; 
+    std::string m_cartesianPortNameLeft  = "/ExecuteDanceComponent/cartesianClientLeft/rpc";
+    std::string m_cartesianPortNameRight = "/ExecuteDanceComponent/cartesianClientRight/rpc";
     yarp::os::Port m_cartesianPortLeft;
     yarp::os::Port m_cartesianPortRight;
 
@@ -208,4 +208,5 @@ private:
         "/home/user1/ergocub-cartesian-control/src/r1_cartesian_control/app/conf/config_left_sim_r1.ini";
     std::string cartesianControllerIniPathRight = 
         "/home/user1/ergocub-cartesian-control/src/r1_cartesian_control/app/conf/config_right_sim_r1.ini";
+
 };

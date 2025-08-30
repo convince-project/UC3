@@ -31,11 +31,7 @@ bool ExecuteDanceComponent::start(int argc, char* argv[])
         rclcpp::init(argc, argv);
     }
 
-    // 2) Porte RPC dei controller cartesiani che ci aspettiamo
-    const std::string cartesianPortLeft  = "/r1-cartesian-control/left_arm/rpc:i";
-    const std::string cartesianPortRight = "/r1-cartesian-control/right_arm/rpc:i";
-
-    // 3) Avvia i controller se non sono già presenti nel NameServer
+    // 2) Avvia i controller 
     if (!yarp::os::Network::exists(cartesianPortLeft)) {
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Avvio r1-cartesian-control LEFT...");
         std::string cmd = std::string("r1-cartesian-control --from ") + cartesianControllerIniPathLeft + " > /dev/null 2>&1 &";
@@ -53,7 +49,7 @@ bool ExecuteDanceComponent::start(int argc, char* argv[])
         }
     }
 
-    // 4) Attendi che i server RPC compaiano (no timeout: comodo in dev)
+    // 3) Attendi che i server RPC compaiano (no timeout: comodo in dev)
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Attesa della porta %s...", cartesianPortLeft.c_str());
     while (!yarp::os::Network::exists(cartesianPortLeft)) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -63,31 +59,15 @@ bool ExecuteDanceComponent::start(int argc, char* argv[])
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
-    // 5) Porta client verso ActionPlayer (se lo usi in pipeline)
-    yAPClientPortName = "/ExecuteDanceComponent/yarpActionsPlayerClient/rpc";
-    if (yarp::os::Network::exists(yAPClientPortName)) {
-        yWarning() << "Port" << yAPClientPortName << "already exists, attempting cleanup";
-        yarp::os::Network::disconnect(yAPClientPortName, "/yarpActionsPlayer/rpc");
-        std::this_thread::sleep_for(std::chrono::milliseconds(300));
-    }
-    if (!m_yAPClientPort.open(yAPClientPortName)) {
-        yError() << "Cannot open yarpActionsPlayer client port";
-        return false;
-    }
-    yarp::os::Network::connect(yAPClientPortName, "/yarpActionsPlayer/rpc");
-
-    // 6) Crea il nodo ROS2 e il TF2 persistente (buffer+listener)
+    // 4) Crea il nodo ROS2 e il TF2 persistente (buffer+listener)
     m_node = rclcpp::Node::make_shared("ExecuteDanceComponentNode");
     m_tfBuffer   = std::make_unique<tf2_ros::Buffer>(m_node->get_clock());
     m_tfListener = std::make_unique<tf2_ros::TransformListener>(*m_tfBuffer);
 
-    // 7) Carica le coordinate delle opere (in frame "map")
+    // 5) Carica le coordinate delle opere (in frame "map")
     m_artworkCoords = loadArtworkCoordinates("/home/user1/UC3/conf/artwork_coords.json");
 
-    // 8) Apri e connetti le porte RPC locali verso i due controller cartesiani
-    m_cartesianPortNameLeft  = "/ExecuteDanceComponent/cartesianClientLeft/rpc";
-    m_cartesianPortNameRight = "/ExecuteDanceComponent/cartesianClientRight/rpc";
-
+    // 6) Apri e connetti le porte RPC locali verso i due controller cartesiani
     if (yarp::os::Network::exists(m_cartesianPortNameLeft)) {
         yarp::os::Network::disconnect(m_cartesianPortNameLeft, cartesianPortLeft);
         std::this_thread::sleep_for(std::chrono::milliseconds(300));
@@ -108,13 +88,13 @@ bool ExecuteDanceComponent::start(int argc, char* argv[])
     }
     yarp::os::Network::connect(m_cartesianPortNameRight, cartesianPortRight);
 
-    // 9) Esponi il servizio ROS2 per avviare il pointing verso un'opera (per nome)
+    // 7) Esponi il servizio ROS2 per avviare il pointing verso un'opera (per nome)
     m_executeDanceService = m_node->create_service<execute_dance_interfaces::srv::ExecuteDance>(
         "/ExecuteDanceComponent/ExecuteDance",
         [this](const std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Request> request,
                std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Response> response)
         {
-            this->executeTask(request); // esegue in-line; se vuoi, spostalo su un thread dedicato
+            this->executeTask(request); 
             response->is_ok = true;
             response->error_msg = "";
         }
@@ -151,18 +131,17 @@ void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_inte
 
     // 1) Recupera le coordinate dell'opera (in frame map)
     auto it = m_artworkCoords.find(request->dance_name);
-    if (it == m_artworkCoords.end()) {
-        RCLCPP_WARN(m_node->get_logger(), "No ARTWORK '%s' found", request->dance_name.c_str());
+    if (it == m_artworkCoords.end() || it->second.size() < 3) {
+        RCLCPP_WARN(m_node->get_logger(), "No or invalid ARTWORK '%s' found", request->dance_name.c_str());
         return;
     }
-    const double artwork_x = it->second[0];
-    const double artwork_y = it->second[1];
-    const double artwork_z = it->second[2];
+    const auto& coords = it->second;
 
     // 2) Trasforma il punto da map → base_link (se TF disponibile); fallback: usa map come base
-    Eigen::Vector3d p_map(artwork_x, artwork_y, artwork_z);
-    Eigen::Vector3d p_base = p_map; // fallback
-    geometry_msgs::msg::Point mapPt; mapPt.x=p_map.x(); mapPt.y=p_map.y(); mapPt.z=p_map.z();
+    Eigen::Vector3d p_base{coords[0], coords[1], coords[2]};
+    geometry_msgs::msg::Point mapPt;
+    mapPt.x = coords[0]; mapPt.y = coords[1]; mapPt.z = coords[2];
+
     geometry_msgs::msg::Point basePt;
     if (transformPointMapToRobot(mapPt, basePt, m_baseFrame, 1.0)) {
         p_base = Eigen::Vector3d(basePt.x, basePt.y, basePt.z);
@@ -270,24 +249,24 @@ void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_inte
     }
 }
 
-// =============================================================================
-// amclPoseCallback() — esempio di aggiornamento stato (usa getRPY, non getYaw)
-// =============================================================================
-void ExecuteDanceComponent::amclPoseCallback(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg)
-{
-    const auto &p = msg->pose.pose.position;
-    const auto &q = msg->pose.pose.orientation;
-    m_currentX = p.x;
-    m_currentY = p.y;
+// // =============================================================================
+// // amclPoseCallback() — esempio di aggiornamento stato (usa getRPY, non getYaw)
+// // =============================================================================
+// void ExecuteDanceComponent::amclPoseCallback(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg)
+// {
+//     const auto &p = msg->pose.pose.position;
+//     const auto &q = msg->pose.pose.orientation;
+//     m_currentX = p.x;
+//     m_currentY = p.y;
 
-    // Quaternion ROS → tf2::Quaternion
-    tf2::Quaternion qq(q.x, q.y, q.z, q.w);
+//     // Quaternion ROS → tf2::Quaternion
+//     tf2::Quaternion qq(q.x, q.y, q.z, q.w);
 
-    // Ottieni roll,pitch,yaw in modo portabile (fix per getYaw non disponibile)
-    double roll=0.0, pitch=0.0, yaw=0.0;
-    tf2::Matrix3x3(qq).getRPY(roll, pitch, yaw);
-    m_currentYaw = yaw;
-}
+//     // Ottieni roll,pitch,yaw in modo portabile (fix per getYaw non disponibile)
+//     double roll=0.0, pitch=0.0, yaw=0.0;
+//     tf2::Matrix3x3(qq).getRPY(roll, pitch, yaw);
+//     m_currentYaw = yaw;
+// }
 
 // =============================================================================
 // Reachability helpers & wrappers
@@ -304,16 +283,16 @@ bool ExecuteDanceComponent::checkPoseReachabilityForArm(double x, double y, doub
     return ok && res.size()>0 && res.get(0).asVocab32()==yarp::os::createVocab32('o','k');
 }
 
-bool ExecuteDanceComponent::sendPositionCommand(double x, double y, double z, const std::string& armName)
-{
-    yarp::os::Port* activePort = (armName == "LEFT") ? &m_cartesianPortLeft : &m_cartesianPortRight;
-    yarp::os::Bottle cmd, res;
-    cmd.addString("go_to_position");
-    cmd.addFloat64(x); cmd.addFloat64(y); cmd.addFloat64(z);
-    cmd.addFloat64(30.0);
-    bool ok = activePort->write(cmd, res);
-    return ok && res.size()>0 && res.get(0).asVocab32()==yarp::os::createVocab32('o','k');
-}
+// bool ExecuteDanceComponent::sendPositionCommand(double x, double y, double z, const std::string& armName)
+// {
+//     yarp::os::Port* activePort = (armName == "LEFT") ? &m_cartesianPortLeft : &m_cartesianPortRight;
+//     yarp::os::Bottle cmd, res;
+//     cmd.addString("go_to_position");
+//     cmd.addFloat64(x); cmd.addFloat64(y); cmd.addFloat64(z);
+//     cmd.addFloat64(30.0);
+//     bool ok = activePort->write(cmd, res);
+//     return ok && res.size()>0 && res.get(0).asVocab32()==yarp::os::createVocab32('o','k');
+// }
 
 bool ExecuteDanceComponent::checkPoseReachability(double x, double y, double z)
 {
@@ -434,52 +413,52 @@ bool ExecuteDanceComponent::preScanArticulatedArms(const Eigen::Vector3d& artwor
     return !armDistances.empty();
 }
 
-// =============================================================================
-// computeOrientationFromFlatPose() — metodo legacy (non usato di default)
-// =============================================================================
-bool ExecuteDanceComponent::computeOrientationFromFlatPose(const std::vector<double>& flat_pose,
-                                                           const Eigen::Vector3d& artwork_pos,
-                                                           Eigen::Vector3d& hand_pos,
-                                                           Eigen::Vector3d& vec_to_artwork,
-                                                           double& vec_norm,
-                                                           Eigen::Matrix3d& R_hand,
-                                                           Eigen::Quaterniond& q_target)
-{
-    const size_t pose_offset = (flat_pose.size() == 18) ? 2u : 0u;
-    if (flat_pose.size() < pose_offset + 12) return false;
+// // =============================================================================
+// // computeOrientationFromFlatPose() — metodo legacy (non usato di default)
+// // =============================================================================
+// bool ExecuteDanceComponent::computeOrientationFromFlatPose(const std::vector<double>& flat_pose,
+//                                                            const Eigen::Vector3d& artwork_pos,
+//                                                            Eigen::Vector3d& hand_pos,
+//                                                            Eigen::Vector3d& vec_to_artwork,
+//                                                            double& vec_norm,
+//                                                            Eigen::Matrix3d& R_hand,
+//                                                            Eigen::Quaterniond& q_target)
+// {
+//     const size_t pose_offset = (flat_pose.size() == 18) ? 2u : 0u;
+//     if (flat_pose.size() < pose_offset + 12) return false;
 
-    hand_pos = Eigen::Vector3d(flat_pose[pose_offset+3], flat_pose[pose_offset+7], flat_pose[pose_offset+11]);
-    Eigen::Map<const Eigen::Matrix<double,4,4,Eigen::RowMajor>> T_row(flat_pose.data() + pose_offset);
-    R_hand = T_row.topLeftCorner<3,3>();
+//     hand_pos = Eigen::Vector3d(flat_pose[pose_offset+3], flat_pose[pose_offset+7], flat_pose[pose_offset+11]);
+//     Eigen::Map<const Eigen::Matrix<double,4,4,Eigen::RowMajor>> T_row(flat_pose.data() + pose_offset);
+//     R_hand = T_row.topLeftCorner<3,3>();
 
-    vec_to_artwork = artwork_pos - hand_pos;
-    vec_norm = vec_to_artwork.norm();
-    if (vec_norm <= 1e-9) return false;
-    vec_to_artwork.normalize();
+//     vec_to_artwork = artwork_pos - hand_pos;
+//     vec_norm = vec_to_artwork.norm();
+//     if (vec_norm <= 1e-9) return false;
+//     vec_to_artwork.normalize();
 
-    const Eigen::Vector3d hand_local_x = R_hand.col(0);
-    const double cos_angle = std::clamp(hand_local_x.dot(vec_to_artwork), -1.0, 1.0);
-    Eigen::Vector3d rotation_axis = hand_local_x.cross(vec_to_artwork);
-    double axis_norm = rotation_axis.norm();
+//     const Eigen::Vector3d hand_local_x = R_hand.col(0);
+//     const double cos_angle = std::clamp(hand_local_x.dot(vec_to_artwork), -1.0, 1.0);
+//     Eigen::Vector3d rotation_axis = hand_local_x.cross(vec_to_artwork);
+//     double axis_norm = rotation_axis.norm();
 
-    if (axis_norm <= 1e-6) {
-        if (cos_angle > 0.999999) {
-            q_target = Eigen::Quaterniond(R_hand);
-        } else {
-            Eigen::Vector3d fallback = (std::abs(hand_local_x.x()) < 0.9) ? Eigen::Vector3d::UnitX() : Eigen::Vector3d::UnitY();
-            rotation_axis = hand_local_x.cross(fallback);
-            if (rotation_axis.norm() <= 1e-9) rotation_axis = Eigen::Vector3d::UnitZ();
-            rotation_axis.normalize();
-            Eigen::AngleAxisd aa(M_PI, rotation_axis);
-            q_target = Eigen::Quaterniond(aa * R_hand);
-        }
-    } else {
-        rotation_axis.normalize();
-        double angle = std::acos(cos_angle);
-        q_target = Eigen::Quaterniond(Eigen::AngleAxisd(angle, rotation_axis) * R_hand);
-    }
-    return true;
-}
+//     if (axis_norm <= 1e-6) {
+//         if (cos_angle > 0.999999) {
+//             q_target = Eigen::Quaterniond(R_hand);
+//         } else {
+//             Eigen::Vector3d fallback = (std::abs(hand_local_x.x()) < 0.9) ? Eigen::Vector3d::UnitX() : Eigen::Vector3d::UnitY();
+//             rotation_axis = hand_local_x.cross(fallback);
+//             if (rotation_axis.norm() <= 1e-9) rotation_axis = Eigen::Vector3d::UnitZ();
+//             rotation_axis.normalize();
+//             Eigen::AngleAxisd aa(M_PI, rotation_axis);
+//             q_target = Eigen::Quaterniond(aa * R_hand);
+//         }
+//     } else {
+//         rotation_axis.normalize();
+//         double angle = std::acos(cos_angle);
+//         q_target = Eigen::Quaterniond(Eigen::AngleAxisd(angle, rotation_axis) * R_hand);
+//     }
+//     return true;
+// }
 
 // =============================================================================
 // isPoseReachable() — wrapper RPC
