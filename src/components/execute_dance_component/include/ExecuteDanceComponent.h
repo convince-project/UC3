@@ -2,13 +2,14 @@
  *                                                                            *
  * UC3 — ExecuteDanceComponent (header)                                        *
  *                                                                            *
- * Scopo: eseguire gesture di "pointing" verso opere/POI le cui coordinate   *
- * sono fornite nel frame `map`. Il componente:                               *
+ * Scopo: eseguire gesture di "pointing" verso opere/POI le cui coordinate    *
+ * sono fornite nel frame `map`. Il componente:                                *
  *  - trasforma il target `map -> base_link`                                   *
- *  - sceglie il braccio in base alla Y nel frame `torso` (come il thread     *
- *    con la camera)                                                          *
- *  - costruisce l'orientazione dell'end-effector allineando X o Z al target  *
+ *  - sceglie il braccio in base alla Y nel frame `torso` (stile camera)       *
+ *  - costruisce l'orientazione dell'end-effector allineando X o Z al target   *
  *  - invia il comando `go_to_pose` ai controller cartesiani YARP              *
+ *  - strategia "camera-style": punto candidato sulla retta spalla→target      *
+ *    (niente ricerca binaria)                                                 *
  *                                                                            *
  ******************************************************************************/
 #pragma once
@@ -30,7 +31,6 @@
 #include <yarp/os/Network.h>
 #include <yarp/os/Port.h>
 #include <yarp/os/LogStream.h>
-#include <yarp/os/ResourceFinder.h>
 #include <yarp/dev/PolyDriver.h>
 #include <yarp/dev/CartesianControl.h>
 
@@ -53,10 +53,9 @@
  *
  * Design:
  *  - TF2 persistente (buffer+listener) come membri di classe.
- *  - Scelta braccio stile thread camera (segno della y in `torso`).
+ *  - Scelta braccio stile camera (segno della y in `torso`).
  *  - Orientazione end-effector allineata all'asse desiderato (X o Z) verso il target.
- *  - Candidato iniziale su sfera shoulder→target + fallback con binary search
- *    lungo la retta mano→target usando `is_pose_reachable` del controller.
+ *  - Candidato iniziale su retta spalla→target con raggio limitato (niente binary search).
  */
 class ExecuteDanceComponent
 {
@@ -73,21 +72,15 @@ public:
 private:
     // ======= Esecuzione del task (entrypoint del servizio ExecuteDance) =======
     void executeTask(const std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Request> request);
-    void timerTask(float time);
 
-    // // ======= Callback ROS2 (es. AMCL) =======
-    // void amclPoseCallback(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg);
+    // ======= Callback ROS2 (es. AMCL) =======
+    void amclPoseCallback(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg);
 
     // ======= Caricamento configurazioni/coordinate =======
-    std::map<std::string, std::pair<double,double>> loadPoiCoordinates(const std::string& filename);
-    std::map<std::string, std::vector<double>>      loadArtworkCoordinates(const std::string& filename);
-
-    // ======= Setup YARP (se serve usare ResourceFinder) =======
-    bool ConfigureYARP(yarp::os::ResourceFinder &rf);
+    std::map<std::string, std::vector<double>> loadArtworkCoordinates(const std::string& filename);
 
     // ======= Reachability & motion helpers (RPC) =======
     bool checkPoseReachabilityForArm(double x, double y, double z, const std::string& armName);
-    // bool sendPositionCommand(double x, double y, double z, const std::string& armName);
     bool checkPoseReachability(double x, double y, double z);
 
     // Pre-scan: interroga i controller per ottenere la posa mano e distanza dal target
@@ -95,28 +88,10 @@ private:
                                 std::vector<std::pair<std::string,double>>& armDistances,
                                 std::map<std::string, std::vector<double>>& cachedPoseValues);
 
-    // // (Legacy) orientazione basata sulla posa mano corrente (asse X → target)
-    // bool computeOrientationFromFlatPose(const std::vector<double>& flat_pose,
-    //                                     const Eigen::Vector3d& artwork_pos,
-    //                                     Eigen::Vector3d& hand_pos,
-    //                                     Eigen::Vector3d& vec_to_artwork,
-    //                                     double& vec_norm,
-    //                                     Eigen::Matrix3d& R_hand,
-    //                                     Eigen::Quaterniond& q_target);
-
     // Wrapper RPC per `is_pose_reachable`
     bool isPoseReachable(yarp::os::Port* activePort,
                          const Eigen::Vector3d& candidate,
                          const Eigen::Quaterniond& q_target);
-
-    // Ricerca binaria lungo mano→target per trovare il punto migliore raggiungibile
-    bool probeBinarySearch(yarp::os::Port* activePort,
-                           const Eigen::Vector3d& hand_pos,
-                           const Eigen::Vector3d& artwork_pos,
-                           const Eigen::Vector3d& vec_to_artwork,
-                           double vec_norm,
-                           const Eigen::Quaterniond& q_target,
-                           Eigen::Vector3d& out_best_candidate);
 
     // ======= Helper TF legacy (map -> robot) per compatibilità =======
     bool transformPointMapToRobot(const geometry_msgs::msg::Point& map_point,
@@ -136,15 +111,14 @@ private:
     std::string m_lShoulderFrame  {"l_shoulder_1"};
     std::string m_rShoulderFrame  {"r_shoulder_1"};
 
-
     // Parametri di pointing (tarabili)
     double m_reachRadius   {0.60};   // raggio max su cui proiettare il candidato dalla spalla
-    double m_minDist       {0.40};   // distanza minima (evita singularità molto vicine)
+    double m_minDist       {0.40};   // distanza minima
     double m_safetyBackoff {0.05};   // non arrivare a toccare il target
 
     // Quale asse dell'EEF punta verso il target: X (stile vecchio) o Z (stile camera)
     enum class ToolAxis { AlignX, AlignZ };
-    ToolAxis m_toolAxis { ToolAxis::AlignZ }; // default: come `HandPointingThread`
+    ToolAxis m_toolAxis { ToolAxis::AlignX }; // default: come `HandPointingThread`
 
     // ---- TF helpers ----
     bool getTFMatrix(const std::string& target,
@@ -167,7 +141,7 @@ private:
 private:
     // ======= Stato runtime =======
 
-    //Porte RPC dei controller cartesiani che ci aspettiamo di usare
+    // Porte RPC dei controller cartesiani che ci aspettiamo di usare (solo label comode)
     const std::string cartesianPortLeft  = "/r1-cartesian-control/left_arm/rpc:i";
     const std::string cartesianPortRight = "/r1-cartesian-control/right_arm/rpc:i";
 
@@ -178,35 +152,24 @@ private:
     rclcpp::Service<execute_dance_interfaces::srv::ExecuteDance>::SharedPtr m_executeDanceService;
     rclcpp::Service<execute_dance_interfaces::srv::IsDancing>::SharedPtr    m_isDancingService;
 
-    // Thread ausiliari
-    std::thread m_threadExecute;
-    std::thread m_threadTimer;
-    std::mutex  m_timerMutex;
-    bool        m_timerTask{false};
-
-    // YARP Action Player client
-    std::string   yAPClientPortName;
-    yarp::os::Port m_yAPClientPort;
-
+    // (opzionale) stato di localizzazione corrente (es. AMCL)
     double m_currentX{0.0};
     double m_currentY{0.0};
     double m_currentYaw{0.0};
 
-    // Dizionari di POI/opere
-    std::map<std::string, std::pair<double, double>> m_poiCoords;
-    std::map<std::string, std::vector<double>>       m_artworkCoords;
+    // Dizionari di coordinate delle opere
+    std::map<std::string, std::vector<double>> m_artworkCoords;
 
     // Porte RPC verso i controller cartesiani (LEFT/RIGHT)
-    yarp::dev::PolyDriver m_cartesianClient; 
+    yarp::dev::PolyDriver m_cartesianClient; // compatibilità, non usato direttamente
     std::string m_cartesianPortNameLeft  = "/ExecuteDanceComponent/cartesianClientLeft/rpc";
     std::string m_cartesianPortNameRight = "/ExecuteDanceComponent/cartesianClientRight/rpc";
     yarp::os::Port m_cartesianPortLeft;
     yarp::os::Port m_cartesianPortRight;
 
     // Percorsi dei file ini dei controller (modifica per il tuo setup)
-    std::string cartesianControllerIniPathLeft  = 
+    std::string cartesianControllerIniPathLeft  =
         "/home/user1/ergocub-cartesian-control/src/r1_cartesian_control/app/conf/config_left_sim_r1.ini";
-    std::string cartesianControllerIniPathRight = 
+    std::string cartesianControllerIniPathRight =
         "/home/user1/ergocub-cartesian-control/src/r1_cartesian_control/app/conf/config_right_sim_r1.ini";
-
 };
