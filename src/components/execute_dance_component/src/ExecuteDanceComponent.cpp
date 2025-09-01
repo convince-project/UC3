@@ -301,30 +301,39 @@ bool ExecuteDanceComponent::transformPointMapToRobot(const geometry_msgs::msg::P
                                                      const std::string& robot_frame,
                                                      double timeout_sec)
 {
-    tf2_ros::Buffer tfBuffer(m_node->get_clock());                                                    // crea un buffer TF2 temporaneo
-    tf2_ros::TransformListener tfListener(tfBuffer);                                                   // attacca un listener temporaneo
-
-    const std::string map_frame = "map";                                                               // frame sorgente
-    const auto timeout_ms = std::chrono::milliseconds(static_cast<int>(timeout_sec * 1000.0));         // timeout come durata
-
-    if (!tfBuffer.canTransform(robot_frame, map_frame, rclcpp::Time(0), timeout_ms)) {                 // controlla disponibilità del TF
-        RCLCPP_WARN(m_node->get_logger(), "TF: transform %s <- %s not available", robot_frame.c_str(), map_frame.c_str());
-        return false;                                                                                  // non disponibile
+    if (!m_tfBuffer) {
+        RCLCPP_WARN(m_node->get_logger(), "TF buffer not initialized");
+        return false;
     }
+
+    const std::string map_frame = m_mapFrame; // tipicamente "map"
+    const auto timeout = tf2::durationFromSec(timeout_sec);
+
+    // aspetta che la TF sia disponibile
+    if (!m_tfBuffer->canTransform(robot_frame, map_frame, tf2::TimePointZero, timeout)) {
+        RCLCPP_WARN(m_node->get_logger(), "TF: transform %s <- %s not available", robot_frame.c_str(), map_frame.c_str());
+        return false;
+    }
+
     try {
-        auto tf_stamped = tfBuffer.lookupTransform(robot_frame, map_frame, rclcpp::Time(0));           // recupera la trasformazione
-        geometry_msgs::msg::PointStamped p_in, p_out;                                                  // punti con header per TF
-        p_in.header.stamp = tf_stamped.header.stamp;                                                   // timestamp coerente
-        p_in.header.frame_id = map_frame;                                                              // frame sorgente
-        p_in.point = map_point;                                                                        // copia coordinate in input
-        tf2::doTransform(p_in, p_out, tf_stamped);                                                     // applica la trasformazione
-        out_robot_point = p_out.point;                                                                 // estrae il punto trasformato
-        return true;                                                                                   // successo
-    } catch (const tf2::TransformException &ex) {                                                      // eccezioni TF2
-        RCLCPP_WARN(m_node->get_logger(), "TF exception: %s", ex.what());                              // log warning
-        return false;                                                                                  // fallimento
+        // lookup con il buffer persistente
+        auto tf_stamped = m_tfBuffer->lookupTransform(robot_frame, map_frame, tf2::TimePointZero, timeout);
+
+        geometry_msgs::msg::PointStamped p_in, p_out;
+        p_in.header = tf_stamped.header;     // timestamp e frame di 'map'
+        p_in.header.frame_id = map_frame;
+        p_in.point = map_point;
+
+        tf2::doTransform(p_in, p_out, tf_stamped);
+        out_robot_point = p_out.point;
+        return true;
+
+    } catch (const tf2::TransformException &ex) {
+        RCLCPP_WARN(m_node->get_logger(), "TF exception: %s", ex.what());
+        return false;
     }
 }
+
 
 // =============================================================================
 // preScanArticulatedArms() — interroga get_pose e stima distanze dal target
