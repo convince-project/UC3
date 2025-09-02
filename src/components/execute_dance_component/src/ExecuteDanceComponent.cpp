@@ -32,11 +32,7 @@ bool ExecuteDanceComponent::start(int argc, char* argv[])
         rclcpp::init(argc, argv);
     }
 
-    // 2) Porte RPC dei controller cartesiani che ci aspettiamo di usare
-    const std::string cartesianPortLeft  = "/r1-cartesian-control/left_arm/rpc:i";
-    const std::string cartesianPortRight = "/r1-cartesian-control/right_arm/rpc:i";
-
-    // 3) Avvia i controller se non sono già attivi
+    // 2) Avvia i controller se non sono già attivi (usa i nomi membro)
     if (!yarp::os::Network::exists(cartesianPortLeft)) {
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Avvio r1-cartesian-control LEFT...");
         std::string cmd = std::string("r1-cartesian-control --from ") + cartesianControllerIniPathLeft + " > /dev/null 2>&1 &";
@@ -54,7 +50,7 @@ bool ExecuteDanceComponent::start(int argc, char* argv[])
         }
     }
 
-    // 4) Attendi che i server RPC compaiano (no timeout: comodo in dev)
+    // 3) Attendi che i server RPC compaiano (no timeout: comodo in dev)
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Attesa della porta %s...", cartesianPortLeft.c_str());
     while (!yarp::os::Network::exists(cartesianPortLeft)) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -64,18 +60,15 @@ bool ExecuteDanceComponent::start(int argc, char* argv[])
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
-    // 5) Crea il nodo ROS2 e il TF2 persistente (buffer+listener)
+    // 4) Crea il nodo ROS2 e il TF2 persistente (buffer+listener)
     m_node = rclcpp::Node::make_shared("ExecuteDanceComponentNode");
     m_tfBuffer   = std::make_unique<tf2_ros::Buffer>(m_node->get_clock());
     m_tfListener = std::make_unique<tf2_ros::TransformListener>(*m_tfBuffer);
 
-    // 6) Carica le coordinate delle opere (in frame "map")
+    // 5) Carica le coordinate delle opere (in frame "map")
     m_artworkCoords = loadArtworkCoordinates("/home/user1/UC3/conf/artwork_coords.json");
 
-    // 7) Apri e connetti le porte RPC locali verso i due controller cartesiani
-    m_cartesianPortNameLeft  = "/ExecuteDanceComponent/cartesianClientLeft/rpc";
-    m_cartesianPortNameRight = "/ExecuteDanceComponent/cartesianClientRight/rpc";
-
+    // 6) Apri e connetti le porte RPC locali verso i due controller cartesiani
     if (yarp::os::Network::exists(m_cartesianPortNameLeft)) {
         yarp::os::Network::disconnect(m_cartesianPortNameLeft, cartesianPortLeft);
         std::this_thread::sleep_for(std::chrono::milliseconds(300));
@@ -96,7 +89,7 @@ bool ExecuteDanceComponent::start(int argc, char* argv[])
     }
     yarp::os::Network::connect(m_cartesianPortNameRight, cartesianPortRight);
 
-    // 8) Esponi il servizio ROS2 per avviare il pointing verso un'opera (per nome)
+    // 7) Esponi il servizio ROS2 per avviare il pointing verso un'opera (per nome)
     m_executeDanceService = m_node->create_service<execute_dance_interfaces::srv::ExecuteDance>(
         "/ExecuteDanceComponent/ExecuteDance",
         [this](const std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Request> request,
@@ -107,6 +100,19 @@ bool ExecuteDanceComponent::start(int argc, char* argv[])
             response->error_msg = "";
         }
     );
+
+
+    // prima:
+    // m_markerPub = m_node->create_publisher<visualization_msgs::msg::Marker>("~/markers", 10);
+
+    // dopo:
+    rclcpp::QoS qos( rclcpp::KeepLast(10) );
+    qos.transient_local();   // conserva l'ultimo messaggio per i nuovi subscriber (RViz)
+    qos.reliable();          // nessuna perdita
+    m_markerPub = m_node->create_publisher<visualization_msgs::msg::Marker>("/execute_dance/markers", qos);
+
+
+
 
     return true;
 }
@@ -136,6 +142,7 @@ void ExecuteDanceComponent::spin()
 void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Request> request)
 {
     RCLCPP_INFO(m_node->get_logger(), "EXECUTE TASK: '%s'", request->dance_name.c_str());
+    deleteAllMarkers();
 
     // 1) Recupera le coordinate dell'opera (in frame map)
     auto it = m_artworkCoords.find(request->dance_name);
@@ -144,6 +151,9 @@ void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_inte
         return;
     }
     const auto& coords = it->second;
+    // Punto originale nel frame 'map' (sfera rossa)
+    Eigen::Vector3d p_map(coords[0], coords[1], coords[2]);
+    publishMarkerSphere("target_map", 1, p_map, m_mapFrame, 1.0f, 0.0f, 0.0f, 0.10f, 0.9f);
 
     // 2) Trasforma il punto da map → base_link (se TF disponibile); fallback: usa map come base
     Eigen::Vector3d p_base{coords[0], coords[1], coords[2]};
@@ -154,6 +164,8 @@ void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_inte
     } else {
         RCLCPP_WARN(m_node->get_logger(), "TF map->%s failed; assuming coords already in base", m_baseFrame.c_str());
     }
+    // Punto target espresso in base_link (sfera verde)
+    publishMarkerSphere("target_base", 2, p_base, m_baseFrame, 0.0f, 1.0f, 0.0f, 0.08f, 0.9f);
 
     // 3) Pre-scan: interroga i due controller per la posa mano e stima distanza dal target
     std::vector<std::pair<std::string,double>> armDistances;                 // (arm, distanza)
@@ -183,12 +195,16 @@ void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_inte
             continue;
         }
 
-        // 5.a) Orientazione: direzione spalla→target in BASE, allineo l'asse EEF scelto
+        // 5.a) Orientazione: direzione spalla→target in BASE, allineo l'asse X dell'EEF
         Eigen::Vector3d shoulder_base;
         if (!getShoulderPosInBase(armName, shoulder_base)) {
             RCLCPP_WARN(m_node->get_logger(), "ARM %s: missing shoulder TF", armName.c_str());
             continue;
         }
+        // Spalla scelta (sfera blu)
+        publishMarkerSphere("shoulder", armName == "LEFT" ? 10 : 11,
+                            shoulder_base, m_baseFrame, 0.1f, 0.4f, 1.0f, 0.07f, 0.9f);
+
         Eigen::Vector3d dir_base = p_base - shoulder_base;                    // direzione di pointing
         if (dir_base.norm() < 1e-6) {
             RCLCPP_WARN(m_node->get_logger(), "ARM %s: degenerate target near shoulder", armName.c_str());
@@ -204,6 +220,19 @@ void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_inte
             RCLCPP_WARN(m_node->get_logger(), "ARM %s: candidate not reachable, trying next arm", armName.c_str());
             continue;
         }
+        // Candidato finale (sfera gialla) e freccia spalla→candidato (ciano)
+        publishMarkerSphere("candidate", armName == "LEFT" ? 20 : 21,
+                            candidate, m_baseFrame, 1.0f, 0.9f, 0.2f, 0.08f, 0.95f);
+
+        publishMarkerArrow("dir", armName == "LEFT" ? 30 : 31,
+                        shoulder_base, candidate, m_baseFrame,
+                        0.2f, 1.0f, 1.0f, 0.02f, 0.05f, 0.08f, 0.95f);
+        // Visualizza l'asse X dell'EEF (in base a q_target) come freccia rossa che parte dal candidato
+        publishEefXAxis("eef_x", armName == "LEFT" ? 40 : 41,
+                        candidate, q_target, m_baseFrame,
+                        0.25,          // lunghezza freccia (m)
+                        1.0f, 0.2f, 0.2f, // colore rosso
+                        0.02f, 0.05f, 0.08f, 0.95f);
 
         // 5.d) Invia il movimento finale al controller cartesiano
         yarp::os::Bottle cmd_pose_final, res_pose_final;
@@ -279,11 +308,11 @@ std::map<std::string, std::vector<double>> ExecuteDanceComponent::loadArtworkCoo
             RCLCPP_ERROR(m_node->get_logger(), "Unable to open artwork file '%s'", filename.c_str()); // log errore
             return artworkMap;                                                                        // ritorna vuoto
         }
-        auto config = ordered_json::parse(file);                                                      // parse JSON (usa nlohmann::ordered_json)
-        for (auto& [name, data] : config.at("artworks").items()) {                                    // itera sulle voci in "artworks"
-            double x = data.at("x").get<double>();                                                    // legge x
-            double y = data.at("y").get<double>();                                                    // legge y
-            double z = data.at("z").get<double>();                                                    // legge z
+        auto config = ordered_json::parse(file);                                                      // parse JSON
+        for (auto& [name, data] : config.at("artworks").items()) {                                   // itera sulle voci in "artworks"
+            double x = data.at("x").get<double>();                                                   // legge x
+            double y = data.at("y").get<double>();                                                   // legge y
+            double z = data.at("z").get<double>();                                                   // legge z
             artworkMap.emplace(name, std::vector<double>{x,y,z});                                     // inserisce nella mappa
             RCLCPP_INFO(m_node->get_logger(), "Loaded artwork '%s' [%.2f %.2f %.2f]", name.c_str(), x,y,z); // log informativo
         }
@@ -294,7 +323,7 @@ std::map<std::string, std::vector<double>> ExecuteDanceComponent::loadArtworkCoo
 }
 
 // =============================================================================
-// transformPointMapToRobot() — helper legacy che usa un listener locale
+// transformPointMapToRobot() — usa il buffer/listener persistenti
 // =============================================================================
 bool ExecuteDanceComponent::transformPointMapToRobot(const geometry_msgs::msg::Point& map_point,
                                                      geometry_msgs::msg::Point& out_robot_point,
@@ -334,7 +363,6 @@ bool ExecuteDanceComponent::transformPointMapToRobot(const geometry_msgs::msg::P
     }
 }
 
-
 // =============================================================================
 // preScanArticulatedArms() — interroga get_pose e stima distanze dal target
 // =============================================================================
@@ -345,7 +373,7 @@ bool ExecuteDanceComponent::preScanArticulatedArms(const Eigen::Vector3d& artwor
     armDistances.clear();                                                                              // pulisce output distanze
     cachedPoseValues.clear();                                                                          // pulisce cache pose
 
-    for (const std::string armId : {"LEFT", "RIGHT"}) {                                                // itera su entrambi i bracci
+    for (const std::string armId : {"LEFT", "RIGHT"}) {                                               // itera su entrambi i bracci
         yarp::os::Port* clientPort = (armId == "LEFT") ? &m_cartesianPortLeft : &m_cartesianPortRight; // seleziona porta
         const std::string serverPort = (armId == "LEFT") ? "/r1-cartesian-control/left_arm/rpc:i"      // server remoto
                                                            : "/r1-cartesian-control/right_arm/rpc:i";
@@ -483,19 +511,17 @@ Eigen::Quaterniond ExecuteDanceComponent::quatAlignAxisToDir(
     }
 
     // 3) Completa la terna ortonormale via cross products (stile Gram–Schmidt)
-    Eigen::Vector3d right = up.cross(fwd).normalized(); // Z = right (o asse 3)
-    up = fwd.cross(right).normalized();                  // Y ricalcolata ortogonale
+    Eigen::Vector3d right = up.cross(fwd).normalized(); // Z tool
+    up = fwd.cross(right).normalized();                  // Y tool
 
     // 4) Costruisci R con colonne = assi del tool frame (X=fwd, Y=up, Z=right)
     Eigen::Matrix3d R;
     R.col(0) = fwd;     // X → target
-    R.col(1) = up;      // Y ortogonale (più vicino a worldUp possibile)
+    R.col(1) = up;      // Y ortogonale
     R.col(2) = right;   // Z ortogonale
 
     return Eigen::Quaterniond(R);
 }
-
-
 
 Eigen::Vector3d ExecuteDanceComponent::sphereReachPoint(const Eigen::Vector3d& shoulder_base,
                                                         const Eigen::Vector3d& target_base) const
@@ -507,4 +533,91 @@ Eigen::Vector3d ExecuteDanceComponent::sphereReachPoint(const Eigen::Vector3d& s
     if (d < 1e-6) return shoulder_base;
     const Eigen::Vector3d dir = (target_base - shoulder_base) / d;
     return shoulder_base + L * dir;
+}
+void ExecuteDanceComponent::deleteAllMarkers() const
+{
+    if (!m_markerPub) return;
+    visualization_msgs::msg::Marker m;
+    m.header.stamp = m_node->now();
+    m.header.frame_id = m_baseFrame;           // frame “base” per il comando DELETEALL (irrilevante)
+    m.ns = "execdance";
+    m.id = 0;
+    m.action = visualization_msgs::msg::Marker::DELETEALL;
+    m_markerPub->publish(m);
+}
+
+void ExecuteDanceComponent::publishMarkerSphere(const std::string& ns, int id,
+                                                const Eigen::Vector3d& p,
+                                                const std::string& frame_id,
+                                                float r, float g, float b,
+                                                float scale, float alpha) const
+{
+    if (!m_markerPub) return;
+    visualization_msgs::msg::Marker m;
+    m.header.stamp = m_node->now();
+    m.header.frame_id = frame_id;              // “map” oppure “base_link” (m_baseFrame)
+    m.ns = ns;
+    m.id = id;
+    m.type = visualization_msgs::msg::Marker::SPHERE;
+    m.action = visualization_msgs::msg::Marker::ADD;
+    m.pose.position.x = p.x();
+    m.pose.position.y = p.y();
+    m.pose.position.z = p.z();
+    m.pose.orientation.w = 1.0;
+
+    m.scale.x = m.scale.y = m.scale.z = scale;
+    m.color.r = r; m.color.g = g; m.color.b = b; m.color.a = alpha;
+    m.lifetime = rclcpp::Duration(0,0);       // infinito
+
+    m_markerPub->publish(m);
+}
+
+void ExecuteDanceComponent::publishMarkerArrow(const std::string& ns, int id,
+                                               const Eigen::Vector3d& p_from,
+                                               const Eigen::Vector3d& p_to,
+                                               const std::string& frame_id,
+                                               float r, float g, float b,
+                                               float shaft_diam, float head_diam, float head_len,
+                                               float alpha) const
+{
+    if (!m_markerPub) return;
+    visualization_msgs::msg::Marker m;
+    m.header.stamp = m_node->now();
+    m.header.frame_id = frame_id;
+    m.ns = ns;
+    m.id = id;
+    m.type = visualization_msgs::msg::Marker::ARROW;
+    m.action = visualization_msgs::msg::Marker::ADD;
+
+    geometry_msgs::msg::Point p1, p2;
+    p1.x = p_from.x(); p1.y = p_from.y(); p1.z = p_from.z();
+    p2.x = p_to.x();   p2.y = p_to.y();   p2.z = p_to.z();
+    m.points = {p1, p2};
+
+    m.scale.x = shaft_diam;  // diametro shaft
+    m.scale.y = head_diam;   // diametro head
+    m.scale.z = head_len;    // lunghezza head
+
+    m.color.r = r; m.color.g = g; m.color.b = b; m.color.a = alpha;
+    m.lifetime = rclcpp::Duration(0,0); // infinito
+    m_markerPub->publish(m);
+}
+
+
+void ExecuteDanceComponent::publishEefXAxis(const std::string& ns, int id,
+                                            const Eigen::Vector3d& origin,
+                                            const Eigen::Quaterniond& q,
+                                            const std::string& frame_id,
+                                            double length,
+                                            float r, float g, float b,
+                                            float shaft_diam, float head_diam, float head_len,
+                                            float alpha) const
+{
+    // Direzione X dell'EEF in base al quaternion
+    // Converte q in R e prende la prima colonna (asse X del tool frame)
+    Eigen::Matrix3d R = q.toRotationMatrix();
+    Eigen::Vector3d x_dir = R.col(0).normalized();
+    Eigen::Vector3d tip   = origin + length * x_dir;
+
+    publishMarkerArrow(ns, id, origin, tip, frame_id, r, g, b, shaft_diam, head_diam, head_len, alpha);
 }

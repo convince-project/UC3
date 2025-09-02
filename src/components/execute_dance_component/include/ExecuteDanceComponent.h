@@ -1,3 +1,5 @@
+#pragma once
+
 /******************************************************************************
  *                                                                            *
  * UC3 — ExecuteDanceComponent (header)                                        *
@@ -6,13 +8,12 @@
  * sono fornite nel frame `map`. Il componente:                                *
  *  - trasforma il target `map -> base_link`                                   *
  *  - sceglie il braccio in base alla Y nel frame `torso` (stile camera)       *
- *  - costruisce l'orientazione dell'end-effector allineando X o Z al target   *
+ *  - costruisce l'orientazione dell'end-effector allineando **X** al target   *
  *  - invia il comando `go_to_pose` ai controller cartesiani YARP              *
  *  - strategia "camera-style": punto candidato sulla retta spalla→target      *
  *    (niente ricerca binaria)                                                 *
  *                                                                            *
  ******************************************************************************/
-#pragma once
 
 // ==== C++ standard ====
 #include <mutex>
@@ -26,6 +27,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
 #include <geometry_msgs/msg/point.hpp>
+#include <visualization_msgs/msg/marker.hpp>
 
 // ==== YARP ====
 #include <yarp/os/Network.h>
@@ -43,9 +45,12 @@
 #include <tf2_ros/transform_listener.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
-// ==== Interfacce dei servizi (già nel tuo workspace) ====
+// ==== Interfacce dei servizi (snake_case corretti) ====
 #include <execute_dance_interfaces/srv/execute_dance.hpp>
 #include <execute_dance_interfaces/srv/is_dancing.hpp>
+
+#include <visualization_msgs/msg/marker.hpp>
+#include <visualization_msgs/msg/marker_array.hpp> // se in futuro dovesse servire array di marker
 
 /**
  * @class ExecuteDanceComponent
@@ -54,7 +59,7 @@
  * Design:
  *  - TF2 persistente (buffer+listener) come membri di classe.
  *  - Scelta braccio stile camera (segno della y in `torso`).
- *  - Orientazione end-effector allineata all'asse desiderato (X o Z) verso il target.
+ *  - Orientazione end-effector allineata all'asse **X** verso il target (AlignX fisso).
  *  - Candidato iniziale su retta spalla→target con raggio limitato (niente binary search).
  */
 class ExecuteDanceComponent
@@ -93,11 +98,41 @@ private:
                          const Eigen::Vector3d& candidate,
                          const Eigen::Quaterniond& q_target);
 
-    // ======= Helper TF legacy (map -> robot) per compatibilità =======
+    // ======= Helper TF (map -> robot) usando il buffer persistente =======
     bool transformPointMapToRobot(const geometry_msgs::msg::Point& map_point,
                                   geometry_msgs::msg::Point& out_robot_point,
                                   const std::string& robot_frame,
                                   double timeout_sec);
+
+    // === RViz Markers ===
+    rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr m_markerPub;
+
+    // Helpers per i marker
+    void publishMarkerSphere(const std::string& ns, int id,
+                            const Eigen::Vector3d& p,
+                            const std::string& frame_id,
+                            float r, float g, float b,
+                            float scale = 0.07f, float alpha = 1.0f) const;
+
+    void publishMarkerArrow(const std::string& ns, int id,
+                            const Eigen::Vector3d& p_from,
+                            const Eigen::Vector3d& p_to,
+                            const std::string& frame_id,
+                            float r, float g, float b,
+                            float shaft_diam = 0.02f, float head_diam = 0.04f, float head_len = 0.06f,
+                            float alpha = 1.0f) const;
+
+    void deleteAllMarkers() const;
+
+    // Disegna l'asse X dell'EEF come freccia partendo da 'origin' usando l'orientazione q
+    void publishEefXAxis(const std::string& ns, int id,
+                        const Eigen::Vector3d& origin,
+                        const Eigen::Quaterniond& q,
+                        const std::string& frame_id,
+                        double length = 0.20,
+                        float r = 1.0f, float g = 0.2f, float b = 0.2f, // rosso
+                        float shaft_diam = 0.02f, float head_diam = 0.05f, float head_len = 0.08f,
+                        float alpha = 1.0f) const;
 
     // ======= Nuovi helper unificati + TF2 persistente =======
     // TF2 (buffer+listener) come membri per non ricreare listener ad ogni lookup
@@ -116,9 +151,9 @@ private:
     double m_minDist       {0.40};   // distanza minima
     double m_safetyBackoff {0.05};   // non arrivare a toccare il target
 
-    // Quale asse dell'EEF punta verso il target: X (stile vecchio) o Z (stile camera)
+    // Quale asse dell'EEF punta verso il target (fisso a AlignX)
     enum class ToolAxis { AlignX, AlignZ };
-    ToolAxis m_toolAxis { ToolAxis::AlignX }; // default: come `HandPointingThread`
+    ToolAxis m_toolAxis { ToolAxis::AlignX }; // fisso: X → target
 
     // ---- TF helpers ----
     bool getTFMatrix(const std::string& target,
@@ -134,14 +169,14 @@ private:
                               Eigen::Vector3d& out_pos) const;   // posizione spalla nel frame base
     Eigen::Quaterniond quatAlignAxisToDir(const Eigen::Vector3d& dir_base,
                                           ToolAxis axis,
-                                          const Eigen::Vector3d& worldUp = Eigen::Vector3d::UnitY()) const; // costruisce R con asse desiderato verso dir
+                                          const Eigen::Vector3d& worldUp = Eigen::Vector3d::UnitY()) const; // costruisce R con X verso dir
     Eigen::Vector3d sphereReachPoint(const Eigen::Vector3d& shoulder_base,
                                      const Eigen::Vector3d& target_base) const; // candidato iniziale sulla retta spalla→target
 
 private:
     // ======= Stato runtime =======
 
-    // Porte RPC dei controller cartesiani che ci aspettiamo di usare (solo label comode)
+    // Porte RPC dei controller cartesiani (etichette comode)
     const std::string cartesianPortLeft  = "/r1-cartesian-control/left_arm/rpc:i";
     const std::string cartesianPortRight = "/r1-cartesian-control/right_arm/rpc:i";
 
