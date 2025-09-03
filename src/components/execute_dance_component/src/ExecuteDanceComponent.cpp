@@ -24,34 +24,6 @@ using ordered_json = nlohmann::ordered_json;
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/LinearMath/Matrix3x3.h>
 
-// =============================================================================
-// Helper: quaternion dall'array "flat" restituito da get_pose (16 o 18 elem)
-// =============================================================================
-// Layout atteso (row-major): [ r00 r01 r02 tx  r10 r11 r12 ty  r20 r21 r22 tz  0 0 0 1 ]
-static bool quatFromFlatPose(const std::vector<double>& flat, Eigen::Quaterniond& out_q)
-{
-    if (flat.size() != 16 && flat.size() != 18) return false;
-    const size_t off = (flat.size() == 18) ? 2u : 0u;
-
-    const double r00 = flat[off + 0],  r01 = flat[off + 1],  r02 = flat[off + 2];
-    const double r10 = flat[off + 4],  r11 = flat[off + 5],  r12 = flat[off + 6];
-    const double r20 = flat[off + 8],  r21 = flat[off + 9],  r22 = flat[off +10];
-
-    Eigen::Matrix3d R;
-    R << r00, r01, r02,
-         r10, r11, r12,
-         r20, r21, r22;
-
-    // Ortonormalizza per robustezza
-    Eigen::JacobiSVD<Eigen::Matrix3d> svd(R, Eigen::ComputeFullU | Eigen::ComputeFullV);
-    Eigen::Matrix3d U = svd.matrixU(), V = svd.matrixV();
-    Eigen::Matrix3d R_ortho = U * V.transpose();
-    if (R_ortho.determinant() < 0) { U.col(2) *= -1.0; R_ortho = U * V.transpose(); }
-
-    out_q = Eigen::Quaterniond(R_ortho);
-    out_q.normalize();
-    return true;
-}
 
 // =============================================================================
 // start() — avvio di ROS2, TF2, porte YARP e servizio ROS2
@@ -132,11 +104,11 @@ bool ExecuteDanceComponent::start(int argc, char* argv[])
         }
     );
 
-    // 8) Publisher per RViz Markers con QoS latched
-    rclcpp::QoS qos( rclcpp::KeepLast(10) );
-    qos.transient_local();   // conserva l'ultimo messaggio per i nuovi subscriber (RViz)
-    qos.reliable();          // nessuna perdita
-    m_markerPub = m_node->create_publisher<visualization_msgs::msg::Marker>("/execute_dance/markers", qos);
+    // // 8) Publisher per RViz Markers con QoS latched
+    // rclcpp::QoS qos( rclcpp::KeepLast(10) );
+    // qos.transient_local();   // conserva l'ultimo messaggio per i nuovi subscriber (RViz)
+    // qos.reliable();          // nessuna perdita
+    // m_markerPub = m_node->create_publisher<visualization_msgs::msg::Marker>("/execute_dance/markers", qos);
 
     return true;
 }
@@ -166,7 +138,7 @@ void ExecuteDanceComponent::spin()
 void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Request> request)
 {
     RCLCPP_INFO(m_node->get_logger(), "EXECUTE TASK: '%s'", request->dance_name.c_str());
-    deleteAllMarkers();
+    // deleteAllMarkers();
 
     // 1) Recupera le coordinate dell'opera (in frame map)
     auto it = m_artworkCoords.find(request->dance_name);
@@ -176,9 +148,9 @@ void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_inte
     }
     const auto& coords = it->second;
 
-    // Punto originale nel frame 'map' (sfera rossa)
-    Eigen::Vector3d p_map(coords[0], coords[1], coords[2]);
-    publishMarkerSphere("target_map", 1, p_map, m_mapFrame, 1.0f, 0.0f, 0.0f, 0.10f, 0.9f);
+    // // Punto originale nel frame 'map' (sfera rossa)
+    // Eigen::Vector3d p_map(coords[0], coords[1], coords[2]);
+    // publishMarkerSphere("target_map", 1, p_map, m_mapFrame, 1.0f, 0.0f, 0.0f, 0.10f, 0.9f);
 
     // 2) Trasforma il punto da map → base_link
     Eigen::Vector3d p_base{coords[0], coords[1], coords[2]};
@@ -205,8 +177,8 @@ void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_inte
                     m_baseFrame.c_str(), p_base.x(), p_base.y(), p_base.z());
     }
 
-    // Punto target espresso in base_link (sfera verde)
-    publishMarkerSphere("target_base", 2, p_base, m_baseFrame, 0.0f, 1.0f, 0.0f, 0.08f, 0.9f);
+    // // Punto target espresso in base_link (sfera verde)
+    // publishMarkerSphere("target_base", 2, p_base, m_baseFrame, 0.0f, 1.0f, 0.0f, 0.08f, 0.9f);
 
     // 3) Pre-scan: posa mano e distanza dal target
     std::vector<std::pair<std::string,double>> armDistances;                 // (arm, distanza)
@@ -236,14 +208,14 @@ void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_inte
             continue;
         }
 
-        // 5.a) Geometria spalla/target
+        // 5.a) Geometria spalla/targets
         Eigen::Vector3d shoulder_base;
         if (!getShoulderPosInBase(armName, shoulder_base)) {
             RCLCPP_WARN(m_node->get_logger(), "ARM %s: missing shoulder TF", armName.c_str());
             continue;
         }
-        publishMarkerSphere("shoulder", armName == "LEFT" ? 10 : 11,
-                            shoulder_base, m_baseFrame, 0.1f, 0.4f, 1.0f, 0.07f, 0.9f);
+        // publishMarkerSphere("shoulder", armName == "LEFT" ? 10 : 11,
+        //                     shoulder_base, m_baseFrame, 0.1f, 0.4f, 1.0f, 0.07f, 0.9f);
 
         // Candidato sulla retta spalla→target
         Eigen::Vector3d candidate = sphereReachPoint(shoulder_base, p_base);
@@ -270,16 +242,6 @@ void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_inte
             continue;
         }
 
-        // Marker: candidato e frecce
-        publishMarkerSphere("candidate", armName == "LEFT" ? 20 : 21,
-                            candidate, m_baseFrame, 1.0f, 0.9f, 0.2f, 0.08f, 0.95f);
-        publishMarkerArrow("dir", armName == "LEFT" ? 30 : 31,
-                           shoulder_base, candidate, m_baseFrame,
-                           0.2f, 1.0f, 1.0f, 0.02f, 0.05f, 0.08f, 0.95f);
-        publishEefXAxis("eef_x", armName == "LEFT" ? 40 : 41,
-                        candidate, q_keep, m_baseFrame,
-                        0.25, 1.0f, 0.2f, 0.2f, 0.02f, 0.05f, 0.08f, 0.95f);
-
         // 5.d) Invia movimento finale: **posizione nuova, orientazione invariata**
         yarp::os::Bottle cmd_pose_final, res_pose_final;
         cmd_pose_final.addString("go_to_pose");
@@ -301,26 +263,6 @@ void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_inte
             continue;
         }
     }
-}
-
-// =============================================================================
-// Reachability helpers & wrappers
-// =============================================================================
-bool ExecuteDanceComponent::checkPoseReachabilityForArm(double x, double y, double z, const std::string& armName)
-{
-    yarp::os::Port* activePort = (armName == "LEFT") ? &m_cartesianPortLeft : &m_cartesianPortRight;
-    yarp::os::Bottle cmd, res;
-    cmd.addString("is_pose_reachable");
-    cmd.addFloat64(x); cmd.addFloat64(y); cmd.addFloat64(z);
-    // orientamento neutro per un pre-check grossolano
-    cmd.addFloat64(0.0); cmd.addFloat64(0.0); cmd.addFloat64(0.0); cmd.addFloat64(1.0);
-    bool ok = activePort->write(cmd, res);
-    return ok && res.size()>0 && res.get(0).asVocab32()==yarp::os::createVocab32('o','k');
-}
-
-bool ExecuteDanceComponent::checkPoseReachability(double x, double y, double z)
-{
-    return checkPoseReachabilityForArm(x,y,z,"LEFT");
 }
 
 // =============================================================================
@@ -348,6 +290,64 @@ std::map<std::string, std::vector<double>> ExecuteDanceComponent::loadArtworkCoo
     }
     return artworkMap;
 }
+
+
+
+// =============================================================================
+// Helper: quaternion dall'array "flat" restituito da get_pose (16 o 18 elem)
+// =============================================================================
+// Layout atteso (row-major): [ r00 r01 r02 tx  r10 r11 r12 ty  r20 r21 r22 tz  0 0 0 1 ]
+// Utility: ricava un quaternione dalla matrice 4x4 appiattita restituita dal controller
+static bool quatFromFlatPose(const std::vector<double>& flat, Eigen::Quaterniond& out_q)
+{
+    // Verifica che il vettore contenga 16 o 18 valori
+    // (alcune versioni di YARP aggiungono 2 valori di header → 18 elementi)
+    if (flat.size() != 16 && flat.size() != 18) 
+        return false;
+
+    // Se la dimensione è 18, salta i primi 2 valori (header)
+    const size_t off = (flat.size() == 18) ? 2u : 0u;
+
+    // Estrai i 9 valori della matrice di rotazione (parte alta-sinistra della matrice 4x4)
+    // Struttura attesa della matrice (flat row-major):
+    // [ r00 r01 r02 tx ]
+    // [ r10 r11 r12 ty ]
+    // [ r20 r21 r22 tz ]
+    // [  0   0   0  1 ]
+    const double r00 = flat[off + 0],  r01 = flat[off + 1],  r02 = flat[off + 2];
+    const double r10 = flat[off + 4],  r11 = flat[off + 5],  r12 = flat[off + 6];
+    const double r20 = flat[off + 8],  r21 = flat[off + 9],  r22 = flat[off +10];
+
+    // Costruisci la matrice di rotazione 3x3
+    Eigen::Matrix3d R;
+    R << r00, r01, r02,
+         r10, r11, r12,
+         r20, r21, r22;
+
+    // --- Ortonormalizzazione con SVD ---
+    // A causa di errori numerici, R potrebbe non essere perfettamente ortogonale.
+    // U*V^T è la proiezione di R sul gruppo delle matrici ortogonali (rotazioni o riflessioni).
+    Eigen::JacobiSVD<Eigen::Matrix3d> svd(R, Eigen::ComputeFullU | Eigen::ComputeFullV);
+    Eigen::Matrix3d U = svd.matrixU(), V = svd.matrixV();
+    Eigen::Matrix3d R_ortho = U * V.transpose();
+
+    // Se il determinante è negativo, la matrice è una riflessione (det = -1).
+    // In tal caso invertiamo il segno di una colonna di U per ottenere una vera rotazione (det = +1).
+    if (R_ortho.determinant() < 0) {
+        U.col(2) *= -1.0;
+        R_ortho = U * V.transpose();
+    }
+
+    // Converte la matrice ortonormale in quaternione
+    out_q = Eigen::Quaterniond(R_ortho);
+
+    // Normalizza il quaternione per sicurezza (norma = 1)
+    out_q.normalize();
+
+    return true; // successo
+}
+
+
 
 // =============================================================================
 // transformPointMapToRobot() — usa il buffer/listener persistenti
@@ -534,92 +534,4 @@ Eigen::Vector3d ExecuteDanceComponent::sphereReachPoint(const Eigen::Vector3d& s
     if (d < 1e-6) return shoulder_base;
     const Eigen::Vector3d dir = (target_base - shoulder_base) / d;
     return shoulder_base + L * dir;
-}
-
-// =============================================================================
-// RViz markers helpers
-// =============================================================================
-void ExecuteDanceComponent::deleteAllMarkers() const
-{
-    if (!m_markerPub) return;
-    visualization_msgs::msg::Marker m;
-    m.header.stamp = m_node->now();
-    m.header.frame_id = m_baseFrame;   // irrilevante per DELETEALL
-    m.ns = "execdance";
-    m.id = 0;
-    m.action = visualization_msgs::msg::Marker::DELETEALL;
-    m_markerPub->publish(m);
-}
-
-void ExecuteDanceComponent::publishMarkerSphere(const std::string& ns, int id,
-                                                const Eigen::Vector3d& p,
-                                                const std::string& frame_id,
-                                                float r, float g, float b,
-                                                float scale, float alpha) const
-{
-    if (!m_markerPub) return;
-    visualization_msgs::msg::Marker m;
-    m.header.stamp = m_node->now();
-    m.header.frame_id = frame_id;
-    m.ns = ns;
-    m.id = id;
-    m.type = visualization_msgs::msg::Marker::SPHERE;
-    m.action = visualization_msgs::msg::Marker::ADD;
-    m.pose.position.x = p.x();
-    m.pose.position.y = p.y();
-    m.pose.position.z = p.z();
-    m.pose.orientation.w = 1.0;
-
-    m.scale.x = m.scale.y = m.scale.z = scale;
-    m.color.r = r; m.color.g = g; m.color.b = b; m.color.a = alpha;
-    m.lifetime = rclcpp::Duration(0,0); // infinito
-
-    m_markerPub->publish(m);
-}
-
-void ExecuteDanceComponent::publishMarkerArrow(const std::string& ns, int id,
-                                               const Eigen::Vector3d& p_from,
-                                               const Eigen::Vector3d& p_to,
-                                               const std::string& frame_id,
-                                               float r, float g, float b,
-                                               float shaft_diam, float head_diam, float head_len,
-                                               float alpha) const
-{
-    if (!m_markerPub) return;
-    visualization_msgs::msg::Marker m;
-    m.header.stamp = m_node->now();
-    m.header.frame_id = frame_id;
-    m.ns = ns;
-    m.id = id;
-    m.type = visualization_msgs::msg::Marker::ARROW;
-    m.action = visualization_msgs::msg::Marker::ADD;
-
-    geometry_msgs::msg::Point p1, p2;
-    p1.x = p_from.x(); p1.y = p_from.y(); p1.z = p_from.z();
-    p2.x = p_to.x();   p2.y = p_to.y();   p2.z = p_to.z();
-    m.points = {p1, p2};
-
-    m.scale.x = shaft_diam;  // diametro shaft
-    m.scale.y = head_diam;   // diametro head
-    m.scale.z = head_len;    // lunghezza head
-
-    m.color.r = r; m.color.g = g; m.color.b = b; m.color.a = alpha;
-    m.lifetime = rclcpp::Duration(0,0); // infinito
-    m_markerPub->publish(m);
-}
-
-void ExecuteDanceComponent::publishEefXAxis(const std::string& ns, int id,
-                                            const Eigen::Vector3d& origin,
-                                            const Eigen::Quaterniond& q,
-                                            const std::string& frame_id,
-                                            double length,
-                                            float r, float g, float b,
-                                            float shaft_diam, float head_diam, float head_len,
-                                            float alpha) const
-{
-    Eigen::Matrix3d R = q.toRotationMatrix();
-    Eigen::Vector3d x_dir = R.col(0).normalized();
-    Eigen::Vector3d tip   = origin + length * x_dir;
-
-    publishMarkerArrow(ns, id, origin, tip, frame_id, r, g, b, shaft_diam, head_diam, head_len, alpha);
 }
