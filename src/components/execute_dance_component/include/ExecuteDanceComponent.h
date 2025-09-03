@@ -151,9 +151,9 @@ private:
     double m_minDist       {0.40};   // distanza minima
     double m_safetyBackoff {0.05};   // non arrivare a toccare il target
 
-    // Quale asse dell'EEF punta verso il target (fisso a AlignX)
+    // Quale asse dell'EEF punta verso il target (fisso a AlignZ)
     enum class ToolAxis { AlignX, AlignZ };
-    ToolAxis m_toolAxis { ToolAxis::AlignX }; // fisso: X → target
+    ToolAxis m_toolAxis { ToolAxis::AlignZ }; // fisso:  Z → target
 
     // ---- TF helpers ----
     bool getTFMatrix(const std::string& target,
