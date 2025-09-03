@@ -159,6 +159,27 @@ void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_inte
     Eigen::Vector3d p_base{coords[0], coords[1], coords[2]};
     geometry_msgs::msg::Point mapPt; mapPt.x = coords[0]; mapPt.y = coords[1]; mapPt.z = coords[2];
     geometry_msgs::msg::Point basePt;
+
+    RCLCPP_INFO(m_node->get_logger(),
+                "[TARGET] '%s' in %s : (%.3f, %.3f, %.3f)",
+                request->dance_name.c_str(), m_mapFrame.c_str(),
+                mapPt.x, mapPt.y, mapPt.z);
+
+    if (transformPointMapToRobot(mapPt, basePt, m_baseFrame, 1.0)) {
+        p_base = Eigen::Vector3d(basePt.x, basePt.y, basePt.z);
+        RCLCPP_INFO(m_node->get_logger(),
+                    "[TARGET] '%s' in %s : (%.3f, %.3f, %.3f)",
+                    request->dance_name.c_str(), m_baseFrame.c_str(),
+                    p_base.x(), p_base.y(), p_base.z());
+    } else {
+        RCLCPP_WARN(m_node->get_logger(),
+                    "TF map->%s failed; using given coords as %s",
+                    m_baseFrame.c_str(), m_baseFrame.c_str());
+        RCLCPP_INFO(m_node->get_logger(),
+                    "[TARGET] fallback in %s : (%.3f, %.3f, %.3f)",
+                    m_baseFrame.c_str(), p_base.x(), p_base.y(), p_base.z());
+    }
+
     if (transformPointMapToRobot(mapPt, basePt, m_baseFrame, 1.0)) {
         p_base = Eigen::Vector3d(basePt.x, basePt.y, basePt.z);
     } else {
@@ -210,7 +231,8 @@ void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_inte
             RCLCPP_WARN(m_node->get_logger(), "ARM %s: degenerate target near shoulder", armName.c_str());
             continue;
         }
-        Eigen::Quaterniond q_target = quatAlignAxisToDir(dir_base, m_toolAxis, Eigen::Vector3d::UnitY());
+        m_toolAxis = ToolAxis::AlignZ;
+        Eigen::Quaterniond q_target = quatAlignAxisToDir(dir_base, m_toolAxis, Eigen::Vector3d::UnitZ());
 
         // 5.b) Punto candidato "camera-style": sulla retta spalla→target, a raggio limitato
         Eigen::Vector3d candidate = sphereReachPoint(shoulder_base, p_base);
@@ -244,7 +266,7 @@ void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_inte
         cmd_pose_final.addFloat64(q_target.y());
         cmd_pose_final.addFloat64(q_target.z());
         cmd_pose_final.addFloat64(q_target.w());
-        cmd_pose_final.addFloat64(15.0);                                        // durata traiettoria (tarabile)
+        cmd_pose_final.addFloat64(5.0);                                        // durata traiettoria (tarabile)
 
         bool ok = activePort->write(cmd_pose_final, res_pose_final);
         if (ok && res_pose_final.size()>0 && res_pose_final.get(0).asVocab32()==yarp::os::createVocab32('o','k')) {
@@ -257,24 +279,24 @@ void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_inte
     }
 }
 
-// =============================================================================
-// amclPoseCallback() — esempio di aggiornamento stato (usa getRPY, non getYaw)
-// =============================================================================
-void ExecuteDanceComponent::amclPoseCallback(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg)
-{
-    const auto &p = msg->pose.pose.position;
-    const auto &q = msg->pose.pose.orientation;
-    m_currentX = p.x;
-    m_currentY = p.y;
+// // =============================================================================
+// // amclPoseCallback() — esempio di aggiornamento stato (usa getRPY, non getYaw)
+// // =============================================================================
+// void ExecuteDanceComponent::amclPoseCallback(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg)
+// {
+//     const auto &p = msg->pose.pose.position;
+//     const auto &q = msg->pose.pose.orientation;
+//     m_currentX = p.x;
+//     m_currentY = p.y;
 
-    // Quaternion ROS → tf2::Quaternion
-    tf2::Quaternion qq(q.x, q.y, q.z, q.w);
+//     // Quaternion ROS → tf2::Quaternion
+//     tf2::Quaternion qq(q.x, q.y, q.z, q.w);
 
-    // Ottieni roll,pitch,yaw in modo portabile (fix per getYaw non disponibile)
-    double roll=0.0, pitch=0.0, yaw=0.0;
-    tf2::Matrix3x3(qq).getRPY(roll, pitch, yaw);
-    m_currentYaw = yaw;
-}
+//     // Ottieni roll,pitch,yaw in modo portabile (fix per getYaw non disponibile)
+//     double roll=0.0, pitch=0.0, yaw=0.0;
+//     tf2::Matrix3x3(qq).getRPY(roll, pitch, yaw);
+//     m_currentYaw = yaw;
+// }
 
 // =============================================================================
 // Reachability helpers & wrappers
@@ -338,23 +360,31 @@ bool ExecuteDanceComponent::transformPointMapToRobot(const geometry_msgs::msg::P
     const std::string map_frame = m_mapFrame; // tipicamente "map"
     const auto timeout = tf2::durationFromSec(timeout_sec);
 
-    // aspetta che la TF sia disponibile
     if (!m_tfBuffer->canTransform(robot_frame, map_frame, tf2::TimePointZero, timeout)) {
-        RCLCPP_WARN(m_node->get_logger(), "TF: transform %s <- %s not available", robot_frame.c_str(), map_frame.c_str());
+        RCLCPP_WARN(m_node->get_logger(),
+                    "TF: transform %s <- %s not available (request: map:[%.3f %.3f %.3f])",
+                    robot_frame.c_str(), map_frame.c_str(),
+                    map_point.x, map_point.y, map_point.z);
         return false;
     }
 
     try {
-        // lookup con il buffer persistente
-        auto tf_stamped = m_tfBuffer->lookupTransform(robot_frame, map_frame, tf2::TimePointZero, timeout);
+        auto tf_stamped = m_tfBuffer->lookupTransform(robot_frame, map_frame,
+                                                      tf2::TimePointZero, timeout);
 
         geometry_msgs::msg::PointStamped p_in, p_out;
-        p_in.header = tf_stamped.header;     // timestamp e frame di 'map'
+        p_in.header = tf_stamped.header;
         p_in.header.frame_id = map_frame;
         p_in.point = map_point;
 
         tf2::doTransform(p_in, p_out, tf_stamped);
         out_robot_point = p_out.point;
+
+        RCLCPP_INFO(m_node->get_logger(),
+                    "[TF] %s <- %s : (%.3f, %.3f, %.3f) -> (%.3f, %.3f, %.3f)",
+                    robot_frame.c_str(), map_frame.c_str(),
+                    map_point.x, map_point.y, map_point.z,
+                    out_robot_point.x, out_robot_point.y, out_robot_point.z);
         return true;
 
     } catch (const tf2::TransformException &ex) {
@@ -383,7 +413,7 @@ bool ExecuteDanceComponent::preScanArticulatedArms(const Eigen::Vector3d& artwor
         }
 
         // Chiedi la posa (matrice 4x4 appiattita) al controller
-        yarp::os::Bottle cmd_get, res_get; 
+        yarp::os::Bottle cmd_get, res_get;
         cmd_get.addString("get_pose");                                                                  // prepara comando get_pose
         if (!clientPort->write(cmd_get, res_get)) {                                                     // invia RPC
             RCLCPP_WARN(m_node->get_logger(), "PRE-SCAN: get_pose failed for %s", armId.c_str());       // warning
@@ -494,32 +524,37 @@ bool ExecuteDanceComponent::getShoulderPosInBase(const std::string& arm,
 
 Eigen::Quaterniond ExecuteDanceComponent::quatAlignAxisToDir(
     const Eigen::Vector3d& dir_base,
-    ToolAxis /*axis*/,                             // ignorato: lavoriamo sempre in AlignX
-    const Eigen::Vector3d& worldUp                 // es. UnitZ o UnitY a seconda della tua convenzione
+    ToolAxis axis,
+    const Eigen::Vector3d& worldUp
 ) const
 {
-    // 1) Asse X dell'EEF puntato verso il target
-    Eigen::Vector3d fwd = dir_base.normalized();   // X = fwd
+    Eigen::Vector3d fwd = dir_base.normalized();
 
-    // 2) Scegli un "up" non parallelo a fwd (robustezza numerica)
-    Eigen::Vector3d up = worldUp.normalized();
+    // up “mondo”: usa +Z per ROS
+    Eigen::Vector3d up = worldUp.normalized(); // chiamala con UnitZ
     if (std::abs(fwd.dot(up)) > 0.999) {
         // se quasi paralleli, scegli un up alternativo
-        up = (std::abs(fwd.dot(Eigen::Vector3d::UnitZ())) < 0.999)
-               ? Eigen::Vector3d::UnitZ()
+        up = (std::abs(fwd.dot(Eigen::Vector3d::UnitX())) < 0.999)
+               ? Eigen::Vector3d::UnitX()
                : Eigen::Vector3d::UnitY();
     }
 
-    // 3) Completa la terna ortonormale via cross products (stile Gram–Schmidt)
-    Eigen::Vector3d right = up.cross(fwd).normalized(); // Z tool
-    up = fwd.cross(right).normalized();                  // Y tool
+    // completa terna (right = up × fwd)
+    Eigen::Vector3d right = up.cross(fwd).normalized();
+    up = fwd.cross(right).normalized();
 
-    // 4) Costruisci R con colonne = assi del tool frame (X=fwd, Y=up, Z=right)
     Eigen::Matrix3d R;
-    R.col(0) = fwd;     // X → target
-    R.col(1) = up;      // Y ortogonale
-    R.col(2) = right;   // Z ortogonale
-
+    if (axis == ToolAxis::AlignX) {
+        // X → target
+        R.col(0) = fwd;     // X
+        R.col(1) = up;      // Y
+        R.col(2) = right;   // Z
+    } else { // ToolAxis::AlignZ
+        // Z → target (spesso è l’asse del dito)
+        R.col(2) = fwd;     // Z
+        R.col(0) = right;   // X
+        R.col(1) = up;      // Y
+    }
     return Eigen::Quaterniond(R);
 }
 

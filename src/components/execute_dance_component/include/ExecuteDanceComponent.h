@@ -169,7 +169,7 @@ private:
                               Eigen::Vector3d& out_pos) const;   // posizione spalla nel frame base
     Eigen::Quaterniond quatAlignAxisToDir(const Eigen::Vector3d& dir_base,
                                           ToolAxis axis,
-                                          const Eigen::Vector3d& worldUp = Eigen::Vector3d::UnitY()) const; // costruisce R con X verso dir
+                                          const Eigen::Vector3d& worldUp = Eigen::Vector3d::UnitZ()) const; // costruisce R con X verso dir
     Eigen::Vector3d sphereReachPoint(const Eigen::Vector3d& shoulder_base,
                                      const Eigen::Vector3d& target_base) const; // candidato iniziale sulla retta spalla→target
 
