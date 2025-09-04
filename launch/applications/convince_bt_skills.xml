@@ -31,8 +31,8 @@
     </module>
 
     <module>
-        <name>ros2_reset_counters_skill</name>
-        <parameters>run reset_counters_skill reset_counters_skill</parameters>
+        <name>ros2_run.sh</name>
+        <parameters>reset_counters_skill reset_counters_skill</parameters>
         <workdir />
         <node>bt</node>
     </module>

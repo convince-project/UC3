@@ -5,9 +5,9 @@
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
-
+#include <QCoreApplication>
 #include <type_traits>
-
+#include <chrono>
 template<typename T>
 T convert(const std::string& str) {
     if constexpr (std::is_same_v<T, int>) {
@@ -43,9 +43,24 @@ ResetCountersSkill::ResetCountersSkill(std::string name ) :
 void ResetCountersSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
 	rclcpp::spin(node);
-	rclcpp::shutdown();
-}
+	std::cout <<  "ResetCountersSkill::ater spin" << std::endl;
 
+	rclcpp::shutdown();
+	std::cout <<  "ResetCountersSkill::ater shutdown" << std::endl;
+	QCoreApplication::quit();
+}
+/*
+bool ResetCountersSkill::init_ros(int argc, char*argv[]) {
+	if(!rclcpp::ok())
+	{
+		rclcpp::init( argc, argv);
+	}
+
+	m_node = rclcpp::Node::make_shared(m_name + "Skill");
+	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "ResetCountersSkill::start");
+	std::cout << "ResetCountersSkill::start";
+}
+*/
 bool ResetCountersSkill::start(int argc, char*argv[])
 {
 	if(!rclcpp::ok())
