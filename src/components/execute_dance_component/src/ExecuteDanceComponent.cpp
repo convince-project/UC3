@@ -2,10 +2,10 @@
  *                                                                          *
  * UC3 — ExecuteDanceComponent (implementation)                              *
  *                                                                          *
- * Variante: posizione-only (mantiene orientazione corrente dell'EEF)       *
- *  - Punto candidato su retta spalla→target                                *
- *  - TF2 persistente                                                        *
- *  - Marker RViz con QoS latched                                           *
+ * Variant: position-only (keeps current EEF orientation)                   *
+ *  - Candidate point on shoulder→target line                                *
+ *  - persistent TF2 (buffer + listener)                                     *
+ *  - RViz Marker with latched QoS                                           *
  *                                                                          *
  ****************************************************************************/
 #include "ExecuteDanceComponent.h"
@@ -16,62 +16,62 @@
 #include <cstdlib>
 #include <cmath>
 
-// ==== JSON (nlohmann) per caricare le coordinate delle opere ====
+// ==== JSON (nlohmann) to load artwork coordinates ====
 #include <nlohmann/json.hpp>
 using ordered_json = nlohmann::ordered_json;
 
-// ==== TF2 LinearMath per la conversione Quaternion -> RPY (fix getYaw) ====
+// ==== TF2 LinearMath for Quaternion -> RPY conversion (fix getYaw) ====
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/LinearMath/Matrix3x3.h>
 
 
 // =============================================================================
-// start() — avvio di ROS2, TF2, porte YARP e servizio ROS2
+// start() — startup of ROS2, TF2, YARP ports and ROS2 service
 // =============================================================================
 bool ExecuteDanceComponent::start(int argc, char* argv[])
 {
-    // 1) Inizializza ROS2 se necessario
+    // 1) Initialize ROS2 if needed
     if (!rclcpp::ok()) {
         rclcpp::init(argc, argv);
     }
 
-    // 2) Avvia i controller se non sono già attivi (usa i nomi membro)
+    // 2) Start the controllers if they are not already active (use member names)
     if (!yarp::os::Network::exists(cartesianPortLeft)) {
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Avvio r1-cartesian-control LEFT...");
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Starting r1-cartesian-control LEFT...");
         std::string cmd = std::string("r1-cartesian-control --from ") + cartesianControllerIniPathLeft + " > /dev/null 2>&1 &";
         if (std::system(cmd.c_str()) == -1) {
-            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Errore nell'avvio di r1-cartesian-control LEFT");
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Error starting r1-cartesian-control LEFT");
             return false;
         }
     }
     if (!yarp::os::Network::exists(cartesianPortRight)) {
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Avvio r1-cartesian-control RIGHT...");
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Starting r1-cartesian-control RIGHT...");
         std::string cmd = std::string("r1-cartesian-control --from ") + cartesianControllerIniPathRight + " > /dev/null 2>&1 &";
         if (std::system(cmd.c_str()) == -1) {
-            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Errore nell'avvio di r1-cartesian-control RIGHT");
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Error starting r1-cartesian-control RIGHT");
             return false;
         }
     }
 
-    // 3) Attendi che i server RPC compaiano (no timeout: comodo in dev)
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Attesa della porta %s...", cartesianPortLeft.c_str());
+    // 3) Wait for the RPC servers to appear (no timeout: convenient for development)
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Waiting for port %s...", cartesianPortLeft.c_str());
     while (!yarp::os::Network::exists(cartesianPortLeft)) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Attesa della porta %s...", cartesianPortRight.c_str());
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Waiting for port %s...", cartesianPortRight.c_str());
     while (!yarp::os::Network::exists(cartesianPortRight)) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
-    // 4) Crea il nodo ROS2 e il TF2 persistente (buffer+listener)
+    // 4) Create the ROS2 node and persistent TF2 (buffer + listener)
     m_node = rclcpp::Node::make_shared("ExecuteDanceComponentNode");
     m_tfBuffer   = std::make_unique<tf2_ros::Buffer>(m_node->get_clock());
     m_tfListener = std::make_unique<tf2_ros::TransformListener>(*m_tfBuffer);
 
-    // 5) Carica le coordinate delle opere (in frame "map")
+    // 5) Load artwork coordinates (in frame "map")
     m_artworkCoords = loadArtworkCoordinates("/home/user1/UC3/conf/artwork_coords.json");
 
-    // 6) Apri e connetti le porte RPC locali verso i due controller cartesiani
+    // 6) Open and connect local RPC client ports to the two cartesian controllers
     if (yarp::os::Network::exists(m_cartesianPortNameLeft)) {
         yarp::os::Network::disconnect(m_cartesianPortNameLeft, cartesianPortLeft);
         std::this_thread::sleep_for(std::chrono::milliseconds(300));
@@ -92,7 +92,7 @@ bool ExecuteDanceComponent::start(int argc, char* argv[])
     }
     yarp::os::Network::connect(m_cartesianPortNameRight, cartesianPortRight);
 
-    // 7) Servizio ROS2
+    // 7) ROS2 service
     m_executeDanceService = m_node->create_service<execute_dance_interfaces::srv::ExecuteDance>(
         "/ExecuteDanceComponent/ExecuteDance",
         [this](const std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Request> request,
@@ -104,17 +104,17 @@ bool ExecuteDanceComponent::start(int argc, char* argv[])
         }
     );
 
-    // // 8) Publisher per RViz Markers con QoS latched
+    // // 8) Publisher for RViz Markers with latched QoS
     // rclcpp::QoS qos( rclcpp::KeepLast(10) );
-    // qos.transient_local();   // conserva l'ultimo messaggio per i nuovi subscriber (RViz)
-    // qos.reliable();          // nessuna perdita
+    // qos.transient_local();   // keep the last message for new subscribers (RViz)
+    // qos.reliable();          // no loss
     // m_markerPub = m_node->create_publisher<visualization_msgs::msg::Marker>("/execute_dance/markers", qos);
 
     return true;
 }
 
 // =============================================================================
-// close() — chiude porte e spegne ROS2
+// close() — close ports and shut down ROS2
 // =============================================================================
 bool ExecuteDanceComponent::close()
 {
@@ -133,7 +133,7 @@ void ExecuteDanceComponent::spin()
 }
 
 // =============================================================================
-// executeTask() — cuore della logica di pointing (posizione-only)
+// executeTask() — core logic of pointing (posizione-only)
 // =============================================================================
 void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Request> request)
 {
@@ -266,7 +266,7 @@ void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_inte
 }
 
 // =============================================================================
-// loadArtworkCoordinates() — carica { "artworks": { name: {x,y,z} } }
+// loadArtworkCoordinates() — loads { "artworks": { name: {x,y,z} } }
 // =============================================================================
 std::map<std::string, std::vector<double>> ExecuteDanceComponent::loadArtworkCoordinates(const std::string& filename)
 {
@@ -294,22 +294,22 @@ std::map<std::string, std::vector<double>> ExecuteDanceComponent::loadArtworkCoo
 
 
 // =============================================================================
-// Helper: quaternion dall'array "flat" restituito da get_pose (16 o 18 elem)
+// Helper: quaternion from the "flat" array returned by get_pose (16 or 18 elems)
 // =============================================================================
-// Layout atteso (row-major): [ r00 r01 r02 tx  r10 r11 r12 ty  r20 r21 r22 tz  0 0 0 1 ]
-// Utility: ricava un quaternione dalla matrice 4x4 appiattita restituita dal controller
+// Expected layout (row-major): [ r00 r01 r02 tx  r10 r11 r12 ty  r20 r21 r22 tz  0 0 0 1 ]
+// Utility: derive a quaternion from the flattened 4x4 matrix returned by the controller
 static bool quatFromFlatPose(const std::vector<double>& flat, Eigen::Quaterniond& out_q)
 {
-    // Verifica che il vettore contenga 16 o 18 valori
-    // (alcune versioni di YARP aggiungono 2 valori di header → 18 elementi)
+    // Check vector has 16 or 18 values
+    // (some YARP versions add 2 header values → 18 elements)
     if (flat.size() != 16 && flat.size() != 18) 
         return false;
 
-    // Se la dimensione è 18, salta i primi 2 valori (header)
+    // If size is 18, skip the first 2 values (header)
     const size_t off = (flat.size() == 18) ? 2u : 0u;
 
-    // Estrai i 9 valori della matrice di rotazione (parte alta-sinistra della matrice 4x4)
-    // Struttura attesa della matrice (flat row-major):
+    // Extract the 9 rotation values (top-left 3x3 of the 4x4 matrix)
+    // Expected matrix structure (row-major):
     // [ r00 r01 r02 tx ]
     // [ r10 r11 r12 ty ]
     // [ r20 r21 r22 tz ]
@@ -318,39 +318,39 @@ static bool quatFromFlatPose(const std::vector<double>& flat, Eigen::Quaterniond
     const double r10 = flat[off + 4],  r11 = flat[off + 5],  r12 = flat[off + 6];
     const double r20 = flat[off + 8],  r21 = flat[off + 9],  r22 = flat[off +10];
 
-    // Costruisci la matrice di rotazione 3x3
+    // Build the 3x3 rotation matrix
     Eigen::Matrix3d R;
     R << r00, r01, r02,
          r10, r11, r12,
          r20, r21, r22;
 
-    // --- Ortonormalizzazione con SVD ---
-    // A causa di errori numerici, R potrebbe non essere perfettamente ortogonale.
-    // U*V^T è la proiezione di R sul gruppo delle matrici ortogonali (rotazioni o riflessioni).
+    // --- Orthonormalization with SVD ---
+    // Due to numerical errors, R may not be perfectly orthogonal.
+    // U*V^T is the projection of R onto the orthogonal group (rotations or reflections).
     Eigen::JacobiSVD<Eigen::Matrix3d> svd(R, Eigen::ComputeFullU | Eigen::ComputeFullV);
     Eigen::Matrix3d U = svd.matrixU(), V = svd.matrixV();
     Eigen::Matrix3d R_ortho = U * V.transpose();
 
-    // Se il determinante è negativo, la matrice è una riflessione (det = -1).
-    // In tal caso invertiamo il segno di una colonna di U per ottenere una vera rotazione (det = +1).
+    // If determinant is negative, the matrix is a reflection (det = -1).
+    // In that case flip the sign of one column of U to get a true rotation (det = +1).
     if (R_ortho.determinant() < 0) {
         U.col(2) *= -1.0;
         R_ortho = U * V.transpose();
     }
 
-    // Converte la matrice ortonormale in quaternione
+    // Convert the orthonormal matrix to a quaternion
     out_q = Eigen::Quaterniond(R_ortho);
 
-    // Normalizza il quaternione per sicurezza (norma = 1)
+    // Normalize quaternion for safety (norm = 1)
     out_q.normalize();
 
-    return true; // successo
+    return true; // success
 }
 
 
 
 // =============================================================================
-// transformPointMapToRobot() — usa il buffer/listener persistenti
+// transformPointMapToRobot() — uses persistent buffer/listener
 // =============================================================================
 bool ExecuteDanceComponent::transformPointMapToRobot(const geometry_msgs::msg::Point& map_point,
                                                      geometry_msgs::msg::Point& out_robot_point,
@@ -362,7 +362,7 @@ bool ExecuteDanceComponent::transformPointMapToRobot(const geometry_msgs::msg::P
         return false;
     }
 
-    const std::string map_frame = m_mapFrame; // tipicamente "map"
+    const std::string map_frame = m_mapFrame; // typically "map"
     const auto timeout = tf2::durationFromSec(timeout_sec);
 
     if (!m_tfBuffer->canTransform(robot_frame, map_frame, tf2::TimePointZero, timeout)) {
@@ -399,7 +399,7 @@ bool ExecuteDanceComponent::transformPointMapToRobot(const geometry_msgs::msg::P
 }
 
 // =============================================================================
-// preScanArticulatedArms() — interroga get_pose e stima distanze dal target
+// preScanArticulatedArms() — queries get_pose and estimates distances from target
 // =============================================================================
 bool ExecuteDanceComponent::preScanArticulatedArms(const Eigen::Vector3d& artwork_pos,
                                                    std::vector<std::pair<std::string,double>>& armDistances,
@@ -451,7 +451,7 @@ bool ExecuteDanceComponent::preScanArticulatedArms(const Eigen::Vector3d& artwor
 }
 
 // =============================================================================
-// isPoseReachable() — wrapper RPC
+// isPoseReachable() — RPC wrapper
 // =============================================================================
 bool ExecuteDanceComponent::isPoseReachable(yarp::os::Port* activePort,
                                             const Eigen::Vector3d& candidate,
@@ -523,7 +523,7 @@ bool ExecuteDanceComponent::getShoulderPosInBase(const std::string& arm,
 }
 
 // =============================================================================
-// sphereReachPoint() — candidato sulla retta spalla→target
+// sphereReachPoint() — candidate on the shoulder→target line
 // =============================================================================
 Eigen::Vector3d ExecuteDanceComponent::sphereReachPoint(const Eigen::Vector3d& shoulder_base,
                                                         const Eigen::Vector3d& target_base) const
