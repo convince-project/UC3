@@ -24,6 +24,62 @@ using ordered_json = nlohmann::ordered_json;
 #include <tf2/LinearMath/Matrix3x3.h>
 
 
+
+
+// =============================================================================
+// Helper: quaternion from the "flat" array returned by get_pose (16 or 18 elems)
+// =============================================================================
+// Expected layout (row-major): [ r00 r01 r02 tx  r10 r11 r12 ty  r20 r21 r22 tz  0 0 0 1 ]
+// Utility: derive a quaternion from the flattened 4x4 matrix returned by the controller
+static bool quatFromFlatPose(const std::vector<double>& flat, Eigen::Quaterniond& out_q)
+{
+    // Check vector has 16 or 18 values
+    // (some YARP versions add 2 header values → 18 elements)
+    if (flat.size() != 16 && flat.size() != 18) 
+        return false;
+
+    // If size is 18, skip the first 2 values (header)
+    const size_t off = (flat.size() == 18) ? 2u : 0u;
+
+    // Extract the 9 rotation values (top-left 3x3 of the 4x4 matrix)
+    // Expected matrix structure (row-major):
+    // [ r00 r01 r02 tx ]
+    // [ r10 r11 r12 ty ]
+    // [ r20 r21 r22 tz ]
+    // [  0   0   0  1 ]
+    const double r00 = flat[off + 0],  r01 = flat[off + 1],  r02 = flat[off + 2];
+    const double r10 = flat[off + 4],  r11 = flat[off + 5],  r12 = flat[off + 6];
+    const double r20 = flat[off + 8],  r21 = flat[off + 9],  r22 = flat[off +10];
+
+    // Build the 3x3 rotation matrix
+    Eigen::Matrix3d R;
+    R << r00, r01, r02,
+         r10, r11, r12,
+         r20, r21, r22;
+
+    // --- Orthonormalization with SVD ---
+    // Due to numerical errors, R may not be perfectly orthogonal.
+    // U*V^T is the projection of R onto the orthogonal group (rotations or reflections).
+    Eigen::JacobiSVD<Eigen::Matrix3d> svd(R, Eigen::ComputeFullU | Eigen::ComputeFullV);
+    Eigen::Matrix3d U = svd.matrixU(), V = svd.matrixV();
+    Eigen::Matrix3d R_ortho = U * V.transpose();
+
+    // If determinant is negative, the matrix is a reflection (det = -1).
+    // In that case flip the sign of one column of U to get a true rotation (det = +1).
+    if (R_ortho.determinant() < 0) {
+        U.col(2) *= -1.0;
+        R_ortho = U * V.transpose();
+    }
+
+    // Convert the orthonormal matrix to a quaternion
+    out_q = Eigen::Quaterniond(R_ortho);
+
+    // Normalize quaternion for safety (norm = 1)
+    out_q.normalize();
+
+    return true; // success
+}
+
 // =============================================================================
 // start() — startup of ROS2, TF2, YARP ports and ROS2 service
 // =============================================================================
@@ -231,6 +287,7 @@ void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_inte
         // 5.d)  Move to candidate point keeping current orientation
         RCLCPP_DEBUG(m_node->get_logger(), "ARM %s: moving to (%.3f, %.3f, %.3f) keeping orientation",
                      armName.c_str(), candidate.x(), candidate.y(), candidate.z());
+        yarp::os::Bottle cmd_pose_final, res_pose_final;
         cmd_pose_final.addString("go_to_pose");
         cmd_pose_final.addFloat64(candidate.x());
         cmd_pose_final.addFloat64(candidate.y());
@@ -276,62 +333,6 @@ std::map<std::string, std::vector<double>> ExecuteDanceComponent::loadArtworkCoo
         RCLCPP_ERROR(m_node->get_logger(), "Error parsing '%s': %s", filename.c_str(), ex.what());
     }
     return artworkMap;
-}
-
-
-
-// =============================================================================
-// Helper: quaternion from the "flat" array returned by get_pose (16 or 18 elems)
-// =============================================================================
-// Expected layout (row-major): [ r00 r01 r02 tx  r10 r11 r12 ty  r20 r21 r22 tz  0 0 0 1 ]
-// Utility: derive a quaternion from the flattened 4x4 matrix returned by the controller
-static bool quatFromFlatPose(const std::vector<double>& flat, Eigen::Quaterniond& out_q)
-{
-    // Check vector has 16 or 18 values
-    // (some YARP versions add 2 header values → 18 elements)
-    if (flat.size() != 16 && flat.size() != 18) 
-        return false;
-
-    // If size is 18, skip the first 2 values (header)
-    const size_t off = (flat.size() == 18) ? 2u : 0u;
-
-    // Extract the 9 rotation values (top-left 3x3 of the 4x4 matrix)
-    // Expected matrix structure (row-major):
-    // [ r00 r01 r02 tx ]
-    // [ r10 r11 r12 ty ]
-    // [ r20 r21 r22 tz ]
-    // [  0   0   0  1 ]
-    const double r00 = flat[off + 0],  r01 = flat[off + 1],  r02 = flat[off + 2];
-    const double r10 = flat[off + 4],  r11 = flat[off + 5],  r12 = flat[off + 6];
-    const double r20 = flat[off + 8],  r21 = flat[off + 9],  r22 = flat[off +10];
-
-    // Build the 3x3 rotation matrix
-    Eigen::Matrix3d R;
-    R << r00, r01, r02,
-         r10, r11, r12,
-         r20, r21, r22;
-
-    // --- Orthonormalization with SVD ---
-    // Due to numerical errors, R may not be perfectly orthogonal.
-    // U*V^T is the projection of R onto the orthogonal group (rotations or reflections).
-    Eigen::JacobiSVD<Eigen::Matrix3d> svd(R, Eigen::ComputeFullU | Eigen::ComputeFullV);
-    Eigen::Matrix3d U = svd.matrixU(), V = svd.matrixV();
-    Eigen::Matrix3d R_ortho = U * V.transpose();
-
-    // If determinant is negative, the matrix is a reflection (det = -1).
-    // In that case flip the sign of one column of U to get a true rotation (det = +1).
-    if (R_ortho.determinant() < 0) {
-        U.col(2) *= -1.0;
-        R_ortho = U * V.transpose();
-    }
-
-    // Convert the orthonormal matrix to a quaternion
-    out_q = Eigen::Quaterniond(R_ortho);
-
-    // Normalize quaternion for safety (norm = 1)
-    out_q.normalize();
-
-    return true; // success
 }
 
 
