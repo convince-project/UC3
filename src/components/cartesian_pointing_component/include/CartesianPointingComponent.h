@@ -6,7 +6,6 @@
  *  - Given a named target in the "map" frame, transform it into the robot base,
  *    choose an arm (LEFT/RIGHT), and command a Cartesian controller to go near
  *    the target while keeping the current end-effector orientation.
- *  - After the move, optionally return to HOME (if requested in the impl).
  *
  * Notes:
  *  - Uses persistent TF2 (Buffer + Listener).
@@ -27,6 +26,7 @@
 // ROS2
 #include <rclcpp/rclcpp.hpp>
 #include <geometry_msgs/msg/point.hpp>
+#include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
 
 // TF2
 #include <tf2_ros/buffer.h>
@@ -38,6 +38,7 @@
 #include <yarp/os/Port.h>
 #include <yarp/os/LogStream.h>
 #include <yarp/dev/PolyDriver.h>
+#include <yarp/dev/CartesianControl.h>
 
 // Eigen
 #include <Eigen/Dense>
@@ -58,14 +59,15 @@ public:
     void spin();
 
 private:
-    // === Main operation ===
+    // Main operation
     void pointTask(const std::shared_ptr<cartesian_pointing_interfaces::srv::PointAt::Request> request);
+    void amclPoseCallback(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg);
 
-    // === Config / data loading ===
+    // Config / data loading
     std::map<std::string, std::vector<double>>
     loadArtworkCoordinates(const std::string& filename);
 
-    // === Pre-scan & reachability ===
+    // Pre-scan & reachability
     bool preScanArticulatedArms(const Eigen::Vector3d& artwork_pos,
                                 std::vector<std::pair<std::string,double>>& armDistances,
                                 std::map<std::string, std::vector<double>>& cachedPoseValues);
@@ -74,7 +76,7 @@ private:
                          const Eigen::Vector3d& candidate,
                          const Eigen::Quaterniond& q_target);
 
-    // === TF helpers ===
+    // TF helpers
     bool transformPointMapToRobot(const geometry_msgs::msg::Point& map_point,
                                   geometry_msgs::msg::Point& out_robot_point,
                                   const std::string& robot_frame,
@@ -118,20 +120,30 @@ private:
     double m_minDist       {0.40};
     double m_safetyBackoff {0.05};
 
-    // YARP controller ports
+    // YARP controller ports (server)
     const std::string cartesianPortLeft  = "/r1-cartesian-control/left_arm/rpc:i";
     const std::string cartesianPortRight = "/r1-cartesian-control/right_arm/rpc:i";
 
+    // Local client port names (this component)
     std::string m_cartesianPortNameLeft  = "/CartesianPointingComponent/cartesianClientLeft/rpc";
     std::string m_cartesianPortNameRight = "/CartesianPointingComponent/cartesianClientRight/rpc";
 
     yarp::os::Port m_cartesianPortLeft;
     yarp::os::Port m_cartesianPortRight;
 
+    // YARP cartesian client (optional direct device usage)
+    yarp::dev::PolyDriver m_cartesianClient;
+
+    // Paths to controller .ini (kept like ExecuteDanceComponent for parity)
+    std::string cartesianControllerIniPathLeft  =
+        "/home/user1/ergocub-cartesian-control/src/r1_cartesian_control/app/conf/config_left_sim_r1.ini";
+    std::string cartesianControllerIniPathRight =
+        "/home/user1/ergocub-cartesian-control/src/r1_cartesian_control/app/conf/config_right_sim_r1.ini";
+
     // Artwork targets
     std::map<std::string, std::vector<double>> m_artworkCoords;
 
-    // Simple "is pointing" flag (e.g., set during active motion wait)
+    // Runtime flags
     std::mutex m_flagMutex;
     bool m_isPointing {false};
 };
