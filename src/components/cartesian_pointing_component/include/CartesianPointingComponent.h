@@ -2,16 +2,9 @@
 /******************************************************************************
  * CartesianPointingComponent (header)
  *
- * Purpose:
- *  - Given a named target in the "map" frame, transform it into the robot base,
- *    choose an arm (LEFT/RIGHT), and command a Cartesian controller to go near
- *    the target while keeping the current end-effector orientation.
- *
- * Notes:
- *  - Uses persistent TF2 (Buffer + Listener).
- *  - Talks to YARP Cartesian controllers via RPC ports:
- *      /r1-cartesian-control/left_arm/rpc:i
- *      /r1-cartesian-control/right_arm/rpc:i
+ * Variant minima: usa YARP ResourceFinder **solo** per trovare il file
+ * `artwork_coords.json` nel context (default: "r1_cartesian_control").
+ * Il resto del comportamento resta invariato.
  ******************************************************************************/
 
 // C++
@@ -26,7 +19,6 @@
 // ROS2
 #include <rclcpp/rclcpp.hpp>
 #include <geometry_msgs/msg/point.hpp>
-#include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
 
 // TF2
 #include <tf2_ros/buffer.h>
@@ -38,7 +30,7 @@
 #include <yarp/os/Port.h>
 #include <yarp/os/LogStream.h>
 #include <yarp/dev/PolyDriver.h>
-#include <yarp/dev/CartesianControl.h>
+#include <yarp/os/ResourceFinder.h>
 
 // Eigen
 #include <Eigen/Dense>
@@ -61,7 +53,6 @@ public:
 private:
     // Main operation
     void pointTask(const std::shared_ptr<cartesian_pointing_interfaces::srv::PointAt::Request> request);
-    void amclPoseCallback(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg);
 
     // Config / data loading
     std::map<std::string, std::vector<double>>
@@ -131,10 +122,10 @@ private:
     yarp::os::Port m_cartesianPortLeft;
     yarp::os::Port m_cartesianPortRight;
 
-    // YARP cartesian client (optional direct device usage)
+    // (Se vuoi usare i PolyDriver in futuro)
     yarp::dev::PolyDriver m_cartesianClient;
 
-    // Paths to controller .ini (kept like ExecuteDanceComponent for parity)
+    // Percorsi .ini dei controller (lasciati come prima)
     std::string cartesianControllerIniPathLeft  =
         "/home/user1/ergocub-cartesian-control/src/r1_cartesian_control/app/conf/config_left_sim_r1.ini";
     std::string cartesianControllerIniPathRight =
@@ -146,4 +137,8 @@ private:
     // Runtime flags
     std::mutex m_flagMutex;
     bool m_isPointing {false};
+
+    // ResourceFinder defaults (SOLO per artworks)
+    std::string m_rfDefaultContext  {"r1_cartesian_control"};
+    std::string m_rfDefaultArtworks {"artwork_coords.json"};
 };
