@@ -82,37 +82,31 @@ bool CartesianPointingComponent::start(int argc, char* argv[])
         rclcpp::init(argc, argv);
     }
 
-    // 2) Start cartesian controllers if not already running (legacy behavior).
-    //    This keeps developer UX simple: the component can auto-spawn its YARP servers.
-    //    We silence stdout/stderr to avoid cluttering logs in production.
+    // Do not start controllers from the component process.
+    // Controllers must be launched externally by the operator or system service.
+    // If the expected RPC ports are missing we log a clear instruction so the
+    // operator can start them and then the component will wait for availability.
     if (!yarp::os::Network::exists(cartesianPortLeft)) {
-        RCLCPP_DEBUG(rclcpp::get_logger("rclcpp"), "Starting r1-cartesian-control LEFT...");
-        std::string cmd = std::string("r1-cartesian-control --from ")
-                          + cartesianControllerIniPathLeft + " > /dev/null 2>&1 &";
-        if (std::system(cmd.c_str()) == -1) {
-            // If spawning fails, we abort early since downstream code assumes the server exists.
-            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Error starting r1-cartesian-control LEFT");
-            return false;
-        }
+        RCLCPP_WARN(m_node ? m_node->get_logger() : rclcpp::get_logger("rclcpp"),
+                    "Left Cartesian controller not present at '%s'. Please start it externally:\n  r1-cartesian-control --from %s",
+                    cartesianPortLeft.c_str(), cartesianControllerIniPathLeft.c_str());
     }
     if (!yarp::os::Network::exists(cartesianPortRight)) {
-        RCLCPP_DEBUG(rclcpp::get_logger("rclcpp"), "Starting r1-cartesian-control RIGHT...");
-        std::string cmd = std::string("r1-cartesian-control --from ")
-                          + cartesianControllerIniPathRight + " > /dev/null 2>&1 &";
-        if (std::system(cmd.c_str()) == -1) {
-            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Error starting r1-cartesian-control RIGHT");
-            return false;
-        }
+        RCLCPP_WARN(m_node ? m_node->get_logger() : rclcpp::get_logger("rclcpp"),
+                    "Right Cartesian controller not present at '%s'. Please start it externally:\n  r1-cartesian-control --from %s",
+                    cartesianPortRight.c_str(), cartesianControllerIniPathRight.c_str());
     }
-
-    // 3) Wait for the RPC server ports to become available.
-    //    We poll in a development-friendly way so the component can start even if servers take time to boot.
     //    (A sleep prevents tight-loop polling and reduces CPU usage.)
-    RCLCPP_DEBUG(rclcpp::get_logger("rclcpp"), "Waiting for port %s...", cartesianPortLeft.c_str());
+    // Wait indefinitely for the RPC server ports to appear.
+    // The controller is a separate process and must be launched by the operator.
+    RCLCPP_INFO(m_node ? m_node->get_logger() : rclcpp::get_logger("rclcpp"),
+                 "Waiting for LEFT controller port '%s'... (will wait indefinitely)", cartesianPortLeft.c_str());
     while (!yarp::os::Network::exists(cartesianPortLeft)) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
-    RCLCPP_DEBUG(rclcpp::get_logger("rclcpp"), "Waiting for port %s...", cartesianPortRight.c_str());
+
+    RCLCPP_INFO(m_node ? m_node->get_logger() : rclcpp::get_logger("rclcpp"),
+                 "Waiting for RIGHT controller port '%s'... (will wait indefinitely)", cartesianPortRight.c_str());
     while (!yarp::os::Network::exists(cartesianPortRight)) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
