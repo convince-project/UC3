@@ -1,8 +1,8 @@
-path: /home/user1/UC3/monitoring/monitor_prop9_ws/src  # this is the path to the ros workspace you'd like the monitor package in
+path: /home/user1/UC3/monitoring/monitor_prop8_ws/src  # this is the path to the ros workspace you'd like the monitor package in
 
 monitors: # here we list the monitors we are going to generate
   - monitor:
-      id: monitor_prop9
+      id: monitor_prop8
       log: ./log.txt # file where the monitor will log the observed events
       silent: False # we let the monitor print info during its execution
       oracle: # the oracle running and ready to check the specification (localhost in this case)
@@ -10,8 +10,8 @@ monitors: # here we list the monitors we are going to generate
         url: 127.0.0.1 # the url where it is listening
         action: nothing # the oracle will not change the message
       topics: # the list of topics this monitor is going to intercept
-        - name: /DialogComponent/WaitForInteractionAction
-          type: std_msgs.msg.Float  # Sostituisci con il tipo corretto se diverso
+        - name: battery_level
+          type: std_msgs.msg.Int32
           action: log
         - name: clock
           type: builtin_interfaces.msg.Time
