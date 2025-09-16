@@ -1,0 +1,5 @@
+# Request: empty
+---
+# Response
+bool is_pointing
+bool is_ok
