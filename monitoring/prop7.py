@@ -14,7 +14,6 @@ predicates = dict(
 
 # function to abstract a dictionary (obtained from Json message) into a list of predicates
 def abstract_message(message):
-
     if message['time'] <= predicates['time']:
         predicates['time'] += 0.0000001
     else:
