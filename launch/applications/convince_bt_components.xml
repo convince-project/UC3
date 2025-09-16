@@ -98,6 +98,13 @@
     </module>
 
     <module>
+        <name>ros2_cartesian_pointing_component</name>
+        <parameters>run cartesian_pointing_component cartesian_pointing_component --context r1_cartesian_control --artworks artwork_coords.json</parameters>
+        <workdir>/home/user1/UC3</workdir>
+        <node>bt</node>
+    </module>
+
+    <module>
         <name>ros2_dance_component</name>
         <parameters>run dance_component dance_component conf/movements.json</parameters>
         <workdir>/home/user1/UC3</workdir>
