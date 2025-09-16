@@ -1,16 +1,23 @@
 <application>
     <name>convince_bt</name>
 
+    <!-- APPLICATIONS -->
     <application>
         <name>convince_bt_components</name>
         <prefix></prefix>
     </application>
-    
+
     <application>
         <name>convince_bt_skills</name>
         <prefix></prefix>
     </application>
-    
+
+    <application>
+        <name>convince_bt_components_connections</name>
+        <prefix></prefix>
+    </application>
+
+    <!-- MODULES -->
     <module>
         <name>python3</name>
         <parameters>create_symlinks.py ../applications/convince_bt.xml</parameters>
@@ -24,8 +31,5 @@
         <workdir>/home/user1/UC3</workdir>
         <node>bt</node>
     </module>
-    <connection>
-        <from>/vad/audio:o</from>
-        <to>/SpeechToTextComponent/audio:i</to>
-    </connection>
+
 </application>
