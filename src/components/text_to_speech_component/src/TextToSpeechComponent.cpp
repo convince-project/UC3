@@ -57,8 +57,7 @@ bool TextToSpeechComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
     // ---------------------SPEAKERS----------------------------
     {
         std::string localAudioName = "/TextToSpeechComponent/audio:o";
-        std::string remoteAudioName = "/audioPlayerWrapper/audio:i";
-        std::string statusRemoteName = "/audioPlayerWrapper/status:o";
+        std::string localBatchAudioName = "/TextToSpeechComponent/batch:o";
         std::string statusLocalName = "/TextToSpeechComponent/audioPlayerWrapper/status:i";
         okCheck = rf.check("TEXT_TO_SPEECH_COMPONENT");
         if (okCheck)
@@ -68,13 +67,9 @@ bool TextToSpeechComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
             {
                 localAudioName = speakersConfig.find("localAudioName").asString();
             }
-            if (speakersConfig.check("remoteAudioName"))
+            if (speakersConfig.check("localBatchAudioName"))
             {
-                remoteAudioName = speakersConfig.find("remoteAudioName").asString();
-            }
-            if (speakersConfig.check("statusRemoteName"))
-            {
-                statusRemoteName = speakersConfig.find("statusRemoteName").asString();
+                localBatchAudioName = speakersConfig.find("localBatchAudioName").asString();
             }
             if (speakersConfig.check("statusLocalName"))
             {
@@ -82,16 +77,23 @@ bool TextToSpeechComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
             }
 
         }
-        m_audioPort.open(localAudioName);
-        if (!yarp::os::Network::connect(localAudioName, remoteAudioName))
+
+        if (!m_audioPort.open(localAudioName))
         {
-            yWarning() << "[TextToSpeechComponent::ConfigureYARP] Unable to connect port: " << remoteAudioName << " with: " << localAudioName;
+            yError() << "[TextToSpeechComponent::ConfigureYARP] Unable to open port: " << localAudioName;
+            return false;
         }
 
-        m_audioStatusPort.open(statusLocalName);
-        if (!yarp::os::Network::connect(statusRemoteName, statusLocalName))
+        if(!m_batchAudioPort.open(localBatchAudioName))
         {
-            yWarning() << "[TextToSpeechComponent::ConfigureYARP] Unable to connect port: " << statusRemoteName << " with: " << statusLocalName;
+            yError() << "[TextToSpeechComponent::ConfigureYARP] Unable to open port: " << localBatchAudioName;
+            return false;
+        }
+
+        if (!m_audioStatusPort.open(statusLocalName))
+        {
+            yError() << "[TextToSpeechComponent::ConfigureYARP] Unable to open port: " << statusLocalName;
+            return false;
         }
     }
 
@@ -186,6 +188,13 @@ bool TextToSpeechComponent::start(int argc, char*argv[])
 
     m_speakerStatusPub = m_node->create_publisher<std_msgs::msg::Bool>("/TextToSpeechComponent/is_speaking", 10);
 
+    m_BatchGenerationAction = rclcpp_action::create_server<text_to_speech_interfaces::action::BatchGeneration>(
+        m_node,
+        "/TextToSpeechComponent/BatchGenerationAction",
+        std::bind(&TextToSpeechComponent::handle_goal, this, std::placeholders::_1, std::placeholders::_2),
+        std::bind(&TextToSpeechComponent::handle_cancel, this, std::placeholders::_1),
+        std::bind(&TextToSpeechComponent::handle_accepted, this, std::placeholders::_1));
+
     m_timer = m_node->create_wall_timer(200ms,
                     [this]()->void {
 			std::lock_guard<std::mutex> lock(m_mutex);
@@ -219,6 +228,89 @@ bool TextToSpeechComponent::start(int argc, char*argv[])
 
     RCLCPP_INFO(m_node->get_logger(), "Started node");
     return true;
+}
+
+rclcpp_action::GoalResponse TextToSpeechComponent::handle_goal(
+  const rclcpp_action::GoalUUID & uuid,
+  std::shared_ptr<const text_to_speech_interfaces::action::BatchGeneration::Goal> goal)
+{
+    RCLCPP_INFO(m_node->get_logger(), "Received goal request with %zu texts", goal->texts.size());
+    (void)uuid;
+    // Let's reject sequences that are empty
+    if (goal->texts.size() == 0) {
+      RCLCPP_WARN(m_node->get_logger(), "Received empty sequence");
+      yWarning() << "[TextToSpeechComponent::handle_goal] Received empty sequence";
+      return rclcpp_action::GoalResponse::REJECT;
+    }
+    RCLCPP_INFO(m_node->get_logger(), "Accepted goal");
+    yInfo() << "[TextToSpeechComponent::handle_goal] Accepted goal";
+    return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
+}
+
+rclcpp_action::CancelResponse TextToSpeechComponent::handle_cancel(
+  const std::shared_ptr<GoalHandleBatchGeneration> goal_handle)
+{
+    RCLCPP_INFO(m_node->get_logger(), "Received request to cancel goal");
+    yInfo() << "[TextToSpeechComponent::handle_cancel] Received request to cancel goal";
+    (void)goal_handle;
+    return rclcpp_action::CancelResponse::ACCEPT;
+}
+
+void TextToSpeechComponent::handle_accepted(const std::shared_ptr<GoalHandleBatchGeneration> goal_handle)
+{
+    RCLCPP_INFO(m_node->get_logger(), "Accepted goal");
+    yInfo() << "[TextToSpeechComponent::handle_accepted] Accepted goal";
+    // this needs to return quickly to avoid blocking the executor, so spin up a new thread
+    std::thread([this, goal_handle]()
+    {
+        this->BatchGeneration(goal_handle);
+    }).detach();
+}
+
+void TextToSpeechComponent::BatchGeneration(const std::shared_ptr<GoalHandleBatchGeneration> goal_handle)
+{
+    RCLCPP_INFO(m_node->get_logger(), "Executing goal");
+    yInfo() << "[TextToSpeechComponent::BatchGeneration] Executing goal";
+    const auto goal = goal_handle->get_goal();
+    auto feedback = std::make_shared<actionBatchGeneration::Feedback>();
+    auto result = std::make_shared<actionBatchGeneration::Result>();
+
+    for (size_t i = 0; (i < goal->texts.size()) && rclcpp::ok(); ++i)
+    {
+        // Check if there is a cancel request
+        if (goal_handle->is_canceling()) {
+            result->is_ok = true;
+            result->error_msg = "Goal canceled";
+            goal_handle->canceled(result);
+            RCLCPP_INFO(m_node->get_logger(), "Goal canceled");
+            yInfo() << "[TextToSpeechComponent::BatchGeneration] Goal canceled";
+            return;
+        }
+        // Simulate work
+        yarp::sig::Sound& sound = m_batchAudioPort.prepare();
+        if (!m_iSpeechSynth->synthesize(goal->texts[i], sound))
+        {
+            yError() << "[TextToSpeechComponent::BatchGeneration] Error in synthesize";
+            result->is_ok = false;
+            result->error_msg = "Unable to synthesize text";
+            goal_handle->abort(result);
+            RCLCPP_ERROR(m_node->get_logger(), "Unable to synthesize text");
+            return;
+        }
+        m_batchAudioPort.write();
+        feedback->texts_left = goal->texts.size() - i - 1;
+        goal_handle->publish_feedback(feedback);
+        RCLCPP_INFO(m_node->get_logger(), "Published feedback for index %zu", i);
+        yInfo() << "[TextToSpeechComponent::BatchGeneration] Published feedback for index " << i;
+    }
+    // Check if goal is done
+    if (rclcpp::ok()) {
+        result->is_ok = true;
+        result->error_msg = "";
+        goal_handle->succeed(result);
+        RCLCPP_INFO(m_node->get_logger(), "Goal succeeded");
+        yInfo() << "[TextToSpeechComponent::BatchGeneration] Goal succeeded";
+    }
 }
 
 bool TextToSpeechComponent::close()
@@ -321,6 +413,7 @@ void TextToSpeechComponent::SetVoice(const std::shared_ptr<text_to_speech_interf
 void TextToSpeechComponent::GetLanguage(const std::shared_ptr<text_to_speech_interfaces::srv::GetLanguage::Request> request,
                         std::shared_ptr<text_to_speech_interfaces::srv::GetLanguage::Response> response)
 {
+    YARP_UNUSED(request);
     std::string current_language="";
     if (!m_iSpeechSynth->getLanguage(current_language))
     {
@@ -338,6 +431,7 @@ void TextToSpeechComponent::GetLanguage(const std::shared_ptr<text_to_speech_int
 void TextToSpeechComponent::IsSpeaking(const std::shared_ptr<text_to_speech_interfaces::srv::IsSpeaking::Request> request,
                         std::shared_ptr<text_to_speech_interfaces::srv::IsSpeaking::Response> response)
 {
+    YARP_UNUSED(request);
     auto timeout = 500ms;
     auto wait = 20ms;
     auto elapsed = 0ms;
