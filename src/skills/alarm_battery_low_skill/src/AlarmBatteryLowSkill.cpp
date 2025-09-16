@@ -5,6 +5,7 @@
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
+#include <rcl/service_introspection.h>
 
 #include <type_traits>
 
@@ -55,10 +56,10 @@ bool AlarmBatteryLowSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "AlarmBatteryLowSkill::start");
-	std::cout << "AlarmBatteryLowSkill::start";
+	std::cout << "AlarmBatteryLowSkill::start" << std::endl;
 
   
-	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickCondition>(m_name + "Skill/tick",
+	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
                                                                            	std::bind(&AlarmBatteryLowSkill::tick,
                                                                            	this,
                                                                            	std::placeholders::_1,
@@ -70,6 +71,7 @@ bool AlarmBatteryLowSkill::start(int argc, char*argv[])
   m_stateMachine.connectToEvent("NotifyUserComponent.StartAlarm.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
       std::shared_ptr<rclcpp::Node> nodeStartAlarm = rclcpp::Node::make_shared(m_name + "SkillNodeStartAlarm");
       std::shared_ptr<rclcpp::Client<notify_user_interfaces::srv::StartAlarm>> clientStartAlarm = nodeStartAlarm->create_client<notify_user_interfaces::srv::StartAlarm>("/NotifyUserComponent/StartAlarm");
+      clientStartAlarm->configure_introspection(nodeStartAlarm->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
       auto request = std::make_shared<notify_user_interfaces::srv::StartAlarm::Request>();
       auto eventParams = event.data().toMap();
       
@@ -136,12 +138,15 @@ bool AlarmBatteryLowSkill::start(int argc, char*argv[])
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
 
+    std::cout << "AlarmBatteryLowSkill::started" << std::endl;
+
 	return true;
 }
 
-void AlarmBatteryLowSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Request> request,
-                                std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Response>      response)
+void AlarmBatteryLowSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Request> request,
+                                std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Response>      response)
 {
+  std::cout << "AlarmBatteryLowSkill::tick" << std::endl;
   std::lock_guard<std::mutex> lock(m_requestMutex);
   RCLCPP_INFO(m_node->get_logger(), "AlarmBatteryLowSkill::tick");
   m_tickResult.store(Status::undefined);

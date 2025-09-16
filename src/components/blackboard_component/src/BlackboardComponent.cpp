@@ -159,7 +159,9 @@ void BlackboardComponent::GetInt( const std::shared_ptr<blackboard_interfaces::s
         if (!m_intBlackboard.contains(request->field_name)) {
             response->is_ok = false;
             response->error_msg = "field not found";
+            response->field_name = request->field_name;
         } else {
+            response->field_name = request->field_name;
             response->value = m_intBlackboard.find(request->field_name)->second; 
             std::cout << "GetInt: " << request->field_name << " " << response->value << std::endl; 
             response->is_ok = true;

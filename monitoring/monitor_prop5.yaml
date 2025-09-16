@@ -10,9 +10,9 @@ monitors: # here we list the monitors we are going to generate
         url: 127.0.0.1 # the url where it is listening
         action: nothing # the oracle will not change the message
       topics: # the list of topics this monitor is going to intercept
-        - name: PeopleDetectorFilterComponent/is_followed # name of the topic
+        - name: /PeopleDetectorFilterComponent/filtered_detection # name of the topic
           type: std_msgs.msg.Bool # type of the topic
           action: log
-        - name: clock
+        - name: /monitoring_clock
           type: builtin_interfaces.msg.Time
           action: log

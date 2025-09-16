@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+  SPDX-FileCopyrightText: 2006-2021 Istituto Italiano di Tecnologia (IIT)
+  SPDX-License-Identifier: BSD-3-Clause
+-->
+
+<!DOCTYPE robot PUBLIC "-//YARP//DTD yarprobotinterface 3.0//EN" "http://www.yarp.it/DTD/yarprobotinterfaceV3.0.dtd">
+
+<robot name="R1" prefix="R1" portprefix="R1" build=0 xmlns:xi="http://www.w3.org/2001/XInclude">
+    <device name="grabber_left" type="fakeFrameGrabber">
+        <param name="fakeFrameGrabber_rpc_port"> /fakeFrameGrabber_left/rpc </param>
+        <param name="width">360</param>
+        <param name="height">240</param>
+    </device>
+
+            <device xmlns:xi="http://www.w3.org/2001/XInclude"  name="FrameGrabber_nws_ros2" type="frameGrabber_nws_ros2">
+           <param name="period">0.033</param>
+            <param name="node_name">grabber_nws_ros2</param>
+            <param name="topic_name">/camera_out</param>
+            <action phase="startup" level="5" type="attach">
+                <paramlist name="networks">
+                    <elem name="the_device"> grabber_left </elem>
+                </paramlist>
+            </action>
+            <action phase="shutdown" level="5" type="detach" />
+        </device>
+
+
+</robot>
