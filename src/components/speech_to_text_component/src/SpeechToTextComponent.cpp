@@ -185,6 +185,7 @@ void SpeechToTextComponent::SetLanguage(const std::shared_ptr<text_to_speech_int
 void SpeechToTextComponent::GetLanguage(const std::shared_ptr<text_to_speech_interfaces::srv::GetLanguage::Request> request,
                         std::shared_ptr<text_to_speech_interfaces::srv::GetLanguage::Response> response)
 {
+    YARP_UNUSED(request);
     std::string current_language="";
     if (!m_iSpeechTranscr->getLanguage(current_language))
     {
@@ -226,6 +227,7 @@ void SpeechToTextComponent::onRead(yarp::sig::Sound &msg)
         }
         yInfo() << "[SpeechToTextComponent::onRead] Transcription: " << transcriptionText << " with confidence: " << confidence;
         outputText.addString(transcriptionText);
+        outputText.addFloat64(confidence);
         m_transcriptionOutputPort.write();
     }
     else
