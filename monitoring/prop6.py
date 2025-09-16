@@ -1,9 +1,9 @@
 # property to verify
 """
-H((P[5:] True) IMPLIES P[:5] camera_published)
+H((P[5:] True) IMPLIES P[:3] camera_published)
 """
 
-PROPERTY = r"historically(once[5:]{t} -> once[:5]{camera_published})"
+PROPERTY = r"historically(once[5:]{t} -> once[:3]{camera_published})"
 
 predicates = dict(
     camera_published = False,
