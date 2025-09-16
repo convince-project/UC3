@@ -1,0 +1,6 @@
+string[] texts
+---
+bool is_ok
+string error_msg
+---
+int16 texts_left
