@@ -134,4 +134,4 @@ The software architecture is composed by 3 main software entities:
 
 ## Description of the functionalities
 The code is structured in a modular way, allowing to easily add new functionalities. All the functionalities are characterized by dedicated components, skills and interfaces. The main functionalities are:
-- **Dialog**: the dialog functionality is composed by the dialog component, the dialog skill and the dialog interfaces. You can check the dialog skill [README](readme.md) for more information.
+- **Dialog**: the dialog functionality is composed by the dialog component, the dialog skill and the dialog interfaces. You can check the dialog skill [README](readme) for more information.
