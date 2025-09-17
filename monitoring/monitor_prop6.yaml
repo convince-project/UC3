@@ -11,9 +11,9 @@ monitors: # here we list the monitors we are going to generate
         url: 127.0.0.1 # the url where it is listening
         action: nothing # the oracle will not change the message
       topics: # the list of topics this monitor is going to intercept
-        - name: /camera_out 
+        - name: /cer/realsense_repeater/color_image
           type: sensor_msgs.msg.Image
           action: log
-        - name: clock
+        - name: /monitoring_clock
           type: builtin_interfaces.msg.Time
           action: log
