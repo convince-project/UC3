@@ -1,0 +1,7 @@
+# Request
+string target_name
+
+---
+# Response
+bool is_ok
+string error_msg
