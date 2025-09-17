@@ -8,7 +8,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update 
 RUN apt-get install -y libczmq-dev ros-jazzy-zmqpp-vendor-dbgsym ros-jazzy-zmqpp-vendor libczmq-dev libczmq4 curl 
 
-RUN apt install qtbase5-dev libqt5svg5-dev libzmq3-dev libdw-dev libboost-all-dev -y
+RUN apt install qtbase5-dev libqt5svg5-dev libzmq3-dev libdw-dev libboost-all-dev python3-websocket -y
 
 RUN usermod -a -G audio user1
 # install behavior tree.cpp v3.8
@@ -49,11 +49,11 @@ RUN /bin/bash -c "cd /home/user1 && \
     mvn org.apache.maven.plugins:maven-install-plugin:2.5.2:install-file -Dfile=target/commons-scxml2-2.0-SNAPSHOT.jar"
 
 
-RUN /bin/bash -c "sudo apt install gobject-introspection libgirepository1.0-dev -y && \
-cd /home/user1/ && \
-python3 -m venv monitoring-python-env && \
-/home/user1/monitoring-python-env/bin/pip install --upgrade pip && \
-/home/user1/monitoring-python-env/bin/pip install websocket_client rospy_message_converter pyyaml reelay jedi pycairo PyGObject==3.50.0 prompt_toolkit"
+# RUN /bin/bash -c "sudo apt install gobject-introspection libgirepository1.0-dev -y && \
+# cd /home/user1/ && \
+# python3 -m venv monitoring-python-env && \
+# /home/user1/monitoring-python-env/bin/pip install --upgrade pip && \
+# /home/user1/monitoring-python-env/bin/pip install websocket_client rospy_message_converter pyyaml reelay jedi pycairo PyGObject==3.50.0 prompt_toolkit"
 
 
 # RUN echo "export PATH=\$PATH:/home/user1/Groot/build" >> ~/.bashrc
@@ -170,3 +170,4 @@ ENV LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/src/robot/yarp/build/lib/
 
 
 
+ENV PYTHONPATH=monitoring-python-env/lib/python3.12/site-packages/:${PYTHONPATH}
