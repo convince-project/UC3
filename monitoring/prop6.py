@@ -16,16 +16,11 @@ def abstract_message(message):
         predicates['time'] += 0.0000001
     else:
         predicates['time'] = message['time']
-    print("message", message)
+    print("camera_received, topic ", message['topic'])
     if message['topic'] in [
-        "camera_left/image_rect_color",
-        "camera_right/image_rect_color",
-        "camera_rgbd/color/image_rect_color",
-        "camera_rgbd/depth/image_rect",
-        "camera/depth/color/points"
+        "camera_out"
     ]:
         predicates['camera_published'] = True
     elif message['topic'] == "clock":
         predicates['camera_published'] = False
-    print("predicates", predicates)
     return predicates

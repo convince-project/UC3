@@ -11,20 +11,8 @@ monitors: # here we list the monitors we are going to generate
         url: 127.0.0.1 # the url where it is listening
         action: nothing # the oracle will not change the message
       topics: # the list of topics this monitor is going to intercept
-        - name: camera_left/image_rect_color
+        - name: /camera_out 
           type: sensor_msgs.msg.Image
-          action: log
-        - name: camera_right/image_rect_color
-          type: sensor_msgs.msg.Image
-          action: log
-        - name: camera_rgbd/color/image_rect_color
-          type: sensor_msgs.msg.Image
-          action: log
-        - name: camera_rgbd/depth/image_rect
-          type: sensor_msgs.msg.Image
-          action: log
-        - name: camera/depth/color/points
-          type: sensor_msgs.msg.PointCloud2
           action: log
         - name: clock
           type: builtin_interfaces.msg.Time
