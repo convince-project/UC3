@@ -16,11 +16,11 @@ def abstract_message(message):
         predicates['time'] += 0.0000001
     else:
         predicates['time'] = message['time']
-    print("camera_received, topic ", message['topic'])
-    if message['topic'] in [
-        "camera_out"
-    ]:
+    #print("camera_received, topic ", message['topic'])
+    if message['topic'] in ["/cer/realsense_repeater/color_image"]:
         predicates['camera_published'] = True
-    elif message['topic'] == "clock":
+        print("camera published")
+    elif message['topic'] in ["/monitoring_clock"]:
         predicates['camera_published'] = False
+        print("clock")
     return predicates
