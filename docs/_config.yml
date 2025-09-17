@@ -1,1 +1,4 @@
 remote_theme: just-the-docs/just-the-docs
+include:
+  - ../src/skills/dialog_skill/dialog.md
+  - ../src/skills/dialog_skill/images/
