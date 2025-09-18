@@ -79,14 +79,16 @@ void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_inte
 
     float speech_time = request->speech_time;
 
-    float speech_dance_synchronization_speed_factor = danceDuration->duration / speech_time;
+    float reaching_start_position_time = 5.0; //seconds 
+
+    float speech_dance_synchronization_speed_factor = (danceDuration->duration + reaching_start_position_time) / speech_time;
 
     if (danceDuration->is_ok == false) {
         RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "ExecuteDanceComponent::ExecuteDance. Dance duration not found");
     }
     else
     {
-        RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::ExecuteDance Duration: " << danceDuration->duration);
+        RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::ExecuteDance Duration: " << danceDuration->duration << " taking into account reaching start position time: " << reaching_start_position_time);
         if (m_threadTimer.joinable()) {
             m_threadTimer.join();
             RCLCPP_INFO_STREAM(m_node->get_logger(), "Timer task joined ");
@@ -94,7 +96,9 @@ void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_inte
         m_threadTimer = std::thread([this, speech_time]() { timerTask(speech_time); });
     }
 
-    std::cout << "Dance duration: " << danceDuration->duration << " and speech time: " << request->speech_time << std::endl;
+    std::cout << "Dance duration: " << danceDuration->duration << 
+                " with reaching start position time: " << reaching_start_position_time <<
+                " and speech time: " << request->speech_time << std::endl;
     std::cout << "ExecuteDanceComponent::executeTask sending dance: " << request->dance_name << " with speed factor: " << speech_dance_synchronization_speed_factor << std::endl;
 
     status = SendMovementToYAP(request->dance_name, speech_dance_synchronization_speed_factor);
