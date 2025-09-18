@@ -15,6 +15,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclcpp_action REQUIRED)
 find_package(text_to_speech_interfaces REQUIRED)
 find_package(YCM REQUIRED)
 find_package(YARP 3.7 REQUIRED COMPONENTS dev os sig)
@@ -31,7 +32,7 @@ add_executable(${PROJECT_NAME})
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-ament_target_dependencies(${PROJECT_NAME} text_to_speech_interfaces rclcpp )
+ament_target_dependencies(${PROJECT_NAME} text_to_speech_interfaces rclcpp rclcpp_action )
 target_link_libraries(${PROJECT_NAME} ${YARP_LIBRARIES})
 
 target_include_directories(${PROJECT_NAME}
