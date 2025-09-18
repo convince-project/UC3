@@ -25,10 +25,11 @@
 // Dialog Component Interfaces
 #include <dialog_interfaces/srv/manage_context.hpp>
 #include <dialog_interfaces/srv/remember_interactions.hpp> // auto-generated from the .srv file
-#include <dialog_interfaces/srv/shorten_and_speak.hpp>
-#include <dialog_interfaces/srv/answer_and_speak.hpp>
+#include <dialog_interfaces/srv/shorten_reply.hpp>
+#include <dialog_interfaces/srv/answer.hpp>
 #include <dialog_interfaces/srv/set_language.hpp>
 #include <dialog_interfaces/srv/interpret_command.hpp>
+#include <dialog_interfaces/srv/speak.hpp>
 
 // #include <dialog_interfaces/srv/wait_for_interaction.hpp>
 #include <dialog_interfaces/action/wait_for_interaction.hpp>
@@ -50,6 +51,8 @@
 #include <scheduler_interfaces/srv/update_poi.hpp>
 #include <scheduler_interfaces/srv/set_language.hpp>
 
+// ExecuteDance Interfaces
+#include <execute_dance_interfaces/srv/execute_dance.hpp>
 
 #include "nlohmann/json.hpp"
 #include <random>
@@ -76,24 +79,28 @@ public:
 
     void WaitForInteraction(const std::shared_ptr<GoalHandleWaitForInteraction> goal_handle);
 
-    void ShortenAndSpeak(const std::shared_ptr<dialog_interfaces::srv::ShortenAndSpeak::Request> request,
-                        std::shared_ptr<dialog_interfaces::srv::ShortenAndSpeak::Response> response);
+    void ShortenReply(const std::shared_ptr<dialog_interfaces::srv::ShortenReply::Request> request,
+                        std::shared_ptr<dialog_interfaces::srv::ShortenReply::Response> response);
 
-    void AnswerAndSpeak(const std::shared_ptr<dialog_interfaces::srv::AnswerAndSpeak::Request> request,
-                        std::shared_ptr<dialog_interfaces::srv::AnswerAndSpeak::Response> response);
+    void Answer(const std::shared_ptr<dialog_interfaces::srv::Answer::Request> request,
+                        std::shared_ptr<dialog_interfaces::srv::Answer::Response> response);
 
     void SetLanguage(const std::shared_ptr<dialog_interfaces::srv::SetLanguage::Request> request,
                         std::shared_ptr<dialog_interfaces::srv::SetLanguage::Response> response);
     
     void InterpretCommand(const std::shared_ptr<dialog_interfaces::srv::InterpretCommand::Request> request,
                         std::shared_ptr<dialog_interfaces::srv::InterpretCommand::Response> response); // Interprets the command and returns the action to be performed
+    
+    void Speak(const std::shared_ptr<dialog_interfaces::srv::Speak::Request> request,
+                        std::shared_ptr<dialog_interfaces::srv::Speak::Response> response); // ROS
 
 protected:
     // Protected methods to manage internal functions and to interact with other services
-    void SpeakFromText(std::string text); // ROS2 service client to TextToSpeechComponent to speak the text
+    void SpeakFromText(std::string text, std::string dance); // ROS2 service client to TextToSpeechComponent to speak the text
     bool CommandManager(const std::string &command, std::shared_ptr<dialog_interfaces::srv::ManageContext::Response> &response); // Manages the command received from the PoiChat LLM and returns the response to the caller
     void WaitForSpeakEnd(); // ROS2 service client to TextToSpeechComponent to get if the TTS is speaking. Wait until it is not
     bool UpdatePoILLMPrompt(); // Updates the prompt of the PoIChat LLM based on the current PoI. Leverages the SchedulerComponent service to get the current PoI name
+    void ExecuteDance(std::string danceName, float estimatedSpeechTime); // ROS2 service client to ExecuteDanceComponent to execute the dance with the given name
 
 private:
 
@@ -124,11 +131,12 @@ private:
     rclcpp::Node::SharedPtr m_node;
     
     rclcpp::Service<dialog_interfaces::srv::ManageContext>::SharedPtr m_manageContextService;
-    rclcpp::Service<dialog_interfaces::srv::ShortenAndSpeak>::SharedPtr m_ShortenAndSpeakService;
-    rclcpp::Service<dialog_interfaces::srv::AnswerAndSpeak>::SharedPtr m_AnswerAndSpeakService;
+    rclcpp::Service<dialog_interfaces::srv::ShortenReply>::SharedPtr m_ShortenReplyService;
+    rclcpp::Service<dialog_interfaces::srv::Answer>::SharedPtr m_AnswerService;
     rclcpp::Service<dialog_interfaces::srv::SetLanguage>::SharedPtr m_SetLanguageService;
     rclcpp::Service<dialog_interfaces::srv::InterpretCommand>::SharedPtr m_InterpretCommandService;
-    
+    rclcpp::Service<dialog_interfaces::srv::Speak>::SharedPtr m_SpeakService;
+
     // rclcpp::Service<dialog_interfaces::srv::WaitForInteraction>::SharedPtr m_WaitForInteractionService;
     // ROS2 Action Server for WaitForInteraction
     rclcpp_action::Server<dialog_interfaces::action::WaitForInteraction>::SharedPtr m_WaitForInteractionAction;
@@ -173,6 +181,11 @@ private:
     std::string m_last_received_interaction;
     // map of vectors of replies
     std::unordered_map<std::string, std::vector<std::string>> m_replies;
+
+    // keep track of the index of the predefined answers to be given in sequence
+    int m_predefined_answer_index;
+    // keep track of the predefined answer to store in conversation history
+    std::string m_predefined_answer;
 
 };
 

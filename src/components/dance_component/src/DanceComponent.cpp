@@ -23,6 +23,7 @@ bool DanceComponent::start(int argc, char*argv[])
     {
         rclcpp::init(/*argc*/ argc, /*argv*/ argv);
     }
+    
     m_node = rclcpp::Node::make_shared("DanceComponentNode");
     m_getMovementService = m_node->create_service<dance_interfaces::srv::GetMovement>("/DanceComponent/GetMovement",  
                                                                                 std::bind(&DanceComponent::GetMovement,
@@ -55,7 +56,8 @@ bool DanceComponent::start(int argc, char*argv[])
                                                                                 std::placeholders::_1,
                                                                                 std::placeholders::_2));
 
-    RCLCPP_DEBUG(m_node->get_logger(), "DanceComponent::start"); 
+    RCLCPP_INFO(m_node->get_logger(), "DanceComponent::start"); 
+    
     return true;
 
 }
