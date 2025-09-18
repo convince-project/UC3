@@ -18,9 +18,9 @@ predicates = dict(
 def abstract_message(message):
     predicates['time'] = message['time']
     print("message", message)
-    if message['topic'] == "clock":
+    if message['topic'] == "/monitoring_clock":
         predicates['battery_published'] = False
-    elif message['topic'] == "battery_level":
+    elif message['topic'] == "/battery_status":
         predicates['battery_published'] = True
     print("predicates", predicates)
     return predicates
