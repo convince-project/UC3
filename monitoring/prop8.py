@@ -19,10 +19,11 @@ def abstract_message(message):
 
     if "topic" in message and "battery" in message['topic']:
         battery_status = float(message.get('percentage', 100))
-        # battery_status = message['percentage']
         predicates['critical_battery'] = battery_status <= 10
         print("battery status", battery_status, "critical:", predicates['critical_battery'])
-
+        
+    if "topic" in message and "/moniitoring_clock" in message['topic']:
+        predicates['alarm'] = False
     # print("predicates", predicates)
     # print("message", message)
     return predicates

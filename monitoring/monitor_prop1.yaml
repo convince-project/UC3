@@ -6,17 +6,17 @@ monitors: # here we list the monitors we are going to generate
       log: ./log.txt # file where the monitor will log the observed events
       silent: False # we let the monitor to print info during its execution
       oracle: # the oracle running and ready to check the specification (localhost in this case)
-        port: 8080 # the port where it is listening
+        port: 8081 # the port where it is listening
         url: 127.0.0.1 # the url where it is listening
         action: nothing # the oracle will not change the message
       topics: # the list of topics this monitor is going to intercept
-        - name: battery_status # name of the topic
+        - name: /battery_status # name of the topic
           type: sensor_msgs.msg.BatteryState 
           action: log
-        - name: monitoring_clock
+        - name: /monitoring_clock
           type: builtin_interfaces.msg.Time
           action: log 
       services:
-        - name: AlarmSkill/tick
-          type: bt_interfaces_dummy.srv.TickAction
+        - name: /NotifyUserComponent/StartAlarm
+          type: notify_user_interfaces.srv.StartAlarm
           action: log
