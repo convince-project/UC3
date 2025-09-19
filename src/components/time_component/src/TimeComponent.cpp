@@ -40,6 +40,16 @@ bool TimeComponent::start(int argc, char*argv[])
                                                                                 this,
                                                                                 std::placeholders::_1,
                                                                                 std::placeholders::_2));
+    m_startPoiTimerService = m_node->create_service<time_interfaces::srv::StartPoiTimer>("/TimeComponent/StartPoiTimer",  
+                                                                                std::bind(&TimeComponent::StartPoiTimer,
+                                                                                this,
+                                                                                std::placeholders::_1,
+                                                                                std::placeholders::_2));
+    m_stopPoiTimerService = m_node->create_service<time_interfaces::srv::StopPoiTimer>("/TimeComponent/StopPoiTimer",  
+                                                                                std::bind(&TimeComponent::StopPoiTimer,
+                                                                                this,
+                                                                                std::placeholders::_1,
+                                                                                std::placeholders::_2));
     m_reloadConfigFileService = m_node->create_service<time_interfaces::srv::ReloadConfigFile>("/TimeComponent/ReloadConfigFile",  
                                                                                 std::bind(&TimeComponent::ReloadConfigFile,
                                                                                 this,
@@ -52,7 +62,7 @@ bool TimeComponent::start(int argc, char*argv[])
                                                                                 std::placeholders::_2));
 
     RCLCPP_DEBUG(m_node->get_logger(), "TimeComponent::start");
-    m_publisher = m_node->create_publisher<std_msgs::msg::String>("/LogComponent/add_to_log", 10);
+    m_publisherNotification = m_node->create_publisher<std_msgs::msg::String>("/LogComponent/add_to_log", 10);
     std::cout << "TimeComponent::start\n";        
     return true;
 
@@ -65,27 +75,30 @@ bool TimeComponent::close()
     return true;
 }
 
+
 void TimeComponent::spin()
 {
     rclcpp::spin(m_node);  
 }
 
+
 void TimeComponent::StartTourTimer([[maybe_unused]]const std::shared_ptr<time_interfaces::srv::StartTourTimer::Request> request,
              std::shared_ptr<time_interfaces::srv::StartTourTimer::Response>      response) 
 {
     RCLCPP_INFO_STREAM(m_node->get_logger(), "TimeComponent::StartTourTimer ");
-    m_timerMutex.lock();
-    if(m_timerTask == true)
+    m_timerMutexTour.lock();
+    if(m_timerTaskTour == true)
     {
         RCLCPP_INFO_STREAM(m_node->get_logger(), "Timer task already running");
         response->is_ok = true;
         return;
     }
-    m_timerMutex.unlock();
+    m_timerMutexTour.unlock();
     m_saidDurationWarning = false;
-    m_threadTimer = std::thread([this]() { timerTask(); });
+    m_threadTimerTour = std::thread([this]() { timerTaskTour(); });
     response->is_ok = true;
 }
+
 
 void TimeComponent::ReloadConfigFile([[maybe_unused]]const std::shared_ptr<time_interfaces::srv::ReloadConfigFile::Request> request, 
             std::shared_ptr<time_interfaces::srv::ReloadConfigFile::Response>      response) 
@@ -99,16 +112,17 @@ void TimeComponent::ReloadConfigFile([[maybe_unused]]const std::shared_ptr<time_
     response->is_ok = true;
 }
 
+
 void TimeComponent::IsMuseumClosing([[maybe_unused]]const std::shared_ptr<time_interfaces::srv::IsMuseumClosing::Request> request, 
             std::shared_ptr<time_interfaces::srv::IsMuseumClosing::Response>      response) 
 {
     RCLCPP_INFO_STREAM(m_node->get_logger(), "TimeComponent::IsMuseumClosing ");
     std::string l_currentTime  = getCurrentTime();
-    m_mutex.lock();
+    m_mutexSetTime.lock();
     int l_maxTime = m_maxTime;
     int l_timeIntervalClosing = getTimeInterval(l_currentTime, m_closingTime);// >0 if currentTime is before opening hours,  <0 if currentTime is after opening hours
     int l_timeIntervalOpening = getTimeInterval(m_openingTime, l_currentTime);// <0 if currentTime is before opening hours,  >0 if currentTime is after opening hours
-    m_mutex.unlock();
+    m_mutexSetTime.unlock();
     response->is_closing = (l_timeIntervalClosing <= l_maxTime) ||  l_timeIntervalOpening < 0;
     if(response->is_closing)
     {
@@ -138,17 +152,18 @@ void TimeComponent::IsMuseumClosing([[maybe_unused]]const std::shared_ptr<time_i
     response->is_ok = true;
 }
 
+
 void TimeComponent::StopTourTimer([[maybe_unused]]const std::shared_ptr<time_interfaces::srv::StopTourTimer::Request> request,
              std::shared_ptr<time_interfaces::srv::StopTourTimer::Response>      response) 
 {
-    m_timerMutex.lock();
-    m_stopped = true;
-    m_timerMutex.unlock();
+    m_timerMutexTour.lock();
+    m_stoppedTimerTaskTour = true;
+    m_timerMutexTour.unlock();
     RCLCPP_INFO_STREAM(m_node->get_logger(), "TimeComponent::StopTourTimer ");
-    if(m_timerTask == true)
+    if(m_timerTaskTour == true)
     {
-        if (m_threadTimer.joinable()) {
-            m_threadTimer.join();
+        if (m_threadTimerTour.joinable()) {
+            m_threadTimerTour.join();
             RCLCPP_INFO_STREAM(m_node->get_logger(), "Timer task joined ");
         }
     }
@@ -159,12 +174,14 @@ void TimeComponent::StopTourTimer([[maybe_unused]]const std::shared_ptr<time_int
     response->is_ok = true;
 }
 
+
 void TimeComponent::publisher(std::string text)
 {
     std_msgs::msg::String msg;
     msg.data = text;
-    m_publisher->publish(msg);
+    m_publisherNotification->publish(msg);
 }
+
 
 std::string TimeComponent::getCurrentTime()
 {
@@ -193,22 +210,95 @@ std::string TimeComponent::getCurrentTime()
     // return std::chrono::current_zone()->to_local(tp_utc).time_since_epoch().count() / 3600; // in hours
 }
 
-void TimeComponent::timerTask()
+
+void TimeComponent::StartPoiTimer([[maybe_unused]]const std::shared_ptr<time_interfaces::srv::StartPoiTimer::Request> request,
+             std::shared_ptr<time_interfaces::srv::StartPoiTimer::Response>      response) 
+{
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "TimeComponent::StartPoiTimer ");
+    m_timerMutexPoi.lock();
+    if(m_timerTaskPoi == true)
+    {
+        RCLCPP_INFO_STREAM(m_node->get_logger(), "Poi Timer task already running");
+        response->is_ok = true;
+        return;
+    }
+    m_timerMutexPoi.unlock();
+    m_threadTimerPoi = std::thread([this]() { timerTaskPoi(); });
+    response->is_ok = true;
+}
+
+
+void TimeComponent::StopPoiTimer([[maybe_unused]]const std::shared_ptr<time_interfaces::srv::StopPoiTimer::Request> request,
+             std::shared_ptr<time_interfaces::srv::StopPoiTimer::Response>      response) 
+{
+    m_timerMutexPoi.lock();
+    m_stoppedTimerTaskPoi = true;
+    m_timerMutexPoi.unlock();
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "TimeComponent::StopPoiTimer ");
+    if(m_timerTaskPoi == true)
+    {
+        if (m_threadTimerPoi.joinable()) {
+            m_threadTimerPoi.join();
+            RCLCPP_INFO_STREAM(m_node->get_logger(), "Poi Timer task joined ");
+        }
+    }
+    else
+    {   
+        RCLCPP_INFO_STREAM(m_node->get_logger(), "Poi Timer task not running ");
+    }
+    response->is_ok = true;
+}
+
+
+void TimeComponent::timerTaskPoi()
+{
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "Start Poi Timer");
+    m_timerMutexPoi.lock();
+    m_timerTaskPoi = true;
+    m_stoppedTimerTaskPoi = false;
+    bool l_stopped = m_stoppedTimerTaskPoi;
+    m_timerMutexPoi.unlock();
+    int l_secondsPassed = 0;
+    writeInBB(POI_DURATION_BB_STRING, 0);
+    publisher("POI started!");
+    while(!l_stopped){
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        l_secondsPassed++;
+        m_timerMutexPoi.lock();
+        l_stopped = m_stoppedTimerTaskPoi;
+        m_timerMutexPoi.unlock();
+        if(l_secondsPassed % 60 == 0)
+        {
+            RCLCPP_INFO_STREAM(m_node->get_logger(), "POI Time passed: " << l_secondsPassed / 60 << " minutes");
+            writeInBB(POI_DURATION_BB_STRING, l_secondsPassed / 60);
+        }
+        
+    }
+    m_timerMutexPoi.lock();
+    m_timerTaskPoi = false;
+    m_stoppedTimerTaskPoi = false;
+    m_timerMutexPoi.unlock();
+    writeInBB(POI_DURATION_BB_STRING, 0);
+    publisher("POI ended!");
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "End Poi Timer ");
+}
+
+
+void TimeComponent::timerTaskTour()
 {
     RCLCPP_INFO_STREAM(m_node->get_logger(), "Start Timer");
-    m_timerMutex.lock();
-    m_timerTask = true;
-    m_stopped = false;
-    bool l_stopped = m_stopped;
-    m_timerMutex.unlock();
-    m_mutex.lock();
+    m_timerMutexTour.lock();
+    m_timerTaskTour = true;
+    m_stoppedTimerTaskTour = false;
+    bool l_stopped = m_stoppedTimerTaskTour;
+    m_timerMutexTour.unlock();
+    m_mutexSetTime.lock();
     int l_maxTime = m_maxTime;
     int l_warningTime = m_warningTime;
-    m_mutex.unlock();
+    m_mutexSetTime.unlock();
     int l_secondsPassed = 0;
     writeInBB(WARNING_BB_STRING, 0);
-    writeInBB(MAX_BB_STRING, 0);
-    writeInBB(DURATION_BB_STRING, 0);
+    writeInBB(TOUR_DURATION_BB_STRING, 0);
     publisher("Tour started!");
     while(!l_stopped){
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -225,23 +315,23 @@ void TimeComponent::timerTask()
             writeInBB(WARNING_BB_STRING, 1);
             publisher("Tour warning time exceeded!");
         }
-        m_timerMutex.lock();
-        l_stopped = m_stopped;
-        m_timerMutex.unlock();
+        m_timerMutexTour.lock();
+        l_stopped = m_stoppedTimerTaskTour;
+        m_timerMutexTour.unlock();
         if(l_secondsPassed % 60 == 0)
         {
             RCLCPP_INFO_STREAM(m_node->get_logger(), "Time passed: " << l_secondsPassed / 60 << " minutes");
-            writeInBB(DURATION_BB_STRING, l_secondsPassed / 60);
+            writeInBB(TOUR_DURATION_BB_STRING, l_secondsPassed / 60);
         }
         
     }
-    m_timerMutex.lock();
-    m_timerTask = false;
-    m_stopped = false;
-    m_timerMutex.unlock();
+    m_timerMutexTour.lock();
+    m_timerTaskTour = false;
+    m_stoppedTimerTaskTour = false;
+    m_timerMutexTour.unlock();
     writeInBB(WARNING_BB_STRING, 0);
     writeInBB(MAX_BB_STRING, 0);
-    writeInBB(DURATION_BB_STRING, 0);
+    writeInBB(TOUR_DURATION_BB_STRING, 0);
     publisher("Tour ended!");
     RCLCPP_INFO_STREAM(m_node->get_logger(), "End Timer ");
 }
@@ -282,10 +372,10 @@ bool TimeComponent::getParamsFromFile(std::ifstream& file)
         {
             return false;
         }
-        m_mutex.lock();
+        m_mutexSetTime.lock();
         m_warningTime = std::stoi(warning_time);
         m_maxTime = std::stoi(max_time);
-        m_mutex.unlock();
+        m_mutexSetTime.unlock();
     }
     else
     {
@@ -299,10 +389,10 @@ bool TimeComponent::getParamsFromFile(std::ifstream& file)
         {
             return false;
         }
-        m_mutex.lock();
+        m_mutexSetTime.lock();
         m_openingTime = opening_time;
         m_closingTime = closing_time;
-        m_mutex.unlock();
+        m_mutexSetTime.unlock();
     }
     else
     {
@@ -311,6 +401,7 @@ bool TimeComponent::getParamsFromFile(std::ifstream& file)
     }
     return true;
 }
+
 
 bool TimeComponent::loadConfigFile(){
     std::ifstream file(m_configPath);
@@ -325,6 +416,7 @@ bool TimeComponent::loadConfigFile(){
     file.close();
     return true;
 }
+
 
 bool TimeComponent::getValue(std::unordered_map<std::string, std::unordered_map<std::string, std::string>> config, const std::string section, const std::string key, std::string& value)
 {
@@ -341,6 +433,7 @@ bool TimeComponent::getValue(std::unordered_map<std::string, std::unordered_map<
     }
 }
 
+
 int TimeComponent::getTimeInterval(const std::string timeStamp1, const std::string timeStamp2)
 {
     std::tm tm1 = {};
@@ -353,6 +446,7 @@ int TimeComponent::getTimeInterval(const std::string timeStamp1, const std::stri
     std::time_t time2 = std::mktime(&tm2);
     return std::difftime(time2, time1) / 60; // in minutes
 }
+
 
 bool TimeComponent::writeInBB(std::string key, int value)
 {
