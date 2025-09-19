@@ -18,6 +18,8 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(time_interfaces
 "srv/StartTourTimer.srv"
 "srv/StopTourTimer.srv"
+"srv/StartPoiTimer.srv"
+"srv/StopPoiTimer.srv"
 "srv/ReloadConfigFile.srv"
 "srv/IsMuseumClosing.srv"
 LIBRARY_NAME time_interfaces 
