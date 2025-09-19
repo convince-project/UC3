@@ -326,12 +326,6 @@ bool DialogComponent::start(int argc, char *argv[])
                                                                                                      std::placeholders::_1,
                                                                                                      std::placeholders::_2));
 
-    // m_WaitForInteractionService = m_node->create_service<dialog_interfaces::srv::WaitForInteraction>("/DialogComponent/WaitForInteraction",
-    //                                                                                                  std::bind(&DialogComponent::WaitForInteraction,
-    //                                                                                                            this,
-    //                                                                                                            std::placeholders::_1,
-    //                                                                                                            std::placeholders::_2));
-
     m_ShortenAndSpeakService = m_node->create_service<dialog_interfaces::srv::ShortenAndSpeak>("/DialogComponent/ShortenAndSpeak",
                                                                                                std::bind(&DialogComponent::ShortenAndSpeak,
                                                                                                          this,
@@ -1016,8 +1010,6 @@ void DialogComponent::handle_accepted(const std::shared_ptr<GoalHandleWaitForInt
 void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitForInteraction> goal_handle)
 {
 
-
-
     RCLCPP_INFO(m_node->get_logger(), "Waiting for interaction");
     auto goal = goal_handle->get_goal();
     auto feedback = std::make_shared<dialog_interfaces::action::WaitForInteraction::Feedback>();
@@ -1039,6 +1031,7 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitFor
     }
 
     std::string questionText = "";
+    float confidence = 0.0;
 
     // added a keyboard interaction to the goal request for debugging purposes
     // when goal->keyboard_interaction is not empty, it means that the interaction is coming from the keyboard
@@ -1072,8 +1065,9 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitFor
 
         if (vocalInteraction)
         {
-            questionText = vocalInteraction->toString();
-            yInfo() << "[DialogComponent::WaitForInteraction] Transcribed text:" << questionText << __LINE__;
+            questionText = vocalInteraction->get(0).asString();
+            confidence = vocalInteraction->get(1).asFloat32();
+            yInfo() << "[DialogComponent::WaitForInteraction] Transcribed text:" << questionText << " with confidence:" << confidence;
         }
         else
         {
@@ -1091,6 +1085,7 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitFor
     m_last_received_interaction = questionText;
     result->is_ok = true;
     result->interaction = questionText;
+    result->confidence = confidence;
     goal_handle->succeed(result);
     RCLCPP_INFO(m_node->get_logger(), "Goal succeeded");
 }
