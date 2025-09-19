@@ -58,6 +58,7 @@
       <SubTree ID="NetworkManagement"/>
       <Sequence>
         <SubTree ID="MuseumHours"/>
+        <SubTree ID="TourDuration"/>
         <SubTree ID="PoiScheduler"
                  __shared_blackboard="false"/>
         <SubTree ID="GoToPoi"
@@ -261,29 +262,37 @@
   </BehaviorTree>
 
   <BehaviorTree ID="TourDuration">
-    <Fallback>
-      <ReactiveSequence>
-        <ROS2Condition name="CheckIfStart"
-                       interface="ROS2SERVICE"
-                       isMonitored="false"/>
-        <ROS2Action name="StopTourTimer"
-                    interface="ROS2SERVICE"
-                    isMonitored="false"/>
-      </ReactiveSequence>
-      <ReactiveSequence>
-        <ROS2Condition name="CheckIfFirstPoi"
-                       interface="ROS2SERVICE"
-                       isMonitored="false"/>
-        <ROS2Action name="StartTourTimer"
-                    interface="ROS2SERVICE"
-                    isMonitored="false"/>
-      </ReactiveSequence>
-      <Inverter>
-        <ROS2Condition name="IsWarningDuration"
-                       interface="ROS2SERVICE"
-                       isMonitored="false"/>
-      </Inverter>
-    </Fallback>
+    <Sequence>
+      <ROS2Action name="StopPoiTimer"
+                  interface=""
+                  isMonitored=""/>
+      <ROS2Action name="StartPoiTimer"
+                  interface=""
+                  isMonitored=""/>
+      <Fallback>
+        <ReactiveSequence>
+          <ROS2Condition name="CheckIfStart"
+                         interface="ROS2SERVICE"
+                         isMonitored="false"/>
+          <ROS2Action name="StopTourTimer"
+                      interface="ROS2SERVICE"
+                      isMonitored="false"/>
+        </ReactiveSequence>
+        <ReactiveSequence>
+          <ROS2Condition name="CheckIfFirstPoi"
+                         interface="ROS2SERVICE"
+                         isMonitored="false"/>
+          <ROS2Action name="StartTourTimer"
+                      interface="ROS2SERVICE"
+                      isMonitored="false"/>
+        </ReactiveSequence>
+        <Inverter>
+          <ROS2Condition name="IsWarningDuration"
+                         interface="ROS2SERVICE"
+                         isMonitored="false"/>
+        </Inverter>
+      </Fallback>
+    </Sequence>
   </BehaviorTree>
 
   <!-- Description of Node Models (used by Groot) -->

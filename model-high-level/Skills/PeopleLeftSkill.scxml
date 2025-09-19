@@ -17,6 +17,7 @@
   <ros_service_client service_name="/SchedulerComponent/Reset" type="scheduler_interfaces/Reset"/>
   <ros_service_client service_name="/TurnBackManagerComponent/ResetCounters" type="turn_back_manager_interfaces/ResetCounters"/>
   <ros_service_client service_name="/TimeComponent/StopTourTimer" type="time_interfaces/StopTourTimer"/>
+  <ros_service_client service_name="/TimeComponent/StopPoiTimer" type="time_interfaces/StopPoiTimer"/>
 
   <!-- Action skill: tick + halt servers -->
   <ros_service_server service_name="/PeopleLeftSkill/tick" type="bt_interfaces_dummy/TickAction"/>
@@ -64,6 +65,22 @@
   </state>
 
   <state id="evaluateTimer">
+    <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+    <transition target="stopPoiTimer"/>
+  </state>
+
+  <state id="stopPoiTimer">
+    <onentry>
+      <ros_service_send_request name="/TimeComponent/StopPoiTimer"/>
+    </onentry>
+    <ros_service_handle_response name="/TimeComponent/StopPoiTimer" target="evaluateTimerPoi">
+      <assign location="m_result" expr="_res.result"/>
+    </ros_service_handle_response>
+  </state>
+
+
+
+  <state id="evaluateTimerPoi">
     <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
     <transition target="success"/>
   </state>
