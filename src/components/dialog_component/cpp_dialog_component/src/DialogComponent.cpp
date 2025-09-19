@@ -1080,6 +1080,7 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitFor
     {
         yInfo() << "[DialogComponent::WaitForInteraction] call received: " << goal->keyboard_interaction << __LINE__;
         questionText = goal->keyboard_interaction;
+        confidence = 1.0;
     }
 
     m_last_received_interaction = questionText;
