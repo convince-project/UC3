@@ -25,12 +25,12 @@
 
   <state id="stopTimer">
     <ros_service_handle_response name="/TimeComponent/StopPoiTimer" target="afterStop">
-      <assign location="result" expr="_res.result"/>
+      <assign location="result" expr="_res.is_ok"/>
     </ros_service_handle_response>
   </state>
 
   <state id="afterStop">
-    <transition cond="result == 'SKILL_SUCCESS'" target="successReply"/>
+    <transition cond="result == true" target="successReply"/>
     <transition target="failReply"/>
   </state>
 
