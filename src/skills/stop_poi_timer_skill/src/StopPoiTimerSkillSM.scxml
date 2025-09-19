@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="StopPoiTimerSkillAction" datamodel="ecmascript" initial="idle">
+    <datamodel>
+        <data id="result" expr="&apos;&apos;"/>
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <data id="SKILL_FAILURE" expr="1"/>
+    </datamodel>
+    <state id="idle">
+        <transition target="stopTimer" event="CMD_TICK">
+            <send event="TimeComponent.StopPoiTimer.Call"/>
+        </transition>
+        <transition target="halted" event="CMD_HALT"/>
+    </state>
+    <state id="stopTimer">
+        <transition target="afterStop" event="TimeComponent.StopPoiTimer.Return">
+            <assign location="result" expr="_event.data.result"/>
+        </transition>
+    </state>
+    <state id="afterStop">
+        <transition cond="result == &apos;SKILL_SUCCESS&apos;" target="successReply"/>
+        <transition target="failReply"/>
+    </state>
+    <state id="successReply">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_SUCCESS"/>
+                <param name="is_ok" expr="true"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="failReply">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_FAILURE"/>
+                <param name="is_ok" expr="true"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="halted">
+        <onentry>
+            <send event="HALT_RESPONSE">
+                <param name="is_ok" expr="true"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+</scxml>
