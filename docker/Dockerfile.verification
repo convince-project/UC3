@@ -171,3 +171,7 @@ ENV LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/src/robot/yarp/build/lib/
 
 
 ENV PYTHONPATH=monitoring-python-env/lib/python3.12/site-packages/:${PYTHONPATH}
+
+
+# sudo apt install python3-websocket
+# echo "export PYTHONPATH=monitoring-python-env/lib/python3.12/site-packages/:$PYTHONPATH" >> ~/.bashrc
