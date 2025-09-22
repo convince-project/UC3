@@ -25,7 +25,7 @@
 
   <state id="stopTimer">
     <ros_service_handle_response name="/TimeComponent/StopTourTimer" target="afterStop">
-      <assign location="result" expr="_res.result"/>
+      <assign location="result" expr="_res.is_ok"/>
     </ros_service_handle_response>
   </state>
 
