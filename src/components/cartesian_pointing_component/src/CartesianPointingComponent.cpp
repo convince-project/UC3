@@ -11,6 +11,7 @@
 #include <sstream>
 #include <cstdlib>
 #include <cmath>
+#include <functional>
 
 // JSON (nlohmann)
 #include <nlohmann/json.hpp>
@@ -88,13 +89,11 @@ bool CartesianPointingComponent::start(int argc, char* argv[])
     // operator can start them and then the component will wait for availability.
     if (!yarp::os::Network::exists(cartesianPortLeft)) {
         RCLCPP_WARN(m_node ? m_node->get_logger() : rclcpp::get_logger("rclcpp"),
-                    "Left Cartesian controller not present at '%s'. Please start it externally:\n  r1-cartesian-control --from %s",
-                    cartesianPortLeft.c_str(), cartesianControllerIniPathLeft.c_str());
+                    "Left Cartesian controller not present. Please start it externally:\n  r1-cartesian-control --from ");
     }
     if (!yarp::os::Network::exists(cartesianPortRight)) {
         RCLCPP_WARN(m_node ? m_node->get_logger() : rclcpp::get_logger("rclcpp"),
-                    "Right Cartesian controller not present at '%s'. Please start it externally:\n  r1-cartesian-control --from %s",
-                    cartesianPortRight.c_str(), cartesianControllerIniPathRight.c_str());
+                    "Right Cartesian controller not present. Please start it externally:\n  r1-cartesian-control --from ");
     }
     //    (A sleep prevents tight-loop polling and reduces CPU usage.)
     // Wait indefinitely for the RPC server ports to appear.
@@ -194,9 +193,7 @@ bool CartesianPointingComponent::start(int argc, char* argv[])
 // =============================================================================
 bool CartesianPointingComponent::close()
 {
-    if (m_cartesianClient.isValid()) {
-        m_cartesianClient.close();
-    }
+
     if (m_cartesianPortLeft.isOpen())  m_cartesianPortLeft.close();
     if (m_cartesianPortRight.isOpen()) m_cartesianPortRight.close();
     rclcpp::shutdown();
@@ -295,7 +292,7 @@ void CartesianPointingComponent::pointTask(const std::shared_ptr<cartesian_point
             continue;
         }
 
-        // send go_to_pose command (position + current orientation)
+        // Prepare and log the go_to_pose command we'll send
         yarp::os::Bottle cmd, res;
         cmd.addString("go_to_pose");
         cmd.addFloat64(candidate.x());
@@ -306,6 +303,11 @@ void CartesianPointingComponent::pointTask(const std::shared_ptr<cartesian_point
         cmd.addFloat64(q_keep.z());
         cmd.addFloat64(q_keep.w());
         cmd.addFloat64(5.0); // trajectory duration (s)
+
+        // Log which arm, which command, and which artwork target we are pointing at
+        RCLCPP_INFO(m_node->get_logger(), "POINTING: arm=%s cmd=%s target='%s' candidate=(%.3f, %.3f, %.3f)",
+                    armName.c_str(), cmd.get(0).asString().c_str(), request->target_name.c_str(),
+                    candidate.x(), candidate.y(), candidate.z());
 
         bool ok = activePort->write(cmd, res);
         if (ok && res.size()>0 && res.get(0).asVocab32()==yarp::os::createVocab32('o','k')) {
@@ -452,28 +454,133 @@ bool CartesianPointingComponent::preScanArticulatedArms(const Eigen::Vector3d& a
         }
 
         // Flatten the returned Bottle into a simple vector<double>.
-        // Different servers may nest values (e.g., [R t] as lists), so we unfold both top-level
-        // and nested lists to get a contiguous "flat pose" buffer.
+        // Different servers may nest values (e.g., [R t] as lists) or return [status, data].
+        // We try a tolerant strategy: (1) flatten the whole bottle; (2) if size is not 16/18,
+        // search recursively for the first nested list that flattens to 16 or 18 numbers.
         std::vector<double> flat_pose;
-        flat_pose.reserve(18); // common size; reserve to reduce reallocations
-        for (size_t i = 0; i < res_get.size(); ++i) {
-            if (res_get.get(i).isList()) {
-                yarp::os::Bottle* sub = res_get.get(i).asList();
-                for (size_t j = 0; j < sub->size(); ++j)
-                    flat_pose.push_back(sub->get(j).asFloat64());
-            } else {
-                flat_pose.push_back(res_get.get(i).asFloat64());
-            }
-        }
+        flat_pose.reserve(18);
 
-        // We expect either:
-        //  - 16 values: flattened 4x4 transform (row-major), or
-        //  - 18 values: two leading metadata values (e.g., stamp,id) + 4x4 transform.
-        // Any other size likely indicates a protocol mismatch or server error.
-        if (flat_pose.size() != 18 && flat_pose.size() != 16) {
-            RCLCPP_WARN(m_node->get_logger(), "PRE-SCAN: unexpected pose size=%zu for %s",
-                        flat_pose.size(), armId.c_str());
-            continue;
+        // Recursive flattener: collect numeric scalars from any nested Bottle
+        std::function<void(const yarp::os::Bottle&)> flatten = [&](const yarp::os::Bottle& b) {
+            for (size_t i = 0; i < b.size(); ++i) {
+                if (b.get(i).isList()) {
+                    yarp::os::Bottle* sub = b.get(i).asList();
+                    flatten(*sub);
+                } else {
+                    // yarp::os::Value does not provide uniform isInt()/asInt() across versions.
+                    // Use safe extraction: prefer asFloat64(), but handle integer-like values as well.
+                    double v = 0.0;
+                    if (b.get(i).isFloat64()) {
+                        v = b.get(i).asFloat64();
+                    } else if (b.get(i).isInt8()) {
+                        v = static_cast<double>(b.get(i).asInt8());
+                    } else if (b.get(i).isInt16()) {
+                        v = static_cast<double>(b.get(i).asInt16());
+                    } else if (b.get(i).isInt32()) {
+                        v = static_cast<double>(b.get(i).asInt32());
+                    } else if (b.get(i).isInt64()) {
+                        v = static_cast<double>(b.get(i).asInt64());
+                    } else {
+                        // Fallback: try asString then parse double; if that fails, skip value.
+                        std::string s = b.get(i).toString();
+                        try { v = std::stod(s); } catch (...) { continue; }
+                    }
+                    flat_pose.push_back(v);
+                }
+            }
+        };
+
+        flatten(res_get);
+
+        // If the flattened top-level result does not contain the expected matrix,
+        // look for the first nested list that does.
+        if (flat_pose.size() != 16 && flat_pose.size() != 18) {
+            bool found = false;
+            std::function<bool(const yarp::os::Bottle&)> find_good_list = [&](const yarp::os::Bottle& b) -> bool {
+                for (size_t i = 0; i < b.size(); ++i) {
+                    if (b.get(i).isList()) {
+                        yarp::os::Bottle* sub = b.get(i).asList();
+                        std::vector<double> tmp;
+                        std::function<void(const yarp::os::Bottle&)> f2 = [&](const yarp::os::Bottle& sb) {
+                            for (size_t j = 0; j < sb.size(); ++j) {
+                                if (sb.get(j).isList()) f2(*sb.get(j).asList());
+                                else {
+                                    double v = 0.0;
+                                    if (sb.get(j).isFloat64()) {
+                                        v = sb.get(j).asFloat64();
+                                    } else if (sb.get(j).isInt8()) {
+                                        v = static_cast<double>(sb.get(j).asInt8());
+                                    } else if (sb.get(j).isInt16()) {
+                                        v = static_cast<double>(sb.get(j).asInt16());
+                                    } else if (sb.get(j).isInt32()) {
+                                        v = static_cast<double>(sb.get(j).asInt32());
+                                    } else if (sb.get(j).isInt64()) {
+                                        v = static_cast<double>(sb.get(j).asInt64());
+                                    } else {
+                                        std::string s = sb.get(j).toString();
+                                        try { v = std::stod(s); } catch (...) { continue; }
+                                    }
+                                    tmp.push_back(v);
+                                }
+                            }
+                        };
+                        f2(*sub);
+                        if (tmp.size() == 16 || tmp.size() == 18) { flat_pose = std::move(tmp); return true; }
+                        // recurse deeper
+                        if (find_good_list(*sub)) return true;
+                    }
+                }
+                return false;
+            };
+            found = find_good_list(res_get);
+            if (!found) {
+                // Try a few times: controllers may not have populated the full pose immediately.
+                const int max_retries = 5;
+                const std::chrono::milliseconds retry_delay(200);
+                bool retried_ok = false;
+                for (int attempt = 1; attempt <= max_retries && !retried_ok; ++attempt) {
+                    std::this_thread::sleep_for(retry_delay);
+                    yarp::os::Bottle res_retry;
+                    if (!clientPort->write(cmd_get, res_retry)) continue;
+                    // attempt to flatten and find a valid matrix in the newly returned bottle
+                    flat_pose.clear();
+                    flatten(res_retry);
+                    if (flat_pose.size() == 16 || flat_pose.size() == 18) {
+                        // success: use this result
+                        res_get = res_retry;
+                        retried_ok = true;
+                        break;
+                    }
+                    // try nested search on the fresh result
+                    bool found_retry = find_good_list(res_retry);
+                    if (found_retry) {
+                        // on success, find_good_list already populated flat_pose
+                        res_get = res_retry;
+                        retried_ok = true;
+                        break;
+                    }
+                }
+
+                if (!retried_ok) {
+                    RCLCPP_WARN(m_node->get_logger(), "PRE-SCAN: unexpected pose size=%zu for %s (raw bottle size=%zu) after %d retries - falling back to shoulder heuristic",
+                                flat_pose.size(), armId.c_str(), res_get.size(), max_retries);
+                    // Fallback: use shoulder position (TF) as distance heuristic and store an identity pose
+                    Eigen::Vector3d shoulder_base;
+                    if (getShoulderPosInBase(armId, shoulder_base)) {
+                        const double dist = (artwork_pos - shoulder_base).norm();
+                        // store a canonical 4x4 identity matrix (row-major) so quatFromFlatPose can fallback to identity
+                        std::vector<double> idmat(16, 0.0);
+                        idmat[0] = 1.0; idmat[5] = 1.0; idmat[10] = 1.0; idmat[15] = 1.0;
+                        armDistances.emplace_back(armId, dist);
+                        cachedPoseValues.emplace(armId, std::move(idmat));
+                        // continue to next arm (we already saved results)
+                        continue;
+                    } else {
+                        RCLCPP_WARN(m_node->get_logger(), "PRE-SCAN: cannot obtain shoulder TF for %s, skipping arm", armId.c_str());
+                        continue;
+                    }
+                }
+            }
         }
 
         // Account for optional 2-value header so indices match the 4x4 layout.
