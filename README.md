@@ -2,6 +2,14 @@
 
 ## Running the use case on the real robot
 
+To run the use case on the real robot, the docker involved are:
+
+- BT and navigation docker `ste93/convince:tour_ubuntu_24.04_qt_6.8.3_jazzy_devel`
+- Monitoring docker `ste93/convince:tour_ubuntu_24.04_qt_6.8.3_jazzy_verification_devel`
+- People following docker and tracking docker
+- Planning docker
+- Talk docker
+- controller docker
 
 
 ## run the simulation with docker
