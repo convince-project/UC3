@@ -13,10 +13,6 @@ monitors: # here we list the monitors we are going to generate
         - name: /battery_status # name of the topic
           type: sensor_msgs.msg.BatteryState 
           action: log
-        - name: /monitoring_clock
-          type: builtin_interfaces.msg.Time
-          action: log 
-      services:
-        - name: /NotifyUserComponent/StartAlarm
-          type: notify_user_interfaces.srv.StartAlarm
+        - name: /NotifyUserComponent/StartAlarm/_service_event
+          type: notify_user_interfaces.srv.StartAlarm_Event
           action: log

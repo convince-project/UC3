@@ -27,7 +27,7 @@ predicates = dict(
 def abstract_message(message):
     predicates['time'] = message['time']
     print("message", message)
-    if message['topic'] == "clock":
+    if message['topic'] == "/monitoring_clock":
         predicates['people_following_published'] = False
     elif message['topic'] == "PeopleDetectorFilterComponent/is_followed":
         predicates['people_following_published'] = True
