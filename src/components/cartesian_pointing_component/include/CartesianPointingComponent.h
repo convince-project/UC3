@@ -116,8 +116,8 @@ private:
     double m_safetyBackoff {0.05};
 
     // YARP cartesian controller server ports
-    const std::string cartesianPortLeft  = "/r1-cartesian-control/left_arm/rpc:i";
-    const std::string cartesianPortRight = "/r1-cartesian-control/right_arm/rpc:i";
+    const std::string cartesianPortLeft  = "/cartesian-control/left_arm/rpc:i";
+    const std::string cartesianPortRight = "/cartesian-control/right_arm/rpc:i";
 
     // Local client port names opened by this component
     std::string m_cartesianPortNameLeft  = "/CartesianPointingComponent/cartesianClientLeft/rpc";
@@ -128,12 +128,6 @@ private:
 
     // Optional PolyDriver for direct device usage
     yarp::dev::PolyDriver m_cartesianClient;
-
-    // Controller .ini paths left as before (not hard-coded for artworks)
-    std::string cartesianControllerIniPathLeft  =
-        "/home/user1/ergocub-cartesian-control/src/r1_cartesian_control/app/conf/config_left_sim_r1.ini";
-    std::string cartesianControllerIniPathRight =
-        "/home/user1/ergocub-cartesian-control/src/r1_cartesian_control/app/conf/config_right_sim_r1.ini";
 
     // Artwork name -> [x,y,z]
     std::map<std::string, std::vector<double>> m_artworkCoords;
