@@ -29,21 +29,15 @@ def abstract_message(message):
     else:
         predicates['time'] = message['time']
 
-    if "service" in message:
-        print("DEBUG service field:", message['service'])
-        if message['service'] == "/NotifyUserComponent/StartAlarm":
-            predicates['alarm'] = True
-            print("ALARM TRIGGERED")
+    if "topic" in message and "StartAlarm" in message['topic']:
+        predicates['alarm'] = True
     
     if "topic" in message and "battery" in message['topic']:
         battery_status =float(message.get('percentage', 100))
         predicates['high_battery'] = battery_status > 30
-    
-    if "topic" in message and "/monitoring_clock" in message['topic']:
-        predicates['alarm'] = False
 
     print("predicates", predicates)
-    print("keys:", list(message.keys()))
+    #print("keys:", list(message.keys()))
     #print("message", message)
     
 

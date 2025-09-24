@@ -13,6 +13,6 @@ monitors: # here we list the monitors we are going to generate
         - name: PeopleDetectorFilterComponent/is_followed # name of the topic
           type: std_msgs.msg.Bool # type of the topic
           action: log
-        - name: clock
+        - name: /monitoring_clock
           type: builtin_interfaces.msg.Time
           action: log

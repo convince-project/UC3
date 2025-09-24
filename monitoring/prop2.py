@@ -29,7 +29,7 @@ def abstract_message(message):
     else:
         predicates['time'] = message['time']
 
-    if "service" in message and message['service'] == "/NotifyUserComponent/StartAlarm":
+    if "topic" in message and "StartAlarm" in message['topic']:
         predicates['alarm'] = True
     
     if "topic" in message and "battery" in message['topic']:
@@ -44,3 +44,7 @@ def abstract_message(message):
     
 
     return predicates
+
+# property to verify
+#Ogni volta che si attiva l’allarme (alarm), in passato la batteria è stata almeno una volta sotto il 30% (low_battery).
+#Inoltre, non deve accadere che, dopo l’attivazione dell’allarme, per almeno 5 unità di tempo non si sia verificato che la batteria era sotto il 30%."""
