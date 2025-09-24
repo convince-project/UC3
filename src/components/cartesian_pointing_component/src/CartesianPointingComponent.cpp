@@ -88,13 +88,11 @@ bool CartesianPointingComponent::start(int argc, char* argv[])
     // operator can start them and then the component will wait for availability.
     if (!yarp::os::Network::exists(cartesianPortLeft)) {
         RCLCPP_WARN(m_node ? m_node->get_logger() : rclcpp::get_logger("rclcpp"),
-                    "Left Cartesian controller not present at '%s'. Please start it externally:\n  r1-cartesian-control --from %s",
-                    cartesianPortLeft.c_str(), cartesianControllerIniPathLeft.c_str());
+                    "Left Cartesian controller not present. Please start it externally: r1-cartesian-control --from <left_controller.ini>");
     }
     if (!yarp::os::Network::exists(cartesianPortRight)) {
         RCLCPP_WARN(m_node ? m_node->get_logger() : rclcpp::get_logger("rclcpp"),
-                    "Right Cartesian controller not present at '%s'. Please start it externally:\n  r1-cartesian-control --from %s",
-                    cartesianPortRight.c_str(), cartesianControllerIniPathRight.c_str());
+                    "Right Cartesian controller not present. Please start it externally: r1-cartesian-control --from <right_controller.ini>");
     }
     //    (A sleep prevents tight-loop polling and reduces CPU usage.)
     // Wait indefinitely for the RPC server ports to appear.
@@ -168,8 +166,6 @@ bool CartesianPointingComponent::start(int argc, char* argv[])
     yarp::os::Network::connect(m_cartesianPortNameRight, cartesianPortRight);
 
     // 7) Create ROS2 services.
-    //    Exposing an RPC-like service interface lets external nodes trigger point-at tasks
-    //    without coupling to YARP internals, bridging ecosystems cleanly.
     m_srvPointAt = m_node->create_service<cartesian_pointing_interfaces::srv::PointAt>(
         "/CartesianPointingComponent/PointAt",
         [this](const std::shared_ptr<cartesian_pointing_interfaces::srv::PointAt::Request> request,
@@ -267,8 +263,8 @@ void CartesianPointingComponent::pointTask(const std::shared_ptr<cartesian_point
     for (const auto &armEntry : armDistances) {
         const std::string armName = armEntry.first;
         yarp::os::Port* activePort = (armName == "LEFT") ? &m_cartesianPortLeft : &m_cartesianPortRight;
-        const std::string remotePort = (armName == "LEFT") ? "/r1-cartesian-control/left_arm/rpc:i"
-                                                             : "/r1-cartesian-control/right_arm/rpc:i";
+        const std::string remotePort = (armName == "LEFT") ? cartesianPortLeft
+                                                             : cartesianPortRight;
         if (!activePort->isOpen() || !yarp::os::Network::isConnected(activePort->getName(), remotePort)) {
             RCLCPP_WARN(m_node->get_logger(), "ARM %s: port not ready, skipping", armName.c_str());
             continue;
@@ -430,8 +426,8 @@ bool CartesianPointingComponent::preScanArticulatedArms(const Eigen::Vector3d& a
         // Select the correct client/server ports per arm.
         // Using explicit names avoids accidental cross-wiring between limbs.
         yarp::os::Port* clientPort = (armId == "LEFT") ? &m_cartesianPortLeft : &m_cartesianPortRight;
-        const std::string serverPort = (armId == "LEFT") ? "/r1-cartesian-control/left_arm/rpc:i"
-                                                         : "/r1-cartesian-control/right_arm/rpc:i";
+        const std::string serverPort = (armId == "LEFT") ? cartesianPortLeft
+                                                         : cartesianPortRight;
 
         // Fast pre-check: only attempt RPC if the client is open and the route exists.
         // This avoids blocking calls and produces clearer diagnostics.
