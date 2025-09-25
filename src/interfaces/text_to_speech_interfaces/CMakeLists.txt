@@ -19,8 +19,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 "srv/SetLanguage.srv"
 "srv/GetLanguage.srv"
 "srv/Speak.srv"
-"srv/IsSpeaking.srv"
-"srv/SetMicrophone.srv"
 "srv/SetVoice.srv"
 "action/BatchGeneration.action"
 DEPENDENCIES std_msgs

@@ -277,7 +277,7 @@
   </state>
 
   <state id="shortenReplyResult">
-    <transition cond="m_result == 'SUCCESS'" target="speak" />
+    <transition cond="m_result == 'SUCCESS'" target="synthesizeText" />
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
   </state>
 
@@ -313,7 +313,7 @@
 
   <state id="interpretCommandResult">
 
-    <transition cond="m_result == 'SUCCESS'" target="speak" />
+    <transition cond="m_result == 'SUCCESS'" target="synthesizeText" />
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
   </state>
 
@@ -347,9 +347,41 @@
     <onentry>
 
     </onentry>
+    <transition cond="m_result == 'SUCCESS'" target="synthesizeText" />
+    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+  </state>
+
+
+  <state id="synthesizeText">
+    <onentry>
+      <log label="State SynthesizeText" expr="m_result"/>
+      <log label="Interaction" expr="m_interaction"/>
+      <log label="Language" expr="m_language"/>
+      <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/> 
+      <log label="LLM context" expr="m_context"/>
+      <log label="Is tour ended" expr="m_is_poi_ended"/>
+      <log label="Reply" expr="m_reply"/>
+      <log label="Is reply finished" expr="m_is_reply_finished"/>
+      <log label="Dance" expr="m_dance"/>
+
+      <send event="TextToSpeechComponent.SynthesizeText.Call">
+        <!-- <param name="text" expr="m_reply"/>
+        <param name="language" expr="m_language"/> -->
+      </send>
+    </onentry>
+
+    <transition event="TextToSpeechComponent.SynthesizeText.Return" target="synthesizeTextResult">
+      <assign expr="_event.data.result" location="m_result"/>
+      <assign expr="_event.data.reply" location="m_reply"/>
+    </transition>
+  </state>
+
+  <state id="synthesizeTextResult">
+    
     <transition cond="m_result == 'SUCCESS'" target="speak" />
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
   </state>
+
 
   <state id="speak">
     <onentry>
@@ -377,7 +409,7 @@
 
   <state id="speakResult">
 
-    <transition cond ="m_is_reply_finished == false" target="evaluateDuplicate"/>
+    <transition cond ="m_is_reply_finished == false" target="speak"/>
     
     <transition cond="m_result == 'SUCCESS'" target="waitForInteraction">
         <send event="DialogComponent.WaitForInteraction.Call">

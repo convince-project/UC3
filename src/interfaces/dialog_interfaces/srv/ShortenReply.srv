@@ -2,6 +2,5 @@ int32 duplicate_index # The index of the question that is semantically a duplica
 string context # based on the context, the conversation is managed by different LLMs, or by predefined replies. We take this information as an input to store the history of the conversation for each case
 string interaction # interaction within a conversation
 ---
-string reply # The text to be spoken
-bool is_reply_finished # indicates if the reply is finished or if it is a partial reply
+string[] reply # The text to be spoken
 bool is_ok

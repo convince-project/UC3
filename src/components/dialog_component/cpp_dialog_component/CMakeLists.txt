@@ -59,7 +59,8 @@ add_executable(${PROJECT_NAME}  src/DialogComponent.cpp
                                 src/Poi.cpp
                                 src/Tour.cpp
                                 src/TourStorage.cpp
-                                src/main.cpp)
+                                src/main.cpp
+                                src/VerbalOutputBatchReader.cpp)
 ament_target_dependencies(${PROJECT_NAME} 
 "YARP"
 "rclcpp"

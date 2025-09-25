@@ -24,11 +24,12 @@
 #include <dialog_interfaces/srv/answer.hpp>
 #include <dialog_interfaces/srv/set_language.hpp>
 #include <dialog_interfaces/srv/interpret_command.hpp>
-#include <dialog_interfaces/srv/speak.hpp>
 
+#include <dialog_interfaces/action/speak.hpp>
 #include <dialog_interfaces/action/wait_for_interaction.hpp>
 
-#include <text_to_speech_interfaces/srv/set_microphone.hpp>
+#include <dialog_interfaces/srv/set_microphone.hpp>
+#include <text_to_speech_interfaces/action/batch_generation.hpp>
 
 #include <QThread>
 
@@ -53,6 +54,12 @@ public:
 	using ActionWaitForInteraction = dialog_interfaces::action::WaitForInteraction;
 	using GoalHandleWaitForInteraction = rclcpp_action::ClientGoalHandle<ActionWaitForInteraction>;
 
+	using ActionSpeak = dialog_interfaces::action::Speak;
+	using GoalHandleSpeak = rclcpp_action::ClientGoalHandle<ActionSpeak>;
+
+	using ActionSynthesizeText = text_to_speech_interfaces::action::BatchGeneration;
+	using GoalHandleSynthesizeText = rclcpp_action::ClientGoalHandle<ActionSynthesizeText>;
+
 private:
 	void EnableMicrophone();
     void DisableMicrophone();
@@ -72,9 +79,24 @@ private:
 	std::shared_ptr<rclcpp::Node> nodeWaitForInteraction;
 	std::shared_ptr<rclcpp_action::Client<dialog_interfaces::action::WaitForInteraction>> clientWaitForInteraction;
 
+	std::shared_ptr<rclcpp::Node> nodeSpeak;
+	std::shared_ptr<rclcpp_action::Client<ActionSpeak>> clientSpeak;
+
+	std::shared_ptr<rclcpp::Node> nodeSynthesizeText;
+	std::shared_ptr<rclcpp_action::Client<ActionSynthesizeText>> clientSynthesizeText;
+
 	// Members
 	std::shared_ptr<rclcpp::executors::SingleThreadedExecutor> m_executor;
 	QThread* m_thread = nullptr;
+
+	std::shared_ptr<rclcpp::executors::SingleThreadedExecutor> m_SpeakExecutor;
+	QThread* m_SpeakThread = nullptr;
+
+	std::shared_ptr<rclcpp::executors::SingleThreadedExecutor> m_SynthesizeTextExecutor;
+	QThread* m_SynthesizeTextThread = nullptr;
+
+	// save the vector of text for the reply
+	std::vector<std::string> m_replies;
 
 
 };
