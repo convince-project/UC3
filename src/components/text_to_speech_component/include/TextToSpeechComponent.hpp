@@ -77,11 +77,11 @@ private:
     void handle_accepted(const std::shared_ptr<GoalHandleBatchGeneration> goal_handle);
 
     std::mutex m_mutex;
-    yarp::os::BufferedPort<yarp::sig::Sound> m_audioPort;
+    // yarp::os::BufferedPort<yarp::sig::Sound> m_audioPort;
     yarp::os::BufferedPort<yarp::sig::Sound> m_batchAudioPort;
-    yarp::os::BufferedPort<yarp::sig::AudioPlayerStatus> m_audioStatusPort;
-    rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr m_speakerStatusPub;
-    rclcpp::TimerBase::SharedPtr m_timer;
+    // yarp::os::BufferedPort<yarp::sig::AudioPlayerStatus> m_audioStatusPort;
+    // rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr m_speakerStatusPub;
+    // rclcpp::TimerBase::SharedPtr m_timer;
 
     yarp::dev::PolyDriver m_audioRecorderPoly;
     yarp::dev::IAudioGrabberSound *m_iAudioGrabberSound{nullptr};
