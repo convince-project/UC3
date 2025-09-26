@@ -78,21 +78,9 @@ bool TextToSpeechComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
 
         }
 
-        if (!m_audioPort.open(localAudioName))
-        {
-            yError() << "[TextToSpeechComponent::ConfigureYARP] Unable to open port: " << localAudioName;
-            return false;
-        }
-
         if(!m_batchAudioPort.open(localBatchAudioName))
         {
             yError() << "[TextToSpeechComponent::ConfigureYARP] Unable to open port: " << localBatchAudioName;
-            return false;
-        }
-
-        if (!m_audioStatusPort.open(statusLocalName))
-        {
-            yError() << "[TextToSpeechComponent::ConfigureYARP] Unable to open port: " << statusLocalName;
             return false;
         }
     }
@@ -164,21 +152,12 @@ bool TextToSpeechComponent::start(int argc, char*argv[])
                                                                                                 this,
                                                                                                 std::placeholders::_1,
                                                                                                 std::placeholders::_2));
-    m_speakService = m_node->create_service<text_to_speech_interfaces::srv::Speak>("/TextToSpeechComponent/Speak",
-                                                                                        std::bind(&TextToSpeechComponent::Speak,
-                                                                                                this,
-                                                                                                std::placeholders::_1,
-                                                                                                std::placeholders::_2));
-    m_IsSpeakingService = m_node->create_service<text_to_speech_interfaces::srv::IsSpeaking>("/TextToSpeechComponent/IsSpeaking",
-                                                                                        std::bind(&TextToSpeechComponent::IsSpeaking,
-                                                                                                this,
-                                                                                                std::placeholders::_1,
-                                                                                                std::placeholders::_2));
-    m_SetMicrophoneService = m_node->create_service<text_to_speech_interfaces::srv::SetMicrophone>("/TextToSpeechComponent/SetMicrophone",
-                                                                                        std::bind(&TextToSpeechComponent::SetMicrophone,
-                                                                                                this,
-                                                                                                std::placeholders::_1,
-                                                                                                std::placeholders::_2));
+    // m_speakService = m_node->create_service<text_to_speech_interfaces::srv::Speak>("/TextToSpeechComponent/Speak",
+    //                                                                                     std::bind(&TextToSpeechComponent::Speak,
+    //                                                                                             this,
+    //                                                                                             std::placeholders::_1,
+    //                                                                                             std::placeholders::_2));
+
     m_setVoiceService = m_node->create_service<text_to_speech_interfaces::srv::SetVoice>("/TextToSpeechComponent/SetVoice",
                                                                                         std::bind(&TextToSpeechComponent::SetVoice,
                                                                                                 this,
@@ -325,56 +304,56 @@ void TextToSpeechComponent::spin()
 }
 
 
-void TextToSpeechComponent::Speak(const std::shared_ptr<text_to_speech_interfaces::srv::Speak::Request> request,
-                        std::shared_ptr<text_to_speech_interfaces::srv::Speak::Response> response)
-{
-    std::lock_guard<std::mutex> lock(m_mutex);
-    yInfo() << "[TextToSpeechComponent::Speak] service called with text: " << request->text;
-    bool isRecording;
-    m_iAudioGrabberSound->isRecording(isRecording);
-    if (isRecording)
-    {
-        m_iAudioGrabberSound->stopRecording();
-        RCLCPP_ERROR_STREAM(m_node->get_logger(), "TextToSpeechComponent stopping micorphone" << __LINE__ );
-    }
-    yInfo() << "[TextToSpeechComponent::Speak] passed mic";
-    yarp::sig::Sound& sound = m_audioPort.prepare();
-    sound.clear();
-    auto init_time = yarp::os::Time::now();
-    if (!m_iSpeechSynth->synthesize(request->text, sound))
-    {
-        yError() << "[TextToSpeechComponent::Speak] Error in synthesize";
-        response->is_ok=false;
-        response->error_msg="Unable to synthesize text";
-        if (isRecording)
-        {
-            m_iAudioGrabberSound->startRecording();
-            RCLCPP_ERROR_STREAM(m_node->get_logger(), "TextToSpeechComponent " << __LINE__ );
-    	}
-    }
-    else
-    {
+// void TextToSpeechComponent::Speak(const std::shared_ptr<text_to_speech_interfaces::srv::Speak::Request> request,
+//                         std::shared_ptr<text_to_speech_interfaces::srv::Speak::Response> response)
+// {
+//     std::lock_guard<std::mutex> lock(m_mutex);
+//     yInfo() << "[TextToSpeechComponent::Speak] service called with text: " << request->text;
+//     bool isRecording;
+//     m_iAudioGrabberSound->isRecording(isRecording);
+//     if (isRecording)
+//     {
+//         m_iAudioGrabberSound->stopRecording();
+//         RCLCPP_ERROR_STREAM(m_node->get_logger(), "TextToSpeechComponent stopping micorphone" << __LINE__ );
+//     }
+//     yInfo() << "[TextToSpeechComponent::Speak] passed mic";
+//     yarp::sig::Sound& sound = m_audioPort.prepare();
+//     sound.clear();
+//     auto init_time = yarp::os::Time::now();
+//     if (!m_iSpeechSynth->synthesize(request->text, sound))
+//     {
+//         yError() << "[TextToSpeechComponent::Speak] Error in synthesize";
+//         response->is_ok=false;
+//         response->error_msg="Unable to synthesize text";
+//         if (isRecording)
+//         {
+//             m_iAudioGrabberSound->startRecording();
+//             RCLCPP_ERROR_STREAM(m_node->get_logger(), "TextToSpeechComponent " << __LINE__ );
+//     	}
+//     }
+//     else
+//     {
 
-        auto end_time =  yarp::os::Time::now();
-        yInfo() << "elapsed time = " << end_time - init_time ;
-        yInfo() << "[TextToSpeechComponent::Speak] synthesized with size: " << sound.getSamples();
-        float speech_time = (float)(sound.getSamples()) / 44100.0f * 2; // AUDIO_BASE::rate * 2 because maybe my laptop rate is twice the one of the robot
-        response->speech_time = speech_time;
-        yInfo() << "[TextToSpeechComponent::Speak] speech time: " << response->speech_time;
-        m_audioPort.write();
-        response->is_ok=true;
-    }
+//         auto end_time =  yarp::os::Time::now();
+//         yInfo() << "elapsed time = " << end_time - init_time ;
+//         yInfo() << "[TextToSpeechComponent::Speak] synthesized with size: " << sound.getSamples();
+//         float speech_time = (float)(sound.getSamples()) / 44100.0f * 2; // AUDIO_BASE::rate * 2 because maybe my laptop rate is twice the one of the robot
+//         response->speech_time = speech_time;
+//         yInfo() << "[TextToSpeechComponent::Speak] speech time: " << response->speech_time;
+//         m_audioPort.write();
+//         response->is_ok=true;
+//     }
 
-    bool isSpeaking =false;
-    while (!isSpeaking){
-        auto data = m_audioStatusPort.read();
-        if (data != nullptr && data->current_buffer_size > 0) {
-            m_startedSpeaking = true;
-            isSpeaking = true;
-        }
-    }
-    yDebug() << "[TextToSpeechComponent::Speak] the robot is speaking";
-}
+//     bool isSpeaking =false;
+//     while (!isSpeaking){
+//         auto data = m_audioStatusPort.read();
+//         if (data != nullptr && data->current_buffer_size > 0) {
+//             m_startedSpeaking = true;
+//             isSpeaking = true;
+//         }
+//     }
+//     yDebug() << "[TextToSpeechComponent::Speak] the robot is speaking";
+// }
 
 void TextToSpeechComponent::SetLanguage(const std::shared_ptr<text_to_speech_interfaces::srv::SetLanguage::Request> request,
                         std::shared_ptr<text_to_speech_interfaces::srv::SetLanguage::Response> response)

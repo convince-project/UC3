@@ -15,7 +15,12 @@ int main(int argc, char* argv[])
         return 1;
     }
     // blocking call
-    dialogComponent.spin();
+    rclcpp::executors::MultiThreadedExecutor m_executor;
+    m_executor.add_node(dialogComponent.getNode());
+    m_executor.spin();
+    
+    
+    // dialogComponent.spin();
 
     dialogComponent.close();
     return 0;
