@@ -455,37 +455,37 @@ bool DialogComponent::start(int argc, char *argv[])
 
     m_speakerStatusPub = m_node->create_publisher<std_msgs::msg::Bool>("/DialogComponent/is_speaking", 10);
 
-    m_timer = m_node->create_wall_timer(200ms,
-                                        [this]() -> void
-                                        {
-                                            std::lock_guard<std::mutex> lock(m_mutex);
-                                            auto data = m_audioStatusPort.read();
-                                            if (data != nullptr)
-                                            {
-                                                std_msgs::msg::Bool msg;
-                                                if (data->current_buffer_size > 0)
-                                                    msg.data = true;
-                                                else
-                                                {
-                                                    if (!m_manualMicDisabled && m_startedSpeaking)
-                                                    {
-                                                        bool isRecording;
-                                                        m_iAudioGrabberSound->isRecording(isRecording);
-                                                        if (!isRecording)
-                                                        {
-                                                            RCLCPP_ERROR_STREAM(m_node->get_logger(), "TextToSpeechComponent " << __LINE__);
-                                                            if (!m_iAudioGrabberSound->startRecording())
-                                                            {
-                                                                RCLCPP_ERROR(m_node->get_logger(), "Unable to stop recording!");
-                                                            }
-                                                        }
-                                                        m_startedSpeaking = false;
-                                                    }
-                                                    msg.data = false;
-                                                }
-                                                m_speakerStatusPub->publish(msg);
-                                            }
-                                        });
+    // m_timer = m_node->create_wall_timer(200ms,
+    //                                     [this]() -> void
+    //                                     {
+    //                                         std::lock_guard<std::mutex> lock(m_mutex);
+    //                                         auto data = m_audioStatusPort.read();
+    //                                         if (data != nullptr)
+    //                                         {
+    //                                             std_msgs::msg::Bool msg;
+    //                                             if (data->current_buffer_size > 0)
+    //                                                 msg.data = true;
+    //                                             else
+    //                                             {
+    //                                                 if (!m_manualMicDisabled && m_startedSpeaking)
+    //                                                 {
+    //                                                     bool isRecording;
+    //                                                     m_iAudioGrabberSound->isRecording(isRecording);
+    //                                                     if (!isRecording)
+    //                                                     {
+    //                                                         RCLCPP_ERROR_STREAM(m_node->get_logger(), "TextToSpeechComponent " << __LINE__);
+    //                                                         if (!m_iAudioGrabberSound->startRecording())
+    //                                                         {
+    //                                                             RCLCPP_ERROR(m_node->get_logger(), "Unable to stop recording!");
+    //                                                         }
+    //                                                     }
+    //                                                     m_startedSpeaking = false;
+    //                                                 }
+    //                                                 msg.data = false;
+    //                                             }
+    //                                             m_speakerStatusPub->publish(msg);
+    //                                         }
+    //                                     });
 
     m_WaitForInteractionAction = rclcpp_action::create_server<dialog_interfaces::action::WaitForInteraction>(
         m_node,
@@ -525,6 +525,11 @@ bool DialogComponent::close()
 void DialogComponent::spin()
 {
     rclcpp::spin(m_node);
+}
+
+rclcpp::Node::SharedPtr DialogComponent::getNode()
+{
+    return m_node;
 }
 
 void DialogComponent::ManageContext(const std::shared_ptr<dialog_interfaces::srv::ManageContext::Request> request,

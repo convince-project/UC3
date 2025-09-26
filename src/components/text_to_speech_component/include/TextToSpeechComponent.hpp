@@ -24,8 +24,6 @@
 #include <text_to_speech_interfaces/srv/set_language.hpp>
 #include <text_to_speech_interfaces/srv/set_voice.hpp>
 #include <text_to_speech_interfaces/srv/speak.hpp>
-#include <text_to_speech_interfaces/srv/is_speaking.hpp>
-#include <text_to_speech_interfaces/srv/set_microphone.hpp>
 #include <text_to_speech_interfaces/action/batch_generation.hpp>
 
 class TextToSpeechComponent
@@ -48,12 +46,8 @@ public:
                         std::shared_ptr<text_to_speech_interfaces::srv::SetLanguage::Response> response);
     void SetVoice(const std::shared_ptr<text_to_speech_interfaces::srv::SetVoice::Request> request,
                         std::shared_ptr<text_to_speech_interfaces::srv::SetVoice::Response> response);
-    void Speak(const std::shared_ptr<text_to_speech_interfaces::srv::Speak::Request> request,
-                        std::shared_ptr<text_to_speech_interfaces::srv::Speak::Response> response);
-    void IsSpeaking(const std::shared_ptr<text_to_speech_interfaces::srv::IsSpeaking::Request> request,
-                        std::shared_ptr<text_to_speech_interfaces::srv::IsSpeaking::Response> response);
-    void SetMicrophone(const std::shared_ptr<text_to_speech_interfaces::srv::SetMicrophone::Request> request,
-                        std::shared_ptr<text_to_speech_interfaces::srv::SetMicrophone::Response> response);
+    // void Speak(const std::shared_ptr<text_to_speech_interfaces::srv::Speak::Request> request,
+    //                     std::shared_ptr<text_to_speech_interfaces::srv::Speak::Response> response);
     void BatchGeneration(const std::shared_ptr<GoalHandleBatchGeneration> goal_handle);
 
 private:
@@ -66,8 +60,6 @@ private:
     rclcpp::Service<text_to_speech_interfaces::srv::SetLanguage>::SharedPtr m_setLanguageService;
     rclcpp::Service<text_to_speech_interfaces::srv::SetVoice>::SharedPtr m_setVoiceService;
     rclcpp::Service<text_to_speech_interfaces::srv::Speak>::SharedPtr m_speakService;
-    rclcpp::Service<text_to_speech_interfaces::srv::IsSpeaking>::SharedPtr m_IsSpeakingService;
-    rclcpp::Service<text_to_speech_interfaces::srv::SetMicrophone>::SharedPtr m_SetMicrophoneService;
 
 
     rclcpp_action::Server<actionBatchGeneration>::SharedPtr m_BatchGenerationAction;

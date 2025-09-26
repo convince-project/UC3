@@ -41,8 +41,6 @@
 #include <yarp/dev/ISpeechTranscription.h>
 
 // Text to Speech Interfaces
-#include <text_to_speech_interfaces/srv/is_speaking.hpp>
-#include <text_to_speech_interfaces/srv/set_microphone.hpp>
 #include <text_to_speech_interfaces/srv/speak.hpp>
 #include <text_to_speech_interfaces/srv/set_language.hpp>
 #include <text_to_speech_interfaces/srv/set_voice.hpp>
@@ -103,6 +101,7 @@ public:
     void IsSpeaking(const std::shared_ptr<dialog_interfaces::srv::IsSpeaking::Request> request,
                     std::shared_ptr<dialog_interfaces::srv::IsSpeaking::Response> response); // Returns true if the DialogComponent is currently sending data to the speaker ports
 
+    rclcpp::Node::SharedPtr getNode();
 protected:
     // Protected methods to manage internal functions and to interact with other services
     // void SpeakFromText(std::string text, std::string dance); // ROS2 service client to TextToSpeechComponent to speak the text

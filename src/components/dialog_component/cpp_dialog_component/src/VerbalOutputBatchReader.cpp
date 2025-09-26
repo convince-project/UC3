@@ -24,6 +24,8 @@ bool VerbalOutputBatchReader::ConfigureYARP(yarp::os::ResourceFinder &rf)
         yError() << "Cannot open textToSpeech client port";
         return false;
     }
+
+    yInfo() << "[VerbalOutputBatchReader::ConfigureYARP] Trying to connect to /TextToSpeechComponent/batch:o";
     yarp::os::Network::connect(textToSpeechClientPortName, "/TextToSpeechComponent/batch:o");
     
 }
