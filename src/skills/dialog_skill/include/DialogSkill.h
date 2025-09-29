@@ -80,10 +80,10 @@ private:
 	std::shared_ptr<rclcpp_action::Client<dialog_interfaces::action::WaitForInteraction>> clientWaitForInteraction;
 
 	std::shared_ptr<rclcpp::Node> nodeSpeak;
-	std::shared_ptr<rclcpp_action::Client<ActionSpeak>> clientSpeak;
+	std::shared_ptr<rclcpp_action::Client<dialog_interfaces::action::Speak>> clientSpeak;
 
 	std::shared_ptr<rclcpp::Node> nodeSynthesizeText;
-	std::shared_ptr<rclcpp_action::Client<ActionSynthesizeText>> clientSynthesizeText;
+	std::shared_ptr<rclcpp_action::Client<text_to_speech_interfaces::action::BatchGeneration>> clientSynthesizeText;
 
 	// Members
 	std::shared_ptr<rclcpp::executors::SingleThreadedExecutor> m_executor;

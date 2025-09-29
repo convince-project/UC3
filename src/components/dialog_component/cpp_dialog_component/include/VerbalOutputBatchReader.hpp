@@ -33,7 +33,7 @@ public:
     // void spin();
     bool ConfigureYARP(yarp::os::ResourceFinder &rf);
 
-    void GetVerbalOutput(yarp::sig::Sound* output);
+    std::unique_ptr<yarp::sig::Sound> GetVerbalOutput();
 
     void resetQueue();
 
@@ -42,13 +42,15 @@ public:
 private:
 
 
-    std::queue<yarp::sig::Sound> m_audioQueue;
+    std::queue<std::unique_ptr<yarp::sig::Sound>> m_audioQueue;
 
-    // textToSpeech client port name
-    std::string textToSpeechClientPortName;
+    // // textToSpeech client port name
+    // std::string textToSpeechClientPortName;
 
-    // textToSpeech client port
-    yarp::os::Port m_textToSpeechClientPort;
+    // // textToSpeech client port
+    // yarp::os::Port m_textToSpeechClientPort;
+
+    yarp::os::BufferedPort<yarp::sig::Sound> m_audioInputPort;
 };
 
 #endif // VERBAL_OUTPUT_BATCH_READER__HPP

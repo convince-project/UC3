@@ -15,41 +15,58 @@ bool VerbalOutputBatchReader::ConfigureYARP(yarp::os::ResourceFinder &rf)
 {
     // --------------------- TEXT TO SPEECH NWC----------------------------
     bool okCheck = rf.check("TEXT_TO_SPEECH_COMPONENT");
-    
 
-    textToSpeechClientPortName = "/VerbalOutputBatchReader/TextToSpeechComponent/batch:i";
-    bool b = m_textToSpeechClientPort.open(textToSpeechClientPortName);
-    if (!b)
+    // textToSpeechClientPortName = "/VerbalOutputBatchReader/TextToSpeechComponent/batch:i";
+    // bool b = m_textToSpeechClientPort.open(textToSpeechClientPortName);
+    // if (!b)
+    // {
+    //     yError() << "Cannot open textToSpeech client port";
+    //     return false;
+    // }
+
+    // yInfo() << "[VerbalOutputBatchReader::ConfigureYARP] Trying to connect to /TextToSpeechComponent/batch:o";
+    // yarp::os::Network::connect(textToSpeechClientPortName, "/TextToSpeechComponent/batch:o");
+
+    m_audioInputPort.useCallback(*this);
+    if (!m_audioInputPort.open("/VerbalOutputBatchReader/batch:i"))
     {
-        yError() << "Cannot open textToSpeech client port";
+        yError() << "[VerbalOutputBatchReader::ConfigureYARP] Unable to open port: " << "/VerbalOutputBatchReader/TextToSpeechComponent/batch:i";
         return false;
     }
-
-    yInfo() << "[VerbalOutputBatchReader::ConfigureYARP] Trying to connect to /TextToSpeechComponent/batch:o";
-    yarp::os::Network::connect(textToSpeechClientPortName, "/TextToSpeechComponent/batch:o");
     
+    yInfo() << "[VerbalOutputBatchReader::ConfigureYARP] Trying to connect to /TextToSpeechComponent/batch:o";
+    yarp::os::Network::connect("/TextToSpeechComponent/batch:o", m_audioInputPort.getName());
+
+    yInfo() << "[VerbalOutputBatchReader::ConfigureYARP] Successfully configured component";
+
 }
 
 void VerbalOutputBatchReader::resetQueue()
 {
-    std::queue<yarp::sig::Sound> empty;
-    std::swap(m_audioQueue, empty);
+    m_audioQueue = {};
     yInfo() << "[VerbalOutputBatchReader::resetQueue] Audio queue has been reset.";
 }
 
-void VerbalOutputBatchReader::GetVerbalOutput(yarp::sig::Sound *output)
+
+std::unique_ptr<yarp::sig::Sound> VerbalOutputBatchReader::GetVerbalOutput()
 {
+    std::cout << "[VerbalOutputBatchReader::GetVerbalOutput] Checking audio queue. Current size is: " << m_audioQueue.size() << std::endl;
     if (!m_audioQueue.empty())
     {
-        *output = m_audioQueue.front();
+        std::cout << "[VerbalOutputBatchReader::GetVerbalOutput] Assigning audio from queue. Queue size is: " << m_audioQueue.size() << std::endl;
+        
+        auto sound = std::move(m_audioQueue.front());
+        std::cout << "[VerbalOutputBatchReader::GetVerbalOutput] Audio queue size before popping: " << m_audioQueue.size() << std::endl;
         m_audioQueue.pop();
-        yInfo() << "[VerbalOutputBatchReader::GetVerbalOutput] Returning audio from queue. Queue size is now: " << m_audioQueue.size();
-        return;
+        std::cout << "[VerbalOutputBatchReader::GetVerbalOutput] Returning audio from queue. Queue size is now: " << m_audioQueue.size() << std::endl;
+        return sound;
     }
+    return nullptr;
 }
+
 
 void VerbalOutputBatchReader::onRead(yarp::sig::Sound &msg)
 {
-    m_audioQueue.push(msg);
+    m_audioQueue.push(std::make_unique<yarp::sig::Sound>(msg));
     yInfo() << "[VerbalOutputBatchReader::onRead] Received audio message. Queue size is now: " << m_audioQueue.size();
 }

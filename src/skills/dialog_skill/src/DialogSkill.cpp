@@ -96,16 +96,28 @@ bool DialogSkill::start(int argc, char *argv[])
 
     nodeSpeak = rclcpp::Node::make_shared(m_name + "SkillNodeSpeak");
     this->clientSpeak =
-        rclcpp_action::create_client<dialog_interfaces::action::Speak>(this->nodeSpeak, "/DialogComponent/Speak");
+        rclcpp_action::create_client<dialog_interfaces::action::Speak>(this->nodeSpeak, "/DialogComponent/SpeakAction");
+
+    nodeSynthesizeText = rclcpp::Node::make_shared(m_name + "SkillNodeSynthesizeText");
+    this->clientSynthesizeText =
+        rclcpp_action::create_client<text_to_speech_interfaces::action::BatchGeneration>(this->nodeSynthesizeText, "/TextToSpeechComponent/BatchGenerationAction");
 
     m_executor = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
     m_executor->add_node(nodeWaitForInteraction);
+
+    m_SpeakExecutor = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
+    m_SpeakExecutor->add_node(nodeSpeak);
+
+    m_SynthesizeTextExecutor = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
+    m_SynthesizeTextExecutor->add_node(nodeSynthesizeText);
 
     // WaitForInteraction action fragment of code start
 
     m_stateMachine.connectToEvent("DialogComponent.WaitForInteraction.Call", [this]([[maybe_unused]] const QScxmlEvent &event)
 
                                   {
+
+        std::cout << "Starting WaitForInteractionThread" << std::endl;
         m_thread = QThread::create([event, this]() {
 
             if (!clientWaitForInteraction->wait_for_action_server())
@@ -225,7 +237,6 @@ bool DialogSkill::start(int argc, char *argv[])
         auto request = std::make_shared<dialog_interfaces::srv::SetLanguage::Request>();
         auto eventParams = event.data().toMap();
         request->language = convert<decltype(request->language)>(eventParams["new_language"].toString().toStdString());
-        std::cout << "DialogComponent::SetLanguage call received with language: " << request->language << std::endl;
         bool wait_succeded{true};
         while (!clientSetLanguage->wait_for_service(std::chrono::seconds(1))) {
             if (!rclcpp::ok()) {
@@ -338,7 +349,7 @@ bool DialogSkill::start(int argc, char *argv[])
                         replies_qt << QString::fromStdString(reply);
                     }
 
-                    data.insert("reply", replies_qt.join("# ").toStdString().c_str());
+                    data.insert("reply", replies_qt.join(".,,,. ").toStdString().c_str());
 
                     for (const auto& reply : response->reply) {
                         m_replies.push_back(reply);
@@ -390,7 +401,7 @@ bool DialogSkill::start(int argc, char *argv[])
                         replies_qt << QString::fromStdString(reply);
                     }
 
-                    data.insert("reply", replies_qt.join("# ").toStdString().c_str());
+                    data.insert("reply", replies_qt.join(".,,,. ").toStdString().c_str());
 
                     for (const auto& reply : response->reply) {
                         m_replies.push_back(reply);
@@ -443,7 +454,7 @@ bool DialogSkill::start(int argc, char *argv[])
                         replies_qt << QString::fromStdString(reply);
                     }
 
-                    data.insert("reply", replies_qt.join("# ").toStdString().c_str());
+                    data.insert("reply", replies_qt.join(".,,,.").toStdString().c_str());
                     for (const auto& reply : response->reply) {
                         m_replies.push_back(reply);
                     }
@@ -461,6 +472,8 @@ bool DialogSkill::start(int argc, char *argv[])
 
     m_stateMachine.connectToEvent("TextToSpeechComponent.SynthesizeText.Call", [this]([[maybe_unused]] const QScxmlEvent &event)
                                   {
+
+        std::cout << "Starting SynthesizeTextThread creation" << std::endl;                            
         m_SynthesizeTextThread = QThread::create([event, this]() {
 
             if (!clientSynthesizeText->wait_for_action_server())
@@ -470,8 +483,12 @@ bool DialogSkill::start(int argc, char *argv[])
             }
 
             auto goal_msg = text_to_speech_interfaces::action::BatchGeneration::Goal();
-            auto eventParams = event.data().toMap();
             goal_msg.texts = m_replies;
+
+            for (auto &text : goal_msg.texts)
+            {
+                std::cout << "[TextToSpeechComponent::SynthesizeText] Text to be synthesized: " << text << std::endl;
+            }
 
             // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TextToSpeechComponent.SynthesizeText.Call called with texts: %s",
             //             QStringList::fromStdList(goal_msg.texts).join("# ").toStdString().c_str());
@@ -516,17 +533,28 @@ bool DialogSkill::start(int argc, char *argv[])
                     data.insert("result", "FAILURE");
                     m_stateMachine.submitEvent("TextToSpeechComponent.SynthesizeText.Return", data);
                 }
-
+                
+                std::cout << "Clearing replies vector" << std::endl;
                 // Stop executor if needed:
+                m_replies.clear();
+
+                std::cout << "Cancel executor" << std::endl;
                 m_SynthesizeTextExecutor->cancel();
+                std::cout << "Executor cancelled" << std::endl;
 
             };
+            std::cout << "Sending goal to TextToSpeech Batch Generation Action server" << std::endl;
             clientSynthesizeText->async_send_goal(goal_msg, send_goal_options);
+            std::cout << "Goal sent" << std::endl;
 
+            std::cout << "Spinning SynthesizeTextExecutor" << std::endl;
             m_SynthesizeTextExecutor->spin();
+            std::cout << "SynthesizeTextExecutor spinned" << std::endl;
         });
 
-        m_SynthesizeTextThread->start(); });
+        std::cout << "Starting SynthesizeTextThread" << std::endl;
+        m_SynthesizeTextThread->start();
+        std::cout << "SynthesizeTextThread started" << std::endl; });
 
     // m_stateMachine.connectToEvent("DialogComponent.Speak.Call", [this]([[maybe_unused]] const QScxmlEvent &event)
     //                               {
@@ -573,7 +601,8 @@ bool DialogSkill::start(int argc, char *argv[])
     m_stateMachine.connectToEvent("DialogComponent.Speak.Call", [this]([[maybe_unused]] const QScxmlEvent &event)
 
                                   {
-            m_SpeakThread = QThread::create([event, this]() {
+            std::cout << "Starting SpeakThread creation" << std::endl;
+                                    m_SpeakThread = QThread::create([event, this]() {
 
             if (!clientSpeak->wait_for_action_server())
             {
@@ -636,16 +665,24 @@ bool DialogSkill::start(int argc, char *argv[])
                     m_stateMachine.submitEvent("DialogComponent.Speak.Return", data);
                 }
 
+                std::cout << "Cancelling Speak executor" << std::endl;
                 // Stop executor if needed:
                 m_SpeakExecutor->cancel();
+                std::cout << "Executor cancelled" << std::endl;
 
             };
+            std::cout << "Sending goal to Speak Action server" << std::endl;
             clientSpeak->async_send_goal(goal_msg, send_goal_options);
+            std::cout << "Goal sent" << std::endl;
 
+            std::cout << "Spinning SpeakExecutor" << std::endl;
             m_SpeakExecutor->spin();
+            std::cout << "SpeakExecutor spinned" << std::endl;
         });
 
-        m_thread->start(); });
+        std::cout << "Starting SpeakThread" << std::endl;
+        m_SpeakThread->start();
+        std::cout << "SpeakThread started" << std::endl; });
 
     // Speak action fragment of code end
 
