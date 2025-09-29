@@ -394,6 +394,8 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
         return false;
     }
 
+    m_verbalOutputBatchReader.ConfigureYARP(rf);
+
     yInfo() << "[DialogComponent::ConfigureYARP] Successfully configured component";
     return true;
 }
@@ -1421,11 +1423,11 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
         return;
     }
 
-    yarp::sig::Sound *verbalOutput = nullptr;
+    std::unique_ptr<yarp::sig::Sound> verbalOutput = nullptr;
 
     do
     {
-        m_verbalOutputBatchReader.GetVerbalOutput(verbalOutput);
+        verbalOutput = m_verbalOutputBatchReader.GetVerbalOutput();
         if (goal_handle->is_canceling())
         {
             result->is_ok = false;
