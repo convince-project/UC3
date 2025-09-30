@@ -37,16 +37,12 @@ def abstract_message(message):
     # int8 SKILL_SUCCESS=0
     # int8 SKILL_FAILURE=1
     # int8 SKILL_RUNNING=2
-    if "service" in message and "response" in message:
-        if message['service'] == "IsPoiDone1Skill/tick" and message['response']['status'] == 0:
-            predicates['poi1_completed'] = True
-        elif message['service'] == "IsPoiDone1Skill/tick" and message['response']['status'] != 0:
-            predicates['poi1_completed'] = False
-
-        if message['service'] == "SetPoi1Skill/tick" and message['response']['status'] == 0:
+    if "topic" in message and "GetCurrentPoi" in message:
+        if message['response']['poi_number'] == 1:
             predicates['poi1_selected'] = True
-        elif message['service'] == "SetPoi1Skill/tick" and message['response']['status'] != 0:
-            predicates['poi1_selected'] = False
+    if "topic" in message and "GetInt" in message:
+        if message["request"]["field_name"]== "PoiDone1" and message['response']['value'] == 1:
+            predicates['poi1_completed'] = True
 
     # predicates['service'] = True if 'service' in message else False
 
