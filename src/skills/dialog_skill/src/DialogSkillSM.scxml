@@ -360,6 +360,9 @@
     </onentry>
 
     <transition cond="m_result == 'SUCCESS'" target="synthesizeText">
+      <send event="TICK_RESPONSE">
+          <param name="result" expr='"RUNNING"'/>
+      </send>
       <send event="TextToSpeechComponent.SynthesizeText.Call">
         <param name="text" expr="m_reply"/>
       </send>
@@ -390,7 +393,10 @@
       </send>
     </transition>
 
-    <transition event="TextToSpeechComponent.SynthesizeText.Return" target="synthesizeTextResult">
+    <!-- <transition event="TextToSpeechComponent.SynthesizeText.Return" target="synthesizeTextResult">
+      <assign expr="_event.data.result" location="m_result"/>
+    </transition> -->
+    <transition cond="m_result == 'SUCCESS'" target="synthesizeTextResult">
       <assign expr="_event.data.result" location="m_result"/>
     </transition>
   </state>
@@ -416,6 +422,9 @@
     </onentry>
 
     <transition cond="m_result == 'SUCCESS'" target="whileSpeaking">
+      <send event="TICK_RESPONSE">
+        <param name="result" expr='"RUNNING"'/>
+      </send>
       <send event="DialogComponent.Speak.Call">
         <param name="text" expr="m_reply"/>
         <param name="dance" expr="m_dance"/>
@@ -447,11 +456,17 @@
     
     <transition event="DialogComponent.Speak.Return" target="speakResult">
       <assign expr="_event.data.result" location="m_result"/>
+      <assign expr="_event.data.is_reply_finished" location="m_is_reply_finished"/>
     </transition>
 
   </state>
 
   <state id="speakResult">
+
+    <onentry>
+      <log label="state speakResult" expr="m_result"/>
+      <log label="Is reply finished in speakResult" expr="m_is_reply_finished"/>
+    </onentry>
 
     <transition cond ="m_is_reply_finished == false" target="speak"/>
     

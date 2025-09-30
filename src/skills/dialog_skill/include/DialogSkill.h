@@ -28,7 +28,7 @@
 #include <dialog_interfaces/action/speak.hpp>
 #include <dialog_interfaces/action/wait_for_interaction.hpp>
 
-#include <dialog_interfaces/srv/set_microphone.hpp>
+#include <text_to_speech_interfaces/srv/set_microphone.hpp>
 #include <text_to_speech_interfaces/action/batch_generation.hpp>
 
 #include <QThread>

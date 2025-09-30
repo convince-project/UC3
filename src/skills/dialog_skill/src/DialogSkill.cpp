@@ -352,6 +352,7 @@ bool DialogSkill::start(int argc, char *argv[])
                     data.insert("reply", replies_qt.join(".,,,. ").toStdString().c_str());
 
                     for (const auto& reply : response->reply) {
+                        std::cout << "Reply: " << reply << std::endl;
                         m_replies.push_back(reply);
                     }
 
@@ -534,9 +535,9 @@ bool DialogSkill::start(int argc, char *argv[])
                     m_stateMachine.submitEvent("TextToSpeechComponent.SynthesizeText.Return", data);
                 }
                 
-                std::cout << "Clearing replies vector" << std::endl;
+                // std::cout << "Clearing replies vector" << std::endl;
                 // Stop executor if needed:
-                m_replies.clear();
+                // m_replies.clear();
 
                 std::cout << "Cancel executor" << std::endl;
                 m_SynthesizeTextExecutor->cancel();
@@ -619,7 +620,17 @@ bool DialogSkill::start(int argc, char *argv[])
             for (int i=0; i<m_replies.size(); i++) {
                 dances.push_back(dance);
             }
+
+            for (const auto &text : goal_msg.texts)
+            {
+                std::cout << "[DialogComponent::Speak] Text to be spoken: " << text << std::endl;
+            }
             goal_msg.dances = dances;
+
+            for (const auto &dance : goal_msg.dances)
+            {
+                std::cout << "[DialogComponent::Speak] Dance to be performed: " << dance << std::endl;
+            }
 
             // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.Speak.Call received with texts: %s and dances: %s",
             //             goal_msg.texts.c_str(), goal_msg.dances.c_str());
@@ -650,6 +661,7 @@ bool DialogSkill::start(int argc, char *argv[])
                     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Speak Goal succeeded");
                     QVariantMap data;
                     data.insert("result", "SUCCESS");
+                    data.insert("is_reply_finished", result.result->is_reply_finished);
                     m_stateMachine.submitEvent("DialogComponent.Speak.Return", data);
                 }
                 else if (result.code == rclcpp_action::ResultCode::CANCELED) {
@@ -777,8 +789,8 @@ void DialogSkill::EnableMicrophone()
     // --------------------------Start Mic service call ----------------------
     auto setCommandClientNode = rclcpp::Node::make_shared("DialogComponentSetCommandNode");
 
-    auto setMicrophoneClient = setCommandClientNode->create_client<dialog_interfaces::srv::SetMicrophone>("/DialogComponent/SetMicrophone");
-    auto request = std::make_shared<dialog_interfaces::srv::SetMicrophone::Request>();
+    auto setMicrophoneClient = setCommandClientNode->create_client<text_to_speech_interfaces::srv::SetMicrophone>("/TextToSpeechComponent/SetMicrophone");
+    auto request = std::make_shared<text_to_speech_interfaces::srv::SetMicrophone::Request>();
     request->enabled = true;
     // Check for the presence of the service. Wait for it if not available
     while (!setMicrophoneClient->wait_for_service(std::chrono::seconds(1)))
@@ -807,8 +819,8 @@ void DialogSkill::DisableMicrophone()
     // Setting the microphone off
     auto setCommandClientNode = rclcpp::Node::make_shared("DialogComponentSetCommandNode");
 
-    auto setMicrophoneClient = setCommandClientNode->create_client<dialog_interfaces::srv::SetMicrophone>("/DialogComponent/SetMicrophone");
-    auto request = std::make_shared<dialog_interfaces::srv::SetMicrophone::Request>();
+    auto setMicrophoneClient = setCommandClientNode->create_client<text_to_speech_interfaces::srv::SetMicrophone>("/TextToSpeechComponent/SetMicrophone");
+    auto request = std::make_shared<text_to_speech_interfaces::srv::SetMicrophone::Request>();
     request->enabled = false;
     // Wait for service
     while (!setMicrophoneClient->wait_for_service(std::chrono::seconds(1)))
