@@ -70,6 +70,7 @@ bool AlarmBatteryLowSkill::start(int argc, char*argv[])
   m_stateMachine.connectToEvent("NotifyUserComponent.StartAlarm.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
       std::shared_ptr<rclcpp::Node> nodeStartAlarm = rclcpp::Node::make_shared(m_name + "SkillNodeStartAlarm");
       std::shared_ptr<rclcpp::Client<notify_user_interfaces::srv::StartAlarm>> clientStartAlarm = nodeStartAlarm->create_client<notify_user_interfaces::srv::StartAlarm>("/NotifyUserComponent/StartAlarm");
+      clientStartAlarm->configure_introspection(nodeStartAlarm->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
       auto request = std::make_shared<notify_user_interfaces::srv::StartAlarm::Request>();
       auto eventParams = event.data().toMap();
       
