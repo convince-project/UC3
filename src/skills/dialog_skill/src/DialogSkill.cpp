@@ -614,6 +614,7 @@ bool DialogSkill::start(int argc, char *argv[])
             auto goal_msg = dialog_interfaces::action::Speak::Goal();
             auto eventParams = event.data().toMap();
             goal_msg.texts = m_replies;
+            
             std::string dance = convert<decltype(dance)>(eventParams["dance"].toString().toStdString());
 
             std::vector<std::string> dances;
@@ -662,6 +663,11 @@ bool DialogSkill::start(int argc, char *argv[])
                     QVariantMap data;
                     data.insert("result", "SUCCESS");
                     data.insert("is_reply_finished", result.result->is_reply_finished);
+                    if (result.result->is_reply_finished) {
+                        // Clear replies vector only if the whole reply has been spoken
+                        std::cout << "Clearing replies vector" << std::endl;
+                        m_replies.clear();
+                    }
                     m_stateMachine.submitEvent("DialogComponent.Speak.Return", data);
                 }
                 else if (result.code == rclcpp_action::ResultCode::CANCELED) {
