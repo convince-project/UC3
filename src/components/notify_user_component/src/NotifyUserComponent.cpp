@@ -52,6 +52,11 @@ void NotifyUserComponent::StartAlarm([[maybe_unused]] const std::shared_ptr<noti
              std::shared_ptr<notify_user_interfaces::srv::StartAlarm::Response>      response) 
 {
     std::lock_guard<std::mutex> lock(m_mutex);
+    if ( *m_alarmActive ) {
+        response->is_ok = true;
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "----------------------- alarm already active ------------------------------");
+        return;
+    }
     *m_alarmActive = true;
     m_threadAlarm = std::make_shared<std::thread>(Alarm,m_alarmActive);
     response->is_ok = true;

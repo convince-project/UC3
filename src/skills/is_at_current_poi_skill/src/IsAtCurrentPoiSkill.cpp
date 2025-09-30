@@ -5,6 +5,7 @@
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
+#include <rcl/service_introspection.h>
 
 #include <type_traits>
 
@@ -55,7 +56,7 @@ bool IsAtCurrentPoiSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "IsAtCurrentPoiSkill::start");
-	std::cout << "IsAtCurrentPoiSkill::start";
+	std::cout << "IsAtCurrentPoiSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickCondition>(m_name + "Skill/tick",
@@ -70,6 +71,10 @@ bool IsAtCurrentPoiSkill::start(int argc, char*argv[])
   m_stateMachine.connectToEvent("SchedulerComponent.GetCurrentPoi.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
       std::shared_ptr<rclcpp::Node> nodeGetCurrentPoi = rclcpp::Node::make_shared(m_name + "SkillNodeGetCurrentPoi");
       std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::GetCurrentPoi>> clientGetCurrentPoi = nodeGetCurrentPoi->create_client<scheduler_interfaces::srv::GetCurrentPoi>("/SchedulerComponent/GetCurrentPoi");
+      std::cout << "Done" << std::endl;
+      clientGetCurrentPoi->configure_introspection(nodeGetCurrentPoi->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
+      std::cout << "Introspection configured" << std::endl;
+
       auto request = std::make_shared<scheduler_interfaces::srv::GetCurrentPoi::Request>();
       auto eventParams = event.data().toMap();
       

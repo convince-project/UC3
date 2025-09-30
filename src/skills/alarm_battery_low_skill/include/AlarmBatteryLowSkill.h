@@ -10,7 +10,7 @@
 
 
 
-#include <bt_interfaces_dummy/srv/tick_condition.hpp>
+#include <bt_interfaces_dummy/srv/tick_action.hpp>
 
 
 
@@ -32,8 +32,8 @@ public:
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	
-	void tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Request> request,
-			   std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Response>      response);
+	void tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Request> request,
+			   std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Response>      response);
 	
 	
 	
@@ -45,7 +45,7 @@ private:
 	std::string m_name;
 	AlarmBatteryLowSkillCondition m_stateMachine;
 	std::atomic<Status> m_tickResult{Status::undefined};
-	rclcpp::Service<bt_interfaces_dummy::srv::TickCondition>::SharedPtr m_tickService;
+	rclcpp::Service<bt_interfaces_dummy::srv::TickAction>::SharedPtr m_tickService;
 	
 	
 	
