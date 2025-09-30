@@ -16,17 +16,6 @@ bool VerbalOutputBatchReader::ConfigureYARP(yarp::os::ResourceFinder &rf)
     // --------------------- TEXT TO SPEECH NWC----------------------------
     bool okCheck = rf.check("TEXT_TO_SPEECH_COMPONENT");
 
-    // textToSpeechClientPortName = "/VerbalOutputBatchReader/TextToSpeechComponent/batch:i";
-    // bool b = m_textToSpeechClientPort.open(textToSpeechClientPortName);
-    // if (!b)
-    // {
-    //     yError() << "Cannot open textToSpeech client port";
-    //     return false;
-    // }
-
-    // yInfo() << "[VerbalOutputBatchReader::ConfigureYARP] Trying to connect to /TextToSpeechComponent/batch:o";
-    // yarp::os::Network::connect(textToSpeechClientPortName, "/TextToSpeechComponent/batch:o");
-
     m_audioInputPort.useCallback(*this);
     if (!m_audioInputPort.open("/VerbalOutputBatchReader/batch:i"))
     {

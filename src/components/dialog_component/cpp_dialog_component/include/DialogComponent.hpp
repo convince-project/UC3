@@ -29,8 +29,8 @@
 #include <dialog_interfaces/srv/answer.hpp>
 #include <dialog_interfaces/srv/set_language.hpp>
 #include <dialog_interfaces/srv/interpret_command.hpp>
-#include <dialog_interfaces/srv/is_speaking.hpp>
-#include <dialog_interfaces/srv/set_microphone.hpp>
+// #include <dialog_interfaces/srv/is_speaking.hpp>
+// #include <dialog_interfaces/srv/set_microphone.hpp>
 
 // Dialog Component Action Interfaces
 #include <dialog_interfaces/action/wait_for_interaction.hpp>
@@ -44,6 +44,8 @@
 #include <text_to_speech_interfaces/srv/speak.hpp>
 #include <text_to_speech_interfaces/srv/set_language.hpp>
 #include <text_to_speech_interfaces/srv/set_voice.hpp>
+#include <text_to_speech_interfaces/srv/set_microphone.hpp>
+#include <text_to_speech_interfaces/srv/is_speaking.hpp>
 
 // Scheduler Interfaces
 #include <scheduler_interfaces/srv/get_current_poi.hpp>
@@ -95,11 +97,11 @@ public:
 
     void Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle); // ROS2 action server to speak
 
-    void SetMicrophone(const std::shared_ptr<dialog_interfaces::srv::SetMicrophone::Request> request,
-                       std::shared_ptr<dialog_interfaces::srv::SetMicrophone::Response> response); // Opens/closes the microphone ports
+    // void SetMicrophone(const std::shared_ptr<dialog_interfaces::srv::SetMicrophone::Request> request,
+    //                    std::shared_ptr<dialog_interfaces::srv::SetMicrophone::Response> response); // Opens/closes the microphone ports
 
-    void IsSpeaking(const std::shared_ptr<dialog_interfaces::srv::IsSpeaking::Request> request,
-                    std::shared_ptr<dialog_interfaces::srv::IsSpeaking::Response> response); // Returns true if the DialogComponent is currently sending data to the speaker ports
+    // void IsSpeaking(const std::shared_ptr<dialog_interfaces::srv::IsSpeaking::Request> request,
+    //                 std::shared_ptr<dialog_interfaces::srv::IsSpeaking::Response> response); // Returns true if the DialogComponent is currently sending data to the speaker ports
 
     rclcpp::Node::SharedPtr getNode();
 protected:
@@ -141,8 +143,8 @@ private:
     rclcpp::Service<dialog_interfaces::srv::Answer>::SharedPtr m_AnswerService;
     rclcpp::Service<dialog_interfaces::srv::SetLanguage>::SharedPtr m_SetLanguageService;
     rclcpp::Service<dialog_interfaces::srv::InterpretCommand>::SharedPtr m_InterpretCommandService;
-    rclcpp::Service<dialog_interfaces::srv::SetMicrophone>::SharedPtr m_SetMicrophoneService;
-    rclcpp::Service<dialog_interfaces::srv::IsSpeaking>::SharedPtr m_IsSpeakingService;
+    // rclcpp::Service<dialog_interfaces::srv::SetMicrophone>::SharedPtr m_SetMicrophoneService;
+    // rclcpp::Service<dialog_interfaces::srv::IsSpeaking>::SharedPtr m_IsSpeakingService;
 
     // ROS2 Action Server for WaitForInteraction
     rclcpp_action::Server<dialog_interfaces::action::WaitForInteraction>::SharedPtr m_WaitForInteractionAction;
@@ -208,17 +210,17 @@ private:
     VerbalOutputBatchReader m_verbalOutputBatchReader;
 
     // direct access to the microphone
-    bool m_manualMicDisabled{false};
-    yarp::dev::PolyDriver m_audioRecorderPoly;
-    yarp::dev::IAudioGrabberSound *m_iAudioGrabberSound{nullptr};
+    // bool m_manualMicDisabled{false};
+    // yarp::dev::PolyDriver m_audioRecorderPoly;
+    // yarp::dev::IAudioGrabberSound *m_iAudioGrabberSound{nullptr};
 
     // Audio ports to play the verbal output
-        bool m_startedSpeaking{false};
-    std::mutex m_mutex;
+    // bool m_startedSpeaking{false};
+    // std::mutex m_mutex;
     yarp::os::BufferedPort<yarp::sig::Sound> m_audioPort;
-    yarp::os::BufferedPort<yarp::sig::AudioPlayerStatus> m_audioStatusPort;
-    rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr m_speakerStatusPub;
-    rclcpp::TimerBase::SharedPtr m_timer;
+    // yarp::os::BufferedPort<yarp::sig::AudioPlayerStatus> m_audioStatusPort;
+    // rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr m_speakerStatusPub;
+    // rclcpp::TimerBase::SharedPtr m_timer;
 };
 
 #endif

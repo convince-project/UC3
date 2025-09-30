@@ -44,12 +44,6 @@ private:
 
     std::queue<std::unique_ptr<yarp::sig::Sound>> m_audioQueue;
 
-    // // textToSpeech client port name
-    // std::string textToSpeechClientPortName;
-
-    // // textToSpeech client port
-    // yarp::os::Port m_textToSpeechClientPort;
-
     yarp::os::BufferedPort<yarp::sig::Sound> m_audioInputPort;
 };
 

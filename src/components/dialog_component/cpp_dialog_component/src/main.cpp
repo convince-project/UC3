@@ -19,7 +19,6 @@ int main(int argc, char* argv[])
     m_executor.add_node(dialogComponent.getNode());
     m_executor.spin();
     
-    
     // dialogComponent.spin();
 
     dialogComponent.close();
