@@ -1490,7 +1490,7 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
     m_predefined_answer_index++; // Reset the index of the predefined answer
 
     result->is_reply_finished = false; // If it is not the last one, we are not finished with the reply
-    if (m_predefined_answer_index >= m_number_of_predefined_answers - 1)
+    if (m_predefined_answer_index >= m_number_of_predefined_answers)
     {
         m_predefined_answer_index = 0;
         m_number_of_predefined_answers = 0;
