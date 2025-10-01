@@ -34,15 +34,52 @@ def abstract_message(message):
     print("message", message)
     print("predicates", predicates)
 
+    # Mappa globale per accoppiare richieste e risposte tramite sequence_number
+    if not hasattr(abstract_message, "pending_requests"):
+        abstract_message.pending_requests = {}
+
     # int8 SKILL_SUCCESS=0
     # int8 SKILL_FAILURE=1
     # int8 SKILL_RUNNING=2
-    if "topic" in message and "GetCurrentPoi" in message:
-        if message['response']['poi_number'] == 1:
-            predicates['poi1_selected'] = True
-    if "topic" in message and "GetInt" in message:
-        if message["request"]["field_name"]== "PoiDone1" and message['response']['value'] == 1:
-            predicates['poi1_completed'] = True
+    if "topic" in message and "GetCurrentPoi" in message['topic']:
+        sequence_number = None
+        if "info" in message and isinstance(message["info"], dict):
+            sequence_number = message["info"].get("sequence_number")
+        # Se c'è una richiesta, salva il sequence_number
+        if "request" in message and isinstance(message["request"], list) and sequence_number is not None:
+            # La richiesta non ha parametri, ma la associamo comunque
+            abstract_message.pending_requests["poi_selected_" + str(sequence_number)] = True
+        # Se c'è una risposta, controlla se la richiesta corrisponde tramite sequence_number
+        if "response" in message and isinstance(message["response"], list) and sequence_number is not None:
+            for resp in message["response"]:
+                if resp.get("poi_number") == 1:
+                    key = "poi_selected_" + str(sequence_number)
+                    if abstract_message.pending_requests.get(key):
+                        predicates['poi1_selected'] = True
+                        del abstract_message.pending_requests[key]
+    if "topic" in message and "GetInt" in message['topic']:
+        print("in if GetInt")
+        sequence_number = None
+        if "info" in message and isinstance(message["info"], dict):
+            sequence_number = message["info"].get("sequence_number")
+        # Se c'è una richiesta, salva il field_name associato al sequence_number
+        if "request" in message and isinstance(message["request"], list) and sequence_number is not None:
+            for req in message["request"]:
+                print("in for", req)
+                if req.get("field_name") == "PoiDone1":
+                    print("field name found")
+                    abstract_message.pending_requests[sequence_number] = "PoiDone1"
+        # Se c'è una risposta, controlla se value==0 e la richiesta corrisponde tramite sequence_number
+        if "response" in message and isinstance(message["response"], list) and sequence_number is not None:
+            for resp in message["response"]:
+                if resp.get("value") == 0:
+                    print("in get value")
+                    field_name = abstract_message.pending_requests.get(sequence_number)
+                    print("field_name", field_name)
+                    if field_name == "PoiDone1":
+                        predicates['poi1_completed'] = True
+                        # Rimuovi la richiesta accoppiata
+                        del abstract_message.pending_requests[sequence_number]
 
     # predicates['service'] = True if 'service' in message else False
 

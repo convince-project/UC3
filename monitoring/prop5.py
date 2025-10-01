@@ -29,7 +29,7 @@ def abstract_message(message):
     print("message", message)
     if message['topic'] == "/monitoring_clock":
         predicates['people_following_published'] = False
-    elif message['topic'] == "PeopleDetectorFilterComponent/is_followed":
+    elif message['topic'] == "/PeopleDetectorFilterComponent/filtered_detection":
         predicates['people_following_published'] = True
     print("predicates", predicates)
     return predicates
