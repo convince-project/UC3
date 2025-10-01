@@ -29,7 +29,6 @@
 
   <state id="callStart">
     <ros_service_handle_response name="/ManagePeopleDetectorComponent/StartService" target="reply">
-      <assign location="result" expr="_res.result"/>
     </ros_service_handle_response>
   </state>
 

@@ -7,7 +7,7 @@
   initial="idle">
 
   <datamodel>
-    <data id="DANCE_NAME"          expr="'navigationPosition'"/>
+    <data id="DANCE_NAME"          expr="'navigation_position'"/>
     <data id="is_dancing"  type="bool" expr="false"/>
     <data id="result"      type="string"  expr="''"/>
     <data id="SKILL_SUCCESS" type="int8" expr="0"/>
