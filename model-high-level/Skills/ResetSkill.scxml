@@ -36,7 +36,6 @@
 
   <state id="setCurrentPoi">
     <ros_service_handle_response name="/SchedulerComponent/SetPoi" target="evaluateSetPoi">
-      <assign location="m_result" expr="_res.result"/>
     </ros_service_handle_response>
   </state>
 
@@ -53,7 +52,6 @@
       </ros_service_send_request>
     </onentry>
     <ros_service_handle_response name="/BlackboardComponent/SetInt" target="evaluateInt1">
-      <assign location="m_result" expr="_res.result"/>
     </ros_service_handle_response>
   </state>
 
@@ -70,7 +68,6 @@
       </ros_service_send_request>
     </onentry>
     <ros_service_handle_response name="/BlackboardComponent/SetInt" target="evaluateInt2">
-      <assign location="m_result" expr="_res.result"/>
     </ros_service_handle_response>
   </state>
 
