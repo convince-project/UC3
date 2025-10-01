@@ -2,7 +2,7 @@
 <scxml 
   initial="idle" 
   version="1.0" 
-  name="IsPoiDone3SkillCondition"
+  name="IsPoiDone3Skill"
   datamodel="ecmascript"
   xmlns="http://www.w3.org/2005/07/scxml">
 

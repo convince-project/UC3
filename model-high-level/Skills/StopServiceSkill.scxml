@@ -6,9 +6,9 @@
        initial="idle">
 
   <datamodel>
-    <data id="result" expr="''"/>
-    <data id="SKILL_SUCCESS" expr="0"/>
-    <data id="SKILL_FAILURE" expr="1"/>
+    <data id="result" type="bool" expr="false"/>
+    <data id="SKILL_SUCCESS" type="int8" expr="0"/>
+    <data id="SKILL_FAILURE" type="int8" expr="1"/>
   </datamodel>
 
   <ros_service_server service_name="/StopServiceSkill/tick"  type="bt_interfaces_dummy/TickAction"/>
