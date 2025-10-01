@@ -16,3 +16,6 @@ monitors: # here we list the monitors we are going to generate
         - name: /BlackboardComponent/GetInt/_service_event
           type: blackboard_interfaces.srv.GetIntBlackboard_Event
           action: log
+        - name: /monitoring_clock
+          type: builtin_interfaces.msg.Time
+          action: log

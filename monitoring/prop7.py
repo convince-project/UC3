@@ -2,7 +2,8 @@
 H(POI_1_selected => F[0:t] POI_1_completed)
 """
 # property definition for POI 7 completion within time t
-PROPERTY = r"historically({poi1_selected} -> eventually[0:x]{poi1_completed})"
+PROPERTY = r"historically( not( not {po1_completed} since[30:] {poi1_selected}))"
+
 
 # predicates used in the property (initialization for time 0)
 predicates = dict(
@@ -13,6 +14,7 @@ predicates = dict(
 
 # function to abstract a dictionary (obtained from Json message) into a list of predicates
 def abstract_message(message):
+
     if message['time'] <= predicates['time']:
         predicates['time'] += 0.0000001
     else:
@@ -21,18 +23,58 @@ def abstract_message(message):
     print("message", message)
     print("predicates", predicates)
 
+    if message['topic'] == "/monitoring_clock":
+        return predicates
+    # Mappa globale per accoppiare richieste e risposte tramite sequence_number
+    if not hasattr(abstract_message, "pending_requests"):
+        abstract_message.pending_requests = {}
+
     # int8 SKILL_SUCCESS=0
     # int8 SKILL_FAILURE=1
     # int8 SKILL_RUNNING=2
-    if "service" in message and "response" in message:
-        if message['service'] == "IsPoiDone1Skill/tick" and message['response']['status'] == 0:
-            predicates['poi1_completed'] = True
-        elif message['service'] == "IsPoiDone1Skill/tick" and message['response']['status'] != 0:
-            predicates['poi1_completed'] = False
+    if "topic" in message and "GetCurrentPoi" in message['topic']:
+        sequence_number = None
+        if "info" in message and isinstance(message["info"], dict):
+            sequence_number = message["info"].get("sequence_number")
+        # Se c'è una richiesta, salva il sequence_number
+        if "request" in message and isinstance(message["request"], list) and sequence_number is not None:
+            # La richiesta non ha parametri, ma la associamo comunque
+            abstract_message.pending_requests["poi_selected_" + str(sequence_number)] = True
+        # Se c'è una risposta, controlla se la richiesta corrisponde tramite sequence_number
+        if "response" in message and isinstance(message["response"], list) and sequence_number is not None:
+            for resp in message["response"]:
+                if resp.get("poi_number") == 1:
+                    key = "poi_selected_" + str(sequence_number)
+                    if abstract_message.pending_requests.get(key):
+                        predicates['poi1_selected'] = True
+                        del abstract_message.pending_requests[key]
+    if "topic" in message and "GetInt" in message['topic']:
+        print("in if GetInt")
+        sequence_number = None
+        if "info" in message and isinstance(message["info"], dict):
+            sequence_number = message["info"].get("sequence_number")
+        # Se c'è una richiesta, salva il field_name associato al sequence_number
+        if "request" in message and isinstance(message["request"], list) and sequence_number is not None:
+            for req in message["request"]:
+                print("in for", req)
+                if req.get("field_name") == "PoiDone1":
+                    print("field name found")
+                    abstract_message.pending_requests[sequence_number] = "PoiDone1"
+        # Se c'è una risposta, controlla se value==0 e la richiesta corrisponde tramite sequence_number
+        if "response" in message and isinstance(message["response"], list) and sequence_number is not None:
+            for resp in message["response"]:
+                if resp.get("value") == 0:
+                    print("in get value")
+                    field_name = abstract_message.pending_requests.get(sequence_number)
+                    print("field_name", field_name)
+                    if field_name == "PoiDone1":
+                        predicates['poi1_completed'] = True
+                        # Rimuovi la richiesta accoppiata
+                        del abstract_message.pending_requests[sequence_number]
 
-        if message['service'] == "SetPoi1Skill/tick" and message['response']['status'] == 0:
-            predicates['poi1_selected'] = True
-        elif message['service'] == "SetPoi1Skill/tick" and message['response']['status'] != 0:
-            predicates['poi1_selected'] = False
+    # predicates['service'] = True if 'service' in message else False
+
+    # predicates['low_percentage'] = True if 'percentage' in message and message['percentage'] < 30 else False
+
 
     return predicates
