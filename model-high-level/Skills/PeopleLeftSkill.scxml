@@ -32,7 +32,6 @@
 
   <state id="resetTour">
     <ros_service_handle_response name="/SchedulerComponent/Reset" target="evaluateReset">
-      <assign location="m_result" expr="_res.result"/>
     </ros_service_handle_response>
   </state>
 
@@ -46,7 +45,6 @@
       <ros_service_send_request name="/TurnBackManagerComponent/ResetCounters"/>
     </onentry>
     <ros_service_handle_response name="/TurnBackManagerComponent/ResetCounters" target="evaluateCounters">
-      <assign location="m_result" expr="_res.result"/>
     </ros_service_handle_response>
   </state>
 
@@ -60,7 +58,6 @@
       <ros_service_send_request name="/TimeComponent/StopTourTimer"/>
     </onentry>
     <ros_service_handle_response name="/TimeComponent/StopTourTimer" target="evaluateTimer">
-      <assign location="m_result" expr="_res.result"/>
     </ros_service_handle_response>
   </state>
 

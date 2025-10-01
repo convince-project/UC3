@@ -38,7 +38,6 @@
 
   <state id="setCmd">
     <ros_service_handle_response name="/SchedulerComponent/SetCommand" target="evaluateSetCmd">
-      <assign location="m_result" expr="_res.result"/>
     </ros_service_handle_response>
   </state>
 
@@ -53,7 +52,6 @@
     </onentry>
     <ros_service_handle_response name="/SchedulerComponent/GetCurrentAction" target="evaluateGetText">
       <assign location="m_param"  expr="_res.param"/>
-      <assign location="m_result" expr="_res.result"/>
     </ros_service_handle_response>
   </state>
 
@@ -73,7 +71,6 @@
       </ros_service_send_request>
     </onentry>
     <ros_service_handle_response name="/TextToSpeechComponent/Speak" target="evaluateSpeak">
-      <assign location="m_result" expr="_res.result"/>
     </ros_service_handle_response>
   </state>
 
@@ -92,7 +89,6 @@
   <state id="checkSpeak">
     <ros_service_handle_response name="/TextToSpeechComponent/IsSpeaking" target="evaluateCheck">
       <assign location="m_is_speaking" expr="_res.is_speaking"/>
-      <assign location="m_result"      expr="_res.result"/>
     </ros_service_handle_response>
   </state>
 
