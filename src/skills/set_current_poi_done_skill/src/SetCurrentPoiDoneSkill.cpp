@@ -127,6 +127,7 @@ bool SetCurrentPoiDoneSkill::start(int argc, char*argv[])
       
       request->value = convert<decltype(request->value)>(eventParams["value"].toString().toStdString());
       request->field_name = convert<decltype(request->field_name)>(eventParams["field_name"].toString().toStdString());
+      std::cout << "SetCurrentPoiDoneSkill: field_name = " << request->field_name << std::endl;
       bool wait_succeded{true};
       int retries = 0;
       while (!clientSetInt->wait_for_service(std::chrono::seconds(1))) {
