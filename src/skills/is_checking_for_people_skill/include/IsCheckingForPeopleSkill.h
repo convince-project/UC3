@@ -29,6 +29,8 @@ class IsCheckingForPeopleSkill
 {
 public:
 	IsCheckingForPeopleSkill(std::string name );
+    ~IsCheckingForPeopleSkill();
+
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	

@@ -31,6 +31,8 @@ class SetCurrentPoiDoneSkill
 {
 public:
 	SetCurrentPoiDoneSkill(std::string name );
+    ~SetCurrentPoiDoneSkill();
+
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	

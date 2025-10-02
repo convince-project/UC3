@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ IsWarningDurationSkill::IsWarningDurationSkill(std::string name ) :
     
 }
 
+IsWarningDurationSkill::~IsWarningDurationSkill()
+{
+    //std::cout << "DEBUG: Invoked destructor of IsWarningDurationSkill" << std::endl;
+    m_threadSpin->join();
+}
+
 void IsWarningDurationSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: IsWarningDurationSkill::spin successfully ended" << std::endl;
 }
 
 bool IsWarningDurationSkill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool IsWarningDurationSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "IsWarningDurationSkill::start");
-	std::cout << "IsWarningDurationSkill::start";
+	std::cout << "DEBUG: IsWarningDurationSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickCondition>(m_name + "Skill/tick",
@@ -136,7 +146,7 @@ bool IsWarningDurationSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -159,11 +169,10 @@ void IsWarningDurationSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_int
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;        
-        case Status::undefined:
+          break;
+      case Status::undefined:
           response->status = SKILL_FAILURE;
-          break;    
-        
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "IsWarningDurationSkill::tickDone");
   response->is_ok = true;

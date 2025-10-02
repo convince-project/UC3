@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ CheckIfFirstPoiSkill::CheckIfFirstPoiSkill(std::string name ) :
     
 }
 
+CheckIfFirstPoiSkill::~CheckIfFirstPoiSkill()
+{
+    //std::cout << "DEBUG: Invoked destructor of CheckIfFirstPoiSkill" << std::endl;
+    m_threadSpin->join();
+}
+
 void CheckIfFirstPoiSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: CheckIfFirstPoiSkill::spin successfully ended" << std::endl;
 }
 
 bool CheckIfFirstPoiSkill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool CheckIfFirstPoiSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "CheckIfFirstPoiSkill::start");
-	std::cout << "CheckIfFirstPoiSkill::start";
+	std::cout << "DEBUG: CheckIfFirstPoiSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickCondition>(m_name + "Skill/tick",
@@ -99,7 +109,6 @@ bool CheckIfFirstPoiSkill::start(int argc, char*argv[])
                   QVariantMap data;
                   data.insert("is_ok", true);
                   data.insert("poi_number", response->poi_number);
-                  data.insert("poi_name", response->poi_name.c_str());
                   m_stateMachine.submitEvent("SchedulerComponent.GetCurrentPoi.Return", data);
                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.GetCurrentPoi.Return");
                   return;
@@ -136,7 +145,7 @@ bool CheckIfFirstPoiSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -159,7 +168,10 @@ void CheckIfFirstPoiSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_inter
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;            
+          break;
+      case Status::undefined:
+          response->status = SKILL_FAILURE;
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "CheckIfFirstPoiSkill::tickDone");
   response->is_ok = true;

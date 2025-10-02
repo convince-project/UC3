@@ -1,12 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="CheckNetworkSkillCondition" datamodel="ecmascript" initial="idle">
     <datamodel>
+        <!-- Network status variable - initialized to false (no network) -->
+        <data id="network_status" expr="false"/>
         <!-- Provided by C++ DataModel -->
         <data id="SKILL_SUCCESS" expr="0"/>
         <data id="SKILL_FAILURE" expr="1"/>
     </datamodel>
     <!-- Condition skill: TickCondition server -->
+    <!-- Add network status subscriber -->
     <state id="idle">
+        <!-- Update network status when message arrives -->
+        <transition target="idle" event="CheckNetworkComponent.status.Sub">
+            <assign location="network_status" expr="_event.data.status"/>
+        </transition>
         <transition target="levelCheck" event="CMD_TICK"/>
     </state>
     <state id="levelCheck">

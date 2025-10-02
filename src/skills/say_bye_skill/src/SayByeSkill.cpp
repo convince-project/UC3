@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ SayByeSkill::SayByeSkill(std::string name ) :
     
 }
 
+SayByeSkill::~SayByeSkill()
+{
+    //std::cout << "DEBUG: Invoked destructor of SayByeSkill" << std::endl;
+    m_threadSpin->join();
+}
+
 void SayByeSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: SayByeSkill::spin successfully ended" << std::endl;
 }
 
 bool SayByeSkill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool SayByeSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "SayByeSkill::start");
-	std::cout << "SayByeSkill::start";
+	std::cout << "DEBUG: SayByeSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
@@ -78,8 +88,7 @@ bool SayByeSkill::start(int argc, char*argv[])
       auto request = std::make_shared<text_to_speech_interfaces::srv::Speak::Request>();
       auto eventParams = event.data().toMap();
       
-      request->text = "sorry but my battery is low, I have to leave you.";
-      
+      request->text = convert<decltype(request->text)>(eventParams["text"].toString().toStdString());
       bool wait_succeded{true};
       int retries = 0;
       while (!clientSpeak->wait_for_service(std::chrono::seconds(1))) {
@@ -242,8 +251,7 @@ bool SayByeSkill::start(int argc, char*argv[])
               if( response->is_ok == true) {
                   QVariantMap data;
                   data.insert("is_ok", true);
-                  data.insert("type", response->type.c_str());
-                  data.insert("is_blocking", response->is_blocking);
+                  data.insert("param", response->param.c_str());
                   m_stateMachine.submitEvent("SchedulerComponent.GetCurrentAction.Return", data);
                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.GetCurrentAction.Return");
                   return;
@@ -288,7 +296,7 @@ bool SayByeSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -313,10 +321,10 @@ void SayByeSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dum
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;  
+          break;
       case Status::undefined:
           response->status = SKILL_FAILURE;
-          break;          
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "SayByeSkill::tickDone");
   response->is_ok = true;

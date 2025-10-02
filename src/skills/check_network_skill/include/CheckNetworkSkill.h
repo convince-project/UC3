@@ -6,6 +6,7 @@
 #include "rclcpp_action/rclcpp_action.hpp"
 #include "CheckNetworkSkillSM.h"
 #include <bt_interfaces_dummy/msg/condition_response.hpp>
+#include <network_interfaces/msg/network_status.hpp> 
 
 
 
@@ -28,13 +29,15 @@ class CheckNetworkSkill
 {
 public:
 	CheckNetworkSkill(std::string name );
+    ~CheckNetworkSkill();
+
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	
 	void tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Request> request,
 			   std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Response>      response);
 	
-	
+	void topic_callback_status(const network_interfaces::msg::NetworkStatus::SharedPtr msg);
 	
 
 private:
@@ -49,6 +52,7 @@ private:
 	
 	
 	
+	rclcpp::Subscription<network_interfaces::msg::NetworkStatus>::SharedPtr m_subscription_status;
 	
 	
 	

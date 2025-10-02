@@ -25,7 +25,6 @@
     <state id="queryFlag">
         <transition target="evaluateQuery" event="BlackboardComponent.GetInt.Return">
             <assign location="m_value" expr="_event.data.value"/>
-            <assign location="m_result" expr="_event.data.result"/>
         </transition>
     </state>
     <state id="evaluateQuery">
@@ -42,9 +41,7 @@
                 <param name="command" expr="m_command"/>
             </send>
         </onentry>
-        <transition target="evaluateSetCmd" event="SchedulerComponent.SetCommand.Return">
-            <assign location="m_result" expr="_event.data.result"/>
-        </transition>
+        <transition target="evaluateSetCmd" event="SchedulerComponent.SetCommand.Return"/>
     </state>
     <state id="evaluateSetCmd">
         <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
@@ -56,7 +53,6 @@
         </onentry>
         <transition target="evaluateGetText" event="SchedulerComponent.GetCurrentAction.Return">
             <assign location="m_param" expr="_event.data.param"/>
-            <assign location="m_result" expr="_event.data.result"/>
         </transition>
     </state>
     <state id="evaluateGetText">
@@ -73,9 +69,7 @@
                 <param name="text" expr="m_param"/>
             </send>
         </onentry>
-        <transition target="evaluateSpeak" event="TextToSpeechComponent.Speak.Return">
-            <assign location="m_result" expr="_event.data.result"/>
-        </transition>
+        <transition target="evaluateSpeak" event="TextToSpeechComponent.Speak.Return"/>
     </state>
     <state id="evaluateSpeak">
         <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
@@ -90,7 +84,6 @@
     <state id="checkSpeak">
         <transition target="evaluateCheck" event="TextToSpeechComponent.IsSpeaking.Return">
             <assign location="m_is_speaking" expr="_event.data.is_speaking"/>
-            <assign location="m_result" expr="_event.data.result"/>
         </transition>
     </state>
     <state id="evaluateCheck">
@@ -117,9 +110,7 @@
                 <param name="value" expr="1"/>
             </send>
         </onentry>
-        <transition target="evaluateSetFlag" event="BlackboardComponent.SetInt.Return">
-            <assign location="m_result" expr="_event.data.result"/>
-        </transition>
+        <transition target="evaluateSetFlag" event="BlackboardComponent.SetInt.Return"/>
     </state>
     <state id="evaluateSetFlag">
         <transition cond="m_result != SUCCESS_RESULT" target="failure"/>

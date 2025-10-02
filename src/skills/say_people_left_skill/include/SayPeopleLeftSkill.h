@@ -33,6 +33,8 @@ class SayPeopleLeftSkill
 {
 public:
 	SayPeopleLeftSkill(std::string name );
+    ~SayPeopleLeftSkill();
+
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	

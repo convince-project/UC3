@@ -29,6 +29,8 @@ class CheckIfStartSkill
 {
 public:
 	CheckIfStartSkill(std::string name );
+    ~CheckIfStartSkill();
+
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	

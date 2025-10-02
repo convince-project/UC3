@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ NarratePoiSkill::NarratePoiSkill(std::string name ) :
     
 }
 
+NarratePoiSkill::~NarratePoiSkill()
+{
+    //std::cout << "DEBUG: Invoked destructor of NarratePoiSkill" << std::endl;
+    m_threadSpin->join();
+}
+
 void NarratePoiSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: NarratePoiSkill::spin successfully ended" << std::endl;
 }
 
 bool NarratePoiSkill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool NarratePoiSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "NarratePoiSkill::start");
-	std::cout << "NarratePoiSkill::start";
+	std::cout << "DEBUG: NarratePoiSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
@@ -149,6 +159,7 @@ bool NarratePoiSkill::start(int argc, char*argv[])
               if( response->is_ok == true) {
                   QVariantMap data;
                   data.insert("is_ok", true);
+                  data.insert("is_ok", response->is_ok);
                   m_stateMachine.submitEvent("NarrateComponent.Narrate.Return", data);
                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NarrateComponent.Narrate.Return");
                   return;
@@ -239,7 +250,7 @@ bool NarratePoiSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -264,10 +275,10 @@ void NarratePoiSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;  
+          break;
       case Status::undefined:
           response->status = SKILL_FAILURE;
-          break;          
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "NarratePoiSkill::tickDone");
   response->is_ok = true;

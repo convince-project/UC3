@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ IsPoiDone2Skill::IsPoiDone2Skill(std::string name ) :
     
 }
 
+IsPoiDone2Skill::~IsPoiDone2Skill()
+{
+    //std::cout << "DEBUG: Invoked destructor of IsPoiDone2Skill" << std::endl;
+    m_threadSpin->join();
+}
+
 void IsPoiDone2Skill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: IsPoiDone2Skill::spin successfully ended" << std::endl;
 }
 
 bool IsPoiDone2Skill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool IsPoiDone2Skill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "IsPoiDone2Skill::start");
-	std::cout << "IsPoiDone2Skill::start";
+	std::cout << "DEBUG: IsPoiDone2Skill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickCondition>(m_name + "Skill/tick",
@@ -99,6 +109,7 @@ bool IsPoiDone2Skill::start(int argc, char*argv[])
               if( response->is_ok == true) {
                   QVariantMap data;
                   data.insert("is_ok", true);
+                  data.insert("is_ok", response->is_ok);
                   data.insert("value", response->value);
                   m_stateMachine.submitEvent("BlackboardComponent.GetInt.Return", data);
                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.GetInt.Return");
@@ -136,7 +147,7 @@ bool IsPoiDone2Skill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -159,10 +170,10 @@ void IsPoiDone2Skill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;      
+          break;
       case Status::undefined:
           response->status = SKILL_FAILURE;
-          break;       
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "IsPoiDone2Skill::tickDone");
   response->is_ok = true;

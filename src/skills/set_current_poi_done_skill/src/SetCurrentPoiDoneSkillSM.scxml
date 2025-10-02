@@ -2,12 +2,18 @@
     <datamodel>
         <data id="poi_number" expr="0"/>
         <!-- <data id="poi_name" type="string" expr=""/> -->
-        <!-- <data id="field_name" type="string" expr='"PoiDone"'/>
-        <data id="field_name_init" type="string" expr='"PoiDone"'/> -->
+        <!-- <data id="field_name" type="string" expr="'PoiDone'"/>
+        <data id="field_name_init" type="string" expr="'PoiDone'"/> -->
         <data id="value" expr="1"/>
         <data id="SKILL_SUCCESS" expr="0"/>
         <data id="SKILL_FAILURE" expr="1"/>
         <data id="SKILL_RUNNING" expr="2"/>
+        <!-- <data id="poi_name_0" type="string" expr="'PoiDone0'"/>
+        <data id="poi_name_1" type="string" expr="'PoiDone1'"/>
+        <data id="poi_name_2" type="string" expr="'PoiDone2'"/>
+        <data id="poi_name_3" type="string" expr="'PoiDone3'"/>
+        <data id="poi_name_4" type="string" expr="'PoiDone4'"/>
+        <data id="poi_name_5" type="string" expr="'PoiDone5'"/> -->
     </datamodel>
     <!-- SetCurrentPoiDoneSkill is a server for tick from the ROS2Action plugin-->
     <!-- SetCurrentPoiDoneSkill is a server for halt from the ROS2Action plugin-->
@@ -16,20 +22,49 @@
     <state id="idle">
         <transition target="getCurrentPoi" event="CMD_TICK">
             <send event="SchedulerComponent.GetCurrentPoi.Call"/>
-            <send event="TICK_RESPONSE">
-                <param name="result" expr='"RUNNING"'/>
-            </send>
         </transition>
         <!-- Decommentare e correggere -->
-        <transition target="idle" event="CMD_HALT"/>
+        <transition target="halted" event="CMD_HALT"/>
     </state>
     <state id="getCurrentPoi">
         <transition cond="_event.data.is_ok" target="setInt" event="SchedulerComponent.GetCurrentPoi.Return">
             <assign location="poi_number" expr="_event.data.poi_number"/>
-            <send event="BlackboardComponent.SetInt.Call">
-                <param name="field_name" expr="&apos;PoiDone&apos; + poi_number"/>
-                <param name="value" expr="value"/>
-            </send>
+            <if cond="poi_number == 0">
+                <send event="BlackboardComponent.SetInt.Call">
+                    <param name="field_name" expr="&apos;PoiDone0&apos;"/>
+                    <param name="value" expr="value"/>
+                </send>
+            </if>
+            <if cond="poi_number == 1">
+                <send event="BlackboardComponent.SetInt.Call">
+                    <param name="field_name" expr="&apos;PoiDone1&apos;"/>
+                    <param name="value" expr="value"/>
+                </send>
+            </if>
+            <if cond="poi_number == 2">
+                <send event="BlackboardComponent.SetInt.Call">
+                    <param name="field_name" expr="&apos;PoiDone2&apos;"/>
+                    <param name="value" expr="value"/>
+                </send>
+            </if>
+            <if cond="poi_number == 3">
+                <send event="BlackboardComponent.SetInt.Call">
+                    <param name="field_name" expr="&apos;PoiDone3&apos;"/>
+                    <param name="value" expr="value"/>
+                </send>
+            </if>
+            <if cond="poi_number == 4">
+                <send event="BlackboardComponent.SetInt.Call">
+                    <param name="field_name" expr="&apos;PoiDone4&apos;"/>
+                    <param name="value" expr="value"/>
+                </send>
+            </if>
+            <if cond="poi_number == 5">
+                <send event="BlackboardComponent.SetInt.Call">
+                    <param name="field_name" expr="&apos;PoiDone5&apos;"/>
+                    <param name="value" expr="value"/>
+                </send>
+            </if>
         </transition>
         <transition cond="(_event.data.is_ok) == false" target="idle" event="SchedulerComponent.GetCurrentPoi.Return">
             <send event="TICK_RESPONSE">
@@ -47,7 +82,7 @@
                 <param name="is_ok" expr="true"/>
             </send>
         </transition>
-        <transition cond="!_event.data.is_ok" target="idle" event="BlackboardComponent.SetInt.Return">
+        <transition cond="(_event.data.is_ok) == false" target="idle" event="BlackboardComponent.SetInt.Return">
             <send event="TICK_RESPONSE">
                 <param name="status" expr="SKILL_FAILURE"/>
                 <param name="is_ok" expr="true"/>
@@ -60,7 +95,9 @@
         <onentry>
             <assign location="poi_number" expr="0"/>
             <assign location="value" expr="1"/>
-            <send event="HALT_RESPONSE"/>
+            <send event="HALT_RESPONSE">
+                <param name="is_ok" expr="true"/>
+            </send>
         </onentry>
         <transition target="idle"/>
     </state>

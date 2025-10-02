@@ -30,6 +30,8 @@ class IsAllowedToTurnBackSkill
 {
 public:
 	IsAllowedToTurnBackSkill(std::string name );
+    ~IsAllowedToTurnBackSkill();
+
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	

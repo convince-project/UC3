@@ -29,6 +29,8 @@ class IsMaximumDurationSkill
 {
 public:
 	IsMaximumDurationSkill(std::string name );
+    ~IsMaximumDurationSkill();
+
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	

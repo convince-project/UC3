@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ GoToPoiActionSkill::GoToPoiActionSkill(std::string name ) :
     
 }
 
+GoToPoiActionSkill::~GoToPoiActionSkill()
+{
+    //std::cout << "DEBUG: Invoked destructor of GoToPoiActionSkill" << std::endl;
+    m_threadSpin->join();
+}
+
 void GoToPoiActionSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: GoToPoiActionSkill::spin successfully ended" << std::endl;
 }
 
 bool GoToPoiActionSkill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool GoToPoiActionSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "GoToPoiActionSkill::start");
-	std::cout << "GoToPoiActionSkill::start";
+	std::cout << "DEBUG: GoToPoiActionSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
@@ -109,7 +119,6 @@ bool GoToPoiActionSkill::start(int argc, char*argv[])
                   QVariantMap data;
                   data.insert("is_ok", true);
                   data.insert("poi_number", response->poi_number);
-                  data.insert("poi_name", response->poi_name.c_str());
                   m_stateMachine.submitEvent("SchedulerComponent.GetCurrentPoi.Return", data);
                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.GetCurrentPoi.Return");
                   return;
@@ -183,7 +192,7 @@ bool GoToPoiActionSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -208,10 +217,10 @@ void GoToPoiActionSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfa
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;  
+          break;
       case Status::undefined:
           response->status = SKILL_FAILURE;
-          break;          
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "GoToPoiActionSkill::tickDone");
   response->is_ok = true;
@@ -308,7 +317,7 @@ void GoToPoiActionSkill::goal_response_callback(const rclcpp_action::ClientGoalH
 
 void GoToPoiActionSkill::feedback_callback(
     rclcpp_action::ClientGoalHandle<navigation_interfaces::action::GoToPoi>::SharedPtr,
-    [[maybe_unused]] const std::shared_ptr<const navigation_interfaces::action::GoToPoi::Feedback> feedback)
+  const std::shared_ptr<const navigation_interfaces::action::GoToPoi::Feedback> feedback)
 {
   
 }

@@ -45,8 +45,8 @@
                 <param name="command" expr="m_command"/>
             </send>
         </onentry>
-        <transition event="SchedulerComponent.SetCommand.Return" cond="_event.data.result==&apos;SKILL_SUCCESS&apos;" target="getText"/>
-        <transition event="SchedulerComponent.SetCommand.Return" cond="_event.data.result!=&apos;SKILL_SUCCESS&apos;" target="finalize_failure"/>
+        <transition event="SchedulerComponent.SetCommand.Return" cond="_event.data.is_ok" target="getText"/>
+        <transition event="SchedulerComponent.SetCommand.Return" target="finalize_failure"/>
     </state>
     <state id="getText">
         <onentry>
