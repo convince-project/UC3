@@ -34,6 +34,8 @@ class SayWarningDurationSkill
 {
 public:
 	SayWarningDurationSkill(std::string name );
+    ~SayWarningDurationSkill();
+
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	

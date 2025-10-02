@@ -31,6 +31,8 @@ class SetNavigationPositionSkill
 {
 public:
 	SetNavigationPositionSkill(std::string name );
+    ~SetNavigationPositionSkill();
+
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	

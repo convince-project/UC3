@@ -6,7 +6,7 @@
 #include "rclcpp_action/rclcpp_action.hpp"
 #include "StopServiceSkillSM.h"
 #include <bt_interfaces_dummy/msg/action_response.hpp>
-#include <manage_service_interfaces/srv/stop_service.hpp> 
+#include <manage_people_detector_interfaces/srv/stop_service.hpp> 
 
 
 
@@ -30,6 +30,8 @@ class StopServiceSkill
 {
 public:
 	StopServiceSkill(std::string name );
+    ~StopServiceSkill();
+
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	

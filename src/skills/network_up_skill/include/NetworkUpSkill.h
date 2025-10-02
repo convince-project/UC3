@@ -28,6 +28,8 @@ class NetworkUpSkill
 {
 public:
 	NetworkUpSkill(std::string name );
+    ~NetworkUpSkill();
+
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	

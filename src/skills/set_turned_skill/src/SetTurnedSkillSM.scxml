@@ -3,7 +3,7 @@
     <datamodel>
         <data id="FIELD_NAME" expr="&apos;turnBackState&apos;"/>
         <data id="VALUE_STR" expr="&apos;turned&apos;"/>
-        <data id="result" expr="&apos;&apos;"/>
+        <data id="result" expr="false"/>
         <data id="SKILL_SUCCESS" expr="0"/>
         <data id="SKILL_FAILURE" expr="1"/>
         <data id="SKILL_RUNNING" expr="2"/>
@@ -19,42 +19,47 @@
     </state>
     <state id="setString">
         <transition target="afterSet" event="BlackboardComponent.SetString.Return">
-            <assign location="result" expr="_event.data.result"/>
+            <assign location="result" expr="_event.data.is_ok"/>
         </transition>
         <!-- Aggiungere gestione halt -->
         <transition target="halted" event="CMD_HALT"/>
     </state>
     <state id="afterSet">
-        <onentry>
-            <if cond="result==&apos;SKILL_SUCCESS&apos;">
-                <send event="TurnBackManagerComponent.IncreaseTurnBacksCounter.Call"/>
-                <else/>
-                <send event="TICK_RESPONSE">
-                    <param name="status" expr="SKILL_FAILURE"/>
-                </send>
-            </if>
-        </onentry>
-        <transition cond="result==&apos;SKILL_SUCCESS&apos;" target="waitInc"/>
-        <transition cond="result!=&apos;SKILL_SUCCESS&apos;" target="idle"/>
+        <!-- <onentry>
+      <if cond="result=='SKILL_SUCCESS'">
+      <else/>
+        <ros_service_send_response name="/SetTurnedSkill/tick">
+          <field name="status" expr="SKILL_FAILURE"/>
+          <field name="is_ok" expr="true"/>
+        </ros_service_send_response>
+      </if>
+    </onentry> -->
+        <transition cond="result" target="waitInc">
+            <send event="TurnBackManagerComponent.IncreaseTurnBacksCounter.Call"/>
+        </transition>
+        <transition target="idle"/>
         <!-- Aggiungere gestione halt -->
-        <transition target="halted" event="CMD_HALT"/>
+        <!-- <ros_service_handle_request name="/SetTurnedSkill/halt" target="halted"/> -->
+        <!-- <ros_service_handle_request name="/SetTurnedSkill/halt" target="halted"/> -->
     </state>
     <state id="waitInc">
         <transition target="reply" event="TurnBackManagerComponent.IncreaseTurnBacksCounter.Return">
-            <assign location="result" expr="_event.data.result"/>
+            <assign location="result" expr="_event.data.is_ok"/>
         </transition>
         <!-- Aggiungere gestione halt -->
         <transition target="halted" event="CMD_HALT"/>
     </state>
     <state id="reply">
         <onentry>
-            <if cond="result==&apos;SKILL_SUCCESS&apos;">
+            <if cond="result">
                 <send event="TICK_RESPONSE">
                     <param name="status" expr="SKILL_SUCCESS"/>
+                    <param name="is_ok" expr="true"/>
                 </send>
                 <else/>
                 <send event="TICK_RESPONSE">
                     <param name="status" expr="SKILL_FAILURE"/>
+                    <param name="is_ok" expr="true"/>
                 </send>
             </if>
         </onentry>
@@ -62,8 +67,10 @@
     </state>
     <state id="halted">
         <onentry>
-            <assign location="result" expr="&apos;&apos;"/>
-            <send event="HALT_RESPONSE"/>
+            <assign location="result" expr="false"/>
+            <send event="HALT_RESPONSE">
+                <param name="is_ok" expr="true"/>
+            </send>
         </onentry>
         <transition target="idle"/>
     </state>

@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ SetCurrentPoiDoneSkill::SetCurrentPoiDoneSkill(std::string name ) :
     
 }
 
+SetCurrentPoiDoneSkill::~SetCurrentPoiDoneSkill()
+{
+    //std::cout << "DEBUG: Invoked destructor of SetCurrentPoiDoneSkill" << std::endl;
+    m_threadSpin->join();
+}
+
 void SetCurrentPoiDoneSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: SetCurrentPoiDoneSkill::spin successfully ended" << std::endl;
 }
 
 bool SetCurrentPoiDoneSkill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool SetCurrentPoiDoneSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "SetCurrentPoiDoneSkill::start");
-	std::cout << "SetCurrentPoiDoneSkill::start";
+	std::cout << "DEBUG: SetCurrentPoiDoneSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
@@ -104,7 +114,6 @@ bool SetCurrentPoiDoneSkill::start(int argc, char*argv[])
                   QVariantMap data;
                   data.insert("is_ok", true);
                   data.insert("poi_number", response->poi_number);
-                  data.insert("poi_name", response->poi_name.c_str());
                   m_stateMachine.submitEvent("SchedulerComponent.GetCurrentPoi.Return", data);
                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.GetCurrentPoi.Return");
                   return;
@@ -197,7 +206,7 @@ bool SetCurrentPoiDoneSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -222,10 +231,10 @@ void SetCurrentPoiDoneSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_int
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;  
+          break;
       case Status::undefined:
           response->status = SKILL_FAILURE;
-          break;          
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "SetCurrentPoiDoneSkill::tickDone");
   response->is_ok = true;

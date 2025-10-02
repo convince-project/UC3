@@ -3,7 +3,7 @@
     <datamodel>
         <data id="DANCE_NAME" expr="&apos;navigation_position&apos;"/>
         <data id="is_dancing" expr="false"/>
-        <data id="result" expr="&apos;&apos;"/>
+        <data id="result" expr="false"/>
         <data id="SKILL_SUCCESS" expr="0"/>
         <data id="SKILL_FAILURE" expr="1"/>
         <data id="SKILL_RUNNING" expr="2"/>
@@ -23,7 +23,7 @@
     <!-- First service reply (start dance) -->
     <state id="executeDance">
         <transition target="afterExecute" event="ExecuteDanceComponent.ExecuteDance.Return">
-            <assign location="result" expr="_event.data.result"/>
+            <assign location="result" expr="_event.data.is_ok"/>
         </transition>
         <!-- Aggiungere gestione halt -->
         <transition target="halted" event="CMD_HALT"/>
@@ -41,8 +41,8 @@
                 </send>
             </if>
         </onentry>
-        <transition cond="result == &apos;SKILL_SUCCESS&apos;" target="wait_dance_done"/>
-        <transition cond="result != &apos;SKILL_SUCCESS&apos;" target="idle"/>
+        <transition cond="result" target="wait_dance_done"/>
+        <transition target="idle"/>
     </state>
     <!-- Running loop: check IsDancing until finished -->
     <state id="wait_dance_done">
@@ -55,7 +55,7 @@
         <transition target="onQuery" event="ExecuteDanceComponent.IsDancing.Return">
             <assign location="is_dancing" expr="_event.data.is_dancing"/>
         </transition>
-        <transition cond="_event.data.result!=&apos;SKILL_SUCCESS&apos;" target="failure" event="ExecuteDanceComponent.IsDancing.Return"/>
+        <transition cond="_event.data.is_ok" target="failure" event="ExecuteDanceComponent.IsDancing.Return"/>
         <!-- Aggiungere gestione halt -->
         <transition target="halted" event="CMD_HALT"/>
     </state>
@@ -81,7 +81,9 @@
         <onentry>
             <assign location="is_dancing" expr="false"/>
             <assign location="result" expr="&apos;&apos;"/>
-            <send event="HALT_RESPONSE"/>
+            <send event="HALT_RESPONSE">
+                <param name="is_ok" expr="true"/>
+            </send>
         </onentry>
         <transition target="idle"/>
     </state>

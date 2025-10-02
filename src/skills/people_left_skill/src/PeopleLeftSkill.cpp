@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ PeopleLeftSkill::PeopleLeftSkill(std::string name ) :
     
 }
 
+PeopleLeftSkill::~PeopleLeftSkill()
+{
+    //std::cout << "DEBUG: Invoked destructor of PeopleLeftSkill" << std::endl;
+    m_threadSpin->join();
+}
+
 void PeopleLeftSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: PeopleLeftSkill::spin successfully ended" << std::endl;
 }
 
 bool PeopleLeftSkill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool PeopleLeftSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "PeopleLeftSkill::start");
-	std::cout << "PeopleLeftSkill::start";
+	std::cout << "DEBUG: PeopleLeftSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
@@ -237,7 +247,7 @@ bool PeopleLeftSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -262,11 +272,10 @@ void PeopleLeftSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;    
+          break;
       case Status::undefined:
           response->status = SKILL_FAILURE;
-          RCLCPP_ERROR(m_node->get_logger(), "PeopleLeftSkill::tick - Status is undefined, returning failure.");
-          break;        
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "PeopleLeftSkill::tickDone");
   response->is_ok = true;

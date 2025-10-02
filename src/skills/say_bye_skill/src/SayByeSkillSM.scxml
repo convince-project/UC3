@@ -13,9 +13,31 @@
     <!-- Action skill: tick + halt servers -->
     <!-- Clients -->
     <state id="idle">
-        <transition target="startSpeak" event="CMD_TICK">
+        <transition target="setCmd" event="CMD_TICK">
+            <send event="SchedulerComponent.SetCommand.Call">
+                <param name="command" expr="m_command"/>
+            </send>
         </transition>
         <transition target="halted" event="CMD_HALT"/>
+    </state>
+    <state id="setCmd">
+        <transition target="evaluateSetCmd" event="SchedulerComponent.SetCommand.Return"/>
+    </state>
+    <state id="evaluateSetCmd">
+        <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+        <transition target="getText"/>
+    </state>
+    <state id="getText">
+        <onentry>
+            <send event="SchedulerComponent.GetCurrentAction.Call"/>
+        </onentry>
+        <transition target="evaluateGetText" event="SchedulerComponent.GetCurrentAction.Return">
+            <assign location="m_param" expr="_event.data.param"/>
+        </transition>
+    </state>
+    <state id="evaluateGetText">
+        <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+        <transition target="startSpeak"/>
     </state>
     <state id="startSpeak">
         <onentry>
@@ -27,12 +49,10 @@
                 <param name="text" expr="m_param"/>
             </send>
         </onentry>
-        <transition target="evaluateSpeak" event="TextToSpeechComponent.Speak.Return">
-            <assign location="m_result" expr="_event.data.is_ok"/>
-        </transition>
+        <transition target="evaluateSpeak" event="TextToSpeechComponent.Speak.Return"/>
     </state>
     <state id="evaluateSpeak">
-        <transition cond="!m_result" target="failure"/>
+        <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
         <transition target="waitSpeaking"/>
     </state>
     <state id="waitSpeaking">
@@ -44,11 +64,10 @@
     <state id="checkSpeak">
         <transition target="evaluateCheck" event="TextToSpeechComponent.IsSpeaking.Return">
             <assign location="m_is_speaking" expr="_event.data.is_speaking"/>
-            <assign location="m_result" expr="_event.data.is_ok"/>
         </transition>
     </state>
     <state id="evaluateCheck">
-        <transition cond="!m_result" target="failure"/>
+        <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
         <transition target="decideCheck"/>
     </state>
     <state id="decideCheck">
