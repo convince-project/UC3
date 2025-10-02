@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ IsAllowedToMoveSkill::IsAllowedToMoveSkill(std::string name ) :
     
 }
 
+IsAllowedToMoveSkill::~IsAllowedToMoveSkill()
+{
+    //std::cout << "DEBUG: Invoked destructor of IsAllowedToMoveSkill" << std::endl;
+    m_threadSpin->join();
+}
+
 void IsAllowedToMoveSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: IsAllowedToMoveSkill::spin successfully ended" << std::endl;
 }
 
 bool IsAllowedToMoveSkill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool IsAllowedToMoveSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "IsAllowedToMoveSkill::start");
-	std::cout << "IsAllowedToMoveSkill::start";
+	std::cout << "DEBUG: IsAllowedToMoveSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickCondition>(m_name + "Skill/tick",
@@ -135,7 +145,7 @@ bool IsAllowedToMoveSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -158,7 +168,10 @@ void IsAllowedToMoveSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_inter
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;            
+          break;
+      case Status::undefined:
+          response->status = SKILL_FAILURE;
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "IsAllowedToMoveSkill::tickDone");
   response->is_ok = true;

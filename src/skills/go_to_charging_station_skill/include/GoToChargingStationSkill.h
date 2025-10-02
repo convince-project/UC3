@@ -6,10 +6,7 @@
 #include "rclcpp_action/rclcpp_action.hpp"
 #include "GoToChargingStationSkillSM.h"
 #include <bt_interfaces_dummy/msg/action_response.hpp>
-#include <navigation_interfaces/srv/stop_navigation.hpp> 
-#include <navigation_interfaces/srv/go_to_poi_by_name.hpp> 
-#include <navigation_interfaces/srv/get_navigation_status.hpp> 
-#include <navigation_interfaces/srv/check_near_to_poi.hpp> 
+#include <navigation_interfaces/action/go_to_poi.hpp> 
 
 
 
@@ -33,6 +30,8 @@ class GoToChargingStationSkill
 {
 public:
 	GoToChargingStationSkill(std::string name );
+    ~GoToChargingStationSkill();
+
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	
@@ -57,6 +56,18 @@ private:
 	
 	
 	
+	
+	std::shared_ptr<rclcpp::Node> m_node_action;
+	std::mutex m_actionMutex;
+	std::mutex m_feedbackMutex;
+	rclcpp_action::Client<navigation_interfaces::action::GoToPoi>::SendGoalOptions m_send_goal_options;
+	rclcpp_action::Client<navigation_interfaces::action::GoToPoi>::SharedPtr m_actionClient;
+	void goal_response_callback(const  rclcpp_action::ClientGoalHandle<navigation_interfaces::action::GoToPoi>::SharedPtr & goal_handle);
+	void send_goal(navigation_interfaces::action::GoToPoi::Goal);
+	void feedback_callback(
+    	rclcpp_action::ClientGoalHandle<navigation_interfaces::action::GoToPoi>::SharedPtr,
+    	const std::shared_ptr<const navigation_interfaces::action::GoToPoi::Feedback> feedback);
+	void result_callback(const  rclcpp_action::ClientGoalHandle<navigation_interfaces::action::GoToPoi>::WrappedResult & result);
 	
 	
 

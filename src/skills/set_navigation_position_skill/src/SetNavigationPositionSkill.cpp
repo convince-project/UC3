@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ SetNavigationPositionSkill::SetNavigationPositionSkill(std::string name ) :
     
 }
 
+SetNavigationPositionSkill::~SetNavigationPositionSkill()
+{
+    //std::cout << "DEBUG: Invoked destructor of SetNavigationPositionSkill" << std::endl;
+    m_threadSpin->join();
+}
+
 void SetNavigationPositionSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: SetNavigationPositionSkill::spin successfully ended" << std::endl;
 }
 
 bool SetNavigationPositionSkill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool SetNavigationPositionSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "SetNavigationPositionSkill::start");
-	std::cout << "SetNavigationPositionSkill::start";
+	std::cout << "DEBUG: SetNavigationPositionSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
@@ -150,6 +160,7 @@ bool SetNavigationPositionSkill::start(int argc, char*argv[])
               if( response->is_ok == true) {
                   QVariantMap data;
                   data.insert("is_ok", true);
+                  data.insert("is_ok", response->is_ok);
                   m_stateMachine.submitEvent("ExecuteDanceComponent.ExecuteDance.Return", data);
                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "ExecuteDanceComponent.ExecuteDance.Return");
                   return;
@@ -194,7 +205,7 @@ bool SetNavigationPositionSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -219,10 +230,10 @@ void SetNavigationPositionSkill::tick( [[maybe_unused]] const std::shared_ptr<bt
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;  
+          break;
       case Status::undefined:
           response->status = SKILL_FAILURE;
-          break;          
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "SetNavigationPositionSkill::tickDone");
   response->is_ok = true;
