@@ -29,6 +29,8 @@ class ArePeoplePresentSkill
 {
 public:
 	ArePeoplePresentSkill(std::string name );
+    ~ArePeoplePresentSkill();
+
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	

@@ -15,12 +15,12 @@
     </state>
     <state id="startTimer">
         <transition target="afterTimer" event="TimeComponent.StartTourTimer.Return">
-            <assign location="result" expr="_event.data.result"/>
+            <assign location="result" expr="_event.data.is_ok"/>
         </transition>
     </state>
     <state id="afterTimer">
-        <transition cond="result == &apos;SKILL_SUCCESS&apos;" target="resetWarn"/>
-        <transition cond="result != &apos;SKILL_SUCCESS&apos;" target="failReply"/>
+        <transition cond="result" target="resetWarn"/>
+        <transition target="failReply"/>
     </state>
     <state id="resetWarn">
         <onentry>
@@ -39,17 +39,18 @@
             </send>
         </onentry>
         <transition target="checkResetResult" event="BlackboardComponent.SetInt.Return">
-            <assign location="result" expr="_event.data.result"/>
+            <assign location="result" expr="_event.data.is_ok"/>
         </transition>
     </state>
     <state id="checkResetResult">
-        <transition cond="result == &apos;SKILL_SUCCESS&apos;" target="successReply"/>
-        <transition cond="result != &apos;SKILL_SUCCESS&apos;" target="failReply"/>
+        <transition cond="result" target="successReply"/>
+        <transition target="failReply"/>
     </state>
     <state id="successReply">
         <onentry>
             <send event="TICK_RESPONSE">
                 <param name="status" expr="SKILL_SUCCESS"/>
+                <param name="is_ok" expr="true"/>
             </send>
         </onentry>
         <transition target="idle"/>
@@ -58,13 +59,16 @@
         <onentry>
             <send event="TICK_RESPONSE">
                 <param name="status" expr="SKILL_FAILURE"/>
+                <param name="is_ok" expr="true"/>
             </send>
         </onentry>
         <transition target="idle"/>
     </state>
     <state id="halted">
         <onentry>
-            <send event="HALT_RESPONSE"/>
+            <send event="HALT_RESPONSE">
+                <param name="is_ok" expr="true"/>
+            </send>
         </onentry>
         <transition target="idle"/>
     </state>

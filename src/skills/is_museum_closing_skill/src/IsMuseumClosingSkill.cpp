@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ IsMuseumClosingSkill::IsMuseumClosingSkill(std::string name ) :
     
 }
 
+IsMuseumClosingSkill::~IsMuseumClosingSkill()
+{
+    //std::cout << "DEBUG: Invoked destructor of IsMuseumClosingSkill" << std::endl;
+    m_threadSpin->join();
+}
+
 void IsMuseumClosingSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: IsMuseumClosingSkill::spin successfully ended" << std::endl;
 }
 
 bool IsMuseumClosingSkill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool IsMuseumClosingSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "IsMuseumClosingSkill::start");
-	std::cout << "IsMuseumClosingSkill::start";
+	std::cout << "DEBUG: IsMuseumClosingSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickCondition>(m_name + "Skill/tick",
@@ -135,7 +145,7 @@ bool IsMuseumClosingSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -158,7 +168,10 @@ void IsMuseumClosingSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_inter
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;            
+          break;
+      case Status::undefined:
+          response->status = SKILL_FAILURE;
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "IsMuseumClosingSkill::tickDone");
   response->is_ok = true;

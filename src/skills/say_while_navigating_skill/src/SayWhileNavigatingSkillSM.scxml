@@ -32,6 +32,7 @@
         <onentry>
             <send event="TICK_RESPONSE">
                 <param name="status" expr="SKILL_FAILURE"/>
+                <param name="is_ok" expr="true"/>
             </send>
         </onentry>
         <transition target="idle"/>
@@ -40,6 +41,7 @@
         <onentry>
             <send event="TICK_RESPONSE">
                 <param name="status" expr="SKILL_SUCCESS"/>
+                <param name="is_ok" expr="true"/>
             </send>
         </onentry>
         <transition target="idle"/>
@@ -57,6 +59,7 @@
         <onentry>
             <send event="TICK_RESPONSE">
                 <param name="status" expr="SKILL_RUNNING"/>
+                <param name="is_ok" expr="true"/>
             </send>
         </onentry>
         <transition target="checkDone" event="CMD_TICK">
@@ -85,8 +88,10 @@
         <onentry>
             <assign location="m_counter" expr="0"/>
             <assign location="m_is_done" expr="false"/>
-            <assign location="m_result" expr="false&apos;"/>
-            <send event="HALT_RESPONSE"/>
+            <assign location="m_result" expr="false"/>
+            <send event="HALT_RESPONSE">
+                <param name="is_ok" expr="true"/>
+            </send>
         </onentry>
         <transition target="idle"/>
     </state>

@@ -4,7 +4,6 @@
         <data id="NAV_STATUS_MOVING" expr="2"/>
         <data id="charging_station" expr="&apos;charging_station&apos;"/>
         <data id="distance" expr="0.5"/>
-        <data id="m_result" expr="&apos;&apos;"/>
         <data id="m_status" expr="0"/>
         <data id="m_is_near" expr="false"/>
         <data id="SKILL_SUCCESS" expr="0"/>
@@ -15,81 +14,84 @@
     <!-- Clients for navigation calls -->
     <state id="idle">
         <transition target="sendGoal" event="CMD_TICK">
-            <send event="NavigationComponent.GoToPoiByName.Call">
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_RUNNING"/>
+                <param name="is_ok" expr="true"/>
+            </send>
+            <send event="NavigationComponent.GoToPoi.SendGoal">
                 <param name="poi_name" expr="charging_station"/>
             </send>
         </transition>
-        <transition target="stopNav" event="CMD_HALT">
-            <send event="NavigationComponent.StopNavigation.Call"/>
-        </transition>
-    </state>
-    <state id="sendGoal">
-        <transition target="monitor" event="NavigationComponent.GoToPoiByName.Return">
-            <assign location="m_result" expr="_event.data.is_ok"/>
-            <send event="TICK_RESPONSE">
-                <param name="status" expr="m_result?SKILL_RUNNING:SKILL_FAILURE"/>
+        <transition target="idle" event="CMD_HALT">
+            <send event="HALT_RESPONSE">
+                <param name="is_ok" expr="true"/>
             </send>
         </transition>
     </state>
-    <state id="monitor">
-        <transition target="getStatus" event="CMD_TICK">
-            <send event="NavigationComponent.GetNavigationStatus.Call"/>
+    <state id="sendGoal">
+        <onentry>
+            <send event="NavigationComponent.GoToPoi.SendGoal">
+                <param name="poi_name" expr="charging_station"/>
+            </send>
+            <assign location="m_status" expr="NAV_STATUS_MOVING"/>
+            <assign location="m_is_near" expr="false"/>
+        </onentry>
+        <transition target="goalResponse"/>
+    </state>
+    <state id="goalResponse">
+        <transition event="NavigationComponent.GoToPoi.GoalResponse" cond="_event.data.is_ok" target="wait_result"/>
+        <transition event="NavigationComponent.GoToPoi.GoalResponse" cond="_event.data.is_ok == false" target="send_failure"/>
+        <transition target="goalResponse" event="CMD_TICK">
+            <send event="TICK_RESPONSE">
+                <param name="is_ok" expr="true"/>
+                <param name="status" expr="SKILL_RUNNING"/>
+            </send>
         </transition>
-        <transition target="stopNav" event="CMD_HALT">
-            <send event="NavigationComponent.StopNavigation.Call"/>
+        <transition target="idle" event="CMD_HALT">
+            <send event="HALT_RESPONSE">
+                <param name="is_ok" expr="true"/>
+            </send>
         </transition>
     </state>
-    <state id="getStatus">
-        <transition target="evaluate" event="NavigationComponent.GetNavigationStatus.Return">
+    <state id="wait_result">
+        <transition target="wait_result" event="CMD_TICK">
+            <send event="TICK_RESPONSE">
+                <param name="is_ok" expr="true"/>
+                <param name="status" expr="SKILL_RUNNING"/>
+            </send>
+        </transition>
+        <transition target="wait_result" event="NavigationComponent.GoToPoi.FeedbackReturn">
             <assign location="m_status" expr="_event.data.status"/>
-            <assign location="m_result" expr="_event.data.is_ok"/>
+        </transition>
+        <transition target="goal_done" event="NavigationComponent.GoToPoi.ResultResponse">
+            <assign location="m_is_near" expr="_event.data.is_ok"/>
+        </transition>
+        <transition target="idle" event="CMD_HALT">
+            <send event="HALT_RESPONSE">
+                <param name="is_ok" expr="true"/>
+            </send>
         </transition>
     </state>
-    <state id="evaluate">
+    <state id="goal_done">
+        <transition target="idle" event="CMD_TICK">
+            <send event="TICK_RESPONSE">
+                <param name="is_ok" expr="true"/>
+                <param name="status" expr="SKILL_SUCCESS"/>
+            </send>
+        </transition>
+        <transition target="idle" event="CMD_HALT">
+            <send event="HALT_RESPONSE">
+                <param name="is_ok" expr="true"/>
+            </send>
+        </transition>
+    </state>
+    <state id="send_failure">
         <onentry>
-            <if cond="!m_result">
-                <send event="TICK_RESPONSE">
-                    <param name="status" expr="SKILL_FAILURE"/>
-                </send>
-                <elseif cond="m_status==NAV_STATUS_MOVING"/>
-                <send event="TICK_RESPONSE">
-                    <param name="status" expr="SKILL_RUNNING"/>
-                </send>
-                <else/>
-                <send event="NavigationComponent.CheckNearToPoi.Call">
-                    <param name="poi_name" expr="charging_station"/>
-                    <param name="distance" expr="distance"/>
-                </send>
-            </if>
+            <send event="TICK_RESPONSE">
+                <param name="is_ok" expr="true"/>
+                <param name="status" expr="SKILL_FAILURE"/>
+            </send>
         </onentry>
-        <transition target="checkProximity"/>
-    </state>
-    <state id="checkProximity">
-        <transition target="decide" event="NavigationComponent.CheckNearToPoi.Return">
-            <assign location="m_is_near" expr="_event.data.is_near"/>
-            <assign location="m_result" expr="_event.data.is_ok"/>
-        </transition>
-    </state>
-    <state id="decide">
-        <onentry>
-            <if cond="m_result &amp;&amp; m_is_near">
-                <send event="TICK_RESPONSE">
-                    <param name="status" expr="SKILL_SUCCESS"/>
-                </send>
-                <else/>
-                <send event="TICK_RESPONSE">
-                    <param name="status" expr="SKILL_RUNNING"/>
-                </send>
-            </if>
-        </onentry>
-        <transition target="monitor"/>
-    </state>
-    <state id="stopNav">
-        <transition target="halted" event="NavigationComponent.StopNavigation.Return">
-            <send event="HALT_RESPONSE"/>
-        </transition>
-    </state>
-    <state id="halted">
         <transition target="idle"/>
     </state>
 </scxml>

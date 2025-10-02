@@ -3,12 +3,11 @@
     <datamodel>
         <data id="NAV_STATUS_MOVING" expr="2"/>
         <data id="distance" expr="0.5"/>
-        <data id="m_poi_name" expr="&apos;&apos;"/>
-        <data id="m_poi_result" expr="&apos;&apos;"/>
-        <data id="m_nav_result" expr="&apos;&apos;"/>
+        <data id="m_poi_number" expr="0"/>
+        <data id="m_poi_result" expr="false"/>
+        <data id="m_nav_result" expr="false"/>
         <data id="m_status" expr="0"/>
         <data id="m_is_near" expr="false"/>
-        <data id="SUCCESS_RESULT" expr="&apos;SUCCESS&apos;"/>
         <data id="SKILL_SUCCESS" expr="0"/>
         <data id="SKILL_FAILURE" expr="1"/>
     </datamodel>
@@ -21,13 +20,13 @@
     </state>
     <state id="getPoi">
         <transition target="evaluatePoi" event="SchedulerComponent.GetCurrentPoi.Return">
-            <assign location="m_poi_name" expr="_event.data.poi_name"/>
-            <assign location="m_poi_result" expr="_event.data.result"/>
+            <assign location="m_poi_number" expr="_event.data.poi_number"/>
+            <assign location="m_poi_result" expr="true"/>
         </transition>
     </state>
     <state id="evaluatePoi">
         <!-- GetCurrentPoi failed -->
-        <transition cond="m_poi_result != SUCCESS_RESULT" target="failure"/>
+        <transition cond="!m_poi_result" target="failure"/>
         <!-- GetCurrentPoi succeeded, check navigation status -->
         <transition target="getStatus"/>
     </state>
@@ -36,13 +35,13 @@
             <send event="NavigationComponent.GetNavigationStatus.Call"/>
         </onentry>
         <transition target="evaluateStatus" event="NavigationComponent.GetNavigationStatus.Return">
-            <assign location="m_status" expr="_event.data.status"/>
-            <assign location="m_nav_result" expr="_event.data.result"/>
+            <assign location="m_status" expr="_event.data.status.status"/>
+            <assign location="m_nav_result" expr="_event.data.is_ok"/>
         </transition>
     </state>
     <state id="evaluateStatus">
         <!-- GetNavigationStatus failed -->
-        <transition cond="m_nav_result != SUCCESS_RESULT" target="failure"/>
+        <transition cond="!m_nav_result" target="failure"/>
         <!-- Robot is moving, not at POI -->
         <transition cond="m_status == NAV_STATUS_MOVING" target="failure"/>
         <!-- Robot not moving, check proximity -->
@@ -50,10 +49,43 @@
     </state>
     <state id="checkNear">
         <onentry>
-            <send event="NavigationComponent.CheckNearToPoi.Call">
-                <param name="poi_name" expr="m_poi_name"/>
-                <param name="distance" expr="distance"/>
-            </send>
+            <if cond="m_poi_number == 0">
+                <send event="NavigationComponent.CheckNearToPoi.Call">
+                    <param name="poi_name" expr="&apos;Poi0&apos;"/>
+                    <param name="distance" expr="distance"/>
+                    <param name="angle" expr="360"/>
+                </send>
+                <elseif cond="m_poi_number == 1"/>
+                <send event="NavigationComponent.CheckNearToPoi.Call">
+                    <param name="poi_name" expr="&apos;Poi1&apos;"/>
+                    <param name="distance" expr="distance"/>
+                    <param name="angle" expr="360"/>
+                </send>
+                <elseif cond="m_poi_number == 2"/>
+                <send event="NavigationComponent.CheckNearToPoi.Call">
+                    <param name="poi_name" expr="&apos;Poi2&apos;"/>
+                    <param name="distance" expr="distance"/>
+                    <param name="angle" expr="360"/>
+                </send>
+                <elseif cond="m_poi_number == 3"/>
+                <send event="NavigationComponent.CheckNearToPoi.Call">
+                    <param name="poi_name" expr="&apos;Poi3&apos;"/>
+                    <param name="distance" expr="distance"/>
+                    <param name="angle" expr="360"/>
+                </send>
+                <elseif cond="m_poi_number == 4"/>
+                <send event="NavigationComponent.CheckNearToPoi.Call">
+                    <param name="poi_name" expr="&apos;Poi4&apos;"/>
+                    <param name="distance" expr="distance"/>
+                    <param name="angle" expr="360"/>
+                </send>
+                <elseif cond="m_poi_number == 5"/>
+                <send event="NavigationComponent.CheckNearToPoi.Call">
+                    <param name="poi_name" expr="&apos;Poi5&apos;"/>
+                    <param name="distance" expr="distance"/>
+                    <param name="angle" expr="360"/>
+                </send>
+            </if>
         </onentry>
         <transition target="finalize" event="NavigationComponent.CheckNearToPoi.Return">
             <assign location="m_is_near" expr="_event.data.is_near"/>

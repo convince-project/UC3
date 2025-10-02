@@ -31,6 +31,8 @@ class SetTurnedSkill
 {
 public:
 	SetTurnedSkill(std::string name );
+    ~SetTurnedSkill();
+
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	

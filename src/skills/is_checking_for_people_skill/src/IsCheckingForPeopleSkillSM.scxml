@@ -3,8 +3,7 @@
     <datamodel>
         <data id="m_name" expr="&apos;isCheckingForPeople&apos;"/>
         <data id="m_value" expr="0"/>
-        <data id="m_result" expr="&apos;&apos;"/>
-        <data id="SUCCESS_RESULT" expr="&apos;SUCCESS&apos;"/>
+        <data id="m_result" expr="false"/>
         <data id="SKILL_SUCCESS" expr="0"/>
         <data id="SKILL_FAILURE" expr="1"/>
     </datamodel>
@@ -20,13 +19,13 @@
     <state id="query">
         <transition target="evaluate" event="BlackboardComponent.GetInt.Return">
             <assign location="m_value" expr="_event.data.value"/>
-            <assign location="m_result" expr="_event.data.result"/>
+            <assign location="m_result" expr="_event.data.is_ok"/>
         </transition>
     </state>
     <state id="evaluate">
-        <!-- Service call failed -->
-        <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
-        <!-- Check if currently checking for people -->
+        <!-- Service call failed - use boolean logic -->
+        <transition cond="!m_result" target="failure"/>
+        <!-- Service succeeded, check if currently checking for people -->
         <transition target="decide"/>
     </state>
     <state id="decide">

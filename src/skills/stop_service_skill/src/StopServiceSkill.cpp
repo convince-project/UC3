@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ StopServiceSkill::StopServiceSkill(std::string name ) :
     
 }
 
+StopServiceSkill::~StopServiceSkill()
+{
+    //std::cout << "DEBUG: Invoked destructor of StopServiceSkill" << std::endl;
+    m_threadSpin->join();
+}
+
 void StopServiceSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: StopServiceSkill::spin successfully ended" << std::endl;
 }
 
 bool StopServiceSkill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool StopServiceSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "StopServiceSkill::start");
-	std::cout << "StopServiceSkill::start";
+	std::cout << "DEBUG: StopServiceSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
@@ -74,8 +84,8 @@ bool StopServiceSkill::start(int argc, char*argv[])
   
   m_stateMachine.connectToEvent("ManagePeopleDetectorComponent.StopService.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
       std::shared_ptr<rclcpp::Node> nodeStopService = rclcpp::Node::make_shared(m_name + "SkillNodeStopService");
-      std::shared_ptr<rclcpp::Client<manage_service_interfaces::srv::StopService>> clientStopService = nodeStopService->create_client<manage_service_interfaces::srv::StopService>("/ManagePeopleDetectorComponent/StopService");
-      auto request = std::make_shared<manage_service_interfaces::srv::StopService::Request>();
+      std::shared_ptr<rclcpp::Client<manage_people_detector_interfaces::srv::StopService>> clientStopService = nodeStopService->create_client<manage_people_detector_interfaces::srv::StopService>("/ManagePeopleDetectorComponent/StopService");
+      auto request = std::make_shared<manage_people_detector_interfaces::srv::StopService::Request>();
       auto eventParams = event.data().toMap();
       
       bool wait_succeded{true};
@@ -103,6 +113,7 @@ bool StopServiceSkill::start(int argc, char*argv[])
               if( response->is_ok == true) {
                   QVariantMap data;
                   data.insert("is_ok", true);
+                  data.insert("is_ok", response->is_ok);
                   m_stateMachine.submitEvent("ManagePeopleDetectorComponent.StopService.Return", data);
                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "ManagePeopleDetectorComponent.StopService.Return");
                   return;
@@ -147,7 +158,7 @@ bool StopServiceSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -172,10 +183,10 @@ void StopServiceSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interface
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;  
+          break;
       case Status::undefined:
           response->status = SKILL_FAILURE;
-          break;          
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "StopServiceSkill::tickDone");
   response->is_ok = true;

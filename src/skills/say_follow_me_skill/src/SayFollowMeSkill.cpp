@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ SayFollowMeSkill::SayFollowMeSkill(std::string name ) :
     
 }
 
+SayFollowMeSkill::~SayFollowMeSkill()
+{
+    //std::cout << "DEBUG: Invoked destructor of SayFollowMeSkill" << std::endl;
+    m_threadSpin->join();
+}
+
 void SayFollowMeSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: SayFollowMeSkill::spin successfully ended" << std::endl;
 }
 
 bool SayFollowMeSkill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool SayFollowMeSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "SayFollowMeSkill::start");
-	std::cout << "SayFollowMeSkill::start";
+	std::cout << "DEBUG: SayFollowMeSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
@@ -196,6 +206,7 @@ bool SayFollowMeSkill::start(int argc, char*argv[])
               if( response->is_ok == true) {
                   QVariantMap data;
                   data.insert("is_ok", true);
+                  data.insert("is_ok", response->is_ok);
                   m_stateMachine.submitEvent("SchedulerComponent.SetCommand.Return", data);
                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.SetCommand.Return");
                   return;
@@ -241,9 +252,7 @@ bool SayFollowMeSkill::start(int argc, char*argv[])
               if( response->is_ok == true) {
                   QVariantMap data;
                   data.insert("is_ok", true);
-                  data.insert("type", response->type.c_str());
                   data.insert("param", response->param.c_str());
-                  data.insert("is_blocking", response->is_blocking);
                   m_stateMachine.submitEvent("SchedulerComponent.GetCurrentAction.Return", data);
                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.GetCurrentAction.Return");
                   return;
@@ -288,7 +297,7 @@ bool SayFollowMeSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -313,10 +322,10 @@ void SayFollowMeSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interface
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;  
+          break;
       case Status::undefined:
           response->status = SKILL_FAILURE;
-          break;          
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "SayFollowMeSkill::tickDone");
   response->is_ok = true;

@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ CheckNetworkSkill::CheckNetworkSkill(std::string name ) :
     
 }
 
+CheckNetworkSkill::~CheckNetworkSkill()
+{
+    //std::cout << "DEBUG: Invoked destructor of CheckNetworkSkill" << std::endl;
+    m_threadSpin->join();
+}
+
 void CheckNetworkSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: CheckNetworkSkill::spin successfully ended" << std::endl;
 }
 
 bool CheckNetworkSkill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool CheckNetworkSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "CheckNetworkSkill::start");
-	std::cout << "CheckNetworkSkill::start";
+	std::cout << "DEBUG: CheckNetworkSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickCondition>(m_name + "Skill/tick",
@@ -65,6 +75,9 @@ bool CheckNetworkSkill::start(int argc, char*argv[])
                                                                            	std::placeholders::_2));
   
   
+  
+  m_subscription_status = m_node->create_subscription<network_interfaces::msg::NetworkStatus>(
+  "/CheckNetworkComponent/status", 10, std::bind(&CheckNetworkSkill::topic_callback_status, this, std::placeholders::_1));
   
   
   
@@ -89,7 +102,7 @@ bool CheckNetworkSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -112,10 +125,10 @@ void CheckNetworkSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfac
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;         
+          break;
       case Status::undefined:
           response->status = SKILL_FAILURE;
-          break;  
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "CheckNetworkSkill::tickDone");
   response->is_ok = true;
@@ -123,6 +136,16 @@ void CheckNetworkSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfac
 
 
 
+
+void CheckNetworkSkill::topic_callback_status(const network_interfaces::msg::NetworkStatus::SharedPtr msg) {
+  std::cout << "callback" << std::endl;
+  QVariantMap data;
+  
+  data.insert("status", msg->status);
+  
+  m_stateMachine.submitEvent("CheckNetworkComponent.status.Sub", data);
+  RCLCPP_INFO(m_node->get_logger(), "CheckNetworkComponent.status.Sub");
+}
 
 
 

@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ SayDurationExceededSkill::SayDurationExceededSkill(std::string name ) :
     
 }
 
+SayDurationExceededSkill::~SayDurationExceededSkill()
+{
+    //std::cout << "DEBUG: Invoked destructor of SayDurationExceededSkill" << std::endl;
+    m_threadSpin->join();
+}
+
 void SayDurationExceededSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: SayDurationExceededSkill::spin successfully ended" << std::endl;
 }
 
 bool SayDurationExceededSkill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool SayDurationExceededSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "SayDurationExceededSkill::start");
-	std::cout << "SayDurationExceededSkill::start";
+	std::cout << "DEBUG: SayDurationExceededSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
@@ -241,9 +251,7 @@ bool SayDurationExceededSkill::start(int argc, char*argv[])
               if( response->is_ok == true) {
                   QVariantMap data;
                   data.insert("is_ok", true);
-                  data.insert("type", response->type.c_str());
                   data.insert("param", response->param.c_str());
-                  data.insert("is_blocking", response->is_blocking);
                   m_stateMachine.submitEvent("SchedulerComponent.GetCurrentAction.Return", data);
                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.GetCurrentAction.Return");
                   return;
@@ -382,7 +390,7 @@ bool SayDurationExceededSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -407,9 +415,9 @@ void SayDurationExceededSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_i
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;            
+          break;
       case Status::undefined:
-          response->status = SKILL_FAILURE; // Default case, should not happen
+          response->status = SKILL_FAILURE;
           break;
   }
   RCLCPP_INFO(m_node->get_logger(), "SayDurationExceededSkill::tickDone");

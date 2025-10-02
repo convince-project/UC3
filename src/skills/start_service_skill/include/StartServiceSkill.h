@@ -30,6 +30,8 @@ class StartServiceSkill
 {
 public:
 	StartServiceSkill(std::string name );
+    ~StartServiceSkill();
+
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	

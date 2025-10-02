@@ -28,6 +28,8 @@ class NetworkStatusChangedSkill
 {
 public:
 	NetworkStatusChangedSkill(std::string name );
+    ~NetworkStatusChangedSkill();
+
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	

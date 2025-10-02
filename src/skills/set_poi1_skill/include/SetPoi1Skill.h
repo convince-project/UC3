@@ -30,6 +30,8 @@ class SetPoi1Skill
 {
 public:
 	SetPoi1Skill(std::string name );
+    ~SetPoi1Skill();
+
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	

@@ -30,6 +30,8 @@ class IsAtChargingStationSkill
 {
 public:
 	IsAtChargingStationSkill(std::string name );
+    ~IsAtChargingStationSkill();
+
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	

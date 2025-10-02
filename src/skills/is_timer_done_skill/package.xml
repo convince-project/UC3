@@ -13,7 +13,7 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
   <depend>bt_interfaces_dummy</depend>
   
-  <depend>timer_check_for_people_interfaces</depend>
+  <depend>blackboard_interfaces</depend>
   <depend>std_msgs</depend>
 
   <test_depend>ament_lint_auto</test_depend>

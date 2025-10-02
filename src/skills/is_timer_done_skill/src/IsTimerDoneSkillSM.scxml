@@ -4,33 +4,52 @@
 <!-- This is an automatically generated file. -->
 <scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="IsTimerDoneSkillCondition" datamodel="ecmascript" initial="idle">
     <datamodel>
-        <data id="m_is_ok" expr="false"/>
-        <data id="m_is_active" expr="false"/>
+        <data id="key" expr="2"/>
+        <data id="value" expr="0"/>
+        <data id="m_result" expr="&apos;&apos;"/>
+        <data id="SUCCESS_RESULT" expr="&apos;SUCCESS&apos;"/>
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <data id="SKILL_FAILURE" expr="1"/>
     </datamodel>
     <!-- Condition skill: tick server only -->
     <state id="idle">
-        <transition event="CMD_TICK" target="getStatus"/>
-    </state>
-    <state id="getStatus">
-        <onentry>
-            <send event="TimerCheckForPeopleComponent.IsTimerActive.Call"/>
-        </onentry>
-        <transition event="TimerCheckForPeopleComponent.IsTimerActive.Return" target="decide">
-            <assign location="m_is_ok" expr="_event.data.is_ok"/>
-            <assign location="m_is_active" expr="_event.data.is_active"/>
+        <transition target="checkInt" event="CMD_TICK">
+            <send event="BlackboardComponent.GetInt.Call">
+                <param name="field_name" expr="key"/>
+            </send>
         </transition>
+    </state>
+    <state id="checkInt">
+        <transition target="evaluate" event="BlackboardComponent.GetInt.Return">
+            <assign location="value" expr="_event.data.value"/>
+        </transition>
+    </state>
+    <state id="evaluate">
+        <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+        <transition target="decide"/>
     </state>
     <state id="decide">
         <onentry>
-            <if cond="!m_is_ok || m_is_active">
+            <if cond="value == 1">
                 <send event="TICK_RESPONSE">
-                    <param name="result" expr="&apos;FAILURE&apos;"/>
+                    <param name="status" expr="SKILL_SUCCESS"/>
+                    <param name="is_ok" expr="true"/>
                 </send>
                 <else/>
                 <send event="TICK_RESPONSE">
-                    <param name="result" expr="&apos;SUCCESS&apos;"/>
+                    <param name="status" expr="SKILL_FAILURE"/>
+                    <param name="is_ok" expr="true"/>
                 </send>
             </if>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="failure">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_FAILURE"/>
+                <param name="is_ok" expr="true"/>
+            </send>
         </onentry>
         <transition target="idle"/>
     </state>

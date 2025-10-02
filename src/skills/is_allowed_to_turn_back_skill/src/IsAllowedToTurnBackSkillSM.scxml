@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="IsAllowedToTurnBackSkillCondition" datamodel="ecmascript" initial="idle">
     <datamodel>
-        <data id="m_result" expr="&apos;&apos;"/>
+        <data id="m_result" expr="false"/>
         <data id="m_is_allowed" expr="false"/>
-        <data id="m_value" expr="&apos;&apos;"/>
+        <data id="m_value_state" expr="0"/>
         <data id="m_name" expr="&apos;turnBackState&apos;"/>
-        <data id="SUCCESS_RESULT" expr="&apos;SUCCESS&apos;"/>
-        <data id="NOT_TURNING" expr="&apos;not_turning&apos;"/>
+        <data id="NOT_TURNING_ID" expr="1"/>
+        <data id="TURNING_ID" expr="2"/>
         <data id="SKILL_SUCCESS" expr="0"/>
         <data id="SKILL_FAILURE" expr="1"/>
+        <data id="bb_result" expr="false"/>
     </datamodel>
     <!-- Condition skill: tick server only -->
     <!-- Clients -->
@@ -21,14 +22,14 @@
     <!-- Receive permission response from manager -->
     <state id="getAllowed">
         <transition target="evaluateAllowed" event="TurnBackManagerComponent.IsAllowedToTurnBack.Return">
-            <assign location="m_result" expr="_event.data.result"/>
+            <assign location="m_result" expr="_event.data.is_ok"/>
             <assign location="m_is_allowed" expr="_event.data.is_allowed"/>
         </transition>
     </state>
     <!-- Evaluate manager's response -->
     <state id="evaluateAllowed">
-        <!-- Service call failed -->
-        <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+        <!-- Service call failed - use boolean negation -->
+        <transition cond="!m_result" target="failure"/>
         <!-- Explicitly allowed by manager -->
         <transition cond="m_is_allowed" target="success"/>
         <!-- Not explicitly allowed, check current turning state -->
@@ -42,17 +43,23 @@
             </send>
         </onentry>
         <transition target="evaluateTurning" event="BlackboardComponent.GetString.Return">
-            <assign location="m_result" expr="_event.data.result"/>
-            <assign location="m_value" expr="_event.data.value"/>
+            <assign location="bb_result" expr="_event.data.is_ok"/>
+            <if cond="_res.value == &apos;not_turning&apos;">
+                <assign location="m_value_state" expr="1"/>
+                <elseif cond="_res.value == &apos;turning&apos;"/>
+                <assign location="m_value_state" expr="2"/>
+                <else/>
+                <assign location="m_value_state" expr="0"/>
+            </if>
         </transition>
     </state>
     <!-- Evaluate blackboard turning state -->
     <state id="evaluateTurning">
-        <!-- Blackboard query failed -->
-        <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
-        <!-- Currently not turning, so turn back not allowed -->
-        <transition cond="m_value == NOT_TURNING" target="failure"/>
-        <!-- Currently turning, so turn back is allowed -->
+        <!-- Blackboard query failed - use boolean negation -->
+        <transition cond="!bb_result" target="failure"/>
+        <!-- Currently not turning, so turn back not allowed - use numerical comparison -->
+        <transition cond="m_value_state == 1" target="failure"/>
+        <!-- Currently turning or unknown state, so turn back is allowed -->
         <transition target="success"/>
     </state>
     <!-- Return failure result -->

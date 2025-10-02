@@ -31,6 +31,7 @@ ament_target_dependencies(${PROJECT_NAME}
   bt_interfaces_dummy 
   rclcpp 
   rclcpp_action 
+  std_msgs 
   
   )
 target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Scxml Qt6::StateMachine)

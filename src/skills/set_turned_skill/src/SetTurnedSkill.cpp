@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ SetTurnedSkill::SetTurnedSkill(std::string name ) :
     
 }
 
+SetTurnedSkill::~SetTurnedSkill()
+{
+    //std::cout << "DEBUG: Invoked destructor of SetTurnedSkill" << std::endl;
+    m_threadSpin->join();
+}
+
 void SetTurnedSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: SetTurnedSkill::spin successfully ended" << std::endl;
 }
 
 bool SetTurnedSkill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool SetTurnedSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "SetTurnedSkill::start");
-	std::cout << "SetTurnedSkill::start";
+	std::cout << "DEBUG: SetTurnedSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
@@ -103,6 +113,7 @@ bool SetTurnedSkill::start(int argc, char*argv[])
               if( response->is_ok == true) {
                   QVariantMap data;
                   data.insert("is_ok", true);
+                  data.insert("is_ok", response->is_ok);
                   m_stateMachine.submitEvent("TurnBackManagerComponent.IncreaseTurnBacksCounter.Return", data);
                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TurnBackManagerComponent.IncreaseTurnBacksCounter.Return");
                   return;
@@ -150,6 +161,7 @@ bool SetTurnedSkill::start(int argc, char*argv[])
               if( response->is_ok == true) {
                   QVariantMap data;
                   data.insert("is_ok", true);
+                  data.insert("is_ok", response->is_ok);
                   m_stateMachine.submitEvent("BlackboardComponent.SetString.Return", data);
                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.SetString.Return");
                   return;
@@ -194,7 +206,7 @@ bool SetTurnedSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -219,10 +231,10 @@ void SetTurnedSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;  
+          break;
       case Status::undefined:
           response->status = SKILL_FAILURE;
-          break;          
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "SetTurnedSkill::tickDone");
   response->is_ok = true;

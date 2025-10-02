@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="StopServiceSkillAction" datamodel="ecmascript" initial="idle">
     <datamodel>
-        <data id="result" expr="&apos;&apos;"/>
+        <data id="result" expr="false"/>
         <data id="SKILL_SUCCESS" expr="0"/>
         <data id="SKILL_FAILURE" expr="1"/>
     </datamodel>
@@ -13,12 +13,12 @@
     </state>
     <state id="callStop">
         <transition target="checkResult" event="ManagePeopleDetectorComponent.StopService.Return">
-            <assign location="result" expr="_event.data.result"/>
+            <assign location="result" expr="_event.data.is_ok"/>
         </transition>
     </state>
     <state id="checkResult">
-        <transition cond="result == &apos;SKILL_SUCCESS&apos;" target="replySuccess"/>
-        <transition cond="result != &apos;SKILL_SUCCESS&apos;" target="replyFailure"/>
+        <transition cond="result" target="replySuccess"/>
+        <transition target="replyFailure"/>
     </state>
     <state id="replySuccess">
         <onentry>
@@ -38,7 +38,9 @@
     </state>
     <state id="halted">
         <onentry>
-            <send event="HALT_RESPONSE"/>
+            <send event="HALT_RESPONSE">
+                <param name="is_ok" expr="true"/>
+            </send>
         </onentry>
         <transition target="idle"/>
     </state>

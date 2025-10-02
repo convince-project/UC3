@@ -30,6 +30,8 @@ class ResetTourSkill
 {
 public:
 	ResetTourSkill(std::string name );
+    ~ResetTourSkill();
+
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	

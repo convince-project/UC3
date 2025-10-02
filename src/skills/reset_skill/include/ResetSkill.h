@@ -31,6 +31,8 @@ class ResetSkill
 {
 public:
 	ResetSkill(std::string name );
+    ~ResetSkill();
+
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	

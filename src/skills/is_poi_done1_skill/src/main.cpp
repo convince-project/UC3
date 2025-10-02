@@ -14,6 +14,7 @@ int main(int argc, char *argv[])
 
   int ret=app.exec();
   
+  std::cout << "IsPoiDone1Skill successfully closed" << std::endl;
   return ret;
 }
 

@@ -21,9 +21,7 @@
         <transition target="halted" event="CMD_HALT"/>
     </state>
     <state id="setCurrentPoi">
-        <transition target="evaluateSetPoi" event="SchedulerComponent.SetPoi.Return">
-            <assign location="m_result" expr="_event.data.result"/>
-        </transition>
+        <transition target="evaluateSetPoi" event="SchedulerComponent.SetPoi.Return"/>
     </state>
     <state id="evaluateSetPoi">
         <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
@@ -36,9 +34,7 @@
                 <param name="value" expr="value"/>
             </send>
         </onentry>
-        <transition target="evaluateInt1" event="BlackboardComponent.SetInt.Return">
-            <assign location="m_result" expr="_event.data.result"/>
-        </transition>
+        <transition target="evaluateInt1" event="BlackboardComponent.SetInt.Return"/>
     </state>
     <state id="evaluateInt1">
         <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
@@ -51,9 +47,7 @@
                 <param name="value" expr="value"/>
             </send>
         </onentry>
-        <transition target="evaluateInt2" event="BlackboardComponent.SetInt.Return">
-            <assign location="m_result" expr="_event.data.result"/>
-        </transition>
+        <transition target="evaluateInt2" event="BlackboardComponent.SetInt.Return"/>
     </state>
     <state id="evaluateInt2">
         <transition cond="m_result != SUCCESS_RESULT" target="failure"/>

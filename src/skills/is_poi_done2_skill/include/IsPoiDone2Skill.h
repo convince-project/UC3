@@ -29,6 +29,8 @@ class IsPoiDone2Skill
 {
 public:
 	IsPoiDone2Skill(std::string name );
+    ~IsPoiDone2Skill();
+
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	

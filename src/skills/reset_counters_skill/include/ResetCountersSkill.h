@@ -30,6 +30,8 @@ class ResetCountersSkill
 {
 public:
 	ResetCountersSkill(std::string name );
+    ~ResetCountersSkill();
+
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	

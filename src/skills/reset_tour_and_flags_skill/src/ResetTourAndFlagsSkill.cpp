@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -41,10 +43,18 @@ ResetTourAndFlagsSkill::ResetTourAndFlagsSkill(std::string name ) :
     
 }
 
+ResetTourAndFlagsSkill::~ResetTourAndFlagsSkill()
+{
+    //std::cout << "DEBUG: Invoked destructor of ResetTourAndFlagsSkill" << std::endl;
+    m_threadSpin->join();
+}
+
 void ResetTourAndFlagsSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: ResetTourAndFlagsSkill::spin successfully ended" << std::endl;
 }
 
 bool ResetTourAndFlagsSkill::start(int argc, char*argv[])
@@ -56,7 +66,7 @@ bool ResetTourAndFlagsSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "ResetTourAndFlagsSkill::start");
-	std::cout << "ResetTourAndFlagsSkill::start";
+	std::cout << "DEBUG: ResetTourAndFlagsSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
@@ -105,6 +115,7 @@ bool ResetTourAndFlagsSkill::start(int argc, char*argv[])
               if( response->is_ok == true) {
                   QVariantMap data;
                   data.insert("is_ok", true);
+                  data.insert("is_ok", response->is_ok);
                   m_stateMachine.submitEvent("SchedulerComponent.Reset.Return", data);
                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.Reset.Return");
                   return;
@@ -142,7 +153,6 @@ bool ResetTourAndFlagsSkill::start(int argc, char*argv[])
               break;
           }
       }
-
       if (wait_succeded) {                                                                   
           auto result = clientSetAllIntsWithPrefix->async_send_request(request);
           const std::chrono::seconds timeout_duration(SERVICE_TIMEOUT);
@@ -153,6 +163,7 @@ bool ResetTourAndFlagsSkill::start(int argc, char*argv[])
               if( response->is_ok == true) {
                   QVariantMap data;
                   data.insert("is_ok", true);
+                  data.insert("is_ok", response->is_ok);
                   m_stateMachine.submitEvent("BlackboardComponent.SetAllIntsWithPrefix.Return", data);
                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.SetAllIntsWithPrefix.Return");
                   return;
@@ -165,7 +176,7 @@ bool ResetTourAndFlagsSkill::start(int argc, char*argv[])
       QVariantMap data;
       data.insert("is_ok", false);
       m_stateMachine.submitEvent("BlackboardComponent.SetAllIntsWithPrefix.Return", data);
-      RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.SetAllIntsWithPrefix.Return wait failed");
+      RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.SetAllIntsWithPrefix.Return");
   });
   
   m_stateMachine.connectToEvent("TICK_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){
@@ -197,7 +208,7 @@ bool ResetTourAndFlagsSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -222,10 +233,10 @@ void ResetTourAndFlagsSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_int
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;  
+          break;
       case Status::undefined:
           response->status = SKILL_FAILURE;
-          break;          
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "ResetTourAndFlagsSkill::tickDone");
   response->is_ok = true;
