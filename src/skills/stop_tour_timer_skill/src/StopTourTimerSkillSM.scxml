@@ -6,39 +6,41 @@
         <data id="SKILL_FAILURE" expr="1"/>
     </datamodel>
     <state id="idle">
-        <transition target="callStop" event="CMD_TICK">
+        <transition target="stopTimer" event="CMD_TICK">
             <send event="TimeComponent.StopTourTimer.Call"/>
         </transition>
         <transition target="halted" event="CMD_HALT"/>
     </state>
-    <state id="callStop">
-        <transition target="checkResult" event="TimeComponent.StopTourTimer.Return">
-            <assign location="result" expr="_event.data.result"/>
-        </transition>
+    <state id="stopTimer">
+        <transition target="afterStop" event="TimeComponent.StopTourTimer.Return"/>
     </state>
-    <state id="checkResult">
-        <transition cond="result == &apos;SKILL_SUCCESS&apos;" target="replySuccess"/>
-        <transition cond="result != &apos;SKILL_SUCCESS&apos;" target="replyFailure"/>
+    <state id="afterStop">
+        <transition cond="result == &apos;SKILL_SUCCESS&apos;" target="successReply"/>
+        <transition target="failReply"/>
     </state>
-    <state id="replySuccess">
+    <state id="successReply">
         <onentry>
             <send event="TICK_RESPONSE">
                 <param name="status" expr="SKILL_SUCCESS"/>
+                <param name="is_ok" expr="true"/>
             </send>
         </onentry>
         <transition target="idle"/>
     </state>
-    <state id="replyFailure">
+    <state id="failReply">
         <onentry>
             <send event="TICK_RESPONSE">
                 <param name="status" expr="SKILL_FAILURE"/>
+                <param name="is_ok" expr="true"/>
             </send>
         </onentry>
         <transition target="idle"/>
     </state>
     <state id="halted">
         <onentry>
-            <send event="HALT_RESPONSE"/>
+            <send event="HALT_RESPONSE">
+                <param name="is_ok" expr="true"/>
+            </send>
         </onentry>
         <transition target="idle"/>
     </state>

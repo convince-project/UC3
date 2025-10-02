@@ -29,6 +29,8 @@ class BatteryLevelSkill
 {
 public:
 	BatteryLevelSkill(std::string name );
+    ~BatteryLevelSkill();
+
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	

@@ -33,6 +33,8 @@ class StopAndTurnBackSkill
 {
 public:
 	StopAndTurnBackSkill(std::string name );
+    ~StopAndTurnBackSkill();
+
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	

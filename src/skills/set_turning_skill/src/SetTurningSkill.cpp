@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ SetTurningSkill::SetTurningSkill(std::string name ) :
     
 }
 
+SetTurningSkill::~SetTurningSkill()
+{
+    //std::cout << "DEBUG: Invoked destructor of SetTurningSkill" << std::endl;
+    m_threadSpin->join();
+}
+
 void SetTurningSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: SetTurningSkill::spin successfully ended" << std::endl;
 }
 
 bool SetTurningSkill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool SetTurningSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "SetTurningSkill::start");
-	std::cout << "SetTurningSkill::start";
+	std::cout << "DEBUG: SetTurningSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
@@ -149,7 +159,7 @@ bool SetTurningSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -174,10 +184,10 @@ void SetTurningSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;  
+          break;
       case Status::undefined:
           response->status = SKILL_FAILURE;
-          break;          
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "SetTurningSkill::tickDone");
   response->is_ok = true;

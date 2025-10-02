@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ SayWhileNavigatingSkill::SayWhileNavigatingSkill(std::string name ) :
     
 }
 
+SayWhileNavigatingSkill::~SayWhileNavigatingSkill()
+{
+    //std::cout << "DEBUG: Invoked destructor of SayWhileNavigatingSkill" << std::endl;
+    m_threadSpin->join();
+}
+
 void SayWhileNavigatingSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: SayWhileNavigatingSkill::spin successfully ended" << std::endl;
 }
 
 bool SayWhileNavigatingSkill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool SayWhileNavigatingSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "SayWhileNavigatingSkill::start");
-	std::cout << "SayWhileNavigatingSkill::start";
+	std::cout << "DEBUG: SayWhileNavigatingSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
@@ -103,6 +113,7 @@ bool SayWhileNavigatingSkill::start(int argc, char*argv[])
               if( response->is_ok == true) {
                   QVariantMap data;
                   data.insert("is_ok", true);
+                  data.insert("is_ok", response->is_ok);
                   data.insert("counter", response->counter);
                   m_stateMachine.submitEvent("TurnBackManagerComponent.GetTurnBacksCounter.Return", data);
                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TurnBackManagerComponent.GetTurnBacksCounter.Return");
@@ -285,7 +296,7 @@ bool SayWhileNavigatingSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -310,10 +321,10 @@ void SayWhileNavigatingSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_in
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;  
+          break;
       case Status::undefined:
           response->status = SKILL_FAILURE;
-          break;          
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "SayWhileNavigatingSkill::tickDone");
   response->is_ok = true;

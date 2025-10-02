@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ StartServiceSkill::StartServiceSkill(std::string name ) :
     
 }
 
+StartServiceSkill::~StartServiceSkill()
+{
+    //std::cout << "DEBUG: Invoked destructor of StartServiceSkill" << std::endl;
+    m_threadSpin->join();
+}
+
 void StartServiceSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: StartServiceSkill::spin successfully ended" << std::endl;
 }
 
 bool StartServiceSkill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool StartServiceSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "StartServiceSkill::start");
-	std::cout << "StartServiceSkill::start";
+	std::cout << "DEBUG: StartServiceSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
@@ -147,7 +157,7 @@ bool StartServiceSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -172,10 +182,10 @@ void StartServiceSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfac
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;  
+          break;
       case Status::undefined:
           response->status = SKILL_FAILURE;
-          break;          
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "StartServiceSkill::tickDone");
   response->is_ok = true;

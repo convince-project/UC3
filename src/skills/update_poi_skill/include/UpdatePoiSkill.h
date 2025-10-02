@@ -30,6 +30,8 @@ class UpdatePoiSkill
 {
 public:
 	UpdatePoiSkill(std::string name );
+    ~UpdatePoiSkill();
+
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	

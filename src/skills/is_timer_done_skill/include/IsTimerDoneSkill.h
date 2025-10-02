@@ -6,7 +6,7 @@
 #include "rclcpp_action/rclcpp_action.hpp"
 #include "IsTimerDoneSkillSM.h"
 #include <bt_interfaces_dummy/msg/condition_response.hpp>
-#include <timer_check_for_people_interfaces/srv/is_timer_active.hpp> 
+#include <blackboard_interfaces/srv/get_int_blackboard.hpp> 
 
 
 
@@ -29,6 +29,8 @@ class IsTimerDoneSkill
 {
 public:
 	IsTimerDoneSkill(std::string name );
+    ~IsTimerDoneSkill();
+
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	

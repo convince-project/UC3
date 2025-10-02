@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ IsTimerDoneSkill::IsTimerDoneSkill(std::string name ) :
     
 }
 
+IsTimerDoneSkill::~IsTimerDoneSkill()
+{
+    //std::cout << "DEBUG: Invoked destructor of IsTimerDoneSkill" << std::endl;
+    m_threadSpin->join();
+}
+
 void IsTimerDoneSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: IsTimerDoneSkill::spin successfully ended" << std::endl;
 }
 
 bool IsTimerDoneSkill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool IsTimerDoneSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "IsTimerDoneSkill::start");
-	std::cout << "IsTimerDoneSkill::start";
+	std::cout << "DEBUG: IsTimerDoneSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickCondition>(m_name + "Skill/tick",
@@ -67,51 +77,52 @@ bool IsTimerDoneSkill::start(int argc, char*argv[])
   
   
   
-  m_stateMachine.connectToEvent("TimerCheckForPeopleComponent.IsTimerActive.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
-      std::shared_ptr<rclcpp::Node> nodeIsTimerActive = rclcpp::Node::make_shared(m_name + "SkillNodeIsTimerActive");
-      std::shared_ptr<rclcpp::Client<timer_check_for_people_interfaces::srv::IsTimerActive>> clientIsTimerActive = nodeIsTimerActive->create_client<timer_check_for_people_interfaces::srv::IsTimerActive>("/TimerCheckForPeopleComponent/IsTimerActive");
-      auto request = std::make_shared<timer_check_for_people_interfaces::srv::IsTimerActive::Request>();
+  m_stateMachine.connectToEvent("BlackboardComponent.GetInt.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
+      std::shared_ptr<rclcpp::Node> nodeGetInt = rclcpp::Node::make_shared(m_name + "SkillNodeGetInt");
+      std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::GetIntBlackboard>> clientGetInt = nodeGetInt->create_client<blackboard_interfaces::srv::GetIntBlackboard>("/BlackboardComponent/GetInt");
+      auto request = std::make_shared<blackboard_interfaces::srv::GetIntBlackboard::Request>();
       auto eventParams = event.data().toMap();
       
+      request->field_name = convert<decltype(request->field_name)>(eventParams["field_name"].toString().toStdString());
       bool wait_succeded{true};
       int retries = 0;
-      while (!clientIsTimerActive->wait_for_service(std::chrono::seconds(1))) {
+      while (!clientGetInt->wait_for_service(std::chrono::seconds(1))) {
           if (!rclcpp::ok()) {
-              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'IsTimerActive'. Exiting.");
+              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'GetInt'. Exiting.");
               wait_succeded = false;
               break;
           } 
           retries++;
           if(retries == SERVICE_TIMEOUT) {
-              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while waiting for the service 'IsTimerActive'.");
+              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while waiting for the service 'GetInt'.");
               wait_succeded = false;
               break;
           }
       }
       if (wait_succeded) {                                                                   
-          auto result = clientIsTimerActive->async_send_request(request);
+          auto result = clientGetInt->async_send_request(request);
           const std::chrono::seconds timeout_duration(SERVICE_TIMEOUT);
-          auto futureResult = rclcpp::spin_until_future_complete(nodeIsTimerActive, result, timeout_duration);
+          auto futureResult = rclcpp::spin_until_future_complete(nodeGetInt, result, timeout_duration);
           if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
           {
               auto response = result.get();
               if( response->is_ok == true) {
                   QVariantMap data;
                   data.insert("is_ok", true);
-                  data.insert("is_active", response->is_active);
-                  m_stateMachine.submitEvent("TimerCheckForPeopleComponent.IsTimerActive.Return", data);
-                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TimerCheckForPeopleComponent.IsTimerActive.Return");
+                  data.insert("value", response->value);
+                  m_stateMachine.submitEvent("BlackboardComponent.GetInt.Return", data);
+                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.GetInt.Return");
                   return;
               }
           }
           else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
-              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'IsTimerActive'.");
+              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'GetInt'.");
           }
       }
       QVariantMap data;
       data.insert("is_ok", false);
-      m_stateMachine.submitEvent("TimerCheckForPeopleComponent.IsTimerActive.Return", data);
-      RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TimerCheckForPeopleComponent.IsTimerActive.Return");
+      m_stateMachine.submitEvent("BlackboardComponent.GetInt.Return", data);
+      RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.GetInt.Return");
   });
   
   m_stateMachine.connectToEvent("TICK_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){
@@ -135,7 +146,7 @@ bool IsTimerDoneSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -158,10 +169,10 @@ void IsTimerDoneSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interface
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;          
+          break;
       case Status::undefined:
-          response->status = SKILL_FAILURE; // Default to failure if undefined
-          break;  
+          response->status = SKILL_FAILURE;
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "IsTimerDoneSkill::tickDone");
   response->is_ok = true;

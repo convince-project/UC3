@@ -15,9 +15,7 @@
         <transition target="halted" event="CMD_HALT"/>
     </state>
     <state id="resetTour">
-        <transition target="evaluateReset" event="SchedulerComponent.Reset.Return">
-            <assign location="m_result" expr="_event.data.result"/>
-        </transition>
+        <transition target="evaluateReset" event="SchedulerComponent.Reset.Return"/>
     </state>
     <state id="evaluateReset">
         <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
@@ -27,9 +25,7 @@
         <onentry>
             <send event="TurnBackManagerComponent.ResetCounters.Call"/>
         </onentry>
-        <transition target="evaluateCounters" event="TurnBackManagerComponent.ResetCounters.Return">
-            <assign location="m_result" expr="_event.data.result"/>
-        </transition>
+        <transition target="evaluateCounters" event="TurnBackManagerComponent.ResetCounters.Return"/>
     </state>
     <state id="evaluateCounters">
         <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
@@ -39,9 +35,7 @@
         <onentry>
             <send event="TimeComponent.StopTourTimer.Call"/>
         </onentry>
-        <transition target="evaluateTimer" event="TimeComponent.StopTourTimer.Return">
-            <assign location="m_result" expr="_event.data.result"/>
-        </transition>
+        <transition target="evaluateTimer" event="TimeComponent.StopTourTimer.Return"/>
     </state>
     <state id="evaluateTimer">
         <transition cond="m_result != SUCCESS_RESULT" target="failure"/>

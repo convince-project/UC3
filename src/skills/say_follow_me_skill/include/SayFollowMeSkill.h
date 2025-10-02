@@ -33,6 +33,8 @@ class SayFollowMeSkill
 {
 public:
 	SayFollowMeSkill(std::string name );
+    ~SayFollowMeSkill();
+
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	

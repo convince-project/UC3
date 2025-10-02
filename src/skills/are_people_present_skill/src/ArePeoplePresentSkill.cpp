@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ ArePeoplePresentSkill::ArePeoplePresentSkill(std::string name ) :
     
 }
 
+ArePeoplePresentSkill::~ArePeoplePresentSkill()
+{
+    //std::cout << "DEBUG: Invoked destructor of ArePeoplePresentSkill" << std::endl;
+    m_threadSpin->join();
+}
+
 void ArePeoplePresentSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: ArePeoplePresentSkill::spin successfully ended" << std::endl;
 }
 
 bool ArePeoplePresentSkill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool ArePeoplePresentSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "ArePeoplePresentSkill::start");
-	std::cout << "ArePeoplePresentSkill::start";
+	std::cout << "DEBUG: ArePeoplePresentSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickCondition>(m_name + "Skill/tick",
@@ -98,8 +108,8 @@ bool ArePeoplePresentSkill::start(int argc, char*argv[])
               if( response->is_ok == true) {
                   QVariantMap data;
                   data.insert("is_ok", true);
-                  data.insert("result", response->result);
                   data.insert("is_allowed", response->is_allowed);
+                  data.insert("result", response->result);
                   m_stateMachine.submitEvent("TurnBackManagerComponent.IsAllowedToContinue.Return", data);
                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TurnBackManagerComponent.IsAllowedToContinue.Return");
                   return;
@@ -136,7 +146,7 @@ bool ArePeoplePresentSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -159,10 +169,10 @@ void ArePeoplePresentSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_inte
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;  
+          break;
       case Status::undefined:
           response->status = SKILL_FAILURE;
-          break;          
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "ArePeoplePresentSkill::tickDone");
   response->is_ok = true;
