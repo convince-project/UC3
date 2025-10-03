@@ -25,7 +25,7 @@ def abstract_message(message):
 
     if message['topic'] == "/monitoring_clock":
         return predicates
-    # Mappa globale per accoppiare richieste e risposte tramite sequence_number
+    # Global map to match requests and responses through the sequence_number
     if not hasattr(abstract_message, "pending_requests"):
         abstract_message.pending_requests = {}
 
@@ -36,11 +36,10 @@ def abstract_message(message):
         sequence_number = None
         if "info" in message and isinstance(message["info"], dict):
             sequence_number = message["info"].get("sequence_number")
-        # Se c'è una richiesta, salva il sequence_number
+        # If there is a request, save the sequence_number
         if "request" in message and isinstance(message["request"], list) and sequence_number is not None:
-            # La richiesta non ha parametri, ma la associamo comunque
             abstract_message.pending_requests["poi_selected_" + str(sequence_number)] = True
-        # Se c'è una risposta, controlla se la richiesta corrisponde tramite sequence_number
+        # If there is a response, check if the request matches through sequence_number
         if "response" in message and isinstance(message["response"], list) and sequence_number is not None:
             for resp in message["response"]:
                 if resp.get("poi_number") == 1:
@@ -53,14 +52,14 @@ def abstract_message(message):
         sequence_number = None
         if "info" in message and isinstance(message["info"], dict):
             sequence_number = message["info"].get("sequence_number")
-        # Se c'è una richiesta, salva il field_name associato al sequence_number
+        # If there is a request, save the associated field_name with the sequence_number
         if "request" in message and isinstance(message["request"], list) and sequence_number is not None:
             for req in message["request"]:
                 print("in for", req)
                 if req.get("field_name") == "PoiDone1":
                     print("field name found")
                     abstract_message.pending_requests[sequence_number] = "PoiDone1"
-        # Se c'è una risposta, controlla se value==0 e la richiesta corrisponde tramite sequence_number
+        # If there is a response, check if value==0 and the request matches through sequence_number
         if "response" in message and isinstance(message["response"], list) and sequence_number is not None:
             for resp in message["response"]:
                 if resp.get("value") == 0:
