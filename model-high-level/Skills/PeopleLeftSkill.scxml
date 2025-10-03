@@ -71,7 +71,6 @@
       <ros_service_send_request name="/TimeComponent/StopPoiTimer"/>
     </onentry>
     <ros_service_handle_response name="/TimeComponent/StopPoiTimer" target="evaluateTimerPoi">
-      <assign location="m_result" expr="_res.result"/>
     </ros_service_handle_response>
   </state>
 
