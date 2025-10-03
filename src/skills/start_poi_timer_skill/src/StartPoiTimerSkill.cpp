@@ -113,6 +113,7 @@ bool StartPoiTimerSkill::start(int argc, char*argv[])
               if( response->is_ok == true) {
                   QVariantMap data;
                   data.insert("is_ok", true);
+                  data.insert("is_ok", response->is_ok);
                   m_stateMachine.submitEvent("TimeComponent.StartPoiTimer.Return", data);
                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TimeComponent.StartPoiTimer.Return");
                   return;
