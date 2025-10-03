@@ -8,6 +8,7 @@
 #include <bt_interfaces_dummy/msg/action_response.hpp>
 #include <turn_back_manager_interfaces/srv/reset_counters.hpp> 
 #include <time_interfaces/srv/stop_tour_timer.hpp> 
+#include <time_interfaces/srv/stop_poi_timer.hpp> 
 #include <scheduler_interfaces/srv/reset.hpp> 
 
 

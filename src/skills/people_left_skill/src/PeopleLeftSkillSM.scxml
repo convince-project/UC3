@@ -39,6 +39,16 @@
     </state>
     <state id="evaluateTimer">
         <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
+        <transition target="stopPoiTimer"/>
+    </state>
+    <state id="stopPoiTimer">
+        <onentry>
+            <send event="TimeComponent.StopPoiTimer.Call"/>
+        </onentry>
+        <transition target="evaluateTimerPoi" event="TimeComponent.StopPoiTimer.Return"/>
+    </state>
+    <state id="evaluateTimerPoi">
+        <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
         <transition target="success"/>
     </state>
     <state id="success">

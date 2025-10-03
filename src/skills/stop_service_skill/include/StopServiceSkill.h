@@ -6,7 +6,7 @@
 #include "rclcpp_action/rclcpp_action.hpp"
 #include "StopServiceSkillSM.h"
 #include <bt_interfaces_dummy/msg/action_response.hpp>
-#include <manage_people_detector_interfaces/srv/stop_service.hpp> 
+#include <manage_service_interfaces/srv/stop_service.hpp> 
 
 
 
