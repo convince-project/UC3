@@ -475,11 +475,13 @@ bool TimeComponent::writeInBB(std::string key, int value)
     if (!wait_succeded) {
         return false;
     }
-    auto setIntResult = setIntClient->async_send_request(setIntRequest);
-    // auto futureSetIntResult = rclcpp::spin_until_future_complete(setIntClientNode, setIntResult);
-    auto setIntFutureResult = setIntResult.get();
-    if (setIntFutureResult->is_ok == true) {
-        return true;
-    }
-    return false;
+        auto setIntResult = setIntClient->async_send_request(setIntRequest);
+        auto futureSetIntResult = rclcpp::spin_until_future_complete(setIntClientNode, setIntResult);
+        if (futureSetIntResult == rclcpp::FutureReturnCode::SUCCESS) {
+            auto setIntFutureResult = setIntResult.get();
+            if (setIntFutureResult->is_ok == true) {
+                return true;
+            }
+        }
+        return false;
 }
