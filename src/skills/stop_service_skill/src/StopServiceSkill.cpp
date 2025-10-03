@@ -84,8 +84,8 @@ bool StopServiceSkill::start(int argc, char*argv[])
   
   m_stateMachine.connectToEvent("ManagePeopleDetectorComponent.StopService.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
       std::shared_ptr<rclcpp::Node> nodeStopService = rclcpp::Node::make_shared(m_name + "SkillNodeStopService");
-      std::shared_ptr<rclcpp::Client<manage_people_detector_interfaces::srv::StopService>> clientStopService = nodeStopService->create_client<manage_people_detector_interfaces::srv::StopService>("/ManagePeopleDetectorComponent/StopService");
-      auto request = std::make_shared<manage_people_detector_interfaces::srv::StopService::Request>();
+      std::shared_ptr<rclcpp::Client<manage_service_interfaces::srv::StopService>> clientStopService = nodeStopService->create_client<manage_service_interfaces::srv::StopService>("/ManagePeopleDetectorComponent/StopService");
+      auto request = std::make_shared<manage_service_interfaces::srv::StopService::Request>();
       auto eventParams = event.data().toMap();
       
       bool wait_succeded{true};

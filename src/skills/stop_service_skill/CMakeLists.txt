@@ -13,7 +13,7 @@ find_package(rclcpp_action REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(bt_interfaces_dummy REQUIRED)
 
-find_package(manage_people_detector_interfaces REQUIRED)
+find_package(manage_service_interfaces REQUIRED)
 find_package(Qt6 COMPONENTS Core Scxml StateMachine  REQUIRED)
 
 add_executable(${PROJECT_NAME} )
@@ -32,7 +32,7 @@ ament_target_dependencies(${PROJECT_NAME}
   bt_interfaces_dummy 
   rclcpp 
   rclcpp_action 
-  manage_people_detector_interfaces 
+  manage_service_interfaces 
   
   )
 target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Scxml Qt6::StateMachine)
