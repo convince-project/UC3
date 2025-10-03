@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ IsAtCurrentPoiSkill::IsAtCurrentPoiSkill(std::string name ) :
     
 }
 
+IsAtCurrentPoiSkill::~IsAtCurrentPoiSkill()
+{
+    //std::cout << "DEBUG: Invoked destructor of IsAtCurrentPoiSkill" << std::endl;
+    m_threadSpin->join();
+}
+
 void IsAtCurrentPoiSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: IsAtCurrentPoiSkill::spin successfully ended" << std::endl;
 }
 
 bool IsAtCurrentPoiSkill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool IsAtCurrentPoiSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "IsAtCurrentPoiSkill::start");
-	std::cout << "IsAtCurrentPoiSkill::start";
+	std::cout << "DEBUG: IsAtCurrentPoiSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickCondition>(m_name + "Skill/tick",
@@ -99,7 +109,6 @@ bool IsAtCurrentPoiSkill::start(int argc, char*argv[])
                   QVariantMap data;
                   data.insert("is_ok", true);
                   data.insert("poi_number", response->poi_number);
-                  data.insert("poi_name", response->poi_name.c_str());
                   m_stateMachine.submitEvent("SchedulerComponent.GetCurrentPoi.Return", data);
                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.GetCurrentPoi.Return");
                   return;
@@ -145,7 +154,8 @@ bool IsAtCurrentPoiSkill::start(int argc, char*argv[])
               if( response->is_ok == true) {
                   QVariantMap data;
                   data.insert("is_ok", true);
-                  data.insert("status", response->status.status);
+                  data.insert("is_ok", response->is_ok);
+                  data.insert("status.status", response->status.status);
                   m_stateMachine.submitEvent("NavigationComponent.GetNavigationStatus.Return", data);
                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NavigationComponent.GetNavigationStatus.Return");
                   return;
@@ -168,6 +178,7 @@ bool IsAtCurrentPoiSkill::start(int argc, char*argv[])
       
       request->poi_name = convert<decltype(request->poi_name)>(eventParams["poi_name"].toString().toStdString());
       request->distance = convert<decltype(request->distance)>(eventParams["distance"].toString().toStdString());
+      request->angle = convert<decltype(request->angle)>(eventParams["angle"].toString().toStdString());
       bool wait_succeded{true};
       int retries = 0;
       while (!clientCheckNearToPoi->wait_for_service(std::chrono::seconds(1))) {
@@ -230,7 +241,7 @@ bool IsAtCurrentPoiSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -253,11 +264,10 @@ void IsAtCurrentPoiSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interf
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;   
-      case Status::undefined:       
+          break;
+      case Status::undefined:
           response->status = SKILL_FAILURE;
-          RCLCPP_ERROR(m_node->get_logger(), "IsAtCurrentPoiSkill::tick - Status is undefined, returning failure.");
-          break;         
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "IsAtCurrentPoiSkill::tickDone");
   response->is_ok = true;

@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ IsAllowedToTurnBackSkill::IsAllowedToTurnBackSkill(std::string name ) :
     
 }
 
+IsAllowedToTurnBackSkill::~IsAllowedToTurnBackSkill()
+{
+    //std::cout << "DEBUG: Invoked destructor of IsAllowedToTurnBackSkill" << std::endl;
+    m_threadSpin->join();
+}
+
 void IsAllowedToTurnBackSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: IsAllowedToTurnBackSkill::spin successfully ended" << std::endl;
 }
 
 bool IsAllowedToTurnBackSkill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool IsAllowedToTurnBackSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "IsAllowedToTurnBackSkill::start");
-	std::cout << "IsAllowedToTurnBackSkill::start";
+	std::cout << "DEBUG: IsAllowedToTurnBackSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickCondition>(m_name + "Skill/tick",
@@ -99,6 +109,7 @@ bool IsAllowedToTurnBackSkill::start(int argc, char*argv[])
                   QVariantMap data;
                   data.insert("is_ok", true);
                   data.insert("is_allowed", response->is_allowed);
+                  data.insert("is_ok", response->is_ok);
                   m_stateMachine.submitEvent("TurnBackManagerComponent.IsAllowedToTurnBack.Return", data);
                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TurnBackManagerComponent.IsAllowedToTurnBack.Return");
                   return;
@@ -145,7 +156,7 @@ bool IsAllowedToTurnBackSkill::start(int argc, char*argv[])
               if( response->is_ok == true) {
                   QVariantMap data;
                   data.insert("is_ok", true);
-                  data.insert("value", response->value.c_str());
+                  data.insert("is_ok", response->is_ok);
                   m_stateMachine.submitEvent("BlackboardComponent.GetString.Return", data);
                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.GetString.Return");
                   return;
@@ -182,7 +193,7 @@ bool IsAllowedToTurnBackSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -205,10 +216,10 @@ void IsAllowedToTurnBackSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_i
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;  
-      case Status::undefined:   
-          response->status = SKILL_FAILURE; // Default case, should not happen
-          break;          
+          break;
+      case Status::undefined:
+          response->status = SKILL_FAILURE;
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "IsAllowedToTurnBackSkill::tickDone");
   response->is_ok = true;

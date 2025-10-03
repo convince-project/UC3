@@ -30,6 +30,8 @@ class NotifyChargedSkill
 {
 public:
 	NotifyChargedSkill(std::string name );
+    ~NotifyChargedSkill();
+
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	

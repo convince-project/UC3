@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ SetPoi1Skill::SetPoi1Skill(std::string name ) :
     
 }
 
+SetPoi1Skill::~SetPoi1Skill()
+{
+    //std::cout << "DEBUG: Invoked destructor of SetPoi1Skill" << std::endl;
+    m_threadSpin->join();
+}
+
 void SetPoi1Skill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: SetPoi1Skill::spin successfully ended" << std::endl;
 }
 
 bool SetPoi1Skill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool SetPoi1Skill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "SetPoi1Skill::start");
-	std::cout << "SetPoi1Skill::start";
+	std::cout << "DEBUG: SetPoi1Skill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
@@ -104,6 +114,7 @@ bool SetPoi1Skill::start(int argc, char*argv[])
               if( response->is_ok == true) {
                   QVariantMap data;
                   data.insert("is_ok", true);
+                  data.insert("is_ok", response->is_ok);
                   m_stateMachine.submitEvent("SchedulerComponent.SetPoi.Return", data);
                   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.SetPoi.Return");
                   return;
@@ -148,7 +159,7 @@ bool SetPoi1Skill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -173,10 +184,10 @@ void SetPoi1Skill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_du
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;  
+          break;
       case Status::undefined:
           response->status = SKILL_FAILURE;
-          break;          
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "SetPoi1Skill::tickDone");
   response->is_ok = true;

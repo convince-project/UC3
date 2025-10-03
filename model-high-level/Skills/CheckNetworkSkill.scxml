@@ -24,7 +24,7 @@
   <state id="idle">
     <!-- Update network status when message arrives -->
     <ros_topic_callback name="/CheckNetworkComponent/status" target="idle">
-      <assign location="network_status" expr="_msg.data"/>
+      <assign location="network_status" expr="_msg.status"/>
     </ros_topic_callback>
     
     <ros_service_handle_request name="/CheckNetworkSkill/tick" target="levelCheck"/>

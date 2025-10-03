@@ -30,6 +30,8 @@ class StopServiceSkill
 {
 public:
 	StopServiceSkill(std::string name );
+    ~StopServiceSkill();
+
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	

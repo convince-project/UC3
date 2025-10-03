@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ BatteryLevelSkill::BatteryLevelSkill(std::string name ) :
     
 }
 
+BatteryLevelSkill::~BatteryLevelSkill()
+{
+    //std::cout << "DEBUG: Invoked destructor of BatteryLevelSkill" << std::endl;
+    m_threadSpin->join();
+}
+
 void BatteryLevelSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: BatteryLevelSkill::spin successfully ended" << std::endl;
 }
 
 bool BatteryLevelSkill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool BatteryLevelSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "BatteryLevelSkill::start");
-	std::cout << "BatteryLevelSkill::start";
+	std::cout << "DEBUG: BatteryLevelSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickCondition>(m_name + "Skill/tick",
@@ -67,7 +77,7 @@ bool BatteryLevelSkill::start(int argc, char*argv[])
   
   
   m_subscription_battery_level = m_node->create_subscription<sensor_msgs::msg::BatteryState>(
-  "/battery_status", 10, std::bind(&BatteryLevelSkill::topic_callback_battery_level, this, std::placeholders::_1));
+  "/BatteryComponent/battery_level", 10, std::bind(&BatteryLevelSkill::topic_callback_battery_level, this, std::placeholders::_1));
   
   
   
@@ -92,7 +102,7 @@ bool BatteryLevelSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -115,7 +125,10 @@ void BatteryLevelSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfac
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;            
+          break;
+      case Status::undefined:
+          response->status = SKILL_FAILURE;
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "BatteryLevelSkill::tickDone");
   response->is_ok = true;
@@ -127,8 +140,9 @@ void BatteryLevelSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfac
 void BatteryLevelSkill::topic_callback_battery_level(const sensor_msgs::msg::BatteryState::SharedPtr msg) {
   std::cout << "callback" << std::endl;
   QVariantMap data;
+  
   data.insert("percentage", msg->percentage);
-
+  
   m_stateMachine.submitEvent("BatteryComponent.battery_level.Sub", data);
   RCLCPP_INFO(m_node->get_logger(), "BatteryComponent.battery_level.Sub");
 }

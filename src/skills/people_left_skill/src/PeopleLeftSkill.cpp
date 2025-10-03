@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ PeopleLeftSkill::PeopleLeftSkill(std::string name ) :
     
 }
 
+PeopleLeftSkill::~PeopleLeftSkill()
+{
+    //std::cout << "DEBUG: Invoked destructor of PeopleLeftSkill" << std::endl;
+    m_threadSpin->join();
+}
+
 void PeopleLeftSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: PeopleLeftSkill::spin successfully ended" << std::endl;
 }
 
 bool PeopleLeftSkill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool PeopleLeftSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "PeopleLeftSkill::start");
-	std::cout << "PeopleLeftSkill::start";
+	std::cout << "DEBUG: PeopleLeftSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
@@ -162,6 +172,51 @@ bool PeopleLeftSkill::start(int argc, char*argv[])
       m_stateMachine.submitEvent("TimeComponent.StopTourTimer.Return", data);
       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TimeComponent.StopTourTimer.Return");
   });
+  m_stateMachine.connectToEvent("TimeComponent.StopPoiTimer.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
+      std::shared_ptr<rclcpp::Node> nodeStopPoiTimer = rclcpp::Node::make_shared(m_name + "SkillNodeStopPoiTimer");
+      std::shared_ptr<rclcpp::Client<time_interfaces::srv::StopPoiTimer>> clientStopPoiTimer = nodeStopPoiTimer->create_client<time_interfaces::srv::StopPoiTimer>("/TimeComponent/StopPoiTimer");
+      auto request = std::make_shared<time_interfaces::srv::StopPoiTimer::Request>();
+      auto eventParams = event.data().toMap();
+      
+      bool wait_succeded{true};
+      int retries = 0;
+      while (!clientStopPoiTimer->wait_for_service(std::chrono::seconds(1))) {
+          if (!rclcpp::ok()) {
+              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'StopPoiTimer'. Exiting.");
+              wait_succeded = false;
+              break;
+          } 
+          retries++;
+          if(retries == SERVICE_TIMEOUT) {
+              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while waiting for the service 'StopPoiTimer'.");
+              wait_succeded = false;
+              break;
+          }
+      }
+      if (wait_succeded) {                                                                   
+          auto result = clientStopPoiTimer->async_send_request(request);
+          const std::chrono::seconds timeout_duration(SERVICE_TIMEOUT);
+          auto futureResult = rclcpp::spin_until_future_complete(nodeStopPoiTimer, result, timeout_duration);
+          if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
+          {
+              auto response = result.get();
+              if( response->is_ok == true) {
+                  QVariantMap data;
+                  data.insert("is_ok", true);
+                  m_stateMachine.submitEvent("TimeComponent.StopPoiTimer.Return", data);
+                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TimeComponent.StopPoiTimer.Return");
+                  return;
+              }
+          }
+          else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
+              RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'StopPoiTimer'.");
+          }
+      }
+      QVariantMap data;
+      data.insert("is_ok", false);
+      m_stateMachine.submitEvent("TimeComponent.StopPoiTimer.Return", data);
+      RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TimeComponent.StopPoiTimer.Return");
+  });
   m_stateMachine.connectToEvent("SchedulerComponent.Reset.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
       std::shared_ptr<rclcpp::Node> nodeReset = rclcpp::Node::make_shared(m_name + "SkillNodeReset");
       std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::Reset>> clientReset = nodeReset->create_client<scheduler_interfaces::srv::Reset>("/SchedulerComponent/Reset");
@@ -237,7 +292,7 @@ bool PeopleLeftSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -262,11 +317,10 @@ void PeopleLeftSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;    
+          break;
       case Status::undefined:
           response->status = SKILL_FAILURE;
-          RCLCPP_ERROR(m_node->get_logger(), "PeopleLeftSkill::tick - Status is undefined, returning failure.");
-          break;        
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "PeopleLeftSkill::tickDone");
   response->is_ok = true;

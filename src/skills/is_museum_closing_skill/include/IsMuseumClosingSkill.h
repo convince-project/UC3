@@ -29,6 +29,8 @@ class IsMuseumClosingSkill
 {
 public:
 	IsMuseumClosingSkill(std::string name );
+    ~IsMuseumClosingSkill();
+
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	

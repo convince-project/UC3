@@ -29,13 +29,15 @@ class BatteryChargingSkill
 {
 public:
 	BatteryChargingSkill(std::string name );
+    ~BatteryChargingSkill();
+
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	
 	void tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Request> request,
 			   std::shared_ptr<bt_interfaces_dummy::srv::TickCondition::Response>      response);
 	
-	void topic_callback_readBatteryStatus(const sensor_msgs::msg::BatteryState::SharedPtr msg);
+	void topic_callback_battery_level(const sensor_msgs::msg::BatteryState::SharedPtr msg);
 	
 
 private:
@@ -50,7 +52,7 @@ private:
 	
 	
 	
-	rclcpp::Subscription<sensor_msgs::msg::BatteryState>::SharedPtr m_subscription_readBatteryStatus;
+	rclcpp::Subscription<sensor_msgs::msg::BatteryState>::SharedPtr m_subscription_battery_level;
 	
 	
 	
