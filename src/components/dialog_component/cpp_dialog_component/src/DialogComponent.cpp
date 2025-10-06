@@ -394,7 +394,11 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
         return false;
     }
 
-    m_verbalOutputBatchReader.ConfigureYARP(rf);
+    if (!m_verbalOutputBatchReader.ConfigureYARP(rf))
+    {
+        yError() << "[DialogComponent::ConfigureYARP] Unable to configure VerbalOutputBatchReader";
+        return false;
+    }
 
     yInfo() << "[DialogComponent::ConfigureYARP] Successfully configured component";
     return true;

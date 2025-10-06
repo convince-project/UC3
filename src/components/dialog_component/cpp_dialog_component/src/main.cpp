@@ -10,16 +10,19 @@ int main(int argc, char* argv[])
         yError() << "[main] Unable to configure YARP in DialogComponent";
         return 1;
     }
+    std::cout << "YARP configured successfully in main" << std::endl;
     if (!dialogComponent.start(argc, argv)) {
         yError() << "[main] Unable to start DialogComponent";
         return 1;
     }
+    std::cout << "DialogComponent started successfully in main" << std::endl;
     // blocking call
-    rclcpp::executors::MultiThreadedExecutor m_executor;
-    m_executor.add_node(dialogComponent.getNode());
-    m_executor.spin();
+    // rclcpp::executors::MultiThreadedExecutor m_executor;
+    // m_executor.add_node(dialogComponent.getNode());
+    // m_executor.spin();
     
-    // dialogComponent.spin();
+    dialogComponent.spin();
+    std::cout << "DialogComponent spinning in main" << std::endl;
 
     dialogComponent.close();
     return 0;
