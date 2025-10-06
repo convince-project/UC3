@@ -1347,28 +1347,6 @@ void DialogComponent::Answer(const std::shared_ptr<dialog_interfaces::srv::Answe
     response->is_ok = true;
 }
 
-// void DialogComponent::Speak(const std::shared_ptr<dialog_interfaces::srv::Speak::Request> request,
-//                             std::shared_ptr<dialog_interfaces::srv::Speak::Response> response)
-// {
-//     std::vector<std::string> dances = request->dances;
-
-//     std::vector<std::string> texts = request->texts;
-
-//     // if (dance != "none")
-//     // {
-//     //     yInfo() << "[DialogComponent::CommandManager] Dance detected: " << dance;
-//     //     ExecuteDance(dance, speech_time);
-//     //     response->is_ok = true;
-//     // }
-//     // else
-//     // {
-//     //     yInfo() << "[DialogComponent::CommandManager] No dance detected";
-//     // }
-
-//     SpeakFromText(text, dance);
-
-//     response->is_ok = true;
-// }
 
 // Speak action fragment of code start
 
@@ -1504,79 +1482,3 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
 }
 
 // Speak action fragment of code end
-
-// void DialogComponent::IsSpeaking(const std::shared_ptr<dialog_interfaces::srv::IsSpeaking::Request> request,
-//                                  std::shared_ptr<dialog_interfaces::srv::IsSpeaking::Response> response)
-// {
-//     YARP_UNUSED(request);
-//     auto timeout = 500ms;
-//     auto wait = 20ms;
-//     auto elapsed = 0ms;
-//     yarp::sig::AudioPlayerStatus *player_status = nullptr;
-
-//     // Read and wait untill I have a valid message, or the timeout is passed
-//     while ([this, &player_status]() -> bool
-//                                            {
-//                 player_status = m_audioStatusPort.read(false);
-//                 if (player_status != nullptr)
-//                     return true;
-//                 else
-//                     return false; }() && elapsed < timeout)
-//     {
-//         std::this_thread::sleep_for(wait);
-//         elapsed += wait;
-//     }
-
-//     if (player_status == nullptr)
-//     {
-//         response->is_ok = false;
-//         response->error_msg = "Timeout while reading the speakers status port. No messages";
-//     }
-//     else
-//     {
-//         response->is_ok = true;
-//         if (player_status->current_buffer_size > 0)
-//         {
-//             response->seconds_left = player_status->current_buffer_size / 44100; // AUDIO_BASE::rate
-//             std::cout << "Seconds left: " << response->seconds_left << std::endl;
-//             response->is_speaking = true;
-//         }
-//         else
-//         {
-//             response->is_speaking = false;
-//         }
-//     }
-// }
-
-// void DialogComponent::SetMicrophone(const std::shared_ptr<dialog_interfaces::srv::SetMicrophone::Request> request,
-//                                     std::shared_ptr<dialog_interfaces::srv::SetMicrophone::Response> response)
-// {
-//     bool isRecording;
-//     m_iAudioGrabberSound->isRecording(isRecording);
-//     if (request->enabled && isRecording)
-//     {
-//         response->is_ok = false;
-//         response->error_msg = "The robot is already Speaking";
-//         return;
-//     }
-
-//     if (request->enabled)
-//     {
-//         m_manualMicDisabled = false;
-//         if (!m_iAudioGrabberSound->startRecording())
-//         {
-//             response->is_ok = false;
-//             response->error_msg = "Unable to START recording";
-//         }
-//     }
-//     else
-//     {
-//         if (!m_iAudioGrabberSound->stopRecording())
-//         {
-//             response->is_ok = false;
-//             response->error_msg = "Unable to STOP recording";
-//         }
-//         m_manualMicDisabled = true;
-//     }
-//     response->is_ok = true;
-// }
