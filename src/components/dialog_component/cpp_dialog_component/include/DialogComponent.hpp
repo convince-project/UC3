@@ -143,8 +143,6 @@ private:
     rclcpp::Service<dialog_interfaces::srv::Answer>::SharedPtr m_AnswerService;
     rclcpp::Service<dialog_interfaces::srv::SetLanguage>::SharedPtr m_SetLanguageService;
     rclcpp::Service<dialog_interfaces::srv::InterpretCommand>::SharedPtr m_InterpretCommandService;
-    // rclcpp::Service<dialog_interfaces::srv::SetMicrophone>::SharedPtr m_SetMicrophoneService;
-    // rclcpp::Service<dialog_interfaces::srv::IsSpeaking>::SharedPtr m_IsSpeakingService;
 
     // ROS2 Action Server for WaitForInteraction
     rclcpp_action::Server<dialog_interfaces::action::WaitForInteraction>::SharedPtr m_WaitForInteractionAction;
@@ -209,18 +207,8 @@ private:
 
     VerbalOutputBatchReader m_verbalOutputBatchReader;
 
-    // direct access to the microphone
-    // bool m_manualMicDisabled{false};
-    // yarp::dev::PolyDriver m_audioRecorderPoly;
-    // yarp::dev::IAudioGrabberSound *m_iAudioGrabberSound{nullptr};
-
-    // Audio ports to play the verbal output
-    // bool m_startedSpeaking{false};
-    // std::mutex m_mutex;
     yarp::os::BufferedPort<yarp::sig::Sound> m_audioPort;
-    // yarp::os::BufferedPort<yarp::sig::AudioPlayerStatus> m_audioStatusPort;
-    // rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr m_speakerStatusPub;
-    // rclcpp::TimerBase::SharedPtr m_timer;
+
 };
 
 #endif
