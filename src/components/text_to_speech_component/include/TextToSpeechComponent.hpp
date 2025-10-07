@@ -56,6 +56,8 @@ public:
                         std::shared_ptr<text_to_speech_interfaces::srv::SetMicrophone::Response> response);
     void BatchGeneration(const std::shared_ptr<GoalHandleBatchGeneration> goal_handle);
 
+    rclcpp::Node::SharedPtr getNode();
+
 private:
     bool m_manualMicDisabled{false};
     bool m_startedSpeaking{false};

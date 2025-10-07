@@ -1,4 +1,5 @@
 string interaction # interaction within a conversation
 string context # based on the context, the conversation is managed by different LLMs, or by predefined replies. We take this information as an input to store the history of the conversation for each case
 ---
+string[] reply # The text to be spoken
 bool is_ok

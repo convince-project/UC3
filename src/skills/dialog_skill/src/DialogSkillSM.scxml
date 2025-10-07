@@ -12,10 +12,12 @@
     <data id="m_interaction"/>
     <data id="m_duplicate_index"/>
     <data id="m_reply" expr=""/>
+    <data id="m_is_reply_finished" expr="false"/>
     <data id="m_is_beginning_of_conversation" expr="true"/>
     <data id="m_language" expr=""/>
     <data id="m_context" expr=""/>
     <data id="m_is_poi_ended" expr="false"/>
+    <data id="m_dance" expr="''"/>
   </datamodel>
 
   <state id="idle">
@@ -63,8 +65,6 @@
 
   </state>
 
-  <!-- STATE END -->
-
   <state id="waitForInteractionResult">
 
     <transition cond="m_result == 'SUCCESS'" target="manageContext">
@@ -94,6 +94,7 @@
       <assign expr="_event.data.language" location="m_language"/>
       <assign expr="_event.data.context" location="m_context"/>
       <assign expr="_event.data.isPoIEnded" location="m_is_poi_ended"/>
+      <assign expr="_event.data.dance" location="m_dance"/>
     </transition>
   </state>
 
@@ -115,6 +116,7 @@
       <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/> 
       <log label="LLM context" expr="m_context"/>
       <log label="Is tour ended" expr="m_is_poi_ended"/>
+      <log label="Dance" expr="m_dance"/>
 
     </onentry>
 
@@ -140,8 +142,7 @@
         <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/>
         <log label="LLM context" expr="m_context"/>
         <log label="Is tour ended" expr="m_is_poi_ended"/>
-
-
+        <log label="Dance" expr="m_dance"/>
 
     </onentry>
     <transition event="CMD_HALT" target="stop"/>
@@ -178,17 +179,12 @@
         <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/> 
         <log label="LLM context" expr="m_context"/>
         <log label="Is tour ended" expr="m_is_poi_ended"/>
-
+        <log label="Dance" expr="m_dance"/>
 
         <assign expr="false" location="m_is_beginning_of_conversation"/>
         <!-- <script>
           m_is_beginning_of_conversation = 'false';
         </script> -->
-
-        <log label="State checkDuplicate" expr="m_result"/>
-        <log label="Interaction" expr="m_interaction"/>
-        <log label="Language" expr="m_language"/>
-        <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/> 
 
     </onentry>
     <transition event="CMD_HALT" target="stop"/>
@@ -222,13 +218,14 @@
       <log label="Duplicate index" expr="m_duplicate_index"/>
       <log label="LLM context" expr="m_context"/>
       <log label="Is tour ended" expr="m_is_poi_ended"/>
+      <log label="Dance" expr="m_dance"/>
 
     </onentry>
-    <!-- <transition cond="m_duplicate_index &gt; 0" target="shortenAndSpeak"/>
+    <!-- <transition cond="m_duplicate_index &gt; 0" target="shortenReply"/>
     <transition cond="m_duplicate_index &lt; 0" target="interpret"/> -->
     <!-- undesirable solution, but I couldn't make the integer comparison work -->
-    <transition cond="m_duplicate_index != '-1'" target="shortenAndSpeak">
-        <send event="DialogComponent.ShortenAndSpeak.Call">
+    <transition cond="m_duplicate_index != '-1'" target="shortenReply">
+        <send event="DialogComponent.ShortenReply.Call">
           <param name="index" expr="m_duplicate_index"/>
           <param name="context" expr="m_context"/>
           <param name="interaction" expr="m_interaction"/>
@@ -241,8 +238,8 @@
         </send>
     </transition>
     <!-- <transition cond="" target="interpretCommand"/> -->
-    <transition target="answerAndSpeak">
-        <send event="DialogComponent.AnswerAndSpeak.Call">
+    <transition target="answer">
+        <send event="DialogComponent.Answer.Call">
           <param name="interaction" expr="m_interaction"/>
           <param name="context" expr="m_context"/>
         </send>
@@ -253,37 +250,32 @@
   <!-- STATE END -->
   <!-- TODO: Discuss if adding 2 evaluateDuplicateResult states, to evaluate the correct execution of evaluateDuplicate state -->
 
-  <state id="shortenAndSpeak">
+  <state id="shortenReply">
     <onentry>
-        <log label="State shortenAndSpeak" expr="m_result"/>
+        <log label="State shortenReply" expr="m_result"/>
         <log label="Interaction" expr="m_interaction"/>
         <log label="Language" expr="m_language"/>
         <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/> 
         <log label="Duplicate index" expr="m_duplicate_index"/>
         <log label="LLM context" expr="m_context"/>
         <log label="Is tour ended" expr="m_is_poi_ended"/>
+        <log label="Dance" expr="m_dance"/>
     </onentry>
     <transition event="CMD_HALT" target="stop"/>
-    <transition event="CMD_TICK" target="shortenAndSpeak">
+    <transition event="CMD_TICK" target="shortenReply">
       <send event="TICK_RESPONSE">
         <param name="result" expr='"RUNNING"'/>
       </send>
     </transition>
-    <transition event="DialogComponent.ShortenAndSpeak.Return" target="shortenAndSpeakResult">
+    <transition event="DialogComponent.ShortenReply.Return" target="shortenReplyResult">
       <assign expr="_event.data.result" location="m_result"/>
-      <!-- <assign expr="_event.data.reply" location="m_reply"/> We can remove the shortened reply since it's consumed within the same function -->
+      <assign expr="_event.data.reply" location="m_reply"/>
+      <assign expr="_event.data.is_reply_finished" location="m_is_reply_finished"/>
     </transition>
   </state>
 
-  <!-- STATE END -->
-
-  <state id="shortenAndSpeakResult">
-    <transition cond="m_result == 'SUCCESS'" target="waitForInteraction">
-        <send event="DialogComponent.WaitForInteraction.Call">
-          <param name="is_beginning_of_conversation" expr="m_is_beginning_of_conversation == 'true'"/>
-        </send>
-    </transition>
-
+  <state id="shortenReplyResult">
+    <transition cond="m_result == 'SUCCESS'" target="sendSynthesizedTextCall" />
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
   </state>
 
@@ -297,6 +289,9 @@
       <log label="Language" expr="m_language"/>
       <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/> 
       <log label="Duplicate index" expr="m_duplicate_index"/>
+      <log label="LLM context" expr="m_context"/>
+      <log label="Is tour ended" expr="m_is_poi_ended"/>
+      <log label="Dance" expr="m_dance"/>
 
     </onentry>
     <transition event="CMD_HALT" target="stop"/>
@@ -307,7 +302,8 @@
     </transition>
     <transition event="DialogComponent.InterpretCommand.Return" target="interpretCommandResult">
       <assign expr="_event.data.result" location="m_result"/>
-      <assign expr="_event.data.isQuestion" location="m_is_question"/>
+      <assign expr="_event.data.reply" location="m_reply"/>
+      <assign expr="_event.data.is_reply_finished" location="m_is_reply_finished"/>
     </transition>
   </state>
 
@@ -315,46 +311,165 @@
 
   <state id="interpretCommandResult">
 
-    <transition cond="m_result == 'SUCCESS'" target="waitForInteraction" >
-        <send event="DialogComponent.WaitForInteraction.Call">
-          <param name="is_beginning_of_conversation" expr="m_is_beginning_of_conversation == 'true'"/>
-        </send>
-    </transition>
+    <transition cond="m_result == 'SUCCESS'" target="sendSynthesizedTextCall" />
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
   </state>
 
   <!-- STATE END -->
 
-  <state id="answerAndSpeak">
+  <state id="answer">
     <onentry>
-      <log label="State answerAndSpeak" expr="m_result"/>
-    </onentry>
-    <transition event="CMD_HALT" target="stop"/>
-    <transition event="CMD_TICK" target="answerAndSpeak">
-      <send event="TICK_RESPONSE">
-        <param name="result" expr='"RUNNING"'/>
-      </send>
-    </transition>
-    <transition event="DialogComponent.AnswerAndSpeak.Return" target="answerAndSpeakResult">
-      <assign expr="_event.data.result" location="m_result"/>
-      <!-- <assign expr="_event.data.reply" location="m_reply"/> We can remove the reply since it's consumed within the same function -->
-    </transition>
-  </state>
-
-  <!-- STATE END -->
-
-  <state id="answerAndSpeakResult">
-    <onentry>
-      
-      <log label="State answerAndSpeak" expr="m_result"/>
+      <log label="State answer" expr="m_result"/>
       <log label="Interaction" expr="m_interaction"/>
       <log label="Language" expr="m_language"/>
       <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/> 
       <log label="Duplicate index" expr="m_duplicate_index"/>
       <log label="LLM context" expr="m_context"/>
       <log label="Is tour ended" expr="m_is_poi_ended"/>
+      <log label="Dance" expr="m_dance"/>
+    </onentry>
+    <transition event="CMD_HALT" target="stop"/>
+    <transition event="CMD_TICK" target="answer">
+      <send event="TICK_RESPONSE">
+        <param name="result" expr='"RUNNING"'/>
+      </send>
+    </transition>
+    <transition event="DialogComponent.Answer.Return" target="answerResult">
+      <assign expr="_event.data.result" location="m_result"/>
+      <assign expr="_event.data.reply" location="m_reply"/>
+      <assign expr="_event.data.is_reply_finished" location="m_is_reply_finished"/>
+    </transition>
+  </state>
+
+  <state id="answerResult">
+    <transition cond="m_result == 'SUCCESS'" target="sendSynthesizedTextCall" />
+    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+  </state>
+
+  <state id="sendSynthesizedTextCall">
+    <onentry>
+      <log label="State sendSynthesizedTextCall" expr="m_result"/>
+      <log label="Interaction" expr="m_interaction"/>
+      <log label="Language" expr="m_language"/>
+      <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/> 
+      <log label="LLM context" expr="m_context"/>
+      <log label="Is tour ended" expr="m_is_poi_ended"/>
+      <log label="Reply" expr="m_reply"/>
+      <log label="Is reply finished" expr="m_is_reply_finished"/>
+      <log label="Dance" expr="m_dance"/>
+    </onentry>
+
+    <transition cond="m_result == 'SUCCESS'" target="synthesizeText">
+      <send event="TICK_RESPONSE">
+          <param name="result" expr='"RUNNING"'/>
+      </send>
+      <send event="TextToSpeechComponent.SynthesizeText.Call">
+        <param name="text" expr="m_reply"/>
+      </send>
+    </transition>
+
+    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+  </state>
+
+
+  <state id="synthesizeText">
+    <onentry>
+      <log label="State SynthesizeText" expr="m_result"/>
+      <log label="Interaction" expr="m_interaction"/>
+      <log label="Language" expr="m_language"/>
+      <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/> 
+      <log label="LLM context" expr="m_context"/>
+      <log label="Is tour ended" expr="m_is_poi_ended"/>
+      <log label="Reply" expr="m_reply"/>
+      <log label="Is reply finished" expr="m_is_reply_finished"/>
+      <log label="Dance" expr="m_dance"/>
 
     </onentry>
+
+    <transition event="CMD_HALT" target="stop"/>
+    <transition event="CMD_TICK" target="synthesizeText">
+      <send event="TICK_RESPONSE">
+        <param name="result" expr='"RUNNING"'/>
+      </send>
+    </transition>
+
+    <!-- <transition event="TextToSpeechComponent.SynthesizeText.Return" target="synthesizeTextResult">
+      <assign expr="_event.data.result" location="m_result"/>
+    </transition> -->
+    <transition cond="m_result == 'SUCCESS'" target="synthesizeTextResult">
+      <assign expr="_event.data.result" location="m_result"/>
+    </transition>
+  </state>
+
+  <state id="synthesizeTextResult">
+    
+    <transition cond="m_result == 'SUCCESS'" target="speak" />
+    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+  </state>
+
+
+  <state id="speak">
+    <onentry>
+      <log label="State Speak" expr="m_result"/>
+      <log label="Interaction" expr="m_interaction"/>
+      <log label="Language" expr="m_language"/>
+      <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/> 
+      <log label="LLM context" expr="m_context"/>
+      <log label="Is tour ended" expr="m_is_poi_ended"/>
+      <log label="Reply" expr="m_reply"/>
+      <log label="Is reply finished" expr="m_is_reply_finished"/>
+      <log label="Dance" expr="m_dance"/>
+    </onentry>
+
+    <transition cond="m_result == 'SUCCESS'" target="whileSpeaking">
+      <send event="TICK_RESPONSE">
+        <param name="result" expr='"RUNNING"'/>
+      </send>
+      <send event="DialogComponent.Speak.Call">
+        <param name="text" expr="m_reply"/>
+        <param name="dance" expr="m_dance"/>
+      </send>
+    </transition>
+
+  </state>
+
+  <state id="whileSpeaking">
+    <onentry>
+      <log label="State whileSpeaking" expr="m_result"/>
+      <log label="Interaction" expr="m_interaction"/>
+      <log label="Language" expr="m_language"/>
+      <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/> 
+      <log label="LLM context" expr="m_context"/>
+      <log label="Is tour ended" expr="m_is_poi_ended"/>
+      <log label="Reply" expr="m_reply"/>
+      <log label="Is reply finished" expr="m_is_reply_finished"/>
+      <log label="Dance" expr="m_dance"/>
+
+    </onentry>
+
+    <transition event="CMD_HALT" target="stop"/>
+    <transition event="CMD_TICK" target="whileSpeaking">
+      <send event="TICK_RESPONSE">
+        <param name="result" expr='"RUNNING"'/>
+      </send>
+    </transition>
+    
+    <transition event="DialogComponent.Speak.Return" target="speakResult">
+      <assign expr="_event.data.result" location="m_result"/>
+      <assign expr="_event.data.is_reply_finished" location="m_is_reply_finished"/>
+    </transition>
+
+  </state>
+
+  <state id="speakResult">
+
+    <onentry>
+      <log label="state speakResult" expr="m_result"/>
+      <log label="Is reply finished in speakResult" expr="m_is_reply_finished"/>
+    </onentry>
+
+    <transition cond ="m_is_reply_finished == false" target="speak"/>
+    
     <transition cond="m_result == 'SUCCESS'" target="waitForInteraction">
         <send event="DialogComponent.WaitForInteraction.Call">
           <param name="is_beginning_of_conversation" expr="m_is_beginning_of_conversation == 'true'"/>

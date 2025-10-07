@@ -146,6 +146,11 @@ bool TextToSpeechComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
     return true;
 }
 
+rclcpp::Node::SharedPtr TextToSpeechComponent::getNode()
+{
+    return m_node;
+}
+
 bool TextToSpeechComponent::start(int argc, char*argv[])
 {
     if(!rclcpp::ok())
@@ -198,7 +203,7 @@ bool TextToSpeechComponent::start(int argc, char*argv[])
     m_timer = m_node->create_wall_timer(200ms,
                     [this]()->void {
 			std::lock_guard<std::mutex> lock(m_mutex);
-                        auto data = m_audioStatusPort.read();
+                        auto data = m_audioStatusPort.read(false);
                         if (data != nullptr)
                         {
                             std_msgs::msg::Bool msg;
@@ -223,6 +228,10 @@ bool TextToSpeechComponent::start(int argc, char*argv[])
                                 msg.data = false;
                             }
                             m_speakerStatusPub->publish(msg);
+                        }
+                        else{
+                            RCLCPP_ERROR_STREAM(m_node->get_logger(), "TextToSpeechComponent no data received while reading audio status port" << __LINE__ );
+                            yInfo() << "[TextToSpeechComponent::timer] no data received while reading audio status port";
                         }
                     });
 
@@ -324,6 +333,7 @@ void TextToSpeechComponent::spin()
     rclcpp::spin(m_node);
 }
 
+
 void TextToSpeechComponent::Speak(const std::shared_ptr<text_to_speech_interfaces::srv::Speak::Request> request,
                         std::shared_ptr<text_to_speech_interfaces::srv::Speak::Response> response)
 {
@@ -357,13 +367,16 @@ void TextToSpeechComponent::Speak(const std::shared_ptr<text_to_speech_interface
         auto end_time =  yarp::os::Time::now();
         yInfo() << "elapsed time = " << end_time - init_time ;
         yInfo() << "[TextToSpeechComponent::Speak] synthesized with size: " << sound.getSamples();
+        float speech_time = (float)(sound.getSamples()) / 44100.0f * 2; // AUDIO_BASE::rate * 2 because maybe my laptop rate is twice the one of the robot
+        response->speech_time = speech_time;
+        yInfo() << "[TextToSpeechComponent::Speak] speech time: " << response->speech_time;
         m_audioPort.write();
         response->is_ok=true;
     }
 
     bool isSpeaking =false;
     while (!isSpeaking){
-        auto data = m_audioStatusPort.read();
+        auto data = m_audioStatusPort.read(false);
         if (data != nullptr && data->current_buffer_size > 0) {
             m_startedSpeaking = true;
             isSpeaking = true;
@@ -439,7 +452,7 @@ void TextToSpeechComponent::IsSpeaking(const std::shared_ptr<text_to_speech_inte
 
     // Read and wait untill I have a valid message, or the timeout is passed
     while ([this, &player_status]()->bool{
-                player_status = m_audioStatusPort.read();
+                player_status = m_audioStatusPort.read(false);
                 if (player_status != nullptr)
                     return true;
                 else
@@ -461,6 +474,7 @@ void TextToSpeechComponent::IsSpeaking(const std::shared_ptr<text_to_speech_inte
         if (player_status->current_buffer_size > 0)
         {
             response->seconds_left = player_status->current_buffer_size / 44100; //AUDIO_BASE::rate
+            std::cout << "Seconds left: " << response->seconds_left << std::endl;
             response->is_speaking = true;
         }
         else

@@ -20,8 +20,11 @@ rosidl_generate_interfaces(dialog_interfaces
                             "srv/SetLanguage.srv"
                             "srv/RememberInteractions.srv"
                             "srv/InterpretCommand.srv"
-                            "srv/AnswerAndSpeak.srv"
-                            "srv/ShortenAndSpeak.srv"
+                            "srv/Answer.srv"
+                            "srv/ShortenReply.srv"
+                            "srv/IsSpeaking.srv"
+                            "srv/SetMicrophone.srv"
+                            "action/Speak.action"
                             "action/WaitForInteraction.action"
                             DEPENDENCIES sensor_msgs
                             LIBRARY_NAME dialog_interfaces
