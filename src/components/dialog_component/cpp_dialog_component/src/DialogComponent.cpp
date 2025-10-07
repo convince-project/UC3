@@ -1369,7 +1369,7 @@ rclcpp_action::CancelResponse DialogComponent::handle_speak_cancel(
 
     // Let's stop the current interaction and reset the state of the component
     // reset the verbal output queue
-    VerbalOutputBatchReader.resetQueue();
+    m_verbalOutputBatchReader.resetQueue();
     // stop speaking
     m_audioPort.interrupt();
 
