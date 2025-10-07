@@ -776,6 +776,8 @@ void DialogSkill::halt([[maybe_unused]] const std::shared_ptr<bt_interfaces_dumm
     RCLCPP_INFO(m_node->get_logger(), "DialogSkill::halt");
 
     clientWaitForInteraction->async_cancel_all_goals();
+    clientSynthesizeText->async_cancel_all_goals();
+    clientSpeak->async_cancel_all_goals();
 
     m_haltResult.store(false); // here we can put a struct
     m_stateMachine.submitEvent("CMD_HALT");

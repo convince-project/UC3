@@ -1368,6 +1368,10 @@ rclcpp_action::CancelResponse DialogComponent::handle_speak_cancel(
     RCLCPP_INFO(m_node->get_logger(), "Received request to cancel speak goal");
 
     // Let's stop the current interaction and reset the state of the component
+    // reset the verbal output queue
+    VerbalOutputBatchReader.resetQueue();
+    // stop speaking
+    m_audioPort.interrupt();
 
     return rclcpp_action::CancelResponse::ACCEPT;
 }
