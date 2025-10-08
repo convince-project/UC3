@@ -5,6 +5,7 @@
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
+#include <rcl/service_introspection.h>
 
 #include <type_traits>
 
@@ -75,6 +76,7 @@ bool ResetTourAndFlagsSkill::start(int argc, char*argv[])
   m_stateMachine.connectToEvent("SchedulerComponent.Reset.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
       std::shared_ptr<rclcpp::Node> nodeReset = rclcpp::Node::make_shared(m_name + "SkillNodeReset");
       std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::Reset>> clientReset = nodeReset->create_client<scheduler_interfaces::srv::Reset>("/SchedulerComponent/Reset");
+      clientReset->configure_introspection(nodeReset->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
       auto request = std::make_shared<scheduler_interfaces::srv::Reset::Request>();
       auto eventParams = event.data().toMap();
       
