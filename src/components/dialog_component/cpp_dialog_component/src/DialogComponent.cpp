@@ -358,7 +358,6 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
     // ---------------------SPEAKERS----------------------------
     {
         std::string localAudioName = "/DialogComponent/audio:o";
-        std::string statusLocalName = "/DialogComponent/audioPlayerWrapper/status:i";
         okCheck = rf.check("DIALOGCOMPONENT");
         if (okCheck)
         {
@@ -367,10 +366,6 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
             {
                 localAudioName = speakersConfig.find("localAudioName").asString();
             }
-            if (speakersConfig.check("statusLocalName"))
-            {
-                statusLocalName = speakersConfig.find("statusLocalName").asString();
-            }
         }
 
         if (!m_audioPort.open(localAudioName))
@@ -378,20 +373,6 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
             yError() << "[TextToSpeechComponent::ConfigureYARP] Unable to open port: " << localAudioName;
             return false;
         }
-
-        // if (!m_audioStatusPort.open(statusLocalName))
-        // {
-        //     yError() << "[TextToSpeechComponent::ConfigureYARP] Unable to open port: " << statusLocalName;
-        //     return false;
-        // }
-    }
-
-    // port to the audio speaker
-    std::string localAudioName = "/DialogComponent/audio:o";
-    if (!m_audioPort.open(localAudioName))
-    {
-        yError() << "[DialogComponent::ConfigureYARP] Unable to open port: " << localAudioName;
-        return false;
     }
 
     if (!m_verbalOutputBatchReader.ConfigureYARP(rf))
@@ -850,7 +831,7 @@ void DialogComponent::WaitForSpeakEnd()
     bool isSpeaking = false;
     do
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
         // calls the isSpeaking service
         auto isSpeakingClientNode = rclcpp::Node::make_shared("DialogComponentIsSpeakingNode");
         auto isSpeakingClient = isSpeakingClientNode->create_client<text_to_speech_interfaces::srv::IsSpeaking>("/TextToSpeechComponent/IsSpeaking");
@@ -866,7 +847,11 @@ void DialogComponent::WaitForSpeakEnd()
         auto futureIsSpeakingResult = rclcpp::spin_until_future_complete(isSpeakingClientNode, isSpeakingResult);
         auto isSpeakingResponse = isSpeakingResult.get();
         isSpeaking = isSpeakingResponse->is_speaking;
-        yInfo() << __LINE__;
+
+        int secondsLeft = isSpeakingResponse->seconds_left;
+
+
+        yInfo() << "IsSpeaking " << isSpeaking << " and seconds left: " << secondsLeft << __LINE__;
     } while (isSpeaking);
 }
 
@@ -1469,7 +1454,11 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
 
     std::cout << "[DialogComponent::SpeakFromAudio] Waiting for speak end" << std::endl;
 
+    std::chrono::duration wait_ms = 2000ms;
+    std::this_thread::sleep_for(wait_ms);
     WaitForSpeakEnd();
+    std::this_thread::sleep_for(wait_ms);
+
 
     std::cout << "[DialogComponent::SpeakFromAudio] Speak ended" << std::endl;
 
