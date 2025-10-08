@@ -203,11 +203,12 @@ bool TextToSpeechComponent::start(int argc, char*argv[])
     m_timer = m_node->create_wall_timer(200ms,
                     [this]()->void {
 			std::lock_guard<std::mutex> lock(m_mutex);
-                        auto data = m_audioStatusPort.read(false);
-                        if (data != nullptr)
-                        {
+                        m_audioStatusData = m_audioStatusPort.read(false);
+                        if (m_audioStatusData != nullptr)
+                        {   
+                            yDebugThrottle(1) << "[TextToSpeechComponent::timer] in loop reading audio status port" << __LINE__;
                             std_msgs::msg::Bool msg;
-                            if(data->current_buffer_size > 0)
+                            if(m_audioStatusData->current_buffer_size > 0)
                                 msg.data = true;
                             else
                             {
@@ -230,7 +231,7 @@ bool TextToSpeechComponent::start(int argc, char*argv[])
                             m_speakerStatusPub->publish(msg);
                         }
                         else{
-                            RCLCPP_ERROR_STREAM(m_node->get_logger(), "TextToSpeechComponent no data received while reading audio status port" << __LINE__ );
+                            // RCLCPP_ERROR_STREAM(m_node->get_logger(), "TextToSpeechComponent no data received while reading audio status port" << __LINE__ );
                             yInfo() << "[TextToSpeechComponent::timer] no data received while reading audio status port";
                         }
                     });
@@ -374,13 +375,17 @@ void TextToSpeechComponent::Speak(const std::shared_ptr<text_to_speech_interface
         response->is_ok=true;
     }
 
+    
     bool isSpeaking =false;
+    auto wait = 200ms;
     while (!isSpeaking){
-        auto data = m_audioStatusPort.read(false);
+        std::lock_guard<std::mutex> lock(m_mutex);
+        auto data = m_audioStatusData;
         if (data != nullptr && data->current_buffer_size > 0) {
             m_startedSpeaking = true;
             isSpeaking = true;
         }
+        std::this_thread::sleep_for(wait);
     }
     yDebug() << "[TextToSpeechComponent::Speak] the robot is speaking";
 }
@@ -446,13 +451,14 @@ void TextToSpeechComponent::IsSpeaking(const std::shared_ptr<text_to_speech_inte
 {
     YARP_UNUSED(request);
     auto timeout = 500ms;
-    auto wait = 20ms;
+    auto wait = 200ms;
     auto elapsed = 0ms;
     yarp::sig::AudioPlayerStatus* player_status = nullptr;
 
     // Read and wait untill I have a valid message, or the timeout is passed
     while ([this, &player_status]()->bool{
-                player_status = m_audioStatusPort.read(false);
+                std::lock_guard<std::mutex> lock(m_mutex);
+                player_status = m_audioStatusData;
                 if (player_status != nullptr)
                     return true;
                 else

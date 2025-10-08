@@ -87,6 +87,8 @@ private:
 
     yarp::dev::PolyDriver m_audioRecorderPoly;
     yarp::dev::IAudioGrabberSound *m_iAudioGrabberSound{nullptr};
+
+    yarp::sig::AudioPlayerStatus* m_audioStatusData=nullptr;
 };
 
 #endif
