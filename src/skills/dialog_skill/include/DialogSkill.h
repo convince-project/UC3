@@ -62,7 +62,7 @@ public:
 
 private:
 	void EnableMicrophone();
-    void DisableMicrophone();
+    // void DisableMicrophone();
 
 
 	std::shared_ptr<std::thread> m_threadSpin;
