@@ -119,6 +119,7 @@ bool DialogSkill::start(int argc, char *argv[])
 
         std::cout << "Starting WaitForInteractionThread" << std::endl;
         EnableMicrophone();
+        std::cout << "ENABLE MICROPHONE DONE" << std::endl;
 
         m_thread = QThread::create([event, this]() {
 
@@ -775,9 +776,13 @@ void DialogSkill::halt([[maybe_unused]] const std::shared_ptr<bt_interfaces_dumm
     std::lock_guard<std::mutex> lock(m_requestMutex);
     RCLCPP_INFO(m_node->get_logger(), "DialogSkill::halt");
 
+    std::cout << "Cancelling all goals" << std::endl;
     clientWaitForInteraction->async_cancel_all_goals();
+    std::cout << "wait for interaction goals cancelled" << std::endl;
     clientSynthesizeText->async_cancel_all_goals();
+    std::cout << "synthesize text goals cancelled" << std::endl;
     clientSpeak->async_cancel_all_goals();
+    std::cout << "speak goals cancelled" << std::endl;
 
     m_haltResult.store(false); // here we can put a struct
     m_stateMachine.submitEvent("CMD_HALT");
