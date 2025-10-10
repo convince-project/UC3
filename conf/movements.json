@@ -7,7 +7,15 @@
       "torso"
     ],
     "m_dances": {
-      "gesture": {
+      "gesture_short": {
+        "m_movements": [{
+          "m_partName": "all_joints",
+          "m_time": 10,
+          "m_offset": 0,
+          "m_joints": []
+        }]
+      },
+      "gesture_long": {
         "m_movements": [{
           "m_partName": "all_joints",
           "m_time": 16,

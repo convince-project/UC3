@@ -67,12 +67,18 @@
 
   <state id="waitForInteractionResult">
 
+    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+
+    <transition cond="m_interaction == ''" target="waitForInteraction">
+      <send event="DialogComponent.WaitForInteraction.Call">
+        <param name="is_beginning_of_conversation" expr="m_is_beginning_of_conversation == 'false'"/>
+      </send>
+    </transition>
+
     <transition cond="m_result == 'SUCCESS'" target="manageContext">
       <send event="DialogComponent.ManageContext.Call">
       </send>
     </transition>
-
-    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
   </state>
 
   <!-- STATE END -->
@@ -472,7 +478,7 @@
     
     <transition cond="m_result == 'SUCCESS'" target="waitForInteraction">
         <send event="DialogComponent.WaitForInteraction.Call">
-          <param name="is_beginning_of_conversation" expr="m_is_beginning_of_conversation == 'true'"/>
+          <param name="is_beginning_of_conversation" expr="m_is_beginning_of_conversation == 'false'"/>
         </send>
     </transition>
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />

@@ -21,8 +21,9 @@
 #include <dance_interfaces/srv/set_dance.hpp>
 #include <dance_interfaces/srv/get_part_names.hpp>
 #include <dance_interfaces/srv/update_movement.hpp>
+#include <dance_interfaces/srv/get_best_dance.hpp>
 #include <execute_dance_interfaces/srv/execute_dance.hpp>
-#include <execute_dance_interfaces/srv/is_dancing.hpp>
+// #include <execute_dance_interfaces/srv/is_dancing.hpp>
 
 
 class ExecuteDanceComponent 
@@ -35,8 +36,8 @@ public:
     //open a service for all the execute_dance_interfaces
     void ExecuteDance(const std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Request> request,
                       std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Response> response);
-    void IsDancing(const std::shared_ptr<execute_dance_interfaces::srv::IsDancing::Request> request,
-                   std::shared_ptr<execute_dance_interfaces::srv::IsDancing::Response> response);
+    // void IsDancing(const std::shared_ptr<execute_dance_interfaces::srv::IsDancing::Request> request,
+    //                std::shared_ptr<execute_dance_interfaces::srv::IsDancing::Response> response);
 private:
     
     bool SendMovementToYAP(const std::string &actionName, float speedFactor);
@@ -46,7 +47,7 @@ private:
     std::string m_danceName;
     rclcpp::Node::SharedPtr m_node;
     rclcpp::Service<execute_dance_interfaces::srv::ExecuteDance>::SharedPtr m_executeDanceService;
-    rclcpp::Service<execute_dance_interfaces::srv::IsDancing>::SharedPtr m_isDancingService;
+    // rclcpp::Service<execute_dance_interfaces::srv::IsDancing>::SharedPtr m_isDancingService;
     std::map<std::string, yarp::os::Port &> m_pCtpService;
     std::thread m_threadExecute;
     std::thread m_threadTimer;

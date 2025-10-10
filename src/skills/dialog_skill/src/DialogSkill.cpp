@@ -118,6 +118,9 @@ bool DialogSkill::start(int argc, char *argv[])
                                   {
 
         std::cout << "Starting WaitForInteractionThread" << std::endl;
+        EnableMicrophone();
+        std::cout << "ENABLE MICROPHONE DONE" << std::endl;
+
         m_thread = QThread::create([event, this]() {
 
             if (!clientWaitForInteraction->wait_for_action_server())
@@ -129,8 +132,8 @@ bool DialogSkill::start(int argc, char *argv[])
             auto goal_msg = dialog_interfaces::action::WaitForInteraction::Goal();
             auto eventParams = event.data().toMap();
             goal_msg.is_beginning_of_conversation = convert<decltype(goal_msg.is_beginning_of_conversation)>(eventParams["is_beginning_of_conversation"].toString().toStdString());
-            std::cout << "[OPTIONAL] Please enter the interaction from keyboard: ";
-            getline (std::cin, goal_msg.keyboard_interaction);
+            // std::cout << "[OPTIONAL] Please enter the interaction from keyboard: ";
+            // getline (std::cin, goal_msg.keyboard_interaction);
 
             RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.WaitForInteraction.Call received with is_beginning_of_conversation: %s and keyboard_interaction: %s",
                         goal_msg.is_beginning_of_conversation ? "true" : "false", goal_msg.keyboard_interaction.c_str());
@@ -741,8 +744,6 @@ void DialogSkill::tick([[maybe_unused]] const std::shared_ptr<bt_interfaces_dumm
     m_tickResult.store(Status::undefined); // here we can put a struct
     m_stateMachine.submitEvent("CMD_TICK");
 
-    EnableMicrophone();
-
     while (m_tickResult.load() == Status::undefined)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -775,9 +776,13 @@ void DialogSkill::halt([[maybe_unused]] const std::shared_ptr<bt_interfaces_dumm
     std::lock_guard<std::mutex> lock(m_requestMutex);
     RCLCPP_INFO(m_node->get_logger(), "DialogSkill::halt");
 
+    std::cout << "Cancelling all goals" << std::endl;
     clientWaitForInteraction->async_cancel_all_goals();
+    std::cout << "wait for interaction goals cancelled" << std::endl;
     clientSynthesizeText->async_cancel_all_goals();
+    std::cout << "synthesize text goals cancelled" << std::endl;
     clientSpeak->async_cancel_all_goals();
+    std::cout << "speak goals cancelled" << std::endl;
 
     m_haltResult.store(false); // here we can put a struct
     m_stateMachine.submitEvent("CMD_HALT");
@@ -822,30 +827,30 @@ void DialogSkill::EnableMicrophone()
     }
 }
 
-void DialogSkill::DisableMicrophone()
-{
-    // Setting the microphone off
-    auto setCommandClientNode = rclcpp::Node::make_shared("DialogComponentSetCommandNode");
+// void DialogSkill::DisableMicrophone()
+// {
+//     // Setting the microphone off
+//     auto setCommandClientNode = rclcpp::Node::make_shared("DialogComponentSetCommandNode");
 
-    auto setMicrophoneClient = setCommandClientNode->create_client<text_to_speech_interfaces::srv::SetMicrophone>("/TextToSpeechComponent/SetMicrophone");
-    auto request = std::make_shared<text_to_speech_interfaces::srv::SetMicrophone::Request>();
-    request->enabled = false;
-    // Wait for service
-    while (!setMicrophoneClient->wait_for_service(std::chrono::seconds(1)))
-    {
-        if (!rclcpp::ok())
-        {
-            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setCommandClient'. Exiting.");
-        }
-    }
-    auto result = setMicrophoneClient->async_send_request(request);
-    // Wait for the result.
-    if (rclcpp::spin_until_future_complete(setCommandClientNode, result) == rclcpp::FutureReturnCode::SUCCESS)
-    {
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Mic disabled");
-    }
-    else
-    {
-        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service set_microphone");
-    }
-}
+//     auto setMicrophoneClient = setCommandClientNode->create_client<text_to_speech_interfaces::srv::SetMicrophone>("/TextToSpeechComponent/SetMicrophone");
+//     auto request = std::make_shared<text_to_speech_interfaces::srv::SetMicrophone::Request>();
+//     request->enabled = false;
+//     // Wait for service
+//     while (!setMicrophoneClient->wait_for_service(std::chrono::seconds(1)))
+//     {
+//         if (!rclcpp::ok())
+//         {
+//             RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setCommandClient'. Exiting.");
+//         }
+//     }
+//     auto result = setMicrophoneClient->async_send_request(request);
+//     // Wait for the result.
+//     if (rclcpp::spin_until_future_complete(setCommandClientNode, result) == rclcpp::FutureReturnCode::SUCCESS)
+//     {
+//         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Mic disabled");
+//     }
+//     else
+//     {
+//         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service set_microphone");
+//     }
+// }
