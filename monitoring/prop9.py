@@ -2,7 +2,7 @@
 """
 H(not wheel_hardware_fault)
 """
-PROPERTY = r"historically(not {hardware_fault})"
+PROPERTY = r"(not {hardware_fault})"
 
 # predicates used in the property (initialization for time 0)
 predicates = dict(
