@@ -10,7 +10,7 @@ To run the use case on the real robot, the docker involved are:
 | Tour Guide Robot | `elandini84/r1images:tourCore2_ubuntu_24.04_qt_6.8.3_jazzy_devel` | https://github.com/hsp-iit/tour-guide-robot/blob/jazzy/docker_stuff/docker_tourCore/Dockerfile    | base_image = `ste93/convince:ubuntu_24.04_qt_6.8.3` | |
 | BT and navigation | `ste93/convince:tour_ubuntu_24.04_qt_6.8.3_jazzy_devel` | https://github.com/convince-project/UC3/blob/main/docker/Dockerfile.bt | base_image_tag = `elandini84/r1images:tourCore2_ubuntu_24.04_qt_6.8.3_jazzy_devel`  | |
 | Monitoring | `ste93/convince:tour_ubuntu_24.04_qt_6.8.3_jazzy_verification_devel` | https://github.com/convince-project/UC3/blob/main/docker/Dockerfile.verification | |
-| People following and tracking | @morpheus82 | @morpheus82  | | |
+| People following and tracking | @morpheus82 | https://github.com/hsp-iit/2d_lidar_people_tracker/blob/jazzy/docker/Dockerfile | nvidia/cuda:12.8.1-devel-ubuntu24.04 | |
 | Planning | @ste93 | @ste93 |  |  |
 | Talk | elandini84/r1_talk:ub24.04_vcpkg_gccpp_v2.33 | https://github.com/hsp-iit/tour-guide-robot/blob/jazzy/docker_stuff/docker_talk/Dockerfile | base_image = `ubuntu:24.04`  | |
 | Cartesian controller | XXX |  https://github.com/hsp-iit/ergocub-cartesian-control/blob/main/Dockerfile |  |  installed on R1 base |
