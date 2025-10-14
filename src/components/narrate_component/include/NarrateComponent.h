@@ -82,7 +82,7 @@ private:
     /**
      * @brief Tries to extract a point action target from the given string
      *
-     * @param actionParam action parameter to parse
+     * @param actionParam action parameter to parse (e.g. "point::target")
      * @param target resulting target
      * @return true if the parsing was successful
      * @return false if the parsing failed

@@ -91,6 +91,18 @@ void NarrateComponent::spin()
     rclcpp::spin(m_node);
 }
 
+bool NarrateComponent::_formatPointAction(const std::string& actionParam, std::string& target)
+{
+    size_t delimiterPos = actionParam.find("::");
+    if (delimiterPos == std::string::npos || delimiterPos + 2 >= actionParam.length())
+    {
+        RCLCPP_ERROR(m_node->get_logger(), "Invalid point action format: %s", actionParam.c_str());
+        return false;
+    }
+    target = actionParam.substr(delimiterPos + 2);
+    return true;
+}
+
 void NarrateComponent::_waitForPlayerStatus(bool discriminator)
 {
     bool keepOnWaiting;
@@ -147,32 +159,41 @@ void NarrateComponent::IsDone([[maybe_unused]] const std::shared_ptr<narrate_int
 
 void NarrateComponent::_executeDance(std::string danceName, float estimatedSpeechTime)
 {
-    // ---------------------------------Text to Speech Service SPEAK------------------------------
     yInfo() << "[DialogComponent::ExecuteDance] Starting Execute Dance Service";
     auto executeDanceClientNode = rclcpp::Node::make_shared("ExecuteDanceComponentExecuteDanceNode");
 
-    auto danceClient = executeDanceClientNode->create_client<execute_dance_interfaces::srv::ExecuteDance>("/ExecuteDanceComponent/ExecuteDance");
-    auto dance_request = std::make_shared<execute_dance_interfaces::srv::ExecuteDance::Request>();
-    dance_request->dance_name = danceName;
-    dance_request->speech_time = estimatedSpeechTime;
-    // Wait for service
-    while (!danceClient->wait_for_service(std::chrono::seconds(1)))
+    std::string pointTarget;
+    if (_formatPointAction(danceName, pointTarget))
     {
-        if (!rclcpp::ok())
-        {
-            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'ExecuteDance'. Exiting.");
-        }
-    }
-    auto dance_result = danceClient->async_send_request(dance_request);
-
-    if (rclcpp::spin_until_future_complete(executeDanceClientNode, dance_result) == rclcpp::FutureReturnCode::SUCCESS)
-    {
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Execute Dance succeeded");
+        // TODO: implement point action
+        RCLCPP_INFO(m_node->get_logger(), "Point action towards target: %s", pointTarget.c_str());
+        return;
     }
     else
     {
-        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service execute_dance");
-        return;
+        auto danceClient = executeDanceClientNode->create_client<execute_dance_interfaces::srv::ExecuteDance>("/ExecuteDanceComponent/ExecuteDance");
+        auto dance_request = std::make_shared<execute_dance_interfaces::srv::ExecuteDance::Request>();
+        dance_request->dance_name = danceName;
+        dance_request->speech_time = estimatedSpeechTime;
+        // Wait for service
+        while (!danceClient->wait_for_service(std::chrono::seconds(1)))
+        {
+            if (!rclcpp::ok())
+            {
+                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'ExecuteDance'. Exiting.");
+            }
+        }
+        auto dance_result = danceClient->async_send_request(dance_request);
+
+        if (rclcpp::spin_until_future_complete(executeDanceClientNode, dance_result) == rclcpp::FutureReturnCode::SUCCESS)
+        {
+            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Execute Dance succeeded");
+        }
+        else
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service execute_dance");
+            return;
+        }
     }
 }
 
