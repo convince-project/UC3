@@ -29,9 +29,9 @@
 #include <yarp/os/Network.h>
 #include <yarp/os/Port.h>
 #include <yarp/os/LogStream.h>
-#include <yarp/dev/PolyDriver.h> // Gestore generico per device YARP
-#include <yarp/dev/IMap2D.h> // Interfaccia runtime per query oggetti 2D
-#include <yarp/dev/Map2DObject.h> // Struttura dati per oggetto 2D
+#include <yarp/dev/PolyDriver.h> // Generic manager for YARP devices
+#include <yarp/dev/IMap2D.h> // Runtime interface for querying 2D objects
+#include <yarp/dev/Map2DObject.h> // Data structure for a 2D object
 
 // Eigen
 #include <Eigen/Dense>
@@ -90,6 +90,9 @@ private:
     Eigen::Vector3d sphereReachPoint(const Eigen::Vector3d& shoulder_base,
                                      const Eigen::Vector3d& target_base) const;
 
+    // Import POIs/objects from a JSON file and push them to Map2D (for quick bootstrapping)
+    bool importArtworksFromJson(const std::string& json_path);
+
 private:
     // ROS2 node and services
     rclcpp::Node::SharedPtr m_node;
@@ -126,10 +129,10 @@ private:
     // Optional PolyDriver for direct device usage
     yarp::dev::PolyDriver m_cartesianClient;
 
-    // Device NWC per Map2DObject: gestisce la connessione al server
+    // NWC device for Map2DObject: manages the connection to the server
     yarp::dev::PolyDriver m_map2dDevice;
-    // Puntatore all'interfaccia per query oggetti 2D
-    yarp::dev::Nav2D::IMap2D* m_map2dView = nullptr; // interfacer; // interface
+    // Pointer to the interface to query 2D objects
+    yarp::dev::Nav2D::IMap2D* m_map2dView = nullptr; // interface pointer
 
     // Runtime flags and synchronization    // Runtime flags and synchronization
     std::mutex m_flagMutex;

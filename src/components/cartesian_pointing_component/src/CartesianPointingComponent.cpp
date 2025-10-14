@@ -11,6 +11,8 @@
 #include <sstream>
 #include <cstdlib>
 #include <cmath>
+// JSON
+#include <nlohmann/json.hpp>
 
 // TF2 LinearMath (optional utilities)
 #include <tf2/LinearMath/Quaternion.h>
@@ -151,31 +153,105 @@ bool CartesianPointingComponent::start(int argc, char* argv[])
         }
     );
 
-    // 4b) Apri il device NWC Map2DObject per ottenere le coordinate degli oggetti
+    // 4b) Open the Map2DObject NWC device to obtain object coordinates
     {
-        // Prepara le opzioni per il device NWC
+        // Prepare options for the NWC device
         yarp::os::Property map2dOptions;
-        map2dOptions.put("device", "map2d_nwc_yarp" ); // tipo di device NWC
-        map2dOptions.put("local", "/cartesian_pointing_component/map2d_nwc" ); // nome porta locale
-        map2dOptions.put("remote", "/map2d" ); // nome porta remota del server Map2DObject
-        // Prova ad aprire il device
+        // Note: the plugin name is case-sensitive: "map2D_nwc_yarp"
+        map2dOptions.put("device", "map2D_nwc_yarp" ); // correct NWC device type
+        map2dOptions.put("local", "/cartesian_pointing_component/map2d_nwc" ); // local port name
+        // Align the remote port name with the standard server "map2D_nws_yarp"
+        map2dOptions.put("remote", "/map2D_nws_yarp" ); // remote port name of the Map2DObject server
+        // Try to open the device
         if (!m_map2dDevice.open(map2dOptions)) {
-            RCLCPP_ERROR(m_node->get_logger(), "Impossibile aprire il device map2d_nwc_yarp");
+            RCLCPP_ERROR(m_node->get_logger(), "Unable to open device map2D_nwc_yarp (check that the plugin is installed and YARP_DATA_DIRS is configured)");
             return false;
         }
-        // Ottieni la view dell'interfaccia IMap2D
+        // Obtain the IMap2D interface view
         m_map2dDevice.view(m_map2dView);
         if (!m_map2dView) {
-            RCLCPP_ERROR(m_node->get_logger(), "Impossibile ottenere la view IMap2D dal device map2d_nwc_yarp");
+            RCLCPP_ERROR(m_node->get_logger(), "Unable to obtain IMap2D view from device map2D_nwc_yarp");
             return false;
         }
-        // Se tutto ok, log di successo
-        RCLCPP_INFO(m_node->get_logger(), "Device map2d_nwc_yarp aperto e view IMap2D ottenuta");
+        // If everything is fine, success log
+        RCLCPP_INFO(m_node->get_logger(), "Device map2D_nwc_yarp opened and IMap2D view obtained");
     }
+
+    // Optional: import POIs from JSON file to Map2D for quick verification
+    // (path based on provided context)
+    importArtworksFromJson("/home/user1/UC3/yarp-contexts/contexts/r1_cartesian_control/artwork_coords.json");
 
     // Final readiness message to help operators/devs confirm successful startup in logs.
     RCLCPP_DEBUG(m_node->get_logger(), "CartesianPointingComponent READY");
     return true;
+}
+// =============================================================================
+// importArtworksFromJson() — read objects from JSON and load into Map2D server
+// =============================================================================
+bool CartesianPointingComponent::importArtworksFromJson(const std::string& json_path)
+{
+    if (!m_map2dView) {
+        RCLCPP_WARN(m_node->get_logger(), "Map2D view not available; skip JSON import");
+        return false;
+    }
+
+    // Read JSON file
+    std::ifstream ifs(json_path);
+    if (!ifs.is_open()) {
+        RCLCPP_WARN(m_node->get_logger(), "JSON file not found: %s", json_path.c_str());
+        return false;
+    }
+
+    nlohmann::json j;
+    try {
+        ifs >> j;
+    } catch (const std::exception& e) {
+        RCLCPP_WARN(m_node->get_logger(), "Failed to parse JSON %s: %s", json_path.c_str(), e.what());
+        return false;
+    }
+
+    if (!j.contains("artworks") || !j["artworks"].is_object()) {
+        RCLCPP_WARN(m_node->get_logger(), "JSON missing 'artworks' object: %s", json_path.c_str());
+        return false;
+    }
+
+    size_t imported = 0;
+    for (auto it = j["artworks"].begin(); it != j["artworks"].end(); ++it) {
+        const std::string name = it.key();
+        const auto& entry = it.value();
+        if (!entry.contains("x") || !entry.contains("y") || !entry.contains("z")) {
+            RCLCPP_WARN(m_node->get_logger(), "Skipping '%s': missing coordinates", name.c_str());
+            continue;
+        }
+
+        // Populate a Map2DObject using available fields
+        yarp::dev::Nav2D::Map2DObject obj;
+        obj.x = entry["x"].get<double>();
+        obj.y = entry["y"].get<double>();
+        obj.z = entry["z"].get<double>();
+
+        // Store object on server using its name; ignore specific ReturnValue type and verify with a read-back
+        (void)m_map2dView->storeObject(name, obj);
+        yarp::dev::Nav2D::Map2DObject check;
+        const bool ok = m_map2dView->getObject(name, check);
+        if (!ok) {
+            RCLCPP_WARN(m_node->get_logger(), "Failed to upload object '%s' to Map2D", name.c_str());
+            continue;
+        }
+        imported++;
+    }
+
+    // Try to retrieve list of objects for confirmation
+    std::vector<std::string> names;
+    if (m_map2dView->getObjectsList(names)) {
+        std::ostringstream oss; oss << "Map2D objects (" << names.size() << "):";
+        for (const auto& n : names) oss << " " << n;
+        RCLCPP_INFO(m_node->get_logger(), "%s", oss.str().c_str());
+    } else {
+        RCLCPP_INFO(m_node->get_logger(), "Imported %zu objects; getObjectList not available or failed", imported);
+    }
+
+    return imported > 0;
 }
 
 
