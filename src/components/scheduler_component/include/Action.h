@@ -55,9 +55,10 @@ private:
     bool m_isBlocking{true};
     ActionTypes m_type{ActionTypes::INVALID};
     std::string m_param;
+    std::string m_dance; // only for dance actions, the name of the dance to be performed
 
 public:
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Action, m_type, m_isBlocking, m_param)
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Action, m_type, m_isBlocking, m_param, m_dance)
 
     /**
      * Invalid constructor

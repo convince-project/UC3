@@ -847,11 +847,22 @@ void DialogComponent::WaitForSpeakEnd()
         auto futureIsSpeakingResult = rclcpp::spin_until_future_complete(isSpeakingClientNode, isSpeakingResult);
         auto isSpeakingResponse = isSpeakingResult.get();
         isSpeaking = isSpeakingResponse->is_speaking;
+<<<<<<< Updated upstream
 
         int secondsLeft = isSpeakingResponse->seconds_left;
 
 
         yInfo() << "IsSpeaking " << isSpeaking << " and seconds left: " << secondsLeft << __LINE__;
+=======
+<<<<<<< Updated upstream
+        yInfo() << __LINE__;
+=======
+
+        int secondsLeft = isSpeakingResponse->seconds_left;
+
+        yInfo() << "IsSpeaking " << isSpeaking << " and seconds left: " << secondsLeft << __LINE__;
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
     } while (isSpeaking);
 }
 
@@ -988,37 +999,37 @@ void DialogComponent::InterpretCommand(const std::shared_ptr<dialog_interfaces::
 
                 switch (action.getType())
                 {
-                    case ActionTypes::SPEAK:
-                    {
-                        speakAction += action.getParam() + " "; // Concatenate all the speak actions
+                case ActionTypes::SPEAK:
+                {
+                    speakAction += action.getParam() + " "; // Concatenate all the speak actions
 
-                        // response->is_ok = true; // Set the response to ok, because we are going to speak
-                        // response->reply = action.getParam();
+                    // response->is_ok = true; // Set the response to ok, because we are going to speak
+                    // response->reply = action.getParam();
 
-                        // // check if the action is the last one in the list
-                        // if (m_predefined_answer_index < (tempActions.size() - 1))
-                        // {
-                        //     response->is_reply_finished = false; // If it is not the last one, we are not finished with the reply
-                        //     m_predefined_answer_index += 1;      // Increment the index of the predefined answer
-                        //     m_predefined_answer = m_predefined_answer + " " + speakAction; // Concatenate the predefined answer with the new speak action
-                        // }
-                        // else
-                        // {
-                        //     response->is_reply_finished = true; // If it is the last one, we are finished with the reply
-                        //     m_predefined_answer_index = 0;      // Reset the index of the predefined answer
-                        //     m_replies[command].push_back(m_predefined_answer); // Store the speak action in the replies map
-                        //     m_predefined_answer = ""; // Reset the predefined answer
-                        // }
-                        replies.push_back(action.getParam());
-                        // // associate gesture dance with the predefined speech for now, later the dance parameter will be read directly
-                        // // from the json collecting the speech and dance actions
-                        // dances.push_back("gesture"); // No dance associated with speak action
-                    }
-                    default:
-                    {
-                        yError() << "[DialogComponent::InterpretCommand] I got an unknown ActionType.";
-                        break;
-                    }
+                    // // check if the action is the last one in the list
+                    // if (m_predefined_answer_index < (tempActions.size() - 1))
+                    // {
+                    //     response->is_reply_finished = false; // If it is not the last one, we are not finished with the reply
+                    //     m_predefined_answer_index += 1;      // Increment the index of the predefined answer
+                    //     m_predefined_answer = m_predefined_answer + " " + speakAction; // Concatenate the predefined answer with the new speak action
+                    // }
+                    // else
+                    // {
+                    //     response->is_reply_finished = true; // If it is the last one, we are finished with the reply
+                    //     m_predefined_answer_index = 0;      // Reset the index of the predefined answer
+                    //     m_replies[command].push_back(m_predefined_answer); // Store the speak action in the replies map
+                    //     m_predefined_answer = ""; // Reset the predefined answer
+                    // }
+                    replies.push_back(action.getParam());
+                    // // associate gesture dance with the predefined speech for now, later the dance parameter will be read directly
+                    // // from the json collecting the speech and dance actions
+                    // dances.push_back("gesture"); // No dance associated with speak action
+                }
+                default:
+                {
+                    yError() << "[DialogComponent::InterpretCommand] I got an unknown ActionType.";
+                    break;
+                }
                 }
             }
             response->is_ok = true;
@@ -1170,6 +1181,38 @@ void DialogComponent::ExecuteDance(std::string danceName, float estimatedSpeechT
     else
     {
         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service execute_dance");
+        return;
+    }
+}
+
+// Execute Pointing action service client
+void DialogComponent::ExecutePointing(std::string pointingTarget)
+{
+
+    // ---------------------------------Text to Speech Service SPEAK------------------------------
+    yInfo() << "[DialogComponent::ExecutePointing] Starting Cartesian Pointing Service";
+    auto executePointingClientNode = rclcpp::Node::make_shared("CartesianPointingComponentPointTaskNode");
+
+    auto pointingClient = executePointingClientNode->create_client<cartesian_pointing_interfaces::srv::PointAt>("/CartesianPointingComponent/PointAt");
+    auto pointing_request = std::make_shared<cartesian_pointing_interfaces::srv::PointAt::Request>();
+    pointing_request->target_name = pointingTarget;
+    // Wait for service
+    while (!pointingClient->wait_for_service(std::chrono::seconds(1)))
+    {
+        if (!rclcpp::ok())
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service '/CartesianPointingComponent/PointAt'. Exiting.");
+        }
+    }
+    auto pointing_result = pointingClient->async_send_request(pointing_request);
+
+    if (rclcpp::spin_until_future_complete(executePointingClientNode, pointing_result) == rclcpp::FutureReturnCode::SUCCESS)
+    {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Execute Pointing succeeded");
+    }
+    else
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service point_at");
         return;
     }
 }
@@ -1336,7 +1379,6 @@ void DialogComponent::Answer(const std::shared_ptr<dialog_interfaces::srv::Answe
     response->is_ok = true;
 }
 
-
 // Speak action fragment of code start
 
 rclcpp_action::GoalResponse DialogComponent::handle_speak_goal(
@@ -1391,7 +1433,7 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
     }
 
     std::unique_ptr<yarp::sig::Sound> verbalOutput = nullptr;
-    
+
     do
     {
         verbalOutput = m_verbalOutputBatchReader.GetVerbalOutput();
@@ -1420,37 +1462,47 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
     sound = *verbalOutput;
     std::cout << "[DialogComponent::SpeakFromAudio] Copied sound data" << std::endl;
 
-    for (auto &text : texts)
-    {
-        std::cout << "[DialogComponent::SpeakFromAudio] Text to speak: " << text << std::endl;
-    }
+    // for (auto &text : texts)
+    // {
+    //     std::cout << "[DialogComponent::SpeakFromAudio] Text to speak: " << text << std::endl;
+    // }
 
-    for (auto &dance : dances)
-    {
-        std::cout << "[DialogComponent::SpeakFromAudio] Dance to perform: " << dance << std::endl;
-    }
+    // for (auto &dance : dances)
+    // {
+    //     std::cout << "[DialogComponent::SpeakFromAudio] Dance to perform: " << dance << std::endl;
+    // }
 
     std::string dance = dances[m_predefined_answer_index];
 
-    std::cout << "[DialogComponent::SpeakFromAudio] Sending audio to port" << std::endl;
-
-    float estimatedSpeechTime = sound.getDuration();
-
-    std::cout << "[DialogComponent::SpeakFromAudio] Speak request sent with estimated speech time: " << estimatedSpeechTime << std::endl;
-
-    m_audioPort.write();
-
-    std::cout << "[DialogComponent::SpeakFromAudio] Audio written to port" << std::endl;
-
     if (dance != "none")
     {
-        yInfo() << "[DialogComponent::CommandManager] Dance detected: " << dance;
-        ExecuteDance(dance, estimatedSpeechTime);
+        if (dance.find("point") != std::string::npos)
+        {
+            std::cout << "[DialogComponent::SpeakFromAudio] Pointing detected, executing pointing" << std::endl;
+            std::string danceTarget = dance.substr(dance.find("::") + 2);
+            ExecutePointing(danceTarget);
+        }
+        else
+        {
+
+            std::cout << "[DialogComponent::SpeakFromAudio] Sending audio to port" << std::endl;
+
+            float estimatedSpeechTime = sound.getDuration();
+
+            std::cout << "[DialogComponent::SpeakFromAudio] Speak request sent with estimated speech time: " << estimatedSpeechTime << std::endl;
+
+            yInfo() << "[DialogComponent::CommandManager] Dance detected: " << dance;
+            ExecuteDance(dance, estimatedSpeechTime);
+        }
     }
     else
     {
         yInfo() << "[DialogComponent::CommandManager] No dance detected";
     }
+
+    m_audioPort.write();
+
+    std::cout << "[DialogComponent::SpeakFromAudio] Audio written to port" << std::endl;
 
     std::cout << "[DialogComponent::SpeakFromAudio] Waiting for speak end" << std::endl;
 

@@ -29,8 +29,6 @@
 #include <dialog_interfaces/srv/answer.hpp>
 #include <dialog_interfaces/srv/set_language.hpp>
 #include <dialog_interfaces/srv/interpret_command.hpp>
-// #include <dialog_interfaces/srv/is_speaking.hpp>
-// #include <dialog_interfaces/srv/set_microphone.hpp>
 
 // Dialog Component Action Interfaces
 #include <dialog_interfaces/action/wait_for_interaction.hpp>
@@ -55,6 +53,9 @@
 
 // ExecuteDance Interfaces
 #include <execute_dance_interfaces/srv/execute_dance.hpp>
+
+// CartesianPointing Interfaces
+#include <cartesian_pointing_interfaces/srv/point_at.hpp>
 
 #include "nlohmann/json.hpp"
 #include <random>
@@ -111,7 +112,9 @@ protected:
     void WaitForSpeakEnd();                                                                                                      // ROS2 service client to TextToSpeechComponent to get if the TTS is speaking. Wait until it is not
     bool UpdatePoILLMPrompt();                                                                                                   // Updates the prompt of the PoIChat LLM based on the current PoI. Leverages the SchedulerComponent service to get the current PoI name
     void ExecuteDance(std::string danceName, float estimatedSpeechTime);                                                         // ROS2 service client to ExecuteDanceComponent to execute the dance with the given name
-private:
+    void ExecutePointing(std::string pointingTarget);                                                      // ROS2 service client to CartesianPointingComponent to point at the given target
+
+    private:
     // ChatGPT
     // Defines the LLM that manages the context of the conversation
     yarp::dev::PolyDriver m_poiChatPoly;
