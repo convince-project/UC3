@@ -29,8 +29,9 @@
 #include <yarp/os/Network.h>
 #include <yarp/os/Port.h>
 #include <yarp/os/LogStream.h>
-#include <yarp/dev/PolyDriver.h>
-#include <yarp/os/ResourceFinder.h>
+#include <yarp/dev/PolyDriver.h> // Gestore generico per device YARP
+#include <yarp/dev/IMap2D.h> // Interfaccia runtime per query oggetti 2D
+#include <yarp/dev/Map2DObject.h> // Struttura dati per oggetto 2D
 
 // Eigen
 #include <Eigen/Dense>
@@ -53,10 +54,6 @@ public:
 private:
     // Main operation: perform a pointing task requested via service
     void pointTask(const std::shared_ptr<cartesian_pointing_interfaces::srv::PointAt::Request> request);
-
-    // Configuration / data loading
-    std::map<std::string, std::vector<double>>
-    loadArtworkCoordinates(const std::string& filename);
 
     // Pre-scan & reachability checks
     bool preScanArticulatedArms(const Eigen::Vector3d& artwork_pos,
@@ -129,14 +126,12 @@ private:
     // Optional PolyDriver for direct device usage
     yarp::dev::PolyDriver m_cartesianClient;
 
-    // Artwork name -> [x,y,z]
-    std::map<std::string, std::vector<double>> m_artworkCoords;
+    // Device NWC per Map2DObject: gestisce la connessione al server
+    yarp::dev::PolyDriver m_map2dDevice;
+    // Puntatore all'interfaccia per query oggetti 2D
+    yarp::dev::Nav2D::IMap2D* m_map2dView = nullptr; // interfacer; // interface
 
-    // Runtime flags and synchronization
+    // Runtime flags and synchronization    // Runtime flags and synchronization
     std::mutex m_flagMutex;
     bool m_isPointing {false};
-
-    // ResourceFinder defaults (ONLY used to locate artwork file)
-    std::string m_rfDefaultContext  {"r1_cartesian_control"};
-    std::string m_rfDefaultArtworks {"artwork_coords.json"};
 };

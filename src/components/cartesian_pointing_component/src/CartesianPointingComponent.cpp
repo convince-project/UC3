@@ -12,10 +12,6 @@
 #include <cstdlib>
 #include <cmath>
 
-// JSON (nlohmann)
-#include <nlohmann/json.hpp>
-using ordered_json = nlohmann::ordered_json;
-
 // TF2 LinearMath (optional utilities)
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/LinearMath/Matrix3x3.h>
@@ -115,32 +111,8 @@ bool CartesianPointingComponent::start(int argc, char* argv[])
     m_tfBuffer   = std::make_unique<tf2_ros::Buffer>(m_node->get_clock());
     m_tfListener = std::make_unique<tf2_ros::TransformListener>(*m_tfBuffer);
 
-    // 5) Load artworks via YARP ResourceFinder (context + --artworks parameter).
-    //    Using RF decouples file locations from code and supports deployment contexts.
-    {
-        yarp::os::ResourceFinder rf;
-        rf.setDefaultContext(m_rfDefaultContext);  // default search context (override with --context)
-        rf.setDefault("artworks", m_rfDefaultArtworks); // default filename (override with --artworks)
-        rf.configure(argc, argv); // parse CLI to allow overrides
-
-        // Resolve the filename to an absolute path according to YARP_DATA_DIRS and context.
-        const std::string artworksName = rf.check("artworks",
-            yarp::os::Value(m_rfDefaultArtworks)).asString();
-
-        const std::string artworksPath = rf.findFileByName(artworksName);
-        if (artworksPath.empty()) {
-            // Fail fast with a helpful diagnostic including the search path.
-            const char* yarp_dirs = std::getenv("YARP_DATA_DIRS");
-            RCLCPP_ERROR(m_node ? m_node->get_logger() : rclcpp::get_logger("rclcpp"),
-                        "Artwork file '%s' not found in context '%s'. Searched YARP_DATA_DIRS='%s'. Aborting startup.",
-                        artworksName.c_str(), rf.getContext().c_str(),
-                        yarp_dirs ? yarp_dirs : "(unset)");
-            return false; // Without an artwork list, the component cannot fulfill its purpose.
-        } else {
-            // Preload coordinates so subsequent calls do not incur IO/parsing cost.
-            m_artworkCoords = loadArtworkCoordinates(artworksPath);
-        }
-    }
+    // 5) No longer require artwork file: coordinates are retrieved via Map2DObject (IMap2D).
+    //    Proceed without ResourceFinder/artwork_coords.json.
 
     // 6) Open and connect local YARP client ports to the cartesian controllers.
     //    We disconnect any stale connections first to ensure a clean routing state.
@@ -178,6 +150,28 @@ bool CartesianPointingComponent::start(int argc, char* argv[])
             response->error_msg = "";
         }
     );
+
+    // 4b) Apri il device NWC Map2DObject per ottenere le coordinate degli oggetti
+    {
+        // Prepara le opzioni per il device NWC
+        yarp::os::Property map2dOptions;
+        map2dOptions.put("device", "map2d_nwc_yarp" ); // tipo di device NWC
+        map2dOptions.put("local", "/cartesian_pointing_component/map2d_nwc" ); // nome porta locale
+        map2dOptions.put("remote", "/map2d" ); // nome porta remota del server Map2DObject
+        // Prova ad aprire il device
+        if (!m_map2dDevice.open(map2dOptions)) {
+            RCLCPP_ERROR(m_node->get_logger(), "Impossibile aprire il device map2d_nwc_yarp");
+            return false;
+        }
+        // Ottieni la view dell'interfaccia IMap2D
+        m_map2dDevice.view(m_map2dView);
+        if (!m_map2dView) {
+            RCLCPP_ERROR(m_node->get_logger(), "Impossibile ottenere la view IMap2D dal device map2d_nwc_yarp");
+            return false;
+        }
+        // Se tutto ok, log di successo
+        RCLCPP_INFO(m_node->get_logger(), "Device map2d_nwc_yarp aperto e view IMap2D ottenuta");
+    }
 
     // Final readiness message to help operators/devs confirm successful startup in logs.
     RCLCPP_DEBUG(m_node->get_logger(), "CartesianPointingComponent READY");
@@ -217,17 +211,23 @@ void CartesianPointingComponent::pointTask(const std::shared_ptr<cartesian_point
 {
     RCLCPP_DEBUG(m_node->get_logger(), "EXECUTE TASK: '%s'", request->target_name.c_str());
 
-    // 1) Lookup artwork coordinates by name
-    auto it = m_artworkCoords.find(request->target_name);
-    if (it == m_artworkCoords.end() || it->second.size() < 3) {
-        RCLCPP_WARN(m_node->get_logger(), "No or invalid TARGET '%s' found", request->target_name.c_str());
+    // 1) Lookup object coordinates by name using Map2DObject device
+    //    This replaces the old file-based artwork lookup.
+    yarp::dev::Nav2D::Map2DObject obj;
+    bool found = false;
+    if (m_map2dView) {
+        // Query the Map2DObject device for the target's location
+        found = m_map2dView->getObject(request->target_name, obj);
+    }
+    if (!found) {
+        RCLCPP_WARN(m_node->get_logger(), "Map2DObject: No or invalid TARGET '%s' found", request->target_name.c_str());
         return;
     }
-    const auto& coords = it->second;
 
-    // 2) Transform the point from map frame to base frame 
-    Eigen::Vector3d p_base{coords[0], coords[1], coords[2]};
-    geometry_msgs::msg::Point mapPt; mapPt.x = coords[0]; mapPt.y = coords[1]; mapPt.z = coords[2];
+    // 2) Transform the point from map frame to base frame
+    //    The coordinates are now obtained from the device (in map frame)
+    Eigen::Vector3d p_base(obj.x, obj.y, obj.z);
+    geometry_msgs::msg::Point mapPt; mapPt.x = obj.x; mapPt.y = obj.y; mapPt.z = obj.z;
     geometry_msgs::msg::Point basePt;
     if (transformPointMapToRobot(mapPt, basePt, m_baseFrame, 1.0)) {
         p_base = Eigen::Vector3d(basePt.x, basePt.y, basePt.z);
@@ -317,40 +317,6 @@ void CartesianPointingComponent::pointTask(const std::shared_ptr<cartesian_point
     { std::lock_guard<std::mutex> lk(m_flagMutex); m_isPointing = false; }
 }
 
-// =============================================================================
-// loadArtworkCoordinates() — load artwork entries { name : [x,y,z] }
-// =============================================================================
-std::map<std::string, std::vector<double>>
-CartesianPointingComponent::loadArtworkCoordinates(const std::string& filename)
-{
-    std::map<std::string, std::vector<double>> artworkMap;
-    try {
-        std::ifstream file(filename);
-        if (!file.is_open()) {
-            RCLCPP_ERROR(m_node->get_logger(), "Unable to open artwork file '%s'", filename.c_str());
-            return artworkMap;
-        }
-        auto config = ordered_json::parse(file);
-        for (auto& [name, data] : config.at("artworks").items()) {
-            double x = data.at("x").get<double>();
-            double y = data.at("y").get<double>();
-            double z = data.at("z").get<double>();
-            artworkMap.emplace(name, std::vector<double>{x,y,z});
-            // Log loaded artwork name and coordinates
-            RCLCPP_DEBUG(m_node->get_logger(),
-                        "Loaded artwork '%s' -> (%.3f, %.3f, %.3f)",
-                        name.c_str(), x, y, z);
-        }
-
-        // If none found, warn the caller
-        if (artworkMap.empty()) {
-            RCLCPP_WARN(m_node->get_logger(), "No artwork entries found in '%s'", filename.c_str());
-        }
-    } catch (const std::exception& ex) {
-        RCLCPP_ERROR(m_node->get_logger(), "Error parsing '%s': %s", filename.c_str(), ex.what());
-    }
-    return artworkMap;
-}
 
 // =============================================================================
 // transformPointMapToRobot() — transform a point using persistent TF2 buffer
