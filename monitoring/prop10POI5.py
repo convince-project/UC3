@@ -2,13 +2,13 @@
 H(POI_5_selected => F[0:t] POI_5_completed)
 """
 # property definition for POI 5 completion within time t
-PROPERTY = r"historically(({poi5_completed} -> once{poi5_selected}) and not( not {poi5_completed} since[50:] {poi5_selected}))"
-
+PROPERTY = r"historically((not( (not {poi5_completed}) since[50:] ( {poi5_selected} and ((not {tour_restart}) since {poi5_selected}) ) )))"
 
 # predicates used in the property (initialization for time 0)
 predicates = dict(
     poi5_selected = False,
     poi5_completed = False,
+    tour_restart = False,
     time = 0,
 )
 
@@ -30,6 +30,7 @@ def abstract_message(message):
         if "response" in message:
             for resp in message["response"]:
                 if resp.get("poi_number") == 5:
+                   predicates['tour_restart'] = False
                    predicates['poi5_selected'] = True
                         
     if "topic" in message and "GetInt" in message['topic']:
@@ -45,5 +46,6 @@ def abstract_message(message):
     if "topic" in message and "Reset" in message['topic']:
         predicates['poi5_selected'] = False
         predicates['poi5_completed'] = False
+        predicates['tour_restart'] = True
 
     return predicates
