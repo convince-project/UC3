@@ -6,7 +6,6 @@
  ******************************************************************************/
 # pragma once
 
-#include <mutex>
 #include <thread>
 #include <queue>
 #include <rclcpp/rclcpp.hpp>
@@ -62,24 +61,44 @@ private:
     rclcpp::Service<narrate_interfaces::srv::IsDone>::SharedPtr m_isDoneService;
     rclcpp::Service<narrate_interfaces::srv::Stop>::SharedPtr m_stopService;
     std::shared_ptr<rclcpp_action::Client<ActionSynthesizeTexts>> m_clientSynthesizeTexts;
+    rclcpp_action::ClientGoalHandle<ActionSynthesizeTexts>::SharedPtr m_goalHandleSynthesizeTexts;
 
-    // Wait until the player is not speaking if discriminator is false
-    // Wait until the player is speaking if discriminator is true
+    /**
+     * @brief Waits for the player status to change based on the discriminator
+     *
+     * @param discriminator if false, waits until the player is not speaking; if true, waits until the player is speaking
+     */
     void _waitForPlayerStatus(bool discriminator);
 
+    /**
+     * @brief Sends a batch synthesis request to the text to speech action server
+     *
+     * @param texts vector of strings to be synthesized
+     * @return true if the request was sent successfully
+     * @return false if the request failed
+     */
     bool _sendForBatchSynthesis(const std::vector<std::string>& texts);
 
-    void goal_response_callback(const GoalHandleSynthesizeTexts::SharedPtr & goal_handle);
-    void feedback_callback([[maybe_unused]] GoalHandleSynthesizeTexts::SharedPtr,
-                           [[maybe_unused]] const std::shared_ptr<const ActionSynthesizeTexts::Feedback> feedback);
-    void result_callback(const GoalHandleSynthesizeTexts::WrappedResult & result);
+    /**
+     * @brief Tries to extract a point action target from the given string
+     *
+     * @param actionParam action parameter to parse
+     * @param target resulting target
+     * @return true if the parsing was successful
+     * @return false if the parsing failed
+     */
+    bool _formatPointAction(const std::string& actionParam, std::string& target);
 
-    void speakTask();
-    void NarrateTask(const std::shared_ptr<narrate_interfaces::srv::Narrate::Request> request);
-    void ExecuteDance(std::string danceName, float estimatedSpeechTime);
+    void _goal_response_callback(const GoalHandleSynthesizeTexts::SharedPtr & goal_handle);
+    void _feedback_callback([[maybe_unused]] GoalHandleSynthesizeTexts::SharedPtr,
+                            [[maybe_unused]] const std::shared_ptr<const ActionSynthesizeTexts::Feedback> feedback);
+    void _result_callback(const GoalHandleSynthesizeTexts::WrappedResult & result);
+
+    void _speakTask();
+    void _narrateTask(const std::shared_ptr<narrate_interfaces::srv::Narrate::Request> request);
+    void _executeDance(std::string danceName, float estimatedSpeechTime);
     // void NarrateTask(const std::shared_ptr<narrate_interfaces::srv::Narrate::Request> request);
     // rclcpp::Client<text_to_speech_interfaces::srv::Speak>::SharedPtr m_speakClient;
-    std::mutex m_timeMutex;
     int m_seconds_left;
     size_t m_toSend;
     std::vector<std::string> m_speakBuffer;
@@ -90,6 +109,7 @@ private:
     bool m_speakTask{false};
     bool m_stopped{false};
     bool m_failed{false};
+    bool m_errorOccurred{false};
 
     std::thread m_threadNarration;
     SoundSafeQueue m_soundQueue;
