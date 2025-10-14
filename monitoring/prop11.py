@@ -2,7 +2,7 @@
 (not critical_battery)
 """
 
-PROPERTY = r"(not {low_covariance})"
+PROPERTY = r"({well_localized})"
 
 # predicates used in the property (initialization for time 0)
 
@@ -14,7 +14,7 @@ predicates = dict(
 
     time = 0,
 
-    low_covariance = False,
+    well_localized = True,
 )
 
 # in here we can add all the predicates we are interested in.. Of course, we also need to define how to translate Json messages to predicates.
@@ -26,10 +26,21 @@ def abstract_message(message):
         predicates['time'] += 0.0000001
     else:
         predicates['time'] = message['time']
+
+    print("predicates", predicates)
+    print("message", message)
     
-    if "topic" in message and "localization" in message['topic']:
-        cov_value = message['data']
-        predicates['low_covariance'] = cov_value < 10
+    if "topic" in message and "/amcl_pose" in message['topic']:
+        cov_list = message['pose']['covariance']
+        print("Covariance list:", cov_list)
+        
+        # Calculate absolute values and find maximum
+        abs_values = [abs(val) for val in cov_list]
+        max_abs_value = max(abs_values)
+        print("Maximum absolute covariance value:", max_abs_value)
+        
+        # Set well_localized based on maximum absolute value
+        predicates['well_localized'] = max_abs_value <= 0.1
 
     print("predicates", predicates)
     print("message", message)

@@ -34,9 +34,9 @@ def abstract_message(message):
     if "topic" in message and "status" in message['topic']:
         # update is_recording from message status: 'ok' -> True, otherwise False
         status = message.get('status')
-        if (str(status).lower() == 'ok')
+        if (str(status).lower() == 'ok'):
             predicates['is_recording'] = True
-        else
+        else:
             predicates['is_recording'] = False
 
     if predicates.get('is_recording'):
