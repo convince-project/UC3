@@ -253,8 +253,8 @@ void NarrateComponent::_narrateTask(const std::shared_ptr<narrate_interfaces::sr
                 {
                     RCLCPP_INFO_STREAM(m_node->get_logger(), "Got speak action " );
                     if (actionCounter > 0 && m_speakBuffer.size() > m_danceBuffer.size()) {
-                        RCLCPP_INFO_STREAM(m_node->get_logger(), "No dance action for the speak action. Putting \"gesticulate\"");
-                        m_danceBuffer.push_back("gesticulate");
+                        RCLCPP_INFO_STREAM(m_node->get_logger(), "No dance action for the speak action. Putting \"gesture\"");
+                        m_danceBuffer.push_back("gesture");
                     }
                     m_speakBuffer.push_back(currentAction->param);
                 }
@@ -300,8 +300,8 @@ void NarrateComponent::_narrateTask(const std::shared_ptr<narrate_interfaces::sr
         } while (!doneWithPoi);
 
         if (m_speakBuffer.size() == m_danceBuffer.size() + 1) {
-            RCLCPP_INFO_STREAM(m_node->get_logger(), "No dance action for the last speak action. Putting \"gesticulate\"");
-            m_danceBuffer.push_back("gesticulate");
+            RCLCPP_INFO_STREAM(m_node->get_logger(), "No dance action for the last speak action. Putting \"gesture\"");
+            m_danceBuffer.push_back("gesture");
         }
         if (m_speakBuffer.size() != m_danceBuffer.size()) {
             RCLCPP_ERROR_STREAM(m_node->get_logger(), "Error: speak and dance actions do not match. Aborting narration");
