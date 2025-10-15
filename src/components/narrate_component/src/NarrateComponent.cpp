@@ -96,7 +96,7 @@ void NarrateComponent::speakTask() {
             break;
         }
         auto speakResult = speakClient->async_send_request(speakRequest);
-        auto futureSpeakResult = rclcpp::spin_until_future_complete(speakClientNode, speakResult);
+        // auto futureSpeakResult = rclcpp::spin_until_future_complete(speakClientNode, speakResult);
         auto speakFutureResult = speakResult.get();
         if (speakFutureResult->is_ok == true) { // 0 is speak
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -125,7 +125,7 @@ void NarrateComponent::speakTask() {
             }
             if (wait_succeded) {
                 auto isSpeakingResult = isSpeakingClient->async_send_request(isSpeakingRequest);
-                auto futureIsSpeakingResult = rclcpp::spin_until_future_complete(isSpeakingClientNode, isSpeakingResult);
+                // auto futureIsSpeakingResult = rclcpp::spin_until_future_complete(isSpeakingClientNode, isSpeakingResult);
                 auto isSpeakingResponse = isSpeakingResult.get();
                 isSpeaking = isSpeakingResponse->is_speaking;
                 m_timeMutex.lock();
@@ -258,7 +258,7 @@ void NarrateComponent::NarrateTask(const std::shared_ptr<narrate_interfaces::srv
             }
         }
         auto setCommandResult = setCommandClient->async_send_request(setCommandRequest);
-        auto futureSetCommandResult = rclcpp::spin_until_future_complete(setCommandClientNode, setCommandResult);
+        // auto futureSetCommandResult = rclcpp::spin_until_future_complete(setCommandClientNode, setCommandResult);
         auto setCommandResponse = setCommandResult.get();
         if (setCommandResponse->is_ok == false) {
             RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), "Error in SetCommand service" << setCommandResponse->error_msg);
@@ -282,7 +282,7 @@ void NarrateComponent::NarrateTask(const std::shared_ptr<narrate_interfaces::srv
                 }
             }
             auto getCurrentActionResult = getCurrentActionClient->async_send_request(getCurrentActionRequest);
-            auto futureGetCurrentActionResult = rclcpp::spin_until_future_complete(getCurrentActionClientNode, getCurrentActionResult);
+            // auto futureGetCurrentActionResult = rclcpp::spin_until_future_complete(getCurrentActionClientNode, getCurrentActionResult);
             auto currentAction = getCurrentActionResult.get();
                 if (currentAction->type == "speak")
                 {
@@ -350,7 +350,7 @@ void NarrateComponent::NarrateTask(const std::shared_ptr<narrate_interfaces::srv
                 }
             }
             auto updateActionResult = updateActionClient->async_send_request(updateActionRequest);
-            auto futureUpdateActionResult = rclcpp::spin_until_future_complete(updateActionClientNode, updateActionResult); 
+            // auto futureUpdateActionResult = rclcpp::spin_until_future_complete(updateActionClientNode, updateActionResult); 
             auto updateActionResponse = updateActionResult.get();
             doneWithPoi = updateActionResponse->done_with_poi;
             if(m_stopped)
