@@ -1,4 +1,4 @@
-path: /home/user1/UC3/monitoring/monitor_propPOI3/src
+path: /home/user1/UC3/monitoring/monitor_propPOI3_ws/src
 
 monitors:
   - monitor:
@@ -6,7 +6,7 @@ monitors:
       log: ./log.txt
       silent: False
       oracle:
-        port: 8093
+        port: 8053
         url: 127.0.0.1
         action: nothing
       topics:

@@ -2,48 +2,61 @@
 H(POI_2_selected => F[0:t] POI_2_completed)
 """
 # property definition for POI 2 completion within time t
-PROPERTY = r"historically(({poi2_completed} -> once{poi2_selected}) and not( not {poi2_completed} since[50:] {poi2_selected}))"
+PROPERTY = r"historically( ({poi2_completed} -> {poi2_selected}) and ({poi2_selected} -> ( not( ((not {poi2_completed}) and {poi2_selected}) since[50:] {poi2_sel_start} ))))"
 
-
-# predicates used in the property (initialization for time 0)
 predicates = dict(
-    poi2_selected = False,
-    poi2_completed = False,
-    time = 0,
+    poi2_selected=False,
+    poi2_completed=False,
+    poi2_sel_start=False,     # evento istantaneo
+    _poi2_selected_prev=False,# ausiliario interno
+    time=0,
 )
 
-# function to abstract a dictionary (obtained from Json message) into a list of predicates
 def abstract_message(message):
-
+    # tempo monotono
     if message['time'] <= predicates['time']:
-        predicates['time'] += 0.0000001
+        predicates['time'] += 1e-7
     else:
         predicates['time'] = message['time']
 
-    print("message", message)
-    print("predicates", predicates)
+    print("message:", message)
+    print("predicates:", predicates)
+    
+    # reset eventi istantanei a ogni messaggio
+    predicates['poi2_sel_start'] = False
 
     if message.get('topic') == "/monitoring_clock":
         return predicates
+
+
+    # default: non selezionato, poi settiamo True se il POI corrente è 2
+    current_selected = False
 
     if "topic" in message and "GetCurrentPoi" in message['topic']:
         if "response" in message:
             for resp in message["response"]:
                 if resp.get("poi_number") == 2:
-                   predicates['poi2_selected'] = True
+                    current_selected = True
+                    predicates['poi2_selected'] = True
 
+    # fronte di salita: ora True, prima False
+    if current_selected and not predicates['_poi2_selected_prev']:
+        predicates['poi2_sel_start'] = True
+
+    predicates['_poi2_selected_prev'] = current_selected
+
+    # completamento
     if "topic" in message and "GetInt" in message['topic']:
         if "response" in message:
             for resp in message["response"]:
-                field_name = resp.get("field_name")
-                if field_name == "PoiDone2":
-                    if resp.get("value") == 1:
-                        predicates['poi2_completed'] = True
-                    else:
-                        predicates['poi2_completed'] = False
+                if resp.get("field_name") == "PoiDone2":
+                    predicates['poi2_completed'] = (resp.get("value") == 1)
 
+    # reset tour (se ce l’hai): azzera stati e il “prev”
     if "topic" in message and "Reset" in message['topic']:
         predicates['poi2_selected'] = False
+        predicates['_poi2_selected_prev'] = False
         predicates['poi2_completed'] = False
+        # opzionale: puoi anche emettere un evento di reset se lo vuoi usare altrove
 
     return predicates
