@@ -12,20 +12,6 @@
       "en-US": {
         "___generic___": {
           "m_availableActions": {
-            "resetTourManager": [
-              {
-                "m_isBlocking": false,
-                "m_param": "reset",
-                "m_type": "signal"
-              }
-            ],
-            "nextPoi": [
-              {
-                "m_isBlocking": false,
-                "m_param": "nextPoi",
-                "m_type": "signal"
-              }
-            ],
             "sayFollowMe": [
               {
                 "m_isBlocking": false,
@@ -120,11 +106,6 @@
                 "m_param": "I'm sorry, I didn't understand",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "fallbackMove",
-                "m_type": "dance"
               }
             ],
             "questionMoreDetailsOpera": [
@@ -133,21 +114,6 @@
                 "m_param": "What would you like to ask? You can ask me more details about the robot, the future plans or how does it work.",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": false,
-                "m_param": "argueBoth",
-                "m_type": "dance"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "idleMove",
-                "m_type": "dance"
-              },
-              {
-                "m_isBlocking": false,
-                "m_param": "startHearing",
-                "m_type": "signal"
               }
             ],
             "warningNextNavigation": [
@@ -165,16 +131,6 @@
                 "m_param": "I'm sorry, I didn't understand",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "fallbackMove",
-                "m_type": "dance"
-              },
-              {
-                "m_isBlocking": false,
-                "m_param": "startHearing",
-                "m_type": "signal"
               }
             ],
             "explainQuestionTechnique": [
@@ -183,16 +139,6 @@
                 "m_param": "I'm sorry, I didn't understand",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "fallbackMove",
-                "m_type": "dance"
-              },
-              {
-                "m_isBlocking": false,
-                "m_param": "startHearing",
-                "m_type": "signal"
               }
             ],
             "explainQuestionAuthor": [
@@ -201,16 +147,6 @@
                 "m_param": "I'm sorry, I didn't understand",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "fallbackMove",
-                "m_type": "dance"
-              },
-              {
-                "m_isBlocking": false,
-                "m_param": "startHearing",
-                "m_type": "signal"
               }
             ],
             "explainGeneralMuseum": [
@@ -219,16 +155,6 @@
                 "m_param": "I'm sorry, I didn't understand",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "fallbackMove",
-                "m_type": "dance"
-              },
-              {
-                "m_isBlocking": false,
-                "m_param": "startHearing",
-                "m_type": "signal"
               }
             ]
           },
@@ -242,11 +168,6 @@
                 "m_param": "hello I'm R1",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "argue",
-                "m_type": "dance"
               }
             ],
             "sayWhileNavigating": [
@@ -302,11 +223,6 @@
                 "m_param": "Do you have any questions? I can tell you about the function of this room, its decoration. Or you can ask me any questions about the palace, the Convince project, or about me. Otherwise, we can continue with the tour.",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "argue",
-                "m_type": "dance"
               }
             ],
             "explainFunction": [
@@ -392,11 +308,6 @@
                 "m_param": "Do you have any questions? I can tell you about the decoration of this room. Or you can ask me any questions about the palace, the Convince project, or about me. Otherwise, we can continue with the tour.",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "argue",
-                "m_type": "dance"
               }
             ],
             "explainFunction": [
@@ -506,11 +417,6 @@
                 "m_param": "Do you have any questions? I can tell you about the decoration of this room. Or you can ask me any questions about the palace, the Convince project, or about me. Otherwise, we can continue with the tour.",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "argue",
-                "m_type": "dance"
               }
             ],
             "explainFunction": [
@@ -620,11 +526,6 @@
                 "m_param": "Do you have any questions? I can tell you about the decoration of this room. Or you can ask me any questions about the palace, the Convince project, or about me. Otherwise, we can continue with the tour.",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "argue",
-                "m_type": "dance"
               }
             ],
             "explainFunction": [
@@ -722,11 +623,6 @@
                 "m_param": "Do you have any questions? I can tell you about the decoration of this room. Or you can ask me any questions about the palace, the Convince project, or about me. Otherwise, we can continue with the tour.",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "argue",
-                "m_type": "dance"
               }
             ],
             "explainFunction": [
@@ -818,13 +714,6 @@
       "it-IT": {
         "___generic___": {
           "m_availableActions": {
-            "resetTourManager": [
-              {
-                "m_isBlocking": false,
-                "m_param": "reset",
-                "m_type": "signal"
-              }
-            ],
             "sayFollowMe": [
               {
                 "m_isBlocking": false,
@@ -865,24 +754,12 @@
                 "m_dance": "gesture"
               }
             ],
-            "nextPoi": [
-              {
-                "m_isBlocking": false,
-                "m_param": "nextPoi",
-                "m_type": "signal"
-              }
-            ],
             "fallback": [
               {
                 "m_isBlocking": false,
                 "m_param": "Mi dispiace, non ho capito",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "fallbackMove",
-                "m_type": "dance"
               }
             ],
             "goalNotAvailableError": [
@@ -948,21 +825,6 @@
                 "m_param": "Che domande volete farmi? Provate a dire maggiori informazioni, prossimi obiettivi, come funziona.",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": false,
-                "m_param": "argueRight",
-                "m_type": "dance"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "idleMove",
-                "m_type": "dance"
-              },
-              {
-                "m_isBlocking": false,
-                "m_param": "startHearing",
-                "m_type": "signal"
               }
             ],
             "explainQuestionMainPiece": [
@@ -971,16 +833,6 @@
                 "m_param": "Mi dispiace, non ho capito",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "fallbackMove",
-                "m_type": "dance"
-              },
-              {
-                "m_isBlocking": false,
-                "m_param": "startHearing",
-                "m_type": "signal"
               }
             ],
             "explainQuestionTechnique": [
@@ -989,16 +841,6 @@
                 "m_param": "Mi dispiace, non ho capito",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "fallbackMove",
-                "m_type": "dance"
-              },
-              {
-                "m_isBlocking": false,
-                "m_param": "startHearing",
-                "m_type": "signal"
               }
             ],
             "explainQuestionAuthor": [
@@ -1007,16 +849,6 @@
                 "m_param": "Mi dispiace, non ho capito",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "fallbackMove",
-                "m_type": "dance"
-              },
-              {
-                "m_isBlocking": false,
-                "m_param": "startHearing",
-                "m_type": "signal"
               }
             ],
             "explainGeneralMuseum": [
@@ -1025,16 +857,6 @@
                 "m_param": "Mi dispiace, non ho capito",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "fallbackMove",
-                "m_type": "dance"
-              },
-              {
-                "m_isBlocking": false,
-                "m_param": "startHearing",
-                "m_type": "signal"
               }
             ]
           },
@@ -1048,11 +870,6 @@
                 "m_param": "ciao sono r1",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "argue",
-                "m_type": "dance"
               }
             ],
             "sayWhileNavigating": [
@@ -1108,11 +925,6 @@
                 "m_param": "Hai qualche domanda? Posso parlarti della funzione di questa stanza, della sua decorazione. Oppure puoi farmi qualche domanda sul palazzo, il progetto Convince o su di me. Altrimenti possiamo proseguire con il tour.",
                 "m_type": "speak",
                 "m_dance": "point::dipinto_ovest"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "argue",
-                "m_type": "dance"
               }
             ],
             "explainFunction": [
@@ -1198,11 +1010,6 @@
                 "m_param": "Hai qualche domanda? Posso parlarti della decorazione di questa stanza. Oppure puoi farmi qualche domanda sul palazzo, il progetto Convince o su di me. Altrimenti possiamo proseguire con il tour.",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "argue",
-                "m_type": "dance"
               }
             ],
             "explainFunction": [
@@ -1312,11 +1119,6 @@
                 "m_param": "Hai qualche domanda? Posso parlarti della decorazione di questa stanza. Oppure puoi farmi qualche domanda sul palazzo, il progetto Convince o su di me. Altrimenti possiamo proseguire con il tour.",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "argue",
-                "m_type": "dance"
               }
             ],
             "explainFunction": [
@@ -1426,11 +1228,6 @@
                 "m_param": "Hai qualche domanda? Posso parlarti della decorazione di questa stanza. Oppure puoi farmi qualche domanda sul palazzo, il progetto Convince o su di me. Altrimenti possiamo proseguire con il tour.",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "argue",
-                "m_type": "dance"
               }
             ],
             "explainFunction": [
@@ -1528,11 +1325,6 @@
                 "m_param": "Hai qualche domanda? Posso parlarti della decorazione di questa stanza. Oppure puoi farmi qualche domanda sul palazzo, il progetto Convince o su di me. Altrimenti possiamo concludere qui il tour.",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "argue",
-                "m_type": "dance"
               }
             ],
             "explainFunction": [
@@ -1624,13 +1416,6 @@
       "fr-FR": {
         "___generic___": {
           "m_availableActions": {
-            "resetTourManager": [
-              {
-                "m_isBlocking": false,
-                "m_param": "reset",
-                "m_type": "signal"
-              }
-            ],
             "sayFollowMe": [
               {
                 "m_isBlocking": false,
@@ -1682,11 +1467,6 @@
                 "m_param": "bonjour je suis R1",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "argue",
-                "m_type": "dance"
               }
             ],
             "sayWhileNavigating": [
@@ -1742,11 +1522,6 @@
                 "m_param": "Avez-vous des questions? Je peux vous parler de la fonction de cette pièce, de sa décoration. Ou vous pouvez me poser des questions sur le palais, sur le projet Convince, ou sur moi. Sinon, nous pouvons continuer la visite.",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "argue",
-                "m_type": "dance"
               }
             ],
             "explainFunction": [
@@ -1832,11 +1607,6 @@
                 "m_param": "Avez-vous des questions? Je peux vous parler de la décoration de cette pièce. Ou vous pouvez me poser des questions sur le palais, le projet Convince, ou sur moi. Sinon, nous pouvons continuer la visite.",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "argue",
-                "m_type": "dance"
               }
             ],
             "explainFunction": [
@@ -1946,11 +1716,6 @@
                 "m_param": "Avez-vous des questions? Je peux vous parler de la décoration de cette pièce. Ou vous pouvez me poser des questions sur le palais, le projet Convince, ou sur moi. Sinon, nous pouvons continuer la visite.",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "argue",
-                "m_type": "dance"
               }
             ],
             "explainFunction": [
@@ -2060,11 +1825,6 @@
                 "m_param": "Avez-vous des questions ? Je peux vous parler de la décoration de cette pièce. Ou vous pouvez me poser des questions sur le palais, le projet Convince, ou sur moi. Sinon, nous pouvons continuer la visite.",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "argue",
-                "m_type": "dance"
               }
             ],
             "explainFunction": [
@@ -2162,11 +1922,6 @@
                 "m_param": "Avez-vous des questions ? Je peux vous parler de la décoration de cette pièce. Ou vous pouvez me poser des questions sur le palais, le projet Convince, ou sur moi. Sinon, nous pouvons continuer la visite.",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "argue",
-                "m_type": "dance"
               }
             ],
             "explainFunction": [
@@ -2258,13 +2013,6 @@
       "es-ES": {
         "___generic___": {
           "m_availableActions": {
-            "resetTourManager": [
-              {
-                "m_isBlocking": false,
-                "m_param": "reset",
-                "m_type": "signal"
-              }
-            ],
             "sayFollowMe": [
               {
                 "m_isBlocking": false,
@@ -2316,11 +2064,6 @@
                 "m_param": "ciao sono r1",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "argue",
-                "m_type": "dance"
               }
           ],
           "sayWhileNavigating": [
@@ -2376,11 +2119,6 @@
                 "m_param": "¿Tienes alguna pregunta? Puedo hablarte sobre la función de esta habitación, su decoración. O puedes preguntarme cualquier cosa sobre el palacio, el proyecto Convince, o sobre mí. De lo contrario, podemos continuar con el recorrido.",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "argue",
-                "m_type": "dance"
               }
             ],
             "explainFunction": [
@@ -2472,11 +2210,6 @@
                 "m_param": "¿Tienes alguna pregunta? Puedo hablarte sobre la decoración de esta habitación. O puedes preguntarme cualquier cosa sobre el palacio, el proyecto Convince, o sobre mí. De lo contrario, podemos continuar con el recorrido.",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "argue",
-                "m_type": "dance"
               }
             ],
             "explainFunction": [
@@ -2574,11 +2307,6 @@
                 "m_param": "¿Tienes alguna pregunta? Puedo hablarte sobre la decoración de esta sala. O puedes hacerme cualquier pregunta sobre el palacio, el proyecto Convince o sobre mí. De lo contrario, podemos continuar con el recorrido.",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "argue",
-                "m_type": "dance"
               }
             ],
             "explainFunction": [
@@ -2688,11 +2416,6 @@
                 "m_param": "¿Tienes alguna pregunta? Puedo hablarte sobre la decoración de esta habitación. O puedes preguntarme cualquier cosa sobre el palacio, el proyecto Convince, o sobre mí. De lo contrario, podemos continuar con el recorrido.",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "argue",
-                "m_type": "dance"
               }
             ],
             "explainFunction": [
@@ -2790,11 +2513,6 @@
                 "m_param": "¿Tienes alguna pregunta? Puedo hablarte sobre la decoración de esta habitación. O puedes preguntarme cualquier cosa sobre el palacio, el proyecto Convince, o sobre mí. De lo contrario, podemos continuar con el recorrido.",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "argue",
-                "m_type": "dance"
               }
             ],
             "explainFunction": [
@@ -2886,13 +2604,6 @@
       "de-DE": {
         "___generic___": {
           "m_availableActions": {
-            "resetTourManager": [
-              {
-                "m_isBlocking": false,
-                "m_param": "reset",
-                "m_type": "signal"
-              }
-            ],
             "sayFollowMe": [
               {
                 "m_isBlocking": false,
@@ -2944,11 +2655,6 @@
                 "m_param": "Hallo, ich bin R1",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "argue",
-                "m_type": "dance"
               }
             ],
             "sayWhileNavigating": [
@@ -3004,11 +2710,6 @@
                 "m_param": "Hast du Fragen? Ich kann dir etwas über die Funktion dieses Zimmers, seine Dekoration erzählen. Oder du kannst mir Fragen zum Palast, zum Convince-Projekt oder zu mir stellen. Andernfalls können wir mit der Tour fortfahren.",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "argue",
-                "m_type": "dance"
               }
             ],
             "explainFunction": [
@@ -3094,11 +2795,6 @@
                 "m_param": "Hast du Fragen? Ich kann dir etwas über die Dekoration dieses Raumes erzählen. Oder du kannst mir Fragen zum Palast, zum Convince-Projekt oder zu mir stellen. Andernfalls können wir mit der Tour fortfahren.",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "argue",
-                "m_type": "dance"
               }
             ],
             "explainFunction": [
@@ -3208,11 +2904,6 @@
                 "m_param": "Hast du Fragen? Ich kann dir etwas über die Dekoration dieses Raumes erzählen. Oder du kannst mir Fragen zum Palast, zum Convince-Projekt oder zu mir stellen. Andernfalls können wir mit der Tour fortfahren.",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "argue",
-                "m_type": "dance"
               }
             ],
             "explainFunction": [
@@ -3322,11 +3013,6 @@
                 "m_param": "Hast du Fragen? Ich kann dir etwas über die Dekoration dieses Raumes erzählen. Oder du kannst mir Fragen zum Palast, zum Convince-Projekt oder zu mir stellen. Andernfalls können wir mit der Tour fortfahren.",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "argue",
-                "m_type": "dance"
               }
             ],
             "explainFunction": [
@@ -3424,11 +3110,6 @@
                 "m_param": "Hast du Fragen? Ich kann dir etwas über die Dekoration dieses Raumes erzählen. Oder du kannst mir Fragen zum Palast, zum Convince-Projekt oder zu mir stellen. Andernfalls können wir die Tour hier beenden.",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "argue",
-                "m_type": "dance"
               }
             ],
             "explainFunction": [
@@ -3520,13 +3201,6 @@
       "ja-JP": {
         "___generic___": {
           "m_availableActions": {
-            "resetTourManager": [
-              {
-                "m_isBlocking": false,
-                "m_param": "reset",
-                "m_type": "signal"
-              }
-            ],
             "sayFollowMe": [
               {
                 "m_isBlocking": false,
@@ -3578,11 +3252,6 @@
                 "m_param": "Konnichiwa, watashi wa R1 desu.",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "argue",
-                "m_type": "dance"
               }
             ],
             "sayWhileNavigating": [
@@ -3638,11 +3307,6 @@
                 "m_param": "Nanika shitsumon wa arimasu ka? Kono heya no kinō ya sōshoku ni tsuite hanasukotoga dekimasu. Matawa, oshiete kudasai, kochira no basho ni tsuite no shitsumon. Aruiwa, tour o tsuzukemasu ka?",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "argue",
-                "m_type": "dance"
               }
             ],
             "explainFunction": [
@@ -3728,11 +3392,6 @@
                       "m_param": "Shitsumon wa arimasu ka? Kono heya no sōshoku ni tsuite hanasu koto ga dekimasu. Matawa, kyūden, konvince purojekuto, matawa watashi ni tsuite nanika shitsumon ga arimasu ka. Samonakereba, tsuā o tsuzukeru koto ga dekimasu.",
                       "m_type": "speak",
                 "m_dance": "gesture"
-                  },
-                  {
-                    "m_isBlocking": true,
-                    "m_param": "argue",
-                    "m_type": "dance"
                   }
               ],
               "explainFunction": [
@@ -3842,11 +3501,6 @@
                       "m_param": "Shitsumon wa arimasu ka? Kono heya no sōshoku ni tsuite hanasu koto ga dekimasu. Matawa, kyūden, konvince purojekuto, matawa watashi ni tsuite nanika shitsumon ga arimasu ka. Samonakereba, tsuā o tsuzukeru koto ga dekimasu.",
                       "m_type": "speak",
                 "m_dance": "gesture"
-                  },
-                  {
-                    "m_isBlocking": true,
-                    "m_param": "argue",
-                    "m_type": "dance"
                   }
               ],
               "explainFunction": [
@@ -3950,11 +3604,6 @@
                 "m_param": "Nanika shitsumon wa arimasu ka? Kono heya no sōshoku ni tsuite hanasu koto ga dekimasu. Mata, biru, Convince purojekuto, matawa watashi ni tsuite no shitsumon ga aru baai wa, oazuke no shitsumon o shite kudasai. Samonakereba, tsuā o tsuzukeru koto ga dekimasu.",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "argue",
-                "m_type": "dance"
               }
             ],
             "explainFunction": [
@@ -4052,11 +3701,6 @@
                 "m_param": "Mō shitsumon wa arimasu ka? Kono heya no sōshi ni tsuite hanashite agemasu. Aruiwa, kyūden, Convince purojekuto, matawa watashi ni tsuite no shitsumon o omoidasenai baai wa, kochira de tsuā o shūryō shimasu.",
                 "m_type": "speak",
                 "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": true,
-                "m_param": "argue",
-                "m_type": "dance"
               }
             ],
             "explainFunction": [

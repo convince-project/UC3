@@ -72,7 +72,7 @@ public:
      * @param isBlocking true if the action is blocking
      * @param param the Action parameter
      */
-    Action(ActionTypes type, bool isBlocking, std::string param);
+    Action(ActionTypes type, bool isBlocking, std::string param, std::string dance);
 
     /**
      * Copy constructor.
@@ -100,6 +100,7 @@ public:
     [[nodiscard]] bool isBlocking() const;
     [[nodiscard]] ActionTypes getType() const;
     [[nodiscard]] std::string getParam() const;
+    [[nodiscard]] std::string getDance() const;
 };
 
 #endif // BEHAVIOR_TOUR_ROBOT_ACTION_H

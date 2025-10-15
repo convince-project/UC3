@@ -11,7 +11,7 @@ using namespace std::chrono_literals;
 DialogComponent::DialogComponent() : m_random_gen(m_rand_engine()),
                                      m_uniform_distrib(1, 2)
 {
-    m_jsonPath = "/home/user1/UC3/conf/tours.json";
+    m_jsonPath = "/home/user1/UC3/conf/tours-with-italian-dates-in-chars.json";
     m_tourName = "TOUR_MADAMA_3";
     m_speechToTextClientName = "/DialogComponent/SpeechToTextClient:i";
     m_speechToTextServerName = "/SpeechToTextComponent/text:o";
@@ -312,49 +312,6 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
         }
     }
 
-    // // ---------------------Microphone Activation----------------------------
-    // {
-    //     okCheck = rf.check("MICROPHONE");
-    //     device = "audioRecorder_nwc_yarp";
-    //     local = "/DialogComponent/audio";
-    //     remote = "/audioRecorder_nws";
-
-    //     if (okCheck)
-    //     {
-    //         yarp::os::Searchable &mic_config = rf.findGroup("MICROPHONE");
-    //         if (mic_config.check("device"))
-    //         {
-    //             device = mic_config.find("device").asString();
-    //         }
-    //         if (mic_config.check("local-suffix"))
-    //         {
-    //             local = "/DialogComponent" + mic_config.find("local-suffix").asString();
-    //         }
-    //         if (mic_config.check("remote"))
-    //         {
-    //             remote = mic_config.find("remote").asString();
-    //         }
-    //     }
-
-    //     yarp::os::Property audioRecorder_prop;
-    //     audioRecorder_prop.put("device", device);
-    //     audioRecorder_prop.put("local", local);
-    //     audioRecorder_prop.put("remote", remote);
-
-    //     m_audioRecorderPoly.open(audioRecorder_prop);
-    //     if (!m_audioRecorderPoly.isValid())
-    //     {
-    //         yError() << "[DialogComponent::ConfigureYARP] Error opening audioRecorder Client PolyDriver. Check parameters";
-    //         return false;
-    //     }
-    //     m_audioRecorderPoly.view(m_iAudioGrabberSound);
-    //     if (!m_iAudioGrabberSound)
-    //     {
-    //         yError() << "[DialogComponent::ConfigureYARP] Error opening audioRecorderSound interface. Device not available";
-    //         return false;
-    //     }
-    // }
-
     // ---------------------SPEAKERS----------------------------
     {
         std::string localAudioName = "/DialogComponent/audio:o";
@@ -423,52 +380,6 @@ bool DialogComponent::start(int argc, char *argv[])
                                                                                                            this,
                                                                                                            std::placeholders::_1,
                                                                                                            std::placeholders::_2));
-
-    // m_IsSpeakingService = m_node->create_service<dialog_interfaces::srv::IsSpeaking>("/DialogComponent/IsSpeaking",
-    //                                                                                  std::bind(&DialogComponent::IsSpeaking,
-    //                                                                                            this,
-    //                                                                                            std::placeholders::_1,
-    //                                                                                            std::placeholders::_2));
-
-    // m_SetMicrophoneService = m_node->create_service<dialog_interfaces::srv::SetMicrophone>("/DialogComponent/SetMicrophone",
-    //                                                                                        std::bind(&DialogComponent::SetMicrophone,
-    //                                                                                                  this,
-    //                                                                                                  std::placeholders::_1,
-    //                                                                                                  std::placeholders::_2));
-
-    // m_speakerStatusPub = m_node->create_publisher<std_msgs::msg::Bool>("/DialogComponent/is_speaking", 10);
-
-    // m_timer = m_node->create_wall_timer(200ms,
-    //                                     [this]() -> void
-    //                                     {
-    //                                         std::lock_guard<std::mutex> lock(m_mutex);
-    //                                         auto data = m_audioStatusPort.read(false);
-    //                                         if (data != nullptr)
-    //                                         {
-    //                                             std_msgs::msg::Bool msg;
-    //                                             if (data->current_buffer_size > 0)
-    //                                                 msg.data = true;
-    //                                             else
-    //                                             {
-    //                                                 if (!m_manualMicDisabled && m_startedSpeaking)
-    //                                                 {
-    //                                                     bool isRecording;
-    //                                                     m_iAudioGrabberSound->isRecording(isRecording);
-    //                                                     if (!isRecording)
-    //                                                     {
-    //                                                         RCLCPP_ERROR_STREAM(m_node->get_logger(), "TextToSpeechComponent " << __LINE__);
-    //                                                         if (!m_iAudioGrabberSound->startRecording())
-    //                                                         {
-    //                                                             RCLCPP_ERROR(m_node->get_logger(), "Unable to stop recording!");
-    //                                                         }
-    //                                                     }
-    //                                                     m_startedSpeaking = false;
-    //                                                 }
-    //                                                 msg.data = false;
-    //                                             }
-    //                                             m_speakerStatusPub->publish(msg);
-    //                                         }
-    //                                     });
 
     m_WaitForInteractionAction = rclcpp_action::create_server<dialog_interfaces::action::WaitForInteraction>(
         m_node,
@@ -628,14 +539,6 @@ bool DialogComponent::CommandManager(const std::string &command, std::shared_ptr
             return false;
             response->is_ok = false;
         }
-
-        // Now let's Find that trimmedCmd in the JSON
-        // if (!InterpretCommand(action, currentPoI, genericPoI))
-        // {
-        //     yError() << "[DialogComponent::CommandManager] Interpret action: " << action;
-        //     return false;
-        // }
-        // return true;
     }
     else if (action == "museum")
     {
@@ -655,19 +558,14 @@ bool DialogComponent::CommandManager(const std::string &command, std::shared_ptr
         yInfo() << "[DialogComponent::CommandManager] Next Poi Detected" << __LINE__;
         response->is_ok = true;
         response->is_poi_ended = true;
-
-        // TODO Call a service maybe?
     }
     else if (action == "end_tour") // END TOUR
     {
         yInfo() << "[DialogComponent::CommandManager] End Tour Detected" << __LINE__;
-        // calls the end tour service of the scheduler component
 
         response->is_ok = true;
         response->is_poi_ended = true;
         m_state = SUCCESS;
-
-        // TODO call service
     }
     else
     {
@@ -847,22 +745,11 @@ void DialogComponent::WaitForSpeakEnd()
         auto futureIsSpeakingResult = rclcpp::spin_until_future_complete(isSpeakingClientNode, isSpeakingResult);
         auto isSpeakingResponse = isSpeakingResult.get();
         isSpeaking = isSpeakingResponse->is_speaking;
-<<<<<<< Updated upstream
-
-        int secondsLeft = isSpeakingResponse->seconds_left;
-
-
-        yInfo() << "IsSpeaking " << isSpeaking << " and seconds left: " << secondsLeft << __LINE__;
-=======
-<<<<<<< Updated upstream
-        yInfo() << __LINE__;
-=======
 
         int secondsLeft = isSpeakingResponse->seconds_left;
 
         yInfo() << "IsSpeaking " << isSpeaking << " and seconds left: " << secondsLeft << __LINE__;
->>>>>>> Stashed changes
->>>>>>> Stashed changes
+
     } while (isSpeaking);
 }
 
@@ -996,45 +883,31 @@ void DialogComponent::InterpretCommand(const std::shared_ptr<dialog_interfaces::
 
             for (const auto &action : tempActions)
             {
+                std::cout << "Action Type: " << action.getType() << " with param: " << action.getParam() << " and blocking: " << action.isBlocking() <<
+                            " and dance " << action.getDance() << std::endl;
 
+                std::cout << "speak id " << ActionTypes::SPEAK << " signal id " << ActionTypes::SIGNAL << std::endl;
                 switch (action.getType())
                 {
-                case ActionTypes::SPEAK:
-                {
-                    speakAction += action.getParam() + " "; // Concatenate all the speak actions
+                    case ActionTypes::SPEAK:
+                    {
+                        speakAction += action.getParam() + " "; // Concatenate all the speak actions
+                        replies.push_back(action.getParam());
+                        dances.push_back(action.getDance());
 
-                    // response->is_ok = true; // Set the response to ok, because we are going to speak
-                    // response->reply = action.getParam();
-
-                    // // check if the action is the last one in the list
-                    // if (m_predefined_answer_index < (tempActions.size() - 1))
-                    // {
-                    //     response->is_reply_finished = false; // If it is not the last one, we are not finished with the reply
-                    //     m_predefined_answer_index += 1;      // Increment the index of the predefined answer
-                    //     m_predefined_answer = m_predefined_answer + " " + speakAction; // Concatenate the predefined answer with the new speak action
-                    // }
-                    // else
-                    // {
-                    //     response->is_reply_finished = true; // If it is the last one, we are finished with the reply
-                    //     m_predefined_answer_index = 0;      // Reset the index of the predefined answer
-                    //     m_replies[command].push_back(m_predefined_answer); // Store the speak action in the replies map
-                    //     m_predefined_answer = ""; // Reset the predefined answer
-                    // }
-                    replies.push_back(action.getParam());
-                    // // associate gesture dance with the predefined speech for now, later the dance parameter will be read directly
-                    // // from the json collecting the speech and dance actions
-                    // dances.push_back("gesture"); // No dance associated with speak action
-                }
-                default:
-                {
-                    yError() << "[DialogComponent::InterpretCommand] I got an unknown ActionType.";
-                    break;
-                }
+                        response->reply = replies;
+                        response->dance = dances;
+                        m_number_of_predefined_answers = replies.size();
+                        break;
+                    }
+                    default:
+                    {
+                        yError() << "[DialogComponent::InterpretCommand] I got an unknown ActionType.";
+                        response->is_ok = false;
+                        return;
+                    }
                 }
             }
-            response->is_ok = true;
-            response->reply = replies;
-            m_number_of_predefined_answers = replies.size();
         }
     }
 }
@@ -1216,63 +1089,6 @@ void DialogComponent::ExecutePointing(std::string pointingTarget)
         return;
     }
 }
-
-// Protected function to actually speak given the text
-// void DialogComponent::SpeakFromText(std::string text, std::string dance)
-// {
-
-//     // ---------------------------------Text to Speech Service SPEAK------------------------------
-//     yInfo() << "[DialogComponent::SpeakFromText] Starting Text to Speech Service";
-//     auto setCommandClientNode = rclcpp::Node::make_shared("TextToSpeechComponentSetCommandNode");
-
-//     auto speakClient = setCommandClientNode->create_client<text_to_speech_interfaces::srv::Speak>("/TextToSpeechComponent/Speak");
-//     auto speak_request = std::make_shared<text_to_speech_interfaces::srv::Speak::Request>();
-//     speak_request->text = text;
-//     // Wait for service
-//     while (!speakClient->wait_for_service(std::chrono::seconds(1)))
-//     {
-//         if (!rclcpp::ok())
-//         {
-//             RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setCommandClient'. Exiting.");
-//         }
-//     }
-//     auto speak_result = speakClient->async_send_request(speak_request);
-
-//     // Wait for the result.
-//     if (rclcpp::spin_until_future_complete(setCommandClientNode, speak_result) == rclcpp::FutureReturnCode::SUCCESS)
-//     {
-//         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Speak succeeded");
-//     }
-//     else
-//     {
-//         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service speak");
-//         return;
-//     }
-
-//     auto futureSpeakResult = rclcpp::spin_until_future_complete(setCommandClientNode, speak_result);
-//     if (futureSpeakResult != rclcpp::FutureReturnCode::SUCCESS)
-//     {
-//         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service speak");
-//         return;
-//     }
-//     auto speakResponse = speak_result.get();
-
-//     float estimatedSpeechTime = speakResponse->speech_time;
-
-//     std::cout << "[DialogComponent::SpeakFromText] Speak request sent with estimated speech time: " << estimatedSpeechTime << std::endl;
-
-//     if (dance != "none")
-//     {
-//         yInfo() << "[DialogComponent::CommandManager] Dance detected: " << dance;
-//         ExecuteDance(dance, estimatedSpeechTime);
-//     }
-//     else
-//     {
-//         yInfo() << "[DialogComponent::CommandManager] No dance detected";
-//     }
-
-//     WaitForSpeakEnd();
-// }
 
 void DialogComponent::ShortenReply(const std::shared_ptr<dialog_interfaces::srv::ShortenReply::Request> request,
                                    std::shared_ptr<dialog_interfaces::srv::ShortenReply::Response> response)
@@ -1509,8 +1325,6 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
     std::chrono::duration wait_ms = 2000ms;
     std::this_thread::sleep_for(wait_ms);
     WaitForSpeakEnd();
-    std::this_thread::sleep_for(wait_ms);
-
 
     std::cout << "[DialogComponent::SpeakFromAudio] Speak ended" << std::endl;
 
