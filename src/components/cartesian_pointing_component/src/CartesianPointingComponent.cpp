@@ -1,20 +1,10 @@
-/****************************************************************************
- * UC3 — CartesianPointingComponent (implementation)
- *
- * Minimal VARIANT: keeps behavior unchanged but loads artwork list using
- * YARP ResourceFinder (context + --artworks). No other functional changes.
- ****************************************************************************/
 #include "CartesianPointingComponent.h"
 
-// C++ standard
 #include <fstream>
 #include <sstream>
 #include <cstdlib>
 #include <cmath>
-// JSON
 #include <nlohmann/json.hpp>
-
-// TF2 LinearMath (optional utilities)
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/LinearMath/Matrix3x3.h>
 
@@ -73,26 +63,22 @@ static bool quatFromFlatPose(const std::vector<double>& flat, Eigen::Quaterniond
 // =============================================================================
 bool CartesianPointingComponent::start(int argc, char* argv[])
 {
-    // 1) Initialize ROS2 if needed.
-    //    We guard rclcpp::init so start() can be safely called from both
-    //    standalone binaries and larger systems that may have already initialized ROS2.
+    // 1) Initialize ROS2
     if (!rclcpp::ok()) {
         rclcpp::init(argc, argv);
     }
 
-    // Do not start controllers from the component process.
     // Controllers must be launched externally by the operator or system service.
     // If the expected RPC ports are missing we log a clear instruction so the
     // operator can start them and then the component will wait for availability.
     if (!yarp::os::Network::exists(cartesianPortLeft)) {
         RCLCPP_WARN(m_node ? m_node->get_logger() : rclcpp::get_logger("rclcpp"),
-                    "Left Cartesian controller not present. Please start it externally: r1-cartesian-control --from <left_controller.ini>");
+                    "Left Cartesian controller not present. Please start it externally: r1-cartesian-control --from <config_left_r1.ini>");
     }
     if (!yarp::os::Network::exists(cartesianPortRight)) {
         RCLCPP_WARN(m_node ? m_node->get_logger() : rclcpp::get_logger("rclcpp"),
-                    "Right Cartesian controller not present. Please start it externally: r1-cartesian-control --from <right_controller.ini>");
+                    "Right Cartesian controller not present. Please start it externally: r1-cartesian-control --from <config_right_r1.ini>");
     }
-    //    (A sleep prevents tight-loop polling and reduces CPU usage.)
     // Wait indefinitely for the RPC server ports to appear.
     // The controller is a separate process and must be launched by the operator.
     RCLCPP_INFO(m_node ? m_node->get_logger() : rclcpp::get_logger("rclcpp"),
@@ -113,8 +99,7 @@ bool CartesianPointingComponent::start(int argc, char* argv[])
     m_tfBuffer   = std::make_unique<tf2_ros::Buffer>(m_node->get_clock());
     m_tfListener = std::make_unique<tf2_ros::TransformListener>(*m_tfBuffer);
 
-    // 5) No longer require artwork file: coordinates are retrieved via Map2DObject (IMap2D).
-    //    Proceed without ResourceFinder/artwork_coords.json.
+    // Coordinates are retrieved via Map2DObject (IMap2D).
 
     // 6) Open and connect local YARP client ports to the cartesian controllers.
     //    We disconnect any stale connections first to ensure a clean routing state.
@@ -145,9 +130,7 @@ bool CartesianPointingComponent::start(int argc, char* argv[])
         [this](const std::shared_ptr<cartesian_pointing_interfaces::srv::PointAt::Request> request,
                std::shared_ptr<cartesian_pointing_interfaces::srv::PointAt::Response> response)
         {
-            // Delegate to the main task handler; any internal error handling remains localized.
             this->pointTask(request);
-            // For now we always report success; refine if pointTask sets detailed statuses.
             response->is_ok = true;
             response->error_msg = "";
         }
@@ -155,7 +138,6 @@ bool CartesianPointingComponent::start(int argc, char* argv[])
 
     // 4b) Open the Map2DObject NWC device to obtain object coordinates
     {
-        // Prepare options for the NWC device
         yarp::os::Property map2dOptions;
         // Note: the plugin name is case-sensitive: "map2D_nwc_yarp"
         map2dOptions.put("device", "map2D_nwc_yarp" ); // correct NWC device type
@@ -167,18 +149,16 @@ bool CartesianPointingComponent::start(int argc, char* argv[])
             RCLCPP_ERROR(m_node->get_logger(), "Unable to open device map2D_nwc_yarp (check that the plugin is installed and YARP_DATA_DIRS is configured)");
             return false;
         }
-        // Obtain the IMap2D interface view
         m_map2dDevice.view(m_map2dView);
         if (!m_map2dView) {
             RCLCPP_ERROR(m_node->get_logger(), "Unable to obtain IMap2D view from device map2D_nwc_yarp");
             return false;
         }
-        // If everything is fine, success log
         RCLCPP_INFO(m_node->get_logger(), "Device map2D_nwc_yarp opened and IMap2D view obtained");
     }
 
-    // Optional: import POIs from JSON file to Map2D for quick verification
-    // (path based on provided context)
+    // import POIs from JSON file to Map2D for quick verification 
+    // (path based on provided context) 
     importArtworksFromJson("/home/user1/UC3/yarp-contexts/contexts/r1_cartesian_control/artwork_coords.json");
 
     // Final readiness message to help operators/devs confirm successful startup in logs.
@@ -244,7 +224,7 @@ bool CartesianPointingComponent::importArtworksFromJson(const std::string& json_
     // Try to retrieve list of objects for confirmation
     std::vector<std::string> names;
     if (m_map2dView->getObjectsList(names)) {
-        std::ostringstream oss; oss << "Map2D objects (" << names.size() << "):";
+        std::ostringstream oss; oss << "Loaded Objects (" << names.size() << "):";
         for (const auto& n : names) oss << " " << n;
         RCLCPP_INFO(m_node->get_logger(), "%s", oss.str().c_str());
     } else {
@@ -260,9 +240,6 @@ bool CartesianPointingComponent::importArtworksFromJson(const std::string& json_
 // =============================================================================
 bool CartesianPointingComponent::close()
 {
-    if (m_cartesianClient.isValid()) {
-        m_cartesianClient.close();
-    }
     if (m_cartesianPortLeft.isOpen())  m_cartesianPortLeft.close();
     if (m_cartesianPortRight.isOpen()) m_cartesianPortRight.close();
     rclcpp::shutdown();
@@ -275,7 +252,7 @@ void CartesianPointingComponent::spin()
 }
 
 // =============================================================================
-// pointTask() — main pointing routine (position-only variant)
+// pointTask() 
 // Steps:
 // 1) find artwork coordinates by name
 // 2) transform artwork from map -> base (if TF available)
@@ -347,7 +324,7 @@ void CartesianPointingComponent::pointTask(const std::shared_ptr<cartesian_point
         }
 
         Eigen::Vector3d shoulder_base;
-        if (!getShoulderPosInBase(armName, shoulder_base)) {
+        if (!getShoulderPosInBaseFrame(armName, shoulder_base)) {
             RCLCPP_WARN(m_node->get_logger(), "ARM %s: missing shoulder TF", armName.c_str());
             continue;
         }
@@ -411,8 +388,6 @@ bool CartesianPointingComponent::transformPointMapToRobot(const geometry_msgs::m
     const std::string map_frame = m_mapFrame;  // Keep a stable copy (could be a parameter).
     const auto timeout = tf2::durationFromSec(timeout_sec);  // Respect caller's timing constraints.
 
-    // Before attempting the transform, check its availability.
-    // This avoids throwing exceptions and lets us log a clean diagnostic.
     if (!m_tfBuffer->canTransform(robot_frame,        // target frame (where we want the point)
                                   map_frame,          // source frame (where the point currently is)
                                   tf2::TimePointZero, // "latest available" common time
@@ -424,7 +399,6 @@ bool CartesianPointingComponent::transformPointMapToRobot(const geometry_msgs::m
     }
 
     try {
-        // Look up the transform once we're confident it's available.
         // Using TimePointZero requests the most recent transform, which is typical for live robots.
         auto tf_stamped = m_tfBuffer->lookupTransform(robot_frame, map_frame,
                                                       tf2::TimePointZero, timeout);
@@ -437,7 +411,6 @@ bool CartesianPointingComponent::transformPointMapToRobot(const geometry_msgs::m
         p_in.point = map_point;
 
         // Apply the transform computed above.
-        // Using doTransform ensures consistent handling of translation/rotation and timestamp/frame metadata.
         tf2::doTransform(p_in, p_out, tf_stamped);
 
         // Return just the geometry (the caller asked for a Point, not a PointStamped).
@@ -543,9 +516,7 @@ bool CartesianPointingComponent::preScanArticulatedArms(const Eigen::Vector3d& a
 // =============================================================================
 // isPoseReachable() — RPC wrapper returning whether controller deems pose reachable
 // =============================================================================
-bool CartesianPointingComponent::isPoseReachable(yarp::os::Port* activePort,
-                                                 const Eigen::Vector3d& candidate,
-                                                 const Eigen::Quaterniond& q_target)
+bool CartesianPointingComponent::isPoseReachable(yarp::os::Port* activePort,const Eigen::Vector3d& candidate,const Eigen::Quaterniond& q_target)
 {
     yarp::os::Bottle cmd, res;
     cmd.addString("is_pose_reachable");
@@ -560,9 +531,7 @@ bool CartesianPointingComponent::isPoseReachable(yarp::os::Port* activePort,
     return ok && res.size()>0 && res.get(0).asVocab32()==yarp::os::createVocab32('o','k');
 }
 
-bool CartesianPointingComponent::getTFMatrix(const std::string& target,
-                                             const std::string& source,
-                                             Eigen::Matrix4d& T) const
+bool CartesianPointingComponent::getTFMatrix(const std::string& target,const std::string& source, Eigen::Matrix4d& T) const
 {
     // A TF buffer is mandatory to perform lookups. If it's missing, we cannot proceed.
     if (!m_tfBuffer) return false;
@@ -634,7 +603,7 @@ bool CartesianPointingComponent::chooseArmByTorsoY(const Eigen::Vector3d& p_base
 }
 
 
-bool CartesianPointingComponent::getShoulderPosInBase(const std::string& arm,
+bool CartesianPointingComponent::getShoulderPosInBaseFrame(const std::string& arm,
                                                       Eigen::Vector3d& out_pos) const
 {
     // Select the correct shoulder frame for the queried arm.
