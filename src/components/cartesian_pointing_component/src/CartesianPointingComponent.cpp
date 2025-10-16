@@ -279,14 +279,18 @@ void CartesianPointingComponent::pointTask(const std::shared_ptr<cartesian_point
 
     // 2) Transform the point from map frame to base frame
     //    The coordinates are now obtained from the device (in map frame)
+    //    Log where we are pointing in MAP before TF.
+    RCLCPP_INFO(m_node->get_logger(), "Target (map): x=%.3f y=%.3f z=%.3f", obj.x, obj.y, obj.z);
     Eigen::Vector3d p_base(obj.x, obj.y, obj.z);
     geometry_msgs::msg::Point mapPt; mapPt.x = obj.x; mapPt.y = obj.y; mapPt.z = obj.z;
     geometry_msgs::msg::Point basePt;
     if (transformPointMapToRobot(mapPt, basePt, m_baseFrame, 1.0)) {
         p_base = Eigen::Vector3d(basePt.x, basePt.y, basePt.z);
+        RCLCPP_INFO(m_node->get_logger(), "Target (base after TF): x=%.3f y=%.3f z=%.3f", basePt.x, basePt.y, basePt.z);
     } else {
         RCLCPP_WARN(m_node->get_logger(), "TF map->%s failed; using given coords as %s",
                     m_baseFrame.c_str(), m_baseFrame.c_str());
+        RCLCPP_INFO(m_node->get_logger(), "Target (base fallback): x=%.3f y=%.3f z=%.3f", p_base.x(), p_base.y(), p_base.z());
     }
 
     // 3) Pre-scan both arms to get poses and distances
@@ -329,8 +333,10 @@ void CartesianPointingComponent::pointTask(const std::shared_ptr<cartesian_point
             continue;
         }
 
-        // compute candidate point on the shoulder->target line within reach sphere
-        Eigen::Vector3d candidate = sphereReachPoint(shoulder_base, p_base);
+    // compute candidate point on the shoulder->target line within reach sphere
+    Eigen::Vector3d candidate = sphereReachPoint(shoulder_base, p_base);
+    RCLCPP_INFO(m_node->get_logger(), "ARM %s: candidate (base): x=%.3f y=%.3f z=%.3f (shoulder x=%.3f y=%.3f z=%.3f)",
+            armName.c_str(), candidate.x(), candidate.y(), candidate.z(), shoulder_base.x(), shoulder_base.y(), shoulder_base.z());
 
         // extract current end-effector orientation from cached pose; fallback to identity
         Eigen::Quaterniond q_keep(1,0,0,0);
@@ -338,32 +344,36 @@ void CartesianPointingComponent::pointTask(const std::shared_ptr<cartesian_point
             Eigen::Quaterniond q_tmp; if (quatFromFlatPose(itPose->second, q_tmp)) q_keep = q_tmp;
         }
 
-        // check reachability using controller RPC
+    // log the orientation we will keep/use
+    RCLCPP_INFO(m_node->get_logger(), "ARM %s: using orientation (qx=%.4f qy=%.4f qz=%.4f qw=%.4f)",
+            armName.c_str(), q_keep.x(), q_keep.y(), q_keep.z(), q_keep.w());
+
+    // check reachability using controller RPC
         if (!isPoseReachable(activePort, candidate, q_keep)) {
             RCLCPP_WARN(m_node->get_logger(), "ARM %s: candidate not reachable, trying next arm", armName.c_str());
             continue;
         }
 
-        // send go_to_pose command (position + current orientation)
-        yarp::os::Bottle cmd, res;
-        cmd.addString("go_to_pose");
-        cmd.addFloat64(candidate.x());
-        cmd.addFloat64(candidate.y());
-        cmd.addFloat64(candidate.z());
-        cmd.addFloat64(q_keep.x());
-        cmd.addFloat64(q_keep.y());
-        cmd.addFloat64(q_keep.z());
-        cmd.addFloat64(q_keep.w());
-        cmd.addFloat64(5.0); // trajectory duration (s)
+        // // send go_to_pose command (position + current orientation)
+        // yarp::os::Bottle cmd, res;
+        // cmd.addString("go_to_pose");
+        // cmd.addFloat64(candidate.x());
+        // cmd.addFloat64(candidate.y());
+        // cmd.addFloat64(candidate.z());
+        // cmd.addFloat64(q_keep.x());
+        // cmd.addFloat64(q_keep.y());
+        // cmd.addFloat64(q_keep.z());
+        // cmd.addFloat64(q_keep.w());
+        // cmd.addFloat64(10.0); // trajectory duration (s)
 
-        bool ok = activePort->write(cmd, res);
-        if (ok && res.size()>0 && res.get(0).asVocab32()==yarp::os::createVocab32('o','k')) {
-            RCLCPP_DEBUG(m_node->get_logger(), "SUCCESS: %s moved to candidate keeping orientation", armName.c_str());
-            break; // success with one arm
-        } else {
-            RCLCPP_WARN(m_node->get_logger(), "ARM %s: go_to_pose failed, trying next arm", armName.c_str());
-            continue;
-        }
+        // bool ok = activePort->write(cmd, res);
+        // if (ok && res.size()>0 && res.get(0).asVocab32()==yarp::os::createVocab32('o','k')) {
+        //     RCLCPP_DEBUG(m_node->get_logger(), "SUCCESS: %s moved to candidate keeping orientation", armName.c_str());
+        //     break; // success with one arm
+        // } else {
+        //     RCLCPP_WARN(m_node->get_logger(), "ARM %s: go_to_pose failed, trying next arm", armName.c_str());
+        //     continue;
+        // }
     }
 
     // clear pointing flag
