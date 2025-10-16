@@ -23,6 +23,7 @@
 #include <dance_interfaces/srv/update_movement.hpp>
 #include <dance_interfaces/srv/get_best_dance.hpp>
 #include <execute_dance_interfaces/srv/execute_dance.hpp>
+#include <execute_dance_interfaces/srv/reset_dance.hpp>
 // #include <execute_dance_interfaces/srv/is_dancing.hpp>
 
 
@@ -38,20 +39,16 @@ public:
                       std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Response> response);
     // void IsDancing(const std::shared_ptr<execute_dance_interfaces::srv::IsDancing::Request> request,
     //                std::shared_ptr<execute_dance_interfaces::srv::IsDancing::Response> response);
+    void ResetDance(const std::shared_ptr<execute_dance_interfaces::srv::ResetDance::Request> request,
+                   std::shared_ptr<execute_dance_interfaces::srv::ResetDance::Response> response);
 private:
     
     bool SendMovementToYAP(const std::string &actionName, float speedFactor);
-
-    void executeTask(const std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Request> request);
-    void timerTask(float time);
-    std::string m_danceName;
+ 
     rclcpp::Node::SharedPtr m_node;
     rclcpp::Service<execute_dance_interfaces::srv::ExecuteDance>::SharedPtr m_executeDanceService;
+    rclcpp::Service<execute_dance_interfaces::srv::ResetDance>::SharedPtr m_resetDanceService;
     // rclcpp::Service<execute_dance_interfaces::srv::IsDancing>::SharedPtr m_isDancingService;
-    std::map<std::string, yarp::os::Port &> m_pCtpService;
-    std::thread m_threadExecute;
-    std::thread m_threadTimer;
-    std::mutex m_timerMutex;
 
     // yarpActionsPlayers client port name
     std::string yAPClientPortName;

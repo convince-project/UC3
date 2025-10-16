@@ -583,7 +583,7 @@ bool DialogComponent::UpdatePoILLMPrompt()
     std::shared_ptr<rclcpp::Node> nodeGetCurrentPoi = rclcpp::Node::make_shared("DialogComponentNodeGetCurrentPoi");
     std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::GetCurrentPoi>> clientGetCurrentPoi = nodeGetCurrentPoi->create_client<scheduler_interfaces::srv::GetCurrentPoi>("/SchedulerComponent/GetCurrentPoi");
     auto requestGetCurrentPoi = std::make_shared<scheduler_interfaces::srv::GetCurrentPoi::Request>();
-    while (!clientGetCurrentPoi->wait_for_service(std::chrono::seconds(1)))
+    while (!clientGetCurrentPoi->wait_for_service(std::chrono::milliseconds(100)))
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         if (!rclcpp::ok())
@@ -650,7 +650,7 @@ void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::
     auto setLangClient = setLangClientNode->create_client<scheduler_interfaces::srv::SetLanguage>("/SchedulerComponent/SetLanguage");
     auto schedulerSetLangRequest = std::make_shared<scheduler_interfaces::srv::SetLanguage::Request>();
     schedulerSetLangRequest->language = newLang;
-    while (!setLangClient->wait_for_service(std::chrono::seconds(1)))
+    while (!setLangClient->wait_for_service(std::chrono::milliseconds(100)))
     {
         if (!rclcpp::ok())
         {
@@ -677,7 +677,7 @@ void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::
     auto setLangClient2 = setLangClientNode2->create_client<text_to_speech_interfaces::srv::SetLanguage>("/TextToSpeechComponent/SetLanguage");
     auto request2 = std::make_shared<text_to_speech_interfaces::srv::SetLanguage::Request>();
     request2->new_language = newLang;
-    while (!setLangClient2->wait_for_service(std::chrono::seconds(1)))
+    while (!setLangClient2->wait_for_service(std::chrono::milliseconds(100)))
     {
         if (!rclcpp::ok())
         {
@@ -702,7 +702,7 @@ void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::
     auto setVoiceClient = setVoiceClientNode->create_client<text_to_speech_interfaces::srv::SetVoice>("/TextToSpeechComponent/SetVoice");
     auto request3 = std::make_shared<text_to_speech_interfaces::srv::SetVoice::Request>();
     request3->new_voice = m_voicesMap[newLang];
-    while (!setVoiceClient->wait_for_service(std::chrono::seconds(1)))
+    while (!setVoiceClient->wait_for_service(std::chrono::milliseconds(100)))
     {
         if (!rclcpp::ok())
         {
@@ -724,23 +724,56 @@ void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::
     }
 }
 
-void DialogComponent::WaitForSpeakEnd()
+void DialogComponent::WaitForSpeakStart()
 {
-    bool isSpeaking = false;
+    auto isSpeakingClientNode = rclcpp::Node::make_shared("DialogComponentIsSpeakingNode");
+    auto isSpeakingClient = isSpeakingClientNode->create_client<text_to_speech_interfaces::srv::IsSpeaking>("/TextToSpeechComponent/IsSpeaking");
+    auto isSpeakingRequest = std::make_shared<text_to_speech_interfaces::srv::IsSpeaking::Request>();
+    while (!isSpeakingClient->wait_for_service(std::chrono::milliseconds(100)))
+    {
+        if (!rclcpp::ok())
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'isSpeakingClient'. Exiting.");
+        }
+    }
+
+    bool isSpeaking;
     do
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
         // calls the isSpeaking service
-        auto isSpeakingClientNode = rclcpp::Node::make_shared("DialogComponentIsSpeakingNode");
-        auto isSpeakingClient = isSpeakingClientNode->create_client<text_to_speech_interfaces::srv::IsSpeaking>("/TextToSpeechComponent/IsSpeaking");
-        auto isSpeakingRequest = std::make_shared<text_to_speech_interfaces::srv::IsSpeaking::Request>();
-        while (!isSpeakingClient->wait_for_service(std::chrono::seconds(1)))
+
+        auto isSpeakingResult = isSpeakingClient->async_send_request(isSpeakingRequest);
+        auto futureIsSpeakingResult = rclcpp::spin_until_future_complete(isSpeakingClientNode, isSpeakingResult);
+        auto isSpeakingResponse = isSpeakingResult.get();
+        isSpeaking = isSpeakingResponse->is_speaking;
+
+        yInfo() << "Waiting for speak to start, IsSpeaking: " << isSpeaking << __LINE__;
+        RCLCPP_INFO_STREAM(m_node->get_logger(), "Waiting for speak to start, IsSpeaking: " << isSpeaking << __LINE__);
+
+    } while (!isSpeaking);
+}
+
+void DialogComponent::WaitForSpeakEnd()
+{
+
+    auto isSpeakingClientNode = rclcpp::Node::make_shared("DialogComponentIsSpeakingNode");
+    auto isSpeakingClient = isSpeakingClientNode->create_client<text_to_speech_interfaces::srv::IsSpeaking>("/TextToSpeechComponent/IsSpeaking");
+    auto isSpeakingRequest = std::make_shared<text_to_speech_interfaces::srv::IsSpeaking::Request>();
+    while (!isSpeakingClient->wait_for_service(std::chrono::milliseconds(100)))
+    {
+        if (!rclcpp::ok())
         {
-            if (!rclcpp::ok())
-            {
-                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'isSpeakingClient'. Exiting.");
-            }
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'isSpeakingClient'. Exiting.");
         }
+    }
+
+    bool isSpeaking;
+    do
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        // calls the isSpeaking service
+
         auto isSpeakingResult = isSpeakingClient->async_send_request(isSpeakingRequest);
         auto futureIsSpeakingResult = rclcpp::spin_until_future_complete(isSpeakingClientNode, isSpeakingResult);
         auto isSpeakingResponse = isSpeakingResult.get();
@@ -883,29 +916,28 @@ void DialogComponent::InterpretCommand(const std::shared_ptr<dialog_interfaces::
 
             for (const auto &action : tempActions)
             {
-                std::cout << "Action Type: " << action.getType() << " with param: " << action.getParam() << " and blocking: " << action.isBlocking() <<
-                            " and dance " << action.getDance() << std::endl;
+                std::cout << "Action Type: " << action.getType() << " with param: " << action.getParam() << " and blocking: " << action.isBlocking() << " and dance " << action.getDance() << std::endl;
 
                 std::cout << "speak id " << ActionTypes::SPEAK << " signal id " << ActionTypes::SIGNAL << std::endl;
                 switch (action.getType())
                 {
-                    case ActionTypes::SPEAK:
-                    {
-                        speakAction += action.getParam() + " "; // Concatenate all the speak actions
-                        replies.push_back(action.getParam());
-                        dances.push_back(action.getDance());
+                case ActionTypes::SPEAK:
+                {
+                    speakAction += action.getParam() + " "; // Concatenate all the speak actions
+                    replies.push_back(action.getParam());
+                    dances.push_back(action.getDance());
 
-                        response->reply = replies;
-                        response->dance = dances;
-                        m_number_of_predefined_answers = replies.size();
-                        break;
-                    }
-                    default:
-                    {
-                        yError() << "[DialogComponent::InterpretCommand] I got an unknown ActionType.";
-                        response->is_ok = false;
-                        return;
-                    }
+                    response->reply = replies;
+                    response->dance = dances;
+                    m_number_of_predefined_answers = replies.size();
+                    break;
+                }
+                default:
+                {
+                    yError() << "[DialogComponent::InterpretCommand] I got an unknown ActionType.";
+                    response->is_ok = false;
+                    return;
+                }
                 }
             }
         }
@@ -1029,16 +1061,49 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitFor
 void DialogComponent::ExecuteDance(std::string danceName, float estimatedSpeechTime)
 {
 
-    // ---------------------------------Text to Speech Service SPEAK------------------------------
+    // ---------------------------------Execute Dance Component Service ExecuteDance------------------------------
     yInfo() << "[DialogComponent::ExecuteDance] Starting Execute Dance Service";
     auto executeDanceClientNode = rclcpp::Node::make_shared("ExecuteDanceComponentExecuteDanceNode");
 
     auto danceClient = executeDanceClientNode->create_client<execute_dance_interfaces::srv::ExecuteDance>("/ExecuteDanceComponent/ExecuteDance");
     auto dance_request = std::make_shared<execute_dance_interfaces::srv::ExecuteDance::Request>();
     dance_request->dance_name = danceName;
-    dance_request->speech_time = estimatedSpeechTime;
+    if (estimatedSpeechTime > 0.0)
+    {
+        dance_request->speech_time = estimatedSpeechTime;
+    }
+    
     // Wait for service
-    while (!danceClient->wait_for_service(std::chrono::seconds(1)))
+    while (!danceClient->wait_for_service(std::chrono::milliseconds(100)))
+    {
+        if (!rclcpp::ok())
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'ExecuteDance'. Exiting.");
+        }
+    }
+    auto dance_result = danceClient->async_send_request(dance_request);
+
+    if (rclcpp::spin_until_future_complete(executeDanceClientNode, dance_result) == rclcpp::FutureReturnCode::SUCCESS)
+    {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Execute Dance succeeded");
+    }
+    else
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service execute_dance");
+        return;
+    }
+}
+
+void DialogComponent::ResetDance()
+{
+    // ---------------------------------Execute Dance Component Service resetDance------------------------------
+    yInfo() << "[DialogComponent::ResetDance] Starting Reset Dance Service";
+    auto executeDanceClientNode = rclcpp::Node::make_shared("ExecuteDanceComponentResetDanceNode");
+
+    auto danceClient = executeDanceClientNode->create_client<execute_dance_interfaces::srv::ResetDance>("/ExecuteDanceComponent/ResetDance");
+    auto dance_request = std::make_shared<execute_dance_interfaces::srv::ResetDance::Request>();
+    // Wait for service
+    while (!danceClient->wait_for_service(std::chrono::milliseconds(100)))
     {
         if (!rclcpp::ok())
         {
@@ -1070,7 +1135,7 @@ void DialogComponent::ExecutePointing(std::string pointingTarget)
     auto pointing_request = std::make_shared<cartesian_pointing_interfaces::srv::PointAt::Request>();
     pointing_request->target_name = pointingTarget;
     // Wait for service
-    while (!pointingClient->wait_for_service(std::chrono::seconds(1)))
+    while (!pointingClient->wait_for_service(std::chrono::milliseconds(100)))
     {
         if (!rclcpp::ok())
         {
@@ -1290,8 +1355,13 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
 
     std::string dance = dances[m_predefined_answer_index];
 
+    m_audioPort.write();
+
+    std::cout << "[DialogComponent::SpeakFromAudio] Audio written to port" << std::endl;
+
     if (dance != "none")
     {
+        WaitForSpeakStart();
         if (dance.find("point") != std::string::npos)
         {
             std::cout << "[DialogComponent::SpeakFromAudio] Pointing detected, executing pointing" << std::endl;
@@ -1316,10 +1386,6 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
         yInfo() << "[DialogComponent::CommandManager] No dance detected";
     }
 
-    m_audioPort.write();
-
-    std::cout << "[DialogComponent::SpeakFromAudio] Audio written to port" << std::endl;
-
     std::cout << "[DialogComponent::SpeakFromAudio] Waiting for speak end" << std::endl;
 
     std::chrono::duration wait_ms = 2000ms;
@@ -1327,6 +1393,12 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
     WaitForSpeakEnd();
 
     std::cout << "[DialogComponent::SpeakFromAudio] Speak ended" << std::endl;
+
+    // Reset dance if it was not a pointing action
+    if (dance.find("point") == std::string::npos)
+    {
+        ResetDance();
+    }
 
     m_predefined_answer_index++; // Reset the index of the predefined answer
 
@@ -1336,6 +1408,9 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
         m_predefined_answer_index = 0;
         m_number_of_predefined_answers = 0;
         result->is_reply_finished = true;
+        RCLCPP_INFO(m_node->get_logger(), "Reply finished, get back to navigation position");
+        std::string navigation_position = "navigation_position";
+        ExecuteDance(navigation_position, 0); // Go back to navigation position
     }
 
     result->is_ok = true;

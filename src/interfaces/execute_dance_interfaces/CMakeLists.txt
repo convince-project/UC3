@@ -19,6 +19,7 @@ rosidl_generate_interfaces(execute_dance_interfaces
 "srv/IsDancing.srv"
 "srv/ExecuteDance.srv"
 "srv/TimeLeft.srv"
+"srv/ResetDance.srv"
 LIBRARY_NAME execute_dance_interfaces 
 )
 ament_export_dependencies( sensor_msgs)

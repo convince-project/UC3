@@ -53,6 +53,7 @@
 
 // ExecuteDance Interfaces
 #include <execute_dance_interfaces/srv/execute_dance.hpp>
+#include <execute_dance_interfaces/srv/reset_dance.hpp>
 
 // CartesianPointing Interfaces
 #include <cartesian_pointing_interfaces/srv/point_at.hpp>
@@ -108,11 +109,13 @@ public:
 protected:
     // Protected methods to manage internal functions and to interact with other services
     // void SpeakFromText(std::string text, std::string dance); // ROS2 service client to TextToSpeechComponent to speak the text
-    bool CommandManager(const std::string &command, std::shared_ptr<dialog_interfaces::srv::ManageContext::Response> &response); // Manages the command received from the PoiChat LLM and returns the response to the caller
-    void WaitForSpeakEnd();                                                                                                      // ROS2 service client to TextToSpeechComponent to get if the TTS is speaking. Wait until it is not
-    bool UpdatePoILLMPrompt();                                                                                                   // Updates the prompt of the PoIChat LLM based on the current PoI. Leverages the SchedulerComponent service to get the current PoI name
-    void ExecuteDance(std::string danceName, float estimatedSpeechTime);                                                         // ROS2 service client to ExecuteDanceComponent to execute the dance with the given name
-    void ExecutePointing(std::string pointingTarget);                                                      // ROS2 service client to CartesianPointingComponent to point at the given target
+    bool CommandManager(const std::string &command, std::shared_ptr<dialog_interfaces::srv::ManageContext::Response> &response);    // Manages the command received from the PoiChat LLM and returns the response to the caller
+    void WaitForSpeakEnd();                                                                                                         // ROS2 service client to TextToSpeechComponent to get if the TTS is speaking. Wait until it is not
+    void WaitForSpeakStart();                                                                                                       // ROS2 service client to TextToSpeechComponent to get if the TTS is speaking. Wait until it starts
+    bool UpdatePoILLMPrompt();                                                                                                      // Updates the prompt of the PoIChat LLM based on the current PoI. Leverages the SchedulerComponent service to get the current PoI name
+    void ExecuteDance(std::string danceName, float estimatedSpeechTime);                                                            // ROS2 service client to ExecuteDanceComponent to execute the dance with the given name
+    void ResetDance();                                                                                                              // ROS2 service client to ResetDanceComponent to reset the dance with the given name
+    void ExecutePointing(std::string pointingTarget);                                                                               // ROS2 service client to CartesianPointingComponent to point at the given target
 
     private:
     // ChatGPT

@@ -199,7 +199,7 @@ bool DialogSkill::start(int argc, char *argv[])
         std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::ManageContext>> clientManageContext = nodeManageContext->create_client<dialog_interfaces::srv::ManageContext>("/DialogComponent/ManageContext");
         auto request = std::make_shared<dialog_interfaces::srv::ManageContext::Request>();
         bool wait_succeded{true};
-        while (!clientManageContext->wait_for_service(std::chrono::seconds(1))) {
+        while (!clientManageContext->wait_for_service(std::chrono::milliseconds(100))) {
             if (!rclcpp::ok()) {
                 RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'ManageContext'. Exiting.");
                 wait_succeded = false;
@@ -242,7 +242,7 @@ bool DialogSkill::start(int argc, char *argv[])
         auto eventParams = event.data().toMap();
         request->language = convert<decltype(request->language)>(eventParams["new_language"].toString().toStdString());
         bool wait_succeded{true};
-        while (!clientSetLanguage->wait_for_service(std::chrono::seconds(1))) {
+        while (!clientSetLanguage->wait_for_service(std::chrono::milliseconds(100))) {
             if (!rclcpp::ok()) {
                 RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'SetLanguage'. Exiting.");
                 wait_succeded = false;
@@ -286,7 +286,7 @@ bool DialogSkill::start(int argc, char *argv[])
         request->is_beginning_of_conversation = is_beginning_of_conversation;
         request->context = convert<decltype(request->context)>(eventParams["context"].toString().toStdString());
         bool wait_succeded{true};
-        while (!clientCheckDuplicate->wait_for_service(std::chrono::seconds(1))) {
+        while (!clientCheckDuplicate->wait_for_service(std::chrono::milliseconds(100))) {
             if (!rclcpp::ok()) {
                 RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'CheckDuplicate'. Exiting.");
                 wait_succeded = false;
@@ -328,7 +328,7 @@ bool DialogSkill::start(int argc, char *argv[])
         request->interaction = convert<decltype(request->interaction)>(eventParams["interaction"].toString().toStdString());
         std::cout << "Request: " << request->duplicate_index << std::endl;
         bool wait_succeded{true};
-        while (!clientShortenReply->wait_for_service(std::chrono::seconds(1))) {
+        while (!clientShortenReply->wait_for_service(std::chrono::milliseconds(100))) {
             if (!rclcpp::ok()) {
                 RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'ShortenReply'. Exiting.");
                 wait_succeded = false;
@@ -382,7 +382,7 @@ bool DialogSkill::start(int argc, char *argv[])
         request->context = convert<decltype(request->context)>(eventParams["context"].toString().toStdString());
         bool wait_succeded{true};
         // std::cout << "DialogComponent::InterpretCommand.Call 1" << std::endl;
-        while (!clientInterpretCommand->wait_for_service(std::chrono::seconds(1))) {
+        while (!clientInterpretCommand->wait_for_service(std::chrono::milliseconds(100))) {
             if (!rclcpp::ok()) {
                 RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'InterpretCommand'. Exiting.");
                 wait_succeded = false;
@@ -768,7 +768,7 @@ void DialogSkill::EnableMicrophone()
     auto request = std::make_shared<text_to_speech_interfaces::srv::SetMicrophone::Request>();
     request->enabled = true;
     // Check for the presence of the service. Wait for it if not available
-    while (!setMicrophoneClient->wait_for_service(std::chrono::seconds(1)))
+    while (!setMicrophoneClient->wait_for_service(std::chrono::milliseconds(100)))
     {
         // While waiting, check if the node is still alive, otherwise exit
         if (!rclcpp::ok())
