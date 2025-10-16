@@ -270,25 +270,18 @@ void NarrateComponent::_narrateTask(const std::shared_ptr<narrate_interfaces::sr
                 return;
             }
             auto currentAction = getCurrentActionResult.get();
-                if (currentAction->type == "speak")
-                {
-                    RCLCPP_INFO_STREAM(m_node->get_logger(), "Got speak action " );
-                    if (actionCounter > 0 && m_speakBuffer.size() > m_danceBuffer.size()) {
-                        RCLCPP_INFO_STREAM(m_node->get_logger(), "No dance action for the speak action. Putting \"gesture\"");
-                        m_danceBuffer.push_back("gesture");
-                    }
-                    m_speakBuffer.push_back(currentAction->param);
+            if (currentAction->type == "speak")
+            {
+                RCLCPP_INFO_STREAM(m_node->get_logger(), "Got speak action " );
+                m_speakBuffer.push_back(currentAction->param);
+                if (currentAction->dance == "") {
+                    RCLCPP_INFO_STREAM(m_node->get_logger(), "No dance action for the speak action. Putting \"gesture\"");
+                    m_danceBuffer.push_back("gesture");
                 }
-                else if (currentAction->type == "dance")
-                {
-                    if (actionCounter == 0 || m_danceBuffer.size() >= m_speakBuffer.size()) {
-                        RCLCPP_INFO_STREAM(m_node->get_logger(), "Ignoring dance action, no speak action to go with it" );
-                    }
-                    else {
-                        RCLCPP_INFO_STREAM(m_node->get_logger(), "Got dance action " );
-                        m_danceBuffer.push_back(currentAction->param);
-                    }
+                else {
+                    m_danceBuffer.push_back(currentAction->dance);
                 }
+            }
 
             // calls the UpdateAction service
             auto updateActionClientNode = rclcpp::Node::make_shared("NarrateComponentUpdateActionNode");
