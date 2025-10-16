@@ -157,16 +157,77 @@ void NarrateComponent::IsDone([[maybe_unused]] const std::shared_ptr<narrate_int
     response->is_ok = true;
 }
 
+void NarrateComponent::_resetDance()
+{
+    yCInfo(NARRATE_COMPONENT) << "[NarrateComponent::_resetDance] Starting Reset Dance Service";
+    auto executeDanceClientNode = rclcpp::Node::make_shared("NarrateExecuteDanceComponentResetDanceNode");
+
+    auto danceClient = executeDanceClientNode->create_client<execute_dance_interfaces::srv::ResetDance>("/ExecuteDanceComponent/ResetDance");
+    auto dance_request = std::make_shared<execute_dance_interfaces::srv::ResetDance::Request>();
+    // Wait for service
+    while (!danceClient->wait_for_service(std::chrono::milliseconds(100)))
+    {
+        if (!rclcpp::ok())
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'ExecuteDance'. Exiting.");
+        }
+    }
+    auto dance_result = danceClient->async_send_request(dance_request);
+
+    if (rclcpp::spin_until_future_complete(executeDanceClientNode, dance_result) == rclcpp::FutureReturnCode::SUCCESS)
+    {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Execute Dance succeeded");
+    }
+    else
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service execute_dance");
+        return;
+    }
+}
+
+// Execute Pointing action service client
+void NarrateComponent::_executePointing(std::string pointingTarget)
+{
+
+    // ---------------------------------Text to Speech Service SPEAK------------------------------
+    yInfo() << "[NarrateComponent::_executePointing] Starting Cartesian Pointing Service";
+    auto executePointingClientNode = rclcpp::Node::make_shared("NarrateCartesianPointingComponentPointTaskNode");
+
+    auto pointingClient = executePointingClientNode->create_client<cartesian_pointing_interfaces::srv::PointAt>("/CartesianPointingComponent/PointAt");
+    auto pointing_request = std::make_shared<cartesian_pointing_interfaces::srv::PointAt::Request>();
+    pointing_request->target_name = pointingTarget;
+    // Wait for service
+    while (!pointingClient->wait_for_service(std::chrono::milliseconds(100)))
+    {
+        if (!rclcpp::ok())
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service '/CartesianPointingComponent/PointAt'. Exiting.");
+        }
+    }
+    auto pointing_result = pointingClient->async_send_request(pointing_request);
+
+    if (rclcpp::spin_until_future_complete(executePointingClientNode, pointing_result) == rclcpp::FutureReturnCode::SUCCESS)
+    {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Execute Pointing succeeded");
+    }
+    else
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service point_at");
+        return;
+    }
+}
+
 void NarrateComponent::_executeDance(std::string danceName, float estimatedSpeechTime)
 {
-    yInfo() << "[DialogComponent::ExecuteDance] Starting Execute Dance Service";
-    auto executeDanceClientNode = rclcpp::Node::make_shared("ExecuteDanceComponentExecuteDanceNode");
+    yInfo() << "[NarrateComponent::ExecuteDance] Starting Execute Dance Service";
+    auto executeDanceClientNode = rclcpp::Node::make_shared("NarrateExecuteDanceComponentExecuteDanceNode");
 
     std::string pointTarget;
     if (_formatPointAction(danceName, pointTarget))
     {
         // TODO: implement point action
         RCLCPP_INFO(m_node->get_logger(), "Point action towards target: %s", pointTarget.c_str());
+        _executePointing(pointTarget);
         return;
     }
     else
@@ -205,6 +266,7 @@ void NarrateComponent::_speakTask() {
         yarp::sig::Sound sound;
         if (m_soundQueue.pop(sound))
         {
+            _resetDance();
             yarp::sig::Sound& toSend = m_outSoundPort.prepare();
             toSend = sound;
             m_outSoundPort.write();

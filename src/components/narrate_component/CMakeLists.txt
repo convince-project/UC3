@@ -22,6 +22,7 @@ find_package(narrate_interfaces REQUIRED)
 find_package(scheduler_interfaces REQUIRED)
 find_package(text_to_speech_interfaces REQUIRED)
 find_package(execute_dance_interfaces REQUIRED)
+find_package(cartesian_pointing_interfaces REQUIRED)
 find_package(YARP REQUIRED COMPONENTS dev os sig REQUIRED)
 
 add_executable(${PROJECT_NAME} )
@@ -37,6 +38,7 @@ ament_target_dependencies(${PROJECT_NAME}
                           text_to_speech_interfaces
                           scheduler_interfaces
                           execute_dance_interfaces
+                          cartesian_pointing_interfaces
                           rclcpp
                           rclcpp_action)
 target_link_libraries(${PROJECT_NAME})
