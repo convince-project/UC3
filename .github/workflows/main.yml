@@ -16,28 +16,28 @@ jobs:
          - {
             ros2_distro: "jazzy",
             base_image_repo: "elandini84/r1images",
-            base_image_tag: "tourCore2_ubuntu_24.04_qt_6.8.3_jazzy_devel",
-            image_name_base: "ste93/convince:tour_ubuntu_24.04_qt_6.8.3_jazzy",
+            base_image_tag: "tourCore2_ubuntu_24.04_qt_6.8.3_jazzy",
+            image_name_base: "ste93/convince:tour_ubuntu_24.04_qt_6.8.3_jazzy_bt",
             dockerfile: "Dockerfile.bt"
          }         
          - {
             ros2_distro: "jazzy",
             base_image_repo: "elandini84/r1images",
-            base_image_tag: "tourSim2_ubuntu_24.04_qt_6.8.3_jazzy_devel",
-            image_name_base: "ste93/convince:tour_sim_ubuntu_24.04_qt_6.8.3_jazzy",
+            base_image_tag: "tourSim2_ubuntu_24.04_qt_6.8.3_jazzy",
+            image_name_base: "ste93/convince:tour_sim_ubuntu_24.04_qt_6.8.3_jazzy_bt",
             dockerfile: "Dockerfile.bt"
          }
          - {
             ros2_distro: "iron",
             base_image_repo: "elandini84/r1images",
-            base_image_tag: "tourSim2_ubuntu_22.04_qt_6.8.3_iron_stable",
-            image_name_base: "ste93/convince:tour_sim_ubuntu_22.04_qt_6.8.3_iron",
+            base_image_tag: "tourSim2_ubuntu_22.04_qt_6.8.3_iron",
+            image_name_base: "ste93/convince:tour_sim_ubuntu_22.04_qt_6.8.3_iron_bt",
             dockerfile: "Dockerfile.bt_iron"
          }
          - {
             ros2_distro: "jazzy",
             base_image_repo: "elandini84/r1images",
-            base_image_tag: "tourCore2_ubuntu_24.04_qt_6.8.3_jazzy_devel",
+            base_image_tag: "tourCore2_ubuntu_24.04_qt_6.8.3_jazzy",
             image_name_base: "ste93/convince:tour_ubuntu_24.04_qt_6.8.3_jazzy_verification",
             dockerfile: "Dockerfile.verification"
          }
@@ -62,11 +62,11 @@ jobs:
       run: |
        if [ ${{ github.event_name }} == 'schedule' ]; then
           echo "Building development tour core image"
-          sudo docker build --build-arg base_img=${{matrix.config.base_image_repo}}:${{matrix.config.base_image_tag}} -t ${{matrix.config.image_name_base}}_devel -f ${{matrix.config.dockerfile}} .
+          sudo docker build --build-arg base_img=${{matrix.config.base_image_repo}}:${{matrix.config.base_image_tag}}_devel -t ${{matrix.config.image_name_base}}_devel -f ${{matrix.config.dockerfile}} .
        elif [ ${{ github.event_name }} == 'workflow_dispatch' ]; then
           echo "Building stable tour core image"
           echo $PWD
-          sudo docker build --build-arg base_img=${{matrix.config.base_image_repo}}:${{matrix.config.base_image_tag}} -t ${{matrix.config.image_name_base}}_stable -f ${{matrix.config.dockerfile}} .
+          sudo docker build --build-arg base_img=${{matrix.config.base_image_repo}}:${{matrix.config.base_image_tag}}_stable -t ${{matrix.config.image_name_base}}_stable -f ${{matrix.config.dockerfile}} .
        else
           echo "Failure!"
           exit 1
