@@ -29,6 +29,12 @@ bool ExecuteDanceComponent::start(int argc, char *argv[])
                                                                                                           this,
                                                                                                           std::placeholders::_1,
                                                                                                           std::placeholders::_2));
+
+    m_resetDanceService = m_node->create_service<execute_dance_interfaces::srv::ResetDance>("/ExecuteDanceComponent/ResetDance",
+                                                                                            std::bind(&ExecuteDanceComponent::ResetDance,
+                                                                                                      this,
+                                                                                                      std::placeholders::_1,
+                                                                                                      std::placeholders::_2));
     // m_isDancingService = m_node->create_service<execute_dance_interfaces::srv::IsDancing>("/ExecuteDanceComponent/IsDancing",
     //                                                                                       std::bind(&ExecuteDanceComponent::IsDancing,
     //                                                                                                 this,
@@ -41,10 +47,7 @@ bool ExecuteDanceComponent::start(int argc, char *argv[])
 
 bool ExecuteDanceComponent::close()
 {
-    for (auto port : m_pCtpService)
-    {
-        delete &port.second;
-    }
+
     rclcpp::shutdown();
     return true;
 }
@@ -52,92 +55,6 @@ bool ExecuteDanceComponent::close()
 void ExecuteDanceComponent::spin()
 {
     rclcpp::spin(m_node);
-}
-
-void ExecuteDanceComponent::executeTask(const std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Request> request)
-{
-    bool done_with_getting_dance = false;
-    // call the GetBestDance service
-    auto getBestDanceClientNode = rclcpp::Node::make_shared("ExecuteDanceComponentGetBestDanceNode");
-    std::shared_ptr<rclcpp::Client<dance_interfaces::srv::GetBestDance>> getBestDanceClient =
-        getBestDanceClientNode->create_client<dance_interfaces::srv::GetBestDance>("/DanceComponent/GetBestDance");
-    auto getBestDanceRequest = std::make_shared<dance_interfaces::srv::GetBestDance::Request>();
-    while (!getBestDanceClient->wait_for_service(std::chrono::seconds(1)))
-    {
-        if (!rclcpp::ok())
-        {
-            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'getBestDanceClient'. Exiting.");
-        }
-    }
-    getBestDanceRequest->dance_category = request->dance_name;
-    getBestDanceRequest->speech_duration = request->speech_time;
-    auto getBestDanceResult = getBestDanceClient->async_send_request(getBestDanceRequest);
-    auto futureGetBestDanceResult = rclcpp::spin_until_future_complete(getBestDanceClientNode, getBestDanceResult);
-    auto bestDance = getBestDanceResult.get();
-
-    float speech_time = request->speech_time;
-
-    float reaching_start_position_time = 5.0; // seconds
-
-    float speech_dance_synchronization_speed_factor = (bestDance->dance_duration + reaching_start_position_time) / speech_time;
-
-    std::cout   << "Best dance selected : " << bestDance->dance_name
-                << " with duration: " << bestDance->dance_duration
-                << ", with reaching start position time: " << reaching_start_position_time
-                << ", with speech time: " << request->speech_time
-                << " and speed factor: " << speech_dance_synchronization_speed_factor << std::endl;
-
-    bool isSpeedFactorOk = (speech_dance_synchronization_speed_factor > 0.75) && (speech_dance_synchronization_speed_factor < 1.5);
-
-    std::cout << "Is speed factor ok?" << isSpeedFactorOk << std::endl;
-
-    if (isSpeedFactorOk)
-    {
-        bool status;
-        if (bestDance->is_ok == false)
-        {
-            RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "ExecuteDanceComponent::ExecuteDance. Dance  not found");
-        }
-        else
-        {
-            RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::ExecuteDance Duration: " << bestDance->dance_duration << " taking into account reaching start position time: " << reaching_start_position_time);
-            if (m_threadTimer.joinable())
-            {
-                m_threadTimer.join();
-                RCLCPP_INFO_STREAM(m_node->get_logger(), "Timer task joined ");
-            }
-            m_threadTimer = std::thread([this, speech_time]()
-                                        { timerTask(speech_time); });
-        }
-        std::cout << "ExecuteDanceComponent::executeTask sending dance: " << request->dance_name << " with speed factor: " << speech_dance_synchronization_speed_factor << std::endl;
-        status = SendMovementToYAP(bestDance->dance_name, speech_dance_synchronization_speed_factor);
-        if (!status)
-        {
-            RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "Movement failed to send to YAP");
-            return;
-        }
-    }
-    else
-    {
-        std::cout << "ExecuteDanceComponent::executeTask not sending dance because speed factor too low or too high. Speed Factor: " << speech_dance_synchronization_speed_factor << std::endl;
-    }
-
-    RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "Done getting Dance");
-}
-
-void ExecuteDanceComponent::timerTask(float time)
-{
-    m_timerMutex.lock();
-    m_timerTask = true;
-    m_timerMutex.unlock();
-    RCLCPP_INFO_STREAM(m_node->get_logger(), "Start Timer seconds: " << static_cast<int>(time));
-    std::this_thread::sleep_for(std::chrono::seconds(static_cast<int>(time)));
-
-    m_timerMutex.lock();
-    m_timerTask = false;
-    m_timerMutex.unlock();
-
-    RCLCPP_INFO_STREAM(m_node->get_logger(), "End Timer ");
 }
 
 void ExecuteDanceComponent::ExecuteDance(const std::shared_ptr<execute_dance_interfaces::srv::ExecuteDance::Request> request,
@@ -168,12 +85,89 @@ void ExecuteDanceComponent::ExecuteDance(const std::shared_ptr<execute_dance_int
     //     response->error_msg = "Dance not found";
     //     return;
     // }
-    if (m_threadExecute.joinable())
+
+    float speechTime = request->speech_time;
+    std::string danceCategory = request->dance_name;
+    std::string danceName;
+    bool isSpeedFactorOk = false;
+    float speedFactor = 1.0;
+    float danceDuration = 0.0;
+    
+
+    if (speechTime > 0.0f)
     {
-        m_threadExecute.join();
+        // call the GetBestDance service
+        auto getBestDanceClientNode = rclcpp::Node::make_shared("ExecuteDanceComponentGetBestDanceNode");
+        std::shared_ptr<rclcpp::Client<dance_interfaces::srv::GetBestDance>> getBestDanceClient =
+            getBestDanceClientNode->create_client<dance_interfaces::srv::GetBestDance>("/DanceComponent/GetBestDance");
+        auto getBestDanceRequest = std::make_shared<dance_interfaces::srv::GetBestDance::Request>();
+        while (!getBestDanceClient->wait_for_service(std::chrono::milliseconds(100)))
+        {
+            if (!rclcpp::ok())
+            {
+                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'getBestDanceClient'. Exiting.");
+            }
+        }
+        getBestDanceRequest->dance_category = danceCategory;
+        getBestDanceRequest->speech_duration = speechTime;
+        auto getBestDanceResult = getBestDanceClient->async_send_request(getBestDanceRequest);
+        auto futureGetBestDanceResult = rclcpp::spin_until_future_complete(getBestDanceClientNode, getBestDanceResult);
+        auto bestDance = getBestDanceResult.get();
+
+        if (bestDance->is_ok == false)
+        {
+            RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "ExecuteDanceComponent::ExecuteDance. Dance  not found");
+            response->is_ok = false;
+            return;
+        }
+
+        float reaching_start_position_time = 5.0; // seconds
+
+        float speech_dance_synchronization_speed_factor = (bestDance->dance_duration + reaching_start_position_time) / speechTime;
+
+        std::cout << "Best dance selected : " << bestDance->dance_name
+                  << " with duration: " << bestDance->dance_duration
+                  << ", with reaching start position time: " << reaching_start_position_time
+                  << ", with speech time: " << speechTime
+                  << " and speed factor: " << speech_dance_synchronization_speed_factor << std::endl;
+
+        danceName = bestDance->dance_name;
+        isSpeedFactorOk = (speech_dance_synchronization_speed_factor > 0.75) && (speech_dance_synchronization_speed_factor < 1.5);
+
+        speedFactor = speech_dance_synchronization_speed_factor;
+        danceDuration = bestDance->dance_duration;
+
+        RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::ExecuteDance Duration: " << danceDuration << " taking into account reaching start position time: " << reaching_start_position_time);
+        
     }
-    m_threadExecute = std::thread([this, request]()
-                                  { executeTask(request); });
+    else
+    {
+        danceName = danceCategory;
+        isSpeedFactorOk = true;
+        speedFactor = 1.0;
+    }
+
+    std::cout << "Is speed factor ok?" << isSpeedFactorOk << std::endl;
+
+    if (isSpeedFactorOk)
+    {
+        bool status;
+
+        std::cout << "ExecuteDanceComponent::executeTask sending dance: " << danceName << " with speed factor: " << speedFactor << std::endl;
+        status = SendMovementToYAP(danceName, speedFactor);
+        if (!status)
+        {
+            RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "Movement failed to send to YAP");
+            response->is_ok = false;
+            return;
+        }
+    }
+    else
+    {
+        std::cout << "ExecuteDanceComponent::executeTask not sending dance because speed factor too low or too high. Speed Factor: " << speedFactor << std::endl;
+    }
+
+    RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "Done getting Dance");
     response->is_ok = true;
 }
 
@@ -244,6 +238,20 @@ bool ExecuteDanceComponent::SendMovementToYAP(const std::string &actionName, flo
 
     cmd.clear();
     res.clear();
+    cmd.addString("reset");
+
+    status = m_yAPClientPort.write(cmd, res);
+
+    if (!status)
+    {
+        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP Failed to send reset command to YAP");
+        return false;
+    }
+
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP Reset status: " << res.get(0).toString());
+
+    cmd.clear();
+    res.clear();
     cmd.addString("start");
 
     std::cout << "ExecuteDanceComponent::SendMovementToYAP sending bottle content: " << cmd.toString() << " and action name is " << actionName << std::endl;
@@ -266,24 +274,14 @@ bool ExecuteDanceComponent::SendMovementToYAP(const std::string &actionName, flo
         RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP YAP accepted the action: " << actionName);
     }
 
-    while (m_timerTask)
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    }
+    return true;
+}
 
-    cmd.clear();
-    res.clear();
-    cmd.addString("reset");
-
-    status = m_yAPClientPort.write(cmd, res);
-
-    if (!status)
-    {
-        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP Failed to send reset command to YAP");
-        return false;
-    }
-
-    RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP Reset status: " << res.get(0).toString());
+void ExecuteDanceComponent::ResetDance(const std::shared_ptr<execute_dance_interfaces::srv::ResetDance::Request> request,
+                                       std::shared_ptr<execute_dance_interfaces::srv::ResetDance::Response> response)
+{
+    yarp::os::Bottle cmd;
+    yarp::os::Bottle res;
 
     cmd.clear();
     res.clear();
@@ -292,23 +290,51 @@ bool ExecuteDanceComponent::SendMovementToYAP(const std::string &actionName, flo
 
     std::cout << "ExecuteDanceComponent::SendMovementToYAP sending bottle content: " << cmd.toString() << " and speed factor is " << 1 << std::endl;
 
-    status = m_yAPClientPort.write(cmd, res);
+    bool status = m_yAPClientPort.write(cmd, res);
 
     if (!status)
     {
         RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP Failed to send speed_factor command to YAP");
-        return false;
+        return;
     }
 
     if (res.get(0).asVocab32() != yarp::os::createVocab32('o', 'k'))
     {
         RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP YAP did not accept the speed factor: " << 1);
-        return false;
+        return;
     }
     else
     {
         RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP YAP accepted the speed factor: " << 1);
     }
 
-    return true;
+    cmd.clear();
+    res.clear();
+    cmd.addString("reset");
+
+    std::cout << "ExecuteDanceComponent::StopDance sending bottle content: " << cmd.toString() << std::endl;
+
+    status = m_yAPClientPort.write(cmd, res);
+
+    if (!status)
+    {
+        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteDanceComponent::StopDance Failed to send stop command to YAP");
+        response->is_ok = false;
+        response->error_msg = "Failed to send stop command to YAP";
+        return;
+    }
+
+    if (res.get(0).asVocab32() != yarp::os::createVocab32('o', 'k'))
+    {
+        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteDanceComponent::StopDance YAP did not accept the stop command");
+        response->is_ok = false;
+        response->error_msg = "YAP did not accept the stop command";
+        return;
+    }
+    else
+    {
+        RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::StopDance YAP accepted the stop command");
+    }
+
+    response->is_ok = true;
 }

@@ -20,9 +20,10 @@
 #include <utility>
 
 
-Action::Action(ActionTypes type, bool isBlocking, std::string param) : m_type(type),
+Action::Action(ActionTypes type, bool isBlocking, std::string param, std::string dance) : m_type(type),
                                                                        m_isBlocking(isBlocking),
-                                                                       m_param(std::move(param))
+                                                                       m_param(std::move(param)),
+                                                                       m_dance(std::move(dance))
 {
 }
 
@@ -39,4 +40,9 @@ ActionTypes Action::getType() const
 std::string Action::getParam() const
 {
     return m_param;
+}
+
+std::string Action::getDance() const
+{
+    return m_dance;
 }

@@ -1,5 +1,5 @@
 string dance_name
-float32 speech_time
+float32 speech_time #optional, if the value is different from 0.0, the dance will be adapted to the speech time, otherwise the dance will be performed with its original duration
 ---
 bool is_ok
 string error_msg

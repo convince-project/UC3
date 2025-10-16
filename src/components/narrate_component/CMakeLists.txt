@@ -17,10 +17,13 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclcpp_action REQUIRED)
 find_package(narrate_interfaces REQUIRED)
 find_package(scheduler_interfaces REQUIRED)
 find_package(text_to_speech_interfaces REQUIRED)
 find_package(execute_dance_interfaces REQUIRED)
+find_package(cartesian_pointing_interfaces REQUIRED)
+find_package(YARP REQUIRED COMPONENTS dev os sig REQUIRED)
 
 add_executable(${PROJECT_NAME} )
 
@@ -29,7 +32,15 @@ add_executable(${PROJECT_NAME} )
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-ament_target_dependencies(${PROJECT_NAME} narrate_interfaces text_to_speech_interfaces scheduler_interfaces execute_dance_interfaces rclcpp )
+ament_target_dependencies(${PROJECT_NAME}
+                          YARP
+                          narrate_interfaces
+                          text_to_speech_interfaces
+                          scheduler_interfaces
+                          execute_dance_interfaces
+                          cartesian_pointing_interfaces
+                          rclcpp
+                          rclcpp_action)
 target_link_libraries(${PROJECT_NAME})
 
 target_include_directories(${PROJECT_NAME}
@@ -37,8 +48,12 @@ target_include_directories(${PROJECT_NAME}
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
 target_sources( ${PROJECT_NAME} PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/NarrateComponent.cpp  
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/NarrateComponent.h 
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/NarrateComponent.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/NarrateComponent.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/VerbalOutputBatchReader.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/VerbalOutputBatchReader.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/SafeQueue.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/SafeQueue.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
 install(TARGETS ${PROJECT_NAME}

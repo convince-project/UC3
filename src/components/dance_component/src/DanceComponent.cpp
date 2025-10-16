@@ -189,6 +189,9 @@ void DanceComponent::GetBestDance([[maybe_unused]] const std::shared_ptr<dance_i
     float danceSpeedFactor;
     float bestDanceDuration = 0;
     bool danceExists = false;
+
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "DanceComponent::GetBestDance: Searching best dance for category " << danceCategory << " with duration " << speechTime);
+
     for (auto it = dances.begin(); it != dances.end(); it++)
     {
         std::string danceName = it->first;
@@ -196,9 +199,10 @@ void DanceComponent::GetBestDance([[maybe_unused]] const std::shared_ptr<dance_i
         // if the dance name contains the dance category in its name, process the candidate
         if (danceName.find(danceCategory) != std::string::npos)
         {
+            RCLCPP_INFO_STREAM(m_node->get_logger(), "DanceComponent::GetBestDance: Found candidate dance " << danceName);
             danceExists = true;
             danceSpeedFactor = speechTime / dance.GetDuration();
-            if (std::abs(1 - danceSpeedFactor) < bestDanceSpeedFactor)
+            if (std::abs(1 - danceSpeedFactor) <= bestDanceSpeedFactor)
             {
                 bestDanceSpeedFactor = danceSpeedFactor;
                 bestDance = danceName;
@@ -207,16 +211,18 @@ void DanceComponent::GetBestDance([[maybe_unused]] const std::shared_ptr<dance_i
         }
     }
 
-    RCLCPP_INFO_STREAM(m_node->get_logger(), "DanceComponent::GetBestDance: Chosen best dance " << bestDance << "with duration " << bestDanceDuration);
+    
 
     if (danceExists)
     {
+        RCLCPP_INFO_STREAM(m_node->get_logger(), "DanceComponent::GetBestDance: Chosen best dance " << bestDance << " with duration " << bestDanceDuration);
         response->dance_name = bestDance;
         response->dance_duration = bestDanceDuration;
         response->is_ok = true;
     }
     else
     {
+        RCLCPP_WARN_STREAM(m_node->get_logger(), "DanceComponent::GetBestDance: No dance found for category " << danceCategory);
         response->is_ok = false;
         response->error_msg = "Dance Category " + danceCategory + " not found";
     }

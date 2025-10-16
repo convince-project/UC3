@@ -1,5 +1,5 @@
 string context # the command to be interpreted
 ---
 string[] reply # The interpreted command
-string[] dances # The dance to be performed while speaking
+string[] dance # The dance to be performed while speaking
 bool is_ok
