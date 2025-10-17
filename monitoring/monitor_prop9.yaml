@@ -1,12 +1,12 @@
-path: /home/user1/UC3/monitoring/monitor_prop8_ws/src  # this is the path to the ros workspace you'd like the monitor package in
+path: /home/user1/UC3/monitoring/monitor_prop9_ws/src  # this is the path to the ros workspace you'd like the monitor package in
 
 monitors: # here we list the monitors we are going to generate
   - monitor:
-      id: monitor_prop8
+      id: monitor_prop9
       log: ./log.txt # file where the monitor will log the observed events
       silent: False # we let the monitor print info during its execution
       oracle: # the oracle running and ready to check the specification (localhost in this case)
-        port: 8088 # the port where it is listening
+        port: 8089 # the port where it is listening
         url: 127.0.0.1 # the url where it is listening
         action: nothing # the oracle will not change the message
       topics: # the list of topics this monitor is going to intercept

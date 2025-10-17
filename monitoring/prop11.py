@@ -1,7 +1,8 @@
 """
-H((alarm => P battery_level < 30%) AND - ( -alarm S[5 : ] battery_level  < 30%))"""
+(not critical_battery)
+"""
 
-PROPERTY = r"historically(({alarm} -> once{low_battery}) and not( not {alarm} since[5:] {low_battery}))"
+PROPERTY = r"({well_localized})"
 
 # predicates used in the property (initialization for time 0)
 
@@ -13,10 +14,7 @@ predicates = dict(
 
     time = 0,
 
-    alarm = False,
-
-    low_battery = False
-
+    well_localized = True,
 )
 
 # in here we can add all the predicates we are interested in.. Of course, we also need to define how to translate Json messages to predicates.
@@ -29,20 +27,23 @@ def abstract_message(message):
     else:
         predicates['time'] = message['time']
 
-    if "topic" in message and "StartAlarm" in message['topic']:
-        predicates['alarm'] = True
-    
-    if "topic" in message and "battery" in message['topic']:
-        battery_status = float(message.get('percentage', 100))
-        predicates['low_battery'] = battery_status < 30
-        print("battery_status", battery_status)
-
-    # if "topic" in message and "clock" in message['topic']:
-    #     predicates['alarm'] = False
-
     print("predicates", predicates)
     print("message", message)
     
+    if "topic" in message and "/amcl_pose" in message['topic']:
+        cov_list = message['pose']['covariance']
+        print("Covariance list:", cov_list)
+        
+        # Calculate absolute values and find maximum
+        abs_values = [abs(val) for val in cov_list]
+        max_abs_value = max(abs_values)
+        print("Maximum absolute covariance value:", max_abs_value)
+        
+        # Set well_localized based on maximum absolute value
+        predicates['well_localized'] = max_abs_value <= 0.1
+
+    print("predicates", predicates)
+    print("message", message)
 
     return predicates
 

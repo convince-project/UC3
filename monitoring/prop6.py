@@ -16,7 +16,7 @@ def abstract_message(message):
         predicates['time'] += 0.0000001
     else:
         predicates['time'] = message['time']
-    #print("camera_received, topic ", message['topic'])
+    print("message", message)
     if message['topic'] in ["/cer_camera_repeater/publisher_status"]:
         # Acced to the data field to determine if the camera is publishing
         data_value = message['data']

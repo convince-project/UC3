@@ -1,19 +1,18 @@
-
-path: /home/user1/UC3/monitoring/monitor_prop6_ws/src  # this is the path to the ros workspace you'd like the monitor package in
+path: /home/user1/UC3/monitoring/monitor_prop11_ws/src  # this is the path to the ros workspace you'd like the monitor package in
 
 monitors: # here we list the monitors we are going to generate
   - monitor:
-      id: monitor_prop6
+      id: monitor_prop11
       log: ./log.txt # file where the monitor will log the observed events
       silent: False # we let the monitor to print info during its execution
       oracle: # the oracle running and ready to check the specification (localhost in this case)
-        port: 8086 # the port where it is listening
+        port: 8091 # the port where it is listening
         url: 127.0.0.1 # the url where it is listening
         action: nothing # the oracle will not change the message
       topics: # the list of topics this monitor is going to intercept
-        - name: /cer_camera_repeater/publisher_status
-          type: std_msgs.msg.UInt8
+        - name: /amcl_pose # name of the topic
+          type: geometry_msgs.msg.PoseWithCovarianceStamped
           action: log
         - name: /monitoring_clock
           type: builtin_interfaces.msg.Time
-          action: log
+          action: log 
