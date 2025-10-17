@@ -40,6 +40,8 @@
 #include <cartesian_pointing_interfaces/srv/point_at.hpp>
 #include <cartesian_pointing_interfaces/srv/is_pointing.hpp>
 
+#include <execute_dance_interfaces/srv/execute_dance.hpp>
+
 class CartesianPointingComponent
 {
 public:
@@ -94,6 +96,9 @@ private:
                                      const Eigen::Vector3d& target_base) const;
 
 private:
+    // ROS2 call to ExecuteDanceComponent ExecuteDance service
+    void ExecuteDance(std::string pointingArm);
+
     // ROS2 node and services
     rclcpp::Node::SharedPtr m_node;
     rclcpp::Service<cartesian_pointing_interfaces::srv::PointAt>::SharedPtr   m_srvPointAt;

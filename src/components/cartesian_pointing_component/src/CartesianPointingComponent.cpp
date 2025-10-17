@@ -303,7 +303,10 @@ void CartesianPointingComponent::pointTask(const std::shared_ptr<cartesian_point
         cmd.addFloat64(q_keep.w());
         cmd.addFloat64(5.0); // trajectory duration (s)
 
+        ExecuteDance(preferredArm);
+
         bool ok = activePort->write(cmd, res);
+
         if (ok && res.size()>0 && res.get(0).asVocab32()==yarp::os::createVocab32('o','k')) {
             RCLCPP_DEBUG(m_node->get_logger(), "SUCCESS: %s moved to candidate keeping orientation", armName.c_str());
             break; // success with one arm
@@ -315,6 +318,47 @@ void CartesianPointingComponent::pointTask(const std::shared_ptr<cartesian_point
 
     // clear pointing flag
     { std::lock_guard<std::mutex> lk(m_flagMutex); m_isPointing = false; }
+}
+
+
+void CartesianPointingComponent::ExecuteDance(std::string pointingArm) {
+    // ---------------------------------Execute Dance Component Service ExecuteDance------------------------------
+    yInfo() << "[CartesianPointingComponent::ExecuteDance] Starting Execute Dance Service";
+    auto executeDanceClientNode = rclcpp::Node::make_shared("CartesianPointingComponentExecuteDanceNode");
+
+    auto danceClient = executeDanceClientNode->create_client<execute_dance_interfaces::srv::ExecuteDance>("/ExecuteDanceComponent/ExecuteDance");
+    auto dance_request = std::make_shared<execute_dance_interfaces::srv::ExecuteDance::Request>();
+
+    if (pointingArm == "LEFT") {
+        dance_request->dance_name = "rest_position_for_left_pointing";
+    }
+    else if (pointingArm == "RIGHT") {
+        dance_request->dance_name = "rest_position_for_right_pointing";
+    }
+    else {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Invalid pointing arm specified for ExecuteDance: %s", pointingArm.c_str());
+        return;
+    }
+    
+    // Wait for service
+    while (!danceClient->wait_for_service(std::chrono::milliseconds(100)))
+    {
+        if (!rclcpp::ok())
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'ExecuteDance'. Exiting.");
+        }
+    }
+    auto dance_result = danceClient->async_send_request(dance_request);
+
+    if (rclcpp::spin_until_future_complete(executeDanceClientNode, dance_result) == rclcpp::FutureReturnCode::SUCCESS)
+    {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Execute Dance succeeded");
+    }
+    else
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service execute_dance");
+        return;
+    }
 }
 
 // =============================================================================
