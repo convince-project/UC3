@@ -4,6 +4,7 @@ from rclpy.node import Node
 from std_msgs.msg import String
 import time
 import threading
+import re
 try:
     import tkinter as tk
 except Exception:
@@ -175,15 +176,31 @@ def main(args=None):
             self.square_size = square_size
             self.refresh_ms = refresh_ms
             self.root = tk.Tk()
-            self.root.title('MultiMonitor GUI')
+            self.root.title('MultiMonitor')
+            # improve default look
+            try:
+                self.root.tk.call('tk', 'scaling', 1.2)
+            except Exception:
+                pass
 
-            # Property table at the top (read-only)
-            self.top_frame = tk.Frame(self.root, padx=10, pady=5)
+            # overall styles
+            default_font = ('Segoe UI', 10)
+            bold_font = ('Segoe UI', 10, 'bold')
+
+            # Property table at the top (read-only) with monospace font and scrollbar
+            self.top_frame = tk.Frame(self.root, padx=12, pady=8, bg='#f5f7fa')
             self.top_frame.pack(fill='x')
-            tbl_label = tk.Label(self.top_frame, text='Property Table', font=('TkDefaultFont', 10, 'bold'))
+            tbl_label = tk.Label(self.top_frame, text='Property Table', font=bold_font, bg='#f5f7fa')
             tbl_label.pack(anchor='w')
-            tbl_text = tk.Text(self.top_frame, height=8, width=100, wrap='none')
-            tbl_text.pack(fill='x')
+            # text with vertical scrollbar
+            text_container = tk.Frame(self.top_frame)
+            text_container.pack(fill='x')
+            tbl_scroll = tk.Scrollbar(text_container)
+            tbl_text = tk.Text(text_container, height=8, wrap='none', font=('Consolas', 10), bd=1, relief='solid')
+            tbl_scroll.pack(side='right', fill='y')
+            tbl_text.pack(side='left', fill='x', expand=True)
+            tbl_scroll.config(command=tbl_text.yview)
+            tbl_text.config(yscrollcommand=tbl_scroll.set)
             # Build table text from node.property_formulas
             lines = []
             for prop, formula in self.node.property_formulas.items():
@@ -191,10 +208,21 @@ def main(args=None):
             tbl_text.insert('1.0', "\n".join(lines))
             tbl_text.config(state='disabled')
 
-            self.frame = tk.Frame(self.root, padx=10, pady=10)
-            self.frame.pack()
+            # main grid for topic tiles
+            self.frame = tk.Frame(self.root, padx=12, pady=12)
+            self.frame.pack(fill='both', expand=True)
             self.topic_widgets = {}
             self._build_grid()
+            # legend and controls
+            legend = tk.Frame(self.root, pady=6)
+            legend.pack(fill='x')
+            tk.Label(legend, text='Legend:', font=bold_font).pack(side='left', padx=(8,4))
+            tk.Label(legend, text=' ', bg='green', width=2, relief='ridge').pack(side='left', padx=4)
+            tk.Label(legend, text='currently_true').pack(side='left', padx=(0,12))
+            tk.Label(legend, text=' ', bg='red', width=2, relief='ridge').pack(side='left', padx=4)
+            tk.Label(legend, text='currently_false').pack(side='left', padx=(0,12))
+            tk.Label(legend, text=' ', bg='grey', width=2, relief='ridge').pack(side='left', padx=4)
+            tk.Label(legend, text='not published').pack(side='left', padx=(0,8))
             # on close
             self.root.protocol('WM_DELETE_WINDOW', self.on_close)
 
@@ -202,29 +230,68 @@ def main(args=None):
             for idx, topic in enumerate(self.node.topics):
                 r = idx // self.cols
                 c = idx % self.cols
-                # Friendly label
-                name = topic.strip('/').replace('/', '\\n')
-                cell = tk.Frame(self.frame, width=self.square_size, height=self.square_size)
-                cell.grid(row=r*2, column=c, padx=8, pady=8)
+                # Friendly label: show only the property number or short id under the square
+                # Examples: '/monitor_prop1/monitor_verdict' -> '1',
+                # '/monitor_propPOI1/monitor_verdict' -> 'POI1'
+                topic_clean = topic.strip('/')
+                name = None
+                m = re.search(r'prop(?:erty)?(?:_)?(poi\d+|POI\d+|[A-Za-z0-9]+)', topic_clean, re.IGNORECASE)
+                if m:
+                    # group could be like '1', 'POI1', 'POI2', '10POI' etc.
+                    grp = m.group(1)
+                    # if it's numeric (e.g., '1') keep as is, else upper-case POI
+                    name = grp.upper() if any(ch.isalpha() for ch in grp) else grp
+                else:
+                    # fallback: try to extract digits from the topic
+                    dm = re.search(r'(\d+)', topic_clean)
+                    if dm:
+                        name = dm.group(1)
+                    else:
+                        name = str(idx+1)
+                cell = tk.Frame(self.frame, width=self.square_size, height=self.square_size, bd=1, relief='groove')
+                cell.grid(row=r*2, column=c, padx=8, pady=8, sticky='nsew')
                 cell.grid_propagate(False)
+                # color block
                 color_label = tk.Label(cell, bg='grey', width=10, height=5, relief='ridge')
-                color_label.pack(expand=True, fill='both')
-                text = tk.Label(self.frame, text=name)
+                color_label.pack(expand=True, fill='both', padx=4, pady=4)
+                # topic property number / short id
+                text = tk.Label(self.frame, text=name, wraplength=self.square_size+20, justify='center')
                 text.grid(row=r*2+1, column=c)
-                self.topic_widgets[topic] = color_label
+                # last update label
+                time_label = tk.Label(self.frame, text='(mai ricevuto)', font=('Segoe UI', 8), fg='#555555')
+                time_label.grid(row=r*2+2, column=c)
+                self.topic_widgets[topic] = (color_label, time_label)
+
+            # allow grid to expand
+            for col in range(self.cols):
+                self.frame.grid_columnconfigure(col, weight=1)
+            rows = (len(self.node.topics) + self.cols - 1) // self.cols
+            for row in range(rows*3):
+                self.frame.grid_rowconfigure(row, weight=1)
 
         def update_ui(self):
             with self.node.lock:
                 status_copy = dict(self.node.status)
-            for topic, widget in self.topic_widgets.items():
+            current_time = time.time()
+            for topic, widgets in self.topic_widgets.items():
                 val = status_copy.get(topic, 'unknown')
+                color = 'grey'
                 if val == 'currently_true':
-                    color = 'green'
+                    color = '#2ecc71'  # pleasant green
                 elif val == 'currently_false':
-                    color = 'red'
+                    color = '#e74c3c'  # soft red
                 else:
-                    color = 'grey'
-                widget.config(bg=color)
+                    color = '#95a5a6'  # grey
+                # widgets is (color_label, time_label)
+                color_label, time_label = widgets
+                color_label.config(bg=color)
+                # update timestamp
+                last = self.node.last_message_time.get(topic, 0)
+                if last > 0:
+                    dt = current_time - last
+                    time_label.config(text=f"{dt:.1f}s ago")
+                else:
+                    time_label.config(text='(mai ricevuto)')
             self.root.after(self.refresh_ms, self.update_ui)
 
         def on_close(self):
