@@ -18,7 +18,6 @@ find_package(tf2_ros REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(cartesian_pointing_interfaces REQUIRED)
 find_package(Eigen3 REQUIRED)
-find_package(nlohmann_json REQUIRED)
 find_package(YARP 3.7 REQUIRED COMPONENTS os dev)
 
 # Target
@@ -42,7 +41,6 @@ ament_target_dependencies(${PROJECT_NAME}
   tf2_ros
   tf2_geometry_msgs
   cartesian_pointing_interfaces
-  nlohmann_json
 )
 
 # Link other libraries (YARP, Eigen)

@@ -3,66 +3,165 @@
 // =========================
 #include "CartesianPointingComponent.h"
 
-#include <fstream>
 #include <sstream>
+#include <fstream>
 #include <cstdlib>
 #include <cmath>
-#include <nlohmann/json.hpp>
+#include <string>
 
-// =============================================================
-// Small YARP helpers to interpret RPC replies from the controller
-// =============================================================
+// ========================================
+// Tunables: singola traiettoria ecc.
+// ========================================
+static constexpr double kTrajDurationSec = 15.0;   // durata move-to
+static constexpr int    kPollMs          = 80;     // polling is_motion_done
+static constexpr int    kTimeoutMs       = 15000000; // timeout complessivo (ms)
 
-// Convert a 1-element Bottle to bool (accepts bool/int/double conventions)
-static bool bottleAsBool(const yarp::os::Bottle& b) {
-    if (b.size()==0) return false;
-    if (b.get(0).isBool())    return b.get(0).asBool();
-    if (b.get(0).isInt32())   return b.get(0).asInt32()!=0;
-    if (b.get(0).isFloat64()) return std::abs(b.get(0).asFloat64())>1e-12;
-    return false;
-}
+// =====================================================
+// Helper: detect "Version:" (1,2,3,...) dal file .ini
+// (solo per log diagnostico; non blocca nulla)
+// =====================================================
+static int detectLocationsFileVersion(const std::string& path, std::string* why=nullptr)
+{
+    std::ifstream f(path);
+    if (!f.is_open()) { if (why) *why = "cannot open file"; return -1; }
 
-// Accept either explicit bool true or YARP vocab32('o','k') as success
-static bool rpcAccepted(const yarp::os::Bottle& b) {
-    if (b.size()==0) return false;
-    if (b.get(0).isVocab32())
-        return b.get(0).asVocab32() == yarp::os::createVocab32('o','k');
-    return bottleAsBool(b);
-}
+    auto trim = [](std::string s){
+        const char* ws = " \t\r\n";
+        size_t a = s.find_first_not_of(ws);
+        size_t b = s.find_last_not_of(ws);
+        if (a==std::string::npos) return std::string();
+        return s.substr(a, b-a+1);
+    };
 
-// Flatten any Bottle into a vector<double> by unrolling sub-lists.
-static void flattenBottleToDoubles(const yarp::os::Bottle& in, std::vector<double>& out) {
-    out.clear();
-    out.reserve(18);
-    for (size_t i = 0; i < in.size(); ++i) {
-        const auto& elem = in.get(i);
-        if (elem.isList()) {
-            yarp::os::Bottle* s = elem.asList();
-            for (size_t j = 0; j < s->size(); ++j) {
-                out.push_back(s->get(j).asFloat64());
+    std::string line; bool sawVersionTag=false;
+    while (std::getline(f,line)) {
+        std::string raw=line; line=trim(line);
+        if (line.empty()) continue;
+        std::string l=line; for (auto& c:l) c=std::tolower(c);
+
+        if (!sawVersionTag) {
+            if (l=="version:" || l=="version") { sawVersionTag=true; continue; }
+            if (l.rfind("version:",0)==0) {
+                std::string rhs = trim(raw.substr(std::string("Version:").size()));
+                if (!rhs.empty()) { try { return std::stoi(rhs); } catch (...) { if (why) *why="invalid version value"; return -1; } }
+                sawVersionTag=true; continue;
             }
+            continue;
         } else {
-            out.push_back(elem.asFloat64());
+            try { return std::stoi(line); } catch (...) { if (why) *why="invalid version value"; return -1; }
         }
     }
+    if (why) *why = sawVersionTag ? "missing numeric value after Version:" : "Version: tag not found";
+    return -1;
 }
 
 // ========================================
-// Tunables: single-trajectory duration etc.
+// Parser compatibile della sezione Objects:
+// - supporta forma estesa:
+//     name ( map x y z roll pitch yaw "desc" )
+// - e forma minimale (solo x y z):
+//     name map x y z
+// in cui roll/pitch/yaw/desc sono opzionali.
+// Gli oggetti vengono inseriti SOLO via IMap2D::storeObject.
 // ========================================
-static constexpr double kTrajDurationSec = 15.0;   // one smooth move to target
-static constexpr int    kPollMs          = 80;    // is_motion_done polling period
-static constexpr int    kTimeoutMs       = 15000000; // overall wait timeout (ms)
+static size_t importObjectsSectionWithIMap2D(const std::string& filePath,
+                                             yarp::dev::Nav2D::IMap2D* map2d,
+                                             rclcpp::Logger logger)
+{
+    if (!map2d) return 0;
+    std::ifstream f(filePath);
+    if (!f.is_open()) {
+        RCLCPP_WARN(logger, "compat import: cannot open '%s'", filePath.c_str());
+        return 0;
+    }
+
+    auto trim = [](const std::string& s){
+        const char* ws=" \t\r\n";
+        size_t a=s.find_first_not_of(ws), b=s.find_last_not_of(ws);
+        if (a==std::string::npos) return std::string();
+        return s.substr(a, b-a+1);
+    };
+
+    bool inObjects=false; size_t imported=0;
+    std::string line;
+    while (std::getline(f,line)) {
+        std::string raw=line; line=trim(line);
+        if (line.empty()) continue;
+
+        if (!inObjects) {
+            if (line=="Objects:" || line=="Objects") inObjects=true;
+            continue;
+        }
+        // Sezione Objects terminata quando arriva altra intestazione
+        if (line=="Locations:" || line=="Areas:" || line=="Paths:") break;
+        if (line[0]=='#') continue; // commenti
+
+        // Tenta parsing
+        std::istringstream iss(line);
+        std::string name; if (!(iss >> name)) continue;
+
+        // a) forma con parentesi: name ( map x y z roll pitch yaw "desc" )
+        size_t parPos = raw.find('(');
+        if (parPos!=std::string::npos && parPos > raw.find(name)) {
+            // estrai dentro parentesi
+            size_t closePos = raw.find(')', parPos);
+            if (closePos==std::string::npos) {
+                RCLCPP_WARN(logger, "compat import: malformed line (missing ')'): %s", raw.c_str());
+                continue;
+            }
+            std::string inside = raw.substr(parPos+1, closePos-parPos-1);
+            inside = trim(inside);
+            // tokenizza inside: map x y z [roll pitch yaw "desc"]
+            std::istringstream is2(inside);
+            std::string map; double x=0,y=0,z=0, roll=0,pitch=0,yaw=0;
+            if (!(is2 >> map >> x >> y >> z)) {
+                RCLCPP_WARN(logger, "compat import: cannot parse x y z: %s", raw.c_str());
+                continue;
+            }
+            // opzionali
+            (void)(is2 >> roll >> pitch >> yaw); // se non ci sono restano 0
+
+            // descrizione (opzionale, tra doppi apici) – non necessaria per te
+            // quindi la ignoriamo volontariamente
+
+            yarp::dev::Nav2D::Map2DObject obj;
+            obj.map_id = map; obj.x=x; obj.y=y; obj.z=z; obj.roll=0; obj.pitch=0; obj.yaw=0; obj.description="";
+            if (map2d->storeObject(name, obj)) {
+                ++imported;
+            } else {
+                RCLCPP_WARN(logger, "compat import: storeObject('%s') failed", name.c_str());
+            }
+            continue;
+        }
+
+        // b) forma minimale: name map x y z [opzionali...]
+        {
+            std::string map; double x=0,y=0,z=0;
+            if (!(iss >> map >> x >> y >> z)) {
+                RCLCPP_WARN(logger, "compat import: cannot parse minimal form: %s", raw.c_str());
+                continue;
+            }
+            yarp::dev::Nav2D::Map2DObject obj;
+            obj.map_id = map; obj.x=x; obj.y=y; obj.z=z; obj.roll=0; obj.pitch=0; obj.yaw=0; obj.description="";
+            if (map2d->storeObject(name, obj)) {
+                ++imported;
+            } else {
+                RCLCPP_WARN(logger, "compat import: storeObject('%s') failed", name.c_str());
+            }
+        }
+    }
+
+    return imported;
+}
 
 // ==============================
 // Lifecycle: start/close/spin
 // ==============================
 bool CartesianPointingComponent::start(int argc, char* argv[])
 {
-    // Initialize ROS2 only once (component may be created by an external launcher)
     if (!rclcpp::ok()) rclcpp::init(argc, argv);
 
-    // We expect the cartesian controllers to be started externally (systemd / scripts)
+    // Avvisi se i controller cartesiani non ci sono (non blocca l’avvio)
     if (!yarp::os::Network::exists(cartesianPortLeft))
         RCLCPP_WARN(rclcpp::get_logger("rclcpp"),
                     "Left Cartesian controller not present. Start it externally.");
@@ -70,32 +169,28 @@ bool CartesianPointingComponent::start(int argc, char* argv[])
         RCLCPP_WARN(rclcpp::get_logger("rclcpp"),
                     "Right Cartesian controller not present. Start it externally.");
 
-    // Wait until both RPC servers are up; we prefer a deterministic behavior here
+    // Attendi deterministicamente entrambi
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"),
                 "Waiting for LEFT controller port '%s'...", cartesianPortLeft.c_str());
     while (!yarp::os::Network::exists(cartesianPortLeft))
         std::this_thread::sleep_for(std::chrono::seconds(1));
-
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"),
                 "Waiting for RIGHT controller port '%s'...", cartesianPortRight.c_str());
     while (!yarp::os::Network::exists(cartesianPortRight))
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
-    // Create the ROS2 node and a persistent TF buffer/listener
+    // ROS2 node + TF
     m_node       = rclcpp::Node::make_shared("CartesianPointingComponentNode");
     m_tfBuffer   = std::make_unique<tf2_ros::Buffer>(m_node->get_clock());
     m_tfListener = std::make_unique<tf2_ros::TransformListener>(*m_tfBuffer);
 
-    // Per-arm roll compensation (radians) around local Z of the EE frame.
-    //  - LEFT defaults to +pi because left-hand meshes are often mirrored w.r.t. right.
-    //  - RIGHT defaults to 0.
+    // Bias roll mano sx/dx (non influisce sugli oggetti – orientamento non usato per target)
     double left_roll_bias  = M_PI;
     double right_roll_bias = 0.0;
     m_node->declare_parameter<double>("left_roll_bias_rad",  left_roll_bias);
     m_node->declare_parameter<double>("right_roll_bias_rad", right_roll_bias);
-    // No need to read back here; defaults are declared and will be used unless overridden.
 
-    // Open local YARP client ports and connect them to the remote servers
+    // Porte YARP client verso i controller cartesiani
     if (yarp::os::Network::exists(m_cartesianPortNameLeft))
         yarp::os::Network::disconnect(m_cartesianPortNameLeft, cartesianPortLeft);
     if (!m_cartesianPortLeft.open(m_cartesianPortNameLeft)) {
@@ -110,7 +205,7 @@ bool CartesianPointingComponent::start(int argc, char* argv[])
     }
     yarp::os::Network::connect(m_cartesianPortNameRight, cartesianPortRight);
 
-    // ROS2 service (non-blocking handler: we spawn a thread and return immediately)
+    // Servizio ROS2
     m_srvPointAt = m_node->create_service<cartesian_pointing_interfaces::srv::PointAt>(
         "/CartesianPointingComponent/PointAt",
         [this](const std::shared_ptr<cartesian_pointing_interfaces::srv::PointAt::Request> req,
@@ -122,10 +217,10 @@ bool CartesianPointingComponent::start(int argc, char* argv[])
                 r->target_name = target;
                 this->pointTask(r);
             }).detach();
-            res->is_ok = true; res->error_msg = ""; // service always acks immediately
+            res->is_ok = true; res->error_msg = "";
         });
 
-    // Map2D client device to lookup objects by name
+    // Map2D client
     {
         yarp::os::Property p; p.put("device","map2D_nwc_yarp");
         p.put("local","/cartesian_pointing_component/map2d_nwc");
@@ -140,8 +235,55 @@ bool CartesianPointingComponent::start(int argc, char* argv[])
         RCLCPP_INFO(m_node->get_logger(),"Device map2D_nwc_yarp opened and IMap2D view obtained");
     }
 
-    // Optional: import POIs from a JSON for convenience during development
-    importArtworksFromJson("/home/user1/UC3/yarp-contexts/contexts/r1_cartesian_control/artwork_coords.json");
+    // Risoluzione del path del locations.ini
+    std::string default_locations_file = "";
+    std::string source = "none";
+    if (const char* env = std::getenv("MAP2D_LOCATIONS_FILE")) {
+        default_locations_file = std::string(env);
+        source = "env MAP2D_LOCATIONS_FILE";
+        RCLCPP_INFO(m_node->get_logger(),"Default map2d_locations_file from %s: %s", source.c_str(), default_locations_file.c_str());
+    }
+    if (default_locations_file.empty()) {
+        const std::string fallback_path = "/usr/local/src/robot/tour-guide-robot/app/maps/locations.ini";
+        std::ifstream f(fallback_path);
+        if (f.good()) { default_locations_file = fallback_path; source = "fallback"; }
+    }
+    m_node->declare_parameter<std::string>("map2d_locations_file", default_locations_file);
+    std::string locations_file = "";
+    if (m_node->get_parameter("map2d_locations_file", locations_file) && !locations_file.empty())
+        source = "ROS param map2d_locations_file";
+
+    if (!locations_file.empty()) {
+        RCLCPP_INFO(m_node->get_logger(),"Using locations file '%s' (source: %s)", locations_file.c_str(), source.c_str());
+
+        std::string why; int ver = detectLocationsFileVersion(locations_file, &why);
+        if (ver >= 0) {
+            RCLCPP_INFO(m_node->get_logger(),"Detected locations.ini version: %d (path: %s)", ver, locations_file.c_str());
+        } else {
+            RCLCPP_WARN(m_node->get_logger(),"Could not detect Version in '%s': %s", locations_file.c_str(), why.c_str());
+        }
+
+        // 1) tentativo standard via interfaccia
+        bool ok = static_cast<bool>(m_map2dView->loadLocationsAndExtras(locations_file));
+        RCLCPP_INFO(m_node->get_logger(),"IMap2D.loadLocationsAndExtras('%s') -> %s",
+                    locations_file.c_str(), ok ? "ok" : "fail");
+
+        // 2) se fallisce, prova import compatibile SOLO per gli Objects usando storeObject
+        if (!ok) {
+            const size_t n = importObjectsSectionWithIMap2D(locations_file, m_map2dView, m_node->get_logger());
+            if (n > 0) {
+                RCLCPP_INFO(m_node->get_logger(),"Compat-imported %zu Objects from '%s' using IMap2D::storeObject()", n, locations_file.c_str());
+            } else {
+                RCLCPP_WARN(m_node->get_logger(),"No Objects compat-imported from '%s'", locations_file.c_str());
+            }
+        }
+    } else {
+        RCLCPP_INFO(m_node->get_logger(),
+                    "No locations.ini provided. Set ROS param 'map2d_locations_file' or env MAP2D_LOCATIONS_FILE to load objects at startup.");
+    }
+
+    // Log oggetti disponibili
+    logAvailableObjects();
 
     RCLCPP_DEBUG(m_node->get_logger(), "CartesianPointingComponent READY");
     return true;
@@ -159,21 +301,13 @@ void CartesianPointingComponent::spin() { rclcpp::spin(m_node); }
 // ==================
 // TF2 helper methods
 // ==================
-
 bool CartesianPointingComponent::getTFMatrix(const std::string& target,const std::string& source,Eigen::Matrix4d& T) const {
     if (!m_tfBuffer) return false;
     try {
-        // Lookup transform from 'source' to 'target' at latest time with a 1s timeout
         auto tf = m_tfBuffer->lookupTransform(target, source, rclcpp::Time(0), std::chrono::seconds(1));
-
-        // Extract translation and rotation (geometry_msgs::msg::TransformStamped)
-        const auto& tr = tf.transform.translation; 
+        const auto& tr = tf.transform.translation;
         const auto& q  = tf.transform.rotation;
-
-        // Convert to Eigen quaternion (note the (w,x,y,z) ordering expected by Eigen)
         Eigen::Quaterniond Q(q.w, q.x, q.y, q.z);
-
-        // Build homogeneous transform: rotation in top-left 3x3, translation in last column
         T.setIdentity();
         T.topLeftCorner<3,3>() = Q.toRotationMatrix();
         T(0,3)=tr.x; T(1,3)=tr.y; T(2,3)=tr.z;
@@ -190,183 +324,77 @@ Eigen::Vector3d CartesianPointingComponent::transformPoint(const Eigen::Matrix4d
 
 bool CartesianPointingComponent::transformPointMapToRobot(const geometry_msgs::msg::Point& map_p,
                                                           geometry_msgs::msg::Point& out_robot_p,
-                                                          const std::string& robot_frame,double timeout_sec)
+                                                          const std::string& source_frame,
+                                                          const std::string& robot_frame,
+                                                          double timeout_sec)
 {
     if (!m_tfBuffer) { RCLCPP_WARN(m_node->get_logger(),"TF buffer not initialized"); return false; }
     const auto timeout = tf2::durationFromSec(timeout_sec);
-    if (!m_tfBuffer->canTransform(robot_frame, m_mapFrame, tf2::TimePointZero, timeout)) {
-        RCLCPP_WARN(m_node->get_logger(),"TF: transform %s <- %s not available", robot_frame.c_str(), m_mapFrame.c_str());
+    if (!m_tfBuffer->canTransform(robot_frame, source_frame, tf2::TimePointZero, timeout)) {
+        RCLCPP_WARN(m_node->get_logger(),"TF: transform %s <- %s not available", robot_frame.c_str(), source_frame.c_str());
         return false;
     }
     try {
-        auto tf = m_tfBuffer->lookupTransform(robot_frame, m_mapFrame, tf2::TimePointZero, timeout);
-        geometry_msgs::msg::PointStamped in,out; in.header=tf.header; in.header.frame_id=m_mapFrame; in.point=map_p;
+        auto tf = m_tfBuffer->lookupTransform(robot_frame, source_frame, tf2::TimePointZero, timeout);
+        geometry_msgs::msg::PointStamped in,out; in.header=tf.header; in.header.frame_id=source_frame; in.point=map_p;
         tf2::doTransform(in,out,tf); out_robot_p=out.point; return true;
     } catch (const tf2::TransformException& ex) {
         RCLCPP_WARN(m_node->get_logger(),"TF exception: %s", ex.what()); return false;
     }
 }
 
-// =============================================
-// Map2D JSON loader (handy during development)
-// =============================================
-bool CartesianPointingComponent::importArtworksFromJson(const std::string& json_path)
+// ==================
+// Log oggetti
+// ==================
+void CartesianPointingComponent::logAvailableObjects()
 {
-    if (!m_map2dView) return false;
-    std::ifstream ifs(json_path); if (!ifs.is_open()) return false;
-    nlohmann::json j; try { ifs>>j; } catch (...) { return false; }
-    if (!j.contains("artworks") || !j["artworks"].is_object()) return false;
-    for (auto it=j["artworks"].begin(); it!=j["artworks"].end(); ++it) {
-        yarp::dev::Nav2D::Map2DObject o; o.x=it.value()["x"]; o.y=it.value()["y"]; o.z=it.value()["z"];
-        (void)m_map2dView->storeObject(it.key(), o);
+    if (!m_map2dView) {
+        RCLCPP_WARN(m_node->get_logger(), "IMap2D view not available; cannot list objects");
+        return;
     }
-    std::vector<std::string> names; if (m_map2dView->getObjectsList(names)) {
-        std::ostringstream oss; oss<<"Loaded Objects ("<<names.size()<<"):"; for (auto& n:names) oss<<" "<<n;
-        RCLCPP_INFO(m_node->get_logger(), "%s", oss.str().c_str());
-    }
-    return true;
-}
-
-// ======================================================
-// Wait for motion completion using `is_motion_done` RPC
-// ======================================================
-bool CartesianPointingComponent::waitMotionDone(yarp::os::Port* p, int poll_ms, int max_ms)
-{
-    if (!p || !p->isOpen()) return false;
-    yarp::os::Bottle cmd,res; cmd.addString("is_motion_done");
-    int waited=0; if (max_ms<0) max_ms=30000; // safety default
-    while (true) {
-        res.clear();
-        if (!p->write(cmd,res)) return false;
-        if (rpcAccepted(res) || bottleAsBool(res)) return true; // finished
-        if (max_ms>0 && waited>=max_ms) return false;           // timeout
-        std::this_thread::sleep_for(std::chrono::milliseconds(poll_ms));
-        waited+=poll_ms;
-    }
-}
-
-// ====================================================================
-// Build a “natural” pointing orientation (palm-down, Z towards target)
-// ====================================================================
-// We construct an orthonormal basis {x_ee, y_ee, z_ee}:
-//   z_ee = -normalize(target - shoulder)
-//          (minus because +Z in the mesh points *towards the robot*;
-//           we want Z to look *outwards*, i.e., from hand to target)
-//   y_ee = normalize( down - (down·z_ee) z_ee )
-//          where down = (0,0,-1) in base frame → palm facing down
-//   x_ee = y_ee × z_ee (right-handed frame)
-static Eigen::Quaterniond buildPointingPalmDownQuat(const Eigen::Vector3d& shoulder_base,
-                                                    const Eigen::Vector3d& target_base)
-{
-    // Direction shoulder → target
-    Eigen::Vector3d dir = target_base - shoulder_base;
-    const double n = dir.norm();
-    if (n < 1e-9) return Eigen::Quaterniond::Identity(); // degenerate case
-    dir /= n;
-
-    // EE Z-axis: towards the target (accounting for the inward +Z convention)
-    Eigen::Vector3d z_ee = -dir;
-
-    // World/robot down direction used to make the palm face down
-    const Eigen::Vector3d base_down(0.0, 0.0, -1.0);
-
-    // Project base_down onto plane ⟂ z_ee to build EE Y-axis
-    Eigen::Vector3d y_ee = base_down - (base_down.dot(z_ee))*z_ee;
-    double ny = y_ee.norm();
-    if (ny < 1e-6) {
-        // If down is almost collinear with z_ee, pick any non-collinear backup,
-        // then re-project and normalize (degenerate configuration)
-        y_ee = (std::abs(z_ee.x()) < 0.9 ? Eigen::Vector3d(1,0,0) : Eigen::Vector3d(0,1,0));
-        y_ee -= (y_ee.dot(z_ee))*z_ee;
-        y_ee.normalize();
-    } else {
-        y_ee /= ny;
-    }
-
-    // EE X-axis from the right-handed cross product
-    Eigen::Vector3d x_ee = y_ee.cross(z_ee);
-    double nx = x_ee.norm();
-    if (nx < 1e-6) {
-        // Rare numerical fallback: use an orthogonal unit and recompute y
-        x_ee = z_ee.unitOrthogonal();
-        y_ee = z_ee.cross(x_ee).normalized();
-    } else {
-        x_ee /= nx;
-    }
-
-    // Rotation matrix and quaternion
-    Eigen::Matrix3d R; R.col(0)=x_ee; R.col(1)=y_ee; R.col(2)=z_ee;
-    Eigen::Quaterniond q(R); q.normalize();
-    return q;
-}
-
-/**
- * @brief Per-arm local Z roll compensation (accounts for differences in hand meshes).
- *
- * Retrieves a roll bias (in radians) from ROS 2 parameters and builds a quaternion
- * representing a rotation about the local Z axis of the end-effector. This can be
- * used to slightly adjust the natural pointing orientation to match left/right hand
- * frame conventions.
- *
- * Parameters consulted:
- *  - left_roll_bias_rad  (default: +pi)
- *  - right_roll_bias_rad (default: 0)
- *
- * Typical composition: q_cmd = q_nat * q_fix, where q_nat is the analytically
- * computed pointing quaternion and q_fix is this compensation.
- *
- * @param armName Arm identifier ("LEFT" or "RIGHT").
- * @param node ROS 2 node used to read the parameters.
- * @return Eigen::Quaterniond The roll compensation quaternion. Identity if the
- *         resolved roll magnitude is near zero.
- */
-static Eigen::Quaterniond armCompensationQuat(const std::string& armName,
-                                              rclcpp::Node::SharedPtr node)
-{
-    double left_roll_bias= M_PI;   // default roll for LEFT
-    double right_roll_bias=0.0;    // default roll for RIGHT
-    (void)node->get_parameter("left_roll_bias_rad",  left_roll_bias);
-    (void)node->get_parameter("right_roll_bias_rad", right_roll_bias);
-
-    const double roll = (armName=="LEFT") ? left_roll_bias : right_roll_bias;
-    if (std::abs(roll) < 1e-12) return Eigen::Quaterniond::Identity();
-    return Eigen::Quaterniond(Eigen::AngleAxisd(roll, Eigen::Vector3d::UnitZ()));
-}
-
-// ==============================================================
-// Pre-scan both arms to pick the most suited for the current task
-// ==============================================================
-bool CartesianPointingComponent::computeEndEffectorDistancesToTarget(
-        const Eigen::Vector3d& artwork_pos,
-        std::vector<std::pair<std::string,double>>& armDistances,
-        std::map<std::string, std::vector<double>>& cachedPoseValues)
-{
-    armDistances.clear(); cachedPoseValues.clear();
-
-    for (const std::string armId : {"LEFT","RIGHT"}) {
-        yarp::os::Port* client = (armId=="LEFT") ? &m_cartesianPortLeft : &m_cartesianPortRight;
-        const std::string server = (armId=="LEFT") ? cartesianPortLeft : cartesianPortRight;
-        if (!client->isOpen() || !yarp::os::Network::isConnected(client->getName(), server)) {
-            RCLCPP_WARN(m_node->get_logger(), "PRE-SCAN: %s port not ready", armId.c_str());
-            continue;
+    std::vector<yarp::dev::Nav2D::Map2DObject> allObjs;
+    if (m_map2dView->getAllObjects(allObjs)) {
+        RCLCPP_INFO(m_node->get_logger(),"Available objects (%zu)", allObjs.size());
+        if (allObjs.empty()) {
+            RCLCPP_INFO(m_node->get_logger(),"Hint: check locations.ini or compat-import.");
         }
-
-        // Query current EE pose primarily to estimate distance to target
-        yarp::os::Bottle cmd,res; cmd.addString("get_pose");
-        if (!client->write(cmd,res)) continue;
-
-        std::vector<double> flat; flattenBottleToDoubles(res, flat);
-        if (flat.size()!=16 && flat.size()!=18) continue; // unknown layout
-
-        const size_t off = (flat.size()==18) ? 2u : 0u;  // some servers prepend 2 elements
-        Eigen::Vector3d p_hand(flat[off+3], flat[off+7], flat[off+11]); // transl. entries
-        armDistances.emplace_back(armId,(artwork_pos-p_hand).norm());
-        cachedPoseValues.emplace(armId,std::move(flat));
+        for (const auto& o : allObjs) {
+            RCLCPP_INFO(m_node->get_logger(),
+                        " - map='%s' x=%.3f y=%.3f z=%.3f  desc='%s'",
+                        o.map_id.c_str(), o.x, o.y, o.z, o.description.c_str());
+        }
+    } else {
+        std::vector<std::string> objNames;
+        if (!m_map2dView->getObjectsList(objNames)) {
+            RCLCPP_WARN(m_node->get_logger(), "IMap2D: unable to retrieve objects list");
+            return;
+        }
+        RCLCPP_INFO(m_node->get_logger(),"Available objects (%zu):", objNames.size());
+        for (const auto& name : objNames) {
+            yarp::dev::Nav2D::Map2DObject o;
+            if (m_map2dView->getObject(name, o)) {
+                RCLCPP_INFO(m_node->get_logger(),
+                            " - %s: map='%s' x=%.3f y=%.3f z=%.3f",
+                            name.c_str(), o.map_id.c_str(), o.x, o.y, o.z);
+            }
+        }
     }
-    return !armDistances.empty();
 }
 
-// Prefer LEFT if target is on +Y side in the torso frame, RIGHT otherwise
+// ==============================================================
+// Piccolo modello di reach e scelta braccio (come in tua versione)
+// ==============================================================
+Eigen::Vector3d CartesianPointingComponent::sphereReachPoint(const Eigen::Vector3d& shoulder_base,
+                                                             const Eigen::Vector3d& target_base) const
+{
+    const double d = (target_base - shoulder_base).norm();
+    const double R = std::min(m_reachRadius, std::max(d, m_minDist));
+    if (d < 1e-6) return shoulder_base;
+    const Eigen::Vector3d dir = (target_base - shoulder_base)/d;
+    const double L = std::min(d, R);
+    return shoulder_base + L * dir;
+}
+
 bool CartesianPointingComponent::chooseArmByTorsoY(const Eigen::Vector3d& p_base,std::string& outArm) const
 {
     Eigen::Matrix4d T; if (!getTFMatrix(m_torsoFrame, m_baseFrame, T)) return false;
@@ -374,56 +402,123 @@ bool CartesianPointingComponent::chooseArmByTorsoY(const Eigen::Vector3d& p_base
     outArm = (p_torso.y() > 0.0) ? "LEFT" : "RIGHT"; return true;
 }
 
-// Very simple reach model: clip the requested point on a sphere centered at the shoulder.
-Eigen::Vector3d CartesianPointingComponent::sphereReachPoint(const Eigen::Vector3d& shoulder_base,
-                                                             const Eigen::Vector3d& target_base) const
+static Eigen::Quaterniond buildPointingPalmDownQuat(const Eigen::Vector3d& shoulder_base,
+                                                    const Eigen::Vector3d& target_base)
 {
-    const double d = (target_base - shoulder_base).norm();
-    const double R = std::min(m_reachRadius, std::max(d, m_minDist));
-    if (d < 1e-6) return shoulder_base;  // avoid division by zero
-    const Eigen::Vector3d dir = (target_base - shoulder_base)/d;
-    const double L = std::min(d, R);     // clamp along the ray
-    return shoulder_base + L * dir;
+    Eigen::Vector3d dir = target_base - shoulder_base;
+    const double n = dir.norm();
+    if (n < 1e-9) return Eigen::Quaterniond::Identity();
+    dir /= n;
+    Eigen::Vector3d z_ee = -dir;
+    const Eigen::Vector3d base_down(0.0, 0.0, -1.0);
+    Eigen::Vector3d y_ee = base_down - (base_down.dot(z_ee))*z_ee;
+    double ny = y_ee.norm();
+    if (ny < 1e-6) {
+        y_ee = (std::abs(z_ee.x()) < 0.9 ? Eigen::Vector3d(1,0,0) : Eigen::Vector3d(0,1,0));
+        y_ee -= (y_ee.dot(z_ee))*z_ee;
+        y_ee.normalize();
+    } else { y_ee /= ny; }
+    Eigen::Vector3d x_ee = y_ee.cross(z_ee);
+    double nx = x_ee.norm();
+    if (nx < 1e-6) { x_ee = z_ee.unitOrthogonal(); y_ee = z_ee.cross(x_ee).normalized(); }
+    else { x_ee /= nx; }
+    Eigen::Matrix3d R; R.col(0)=x_ee; R.col(1)=y_ee; R.col(2)=z_ee;
+    Eigen::Quaterniond q(R); q.normalize(); return q;
+}
+
+static Eigen::Quaterniond armCompensationQuat(const std::string& armName,
+                                              rclcpp::Node::SharedPtr node)
+{
+    double left_roll_bias= M_PI;
+    double right_roll_bias=0.0;
+    (void)node->get_parameter("left_roll_bias_rad",  left_roll_bias);
+    (void)node->get_parameter("right_roll_bias_rad", right_roll_bias);
+    const double roll = (armName=="LEFT") ? left_roll_bias : right_roll_bias;
+    if (std::abs(roll) < 1e-12) return Eigen::Quaterniond::Identity();
+    return Eigen::Quaterniond(Eigen::AngleAxisd(roll, Eigen::Vector3d::UnitZ()));
+}
+
+// ======================================================
+// Attendi fine movimento (come avevi)
+// ======================================================
+static bool bottleAsBool(const yarp::os::Bottle& b) {
+    if (b.size()==0) return false;
+    if (b.get(0).isBool())    return b.get(0).asBool();
+    if (b.get(0).isInt32())   return b.get(0).asInt32()!=0;
+    if (b.get(0).isFloat64()) return std::abs(b.get(0).asFloat64())>1e-12;
+    return false;
+}
+static bool rpcAccepted(const yarp::os::Bottle& b) {
+    if (b.size()==0) return false;
+    if (b.get(0).isVocab32())
+        return b.get(0).asVocab32() == yarp::os::createVocab32('o','k');
+    return bottleAsBool(b);
+}
+bool CartesianPointingComponent::waitMotionDone(yarp::os::Port* p, int poll_ms, int max_ms)
+{
+    if (!p || !p->isOpen()) return false;
+    yarp::os::Bottle cmd,res; cmd.addString("is_motion_done");
+    int waited=0; if (max_ms<0) max_ms=30000;
+    while (true) {
+        res.clear();
+        if (!p->write(cmd,res)) return false;
+        if (rpcAccepted(res) || bottleAsBool(res)) return true;
+        if (max_ms>0 && waited>=max_ms) return false;
+        std::this_thread::sleep_for(std::chrono::milliseconds(poll_ms));
+        waited+=poll_ms;
+    }
 }
 
 // ======================
-// Main pointing routine
+// Routine di pointing
 // ======================
 void CartesianPointingComponent::pointTask(const std::shared_ptr<cartesian_pointing_interfaces::srv::PointAt::Request> request)
 {
-    // 1) Lookup target coordinates by name from Map2D
-    yarp::dev::Nav2D::Map2DObject obj; bool found=false;
-    if (m_map2dView) found = m_map2dView->getObject(request->target_name, obj);
+    // 1) prova come OBJECT (3D x,y,z); se non esiste, fallback a LOCATION (2D) + z di default
+    double map_x=0, map_y=0, map_z=0;
+    std::string map_frame;
+    bool found=false;
+
+    if (m_map2dView) {
+        yarp::dev::Nav2D::Map2DObject obj;
+        if (m_map2dView->getObject(request->target_name, obj)) {
+            map_x=obj.x; map_y=obj.y; map_z=obj.z; map_frame=obj.map_id; found=true;
+            RCLCPP_INFO(m_node->get_logger(),"Target '%s' as OBJECT in map '%s': x=%.3f y=%.3f z=%.3f",
+                        request->target_name.c_str(), map_frame.c_str(), map_x, map_y, map_z);
+        }
+    }
     if (!found) {
-        RCLCPP_WARN(m_node->get_logger(),"Map2D: target '%s' not found", request->target_name.c_str());
-        return;
+        yarp::dev::Nav2D::Map2DLocation loc;
+        if (!m_map2dView || !m_map2dView->getLocation(request->target_name, loc)) {
+            RCLCPP_WARN(m_node->get_logger(),"Map2D: target '%s' not found as Object or Location",
+                        request->target_name.c_str());
+            return;
+        }
+        double default_z = 1.2; (void)m_node->get_parameter("location_default_z", default_z);
+        map_x=loc.x; map_y=loc.y; map_z=default_z; map_frame=loc.map_id;
+        RCLCPP_INFO(m_node->get_logger(),
+                    "Target '%s' as LOCATION in map '%s': x=%.3f y=%.3f (z=default %.3f)",
+                    request->target_name.c_str(), map_frame.c_str(), map_x, map_y, map_z);
     }
 
-    // 2) Transform from map to base frame (if TF is available). If not, use raw coords.
-    RCLCPP_INFO(m_node->get_logger(),"Target (map fram): x=%.3f y=%.3f z=%.3f", obj.x, obj.y, obj.z);
-    Eigen::Vector3d p_base(obj.x,obj.y,obj.z);
-    geometry_msgs::msg::Point mapPt, basePt; mapPt.x=obj.x; mapPt.y=obj.y; mapPt.z=obj.z;
-    if (transformPointMapToRobot(mapPt, basePt, m_baseFrame, 1.0)) {
+    // 2) Trasforma verso base
+    Eigen::Vector3d p_base(map_x,map_y,map_z);
+    geometry_msgs::msg::Point mapPt, basePt; mapPt.x=map_x; mapPt.y=map_y; mapPt.z=map_z;
+    if (!map_frame.empty() && transformPointMapToRobot(mapPt, basePt, map_frame, m_baseFrame, 1.0)) {
         p_base = {basePt.x, basePt.y, basePt.z};
-        RCLCPP_INFO(m_node->get_logger(),"Target (base after TF): x=%.3f y=%.3f z=%.3f", basePt.x,basePt.y,basePt.z);
+        RCLCPP_INFO(m_node->get_logger(),"Target (base after TF): x=%.3f y=%.3f z=%.3f", basePt.x, basePt.y, basePt.z);
     } else {
-        RCLCPP_WARN(m_node->get_logger(),"TF map->%s failed; using given coords as %s", m_baseFrame.c_str(), m_baseFrame.c_str());
-        RCLCPP_INFO(m_node->get_logger(),"Target (base fallback): x=%.3f y=%.3f z=%.3f", p_base.x(),p_base.y(),p_base.z());
+        RCLCPP_WARN(m_node->get_logger(),"TF %s->%s unavailable; using map coords as base",
+                    map_frame.c_str(), m_baseFrame.c_str());
+        RCLCPP_INFO(m_node->get_logger(),"Target (base fallback): x=%.3f y=%.3f z=%.3f", p_base.x(), p_base.y(), p_base.z());
     }
 
-    // 3) Pre-scan → pick one arm and freeze that choice (no later switching)
+    // 3) Scegli braccio e raggiungi punto (orientamento calcolato “palm-down”, non dipende dagli oggetti)
     std::vector<std::pair<std::string,double>> armDist;
-    std::map<std::string,std::vector<double>> cached;
-    if (!computeEndEffectorDistancesToTarget(p_base, armDist, cached)) {
-        RCLCPP_ERROR(m_node->get_logger(),"No arms available"); return;
-    }
+    // Per semplicità usiamo la distanza attuale EE→target solo dal controller selezionato poi;
+    // qui scegliamo in base alla Y del torso per coerenza rapida:
     std::string pref; if (!chooseArmByTorsoY(p_base, pref)) pref="LEFT";
-    std::stable_sort(armDist.begin(), armDist.end(), [&](auto&a,auto&b){
-        if (a.first==pref && b.first!=pref) return true;
-        if (a.first!=pref && b.first==pref) return false;
-        return a.second < b.second;
-    });
-    armDist = { armDist.front() }; // keep only the best candidate
+    armDist = { {pref, 0.0} };
 
     { std::lock_guard<std::mutex> lk(m_flagMutex); m_isPointing = true; }
 
@@ -436,7 +531,6 @@ void CartesianPointingComponent::pointTask(const std::shared_ptr<cartesian_point
             break;
         }
 
-        // 4) Read shoulder pose in base frame (needed both for position and orientation)
         const std::string shoulder_frame = (arm=="LEFT") ? m_lShoulderFrame : m_rShoulderFrame;
         Eigen::Matrix4d T_base_sh;
         if (!getTFMatrix(m_baseFrame, shoulder_frame, T_base_sh)) {
@@ -444,22 +538,17 @@ void CartesianPointingComponent::pointTask(const std::shared_ptr<cartesian_point
             break;
         }
         const Eigen::Vector3d p_sh   = T_base_sh.block<3,1>(0,3);
-        const Eigen::Vector3d p_goal = sphereReachPoint(p_sh, p_base); // clamp along reach sphere
+        const Eigen::Vector3d p_goal = sphereReachPoint(p_sh, p_base);
 
-        // 5) Build a palm-down quaternion that makes EE Z look toward the target
         Eigen::Quaterniond q_nat = buildPointingPalmDownQuat(p_sh, p_goal);
-
-        // 6) Apply a per-arm roll compensation around local Z to account for hand frame differences
         Eigen::Quaterniond q_fix = armCompensationQuat(arm, m_node);
-        Eigen::Quaterniond q_cmd = q_nat * q_fix;  // rotate in EE frame; preserves Z direction
+        Eigen::Quaterniond q_cmd = q_nat * q_fix;
 
-        // 7) Issue a single `go_to_pose` command
         RCLCPP_INFO(m_node->get_logger(),
-                    "ARM %s: go_to_pose target -> pos=(%.3f, %.3f, %.3f) quat=(%.4f, %.4f, %.4f, %.4f)",
+                    "ARM %s: go_to_pose -> pos=(%.3f, %.3f, %.3f) quat=(%.4f, %.4f, %.4f, %.4f)",
                     arm.c_str(), p_goal.x(), p_goal.y(), p_goal.z(),
                     q_cmd.x(), q_cmd.y(), q_cmd.z(), q_cmd.w());
 
-        // Ensure the controller state is Stop before sending a new trajectory
         { yarp::os::Bottle c,r; c.addString("stop"); (void)port->write(c,r); std::this_thread::sleep_for(std::chrono::milliseconds(100)); }
 
         yarp::os::Bottle cmd,res;
@@ -469,37 +558,15 @@ void CartesianPointingComponent::pointTask(const std::shared_ptr<cartesian_point
         cmd.addFloat64(kTrajDurationSec);
 
         const bool ok = port->write(cmd,res);
-        if (!(ok && res.size()>0 && rpcAccepted(res))) {
+        if (!(ok && res.size()>0 && (res.get(0).asVocab32()==yarp::os::createVocab32('o','k') || bottleAsBool(res)))) {
             RCLCPP_WARN(m_node->get_logger(),"ARM %s: go_to_pose rejected, abort", arm.c_str());
-            break; // do NOT switch arm
+            break;
         }
         if (!waitMotionDone(port, kPollMs, kTimeoutMs)) {
             RCLCPP_WARN(m_node->get_logger(),"ARM %s: timeout waiting motion", arm.c_str());
-            break; // do NOT switch arm
+            break;
         }
-
-        // 8) (Optional) Log final EE orientation and angular mismatch w.r.t. command
-        yarp::os::Bottle cmd_get,res_get; cmd_get.addString("get_pose");
-        if (port->write(cmd_get,res_get)) {
-            std::vector<double> flat; flattenBottleToDoubles(res_get, flat);
-            if (flat.size()==16 || flat.size()==18) {
-                const size_t off=(flat.size()==18)?2u:0u;
-                Eigen::Matrix3d R; R << flat[off+0],flat[off+1],flat[off+2],
-                                        flat[off+4],flat[off+5],flat[off+6],
-                                        flat[off+8],flat[off+9],flat[off+10];
-                Eigen::Quaterniond qee(R); qee.normalize();
-                auto quat_angle = [](const Eigen::Quaterniond& a, const Eigen::Quaterniond& b){
-                    double d = std::abs(a.x()*b.x() + a.y()*b.y() + a.z()*b.z() + a.w()*b.w());
-                    d = std::min(1.0, std::max(0.0, d));
-                    return 2.0*std::acos(d);
-                };
-                const double ang = quat_angle(q_cmd, qee) * 180.0/M_PI;
-                RCLCPP_INFO(m_node->get_logger(),
-                            "ARM %s: final EE quat=(%.4f, %.4f, %.4f, %.4f)  [misalign=%.1f deg]",
-                            arm.c_str(), qee.x(), qee.y(), qee.z(), qee.w(), ang);
-            }
-        }
-        break; // success or handled failure → never switch arm
+        break; // niente switch di braccio
     }
 
     { std::lock_guard<std::mutex> lk(m_flagMutex); m_isPointing=false; }

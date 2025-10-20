@@ -103,30 +103,30 @@ private:
     /**
      * @brief Query current EE pose for each arm and compute distance to the target.
      *
-     * Also caches the raw pose data for potential diagnostics. Used only to decide
-     * which arm to use; it does not command any motion.
+     * Used only to decide which arm to use; it does not command any motion.
      *
      * @param[in] artwork_pos Target position in base frame (meters).
      * @param[out] armDistances Vector of pairs {armId, distance} where armId ∈ {"LEFT","RIGHT"}.
-     * @param[out] cachedPoseValues Raw flattened pose values returned by `get_pose` per arm.
      * @return true if at least one arm responded; false otherwise.
      */
     bool computeEndEffectorDistancesToTarget(const Eigen::Vector3d& artwork_pos,
-                                             std::vector<std::pair<std::string,double>>& armDistances,
-                                             std::map<std::string, std::vector<double>>& cachedPoseValues);
+                                             std::vector<std::pair<std::string,double>>& armDistances);
 
     /**
-     * @brief Transform a point from the map frame into a robot frame using TF2.
+     * @brief Transform a point from a specified source frame into a robot frame using TF2.
      *
-     * @param[in] map_point Point in the map frame.
+     * @param[in] map_point Point in the source frame.
      * @param[out] out_robot_point Transformed point in the destination robot frame.
+     * @param[in] source_frame Source frame id (e.g., object.map_id).
      * @param[in] robot_frame Destination frame id (e.g., base frame).
      * @param[in] timeout_sec TF lookup timeout in seconds.
      * @return true if the transform was available and applied; false otherwise.
      */
     bool transformPointMapToRobot(const geometry_msgs::msg::Point& map_point,
                                   geometry_msgs::msg::Point& out_robot_point,
-                                  const std::string& robot_frame, double timeout_sec);
+                                  const std::string& source_frame,
+                                  const std::string& robot_frame,
+                                  double timeout_sec);
 
     /**
      * @brief Retrieve a 4x4 homogeneous transform T(target ← source) from TF.
@@ -165,12 +165,7 @@ private:
      */
     Eigen::Vector3d sphereReachPoint(const Eigen::Vector3d& shoulder_base, const Eigen::Vector3d& target_base) const;
 
-    /**
-     * @brief Load objects from a JSON file into the Map2D server (development convenience).
-     * @param[in] json_path Absolute path to the JSON file.
-     * @return true if the file was parsed and objects were stored; false otherwise.
-     */
-    bool importArtworksFromJson(const std::string& json_path);
+    // (Removed) JSON import helper; locations are now obtained directly from IMap2D
 
     /**
      * @brief Poll the controller with `is_motion_done` until motion ends or a timeout occurs.
@@ -184,6 +179,15 @@ private:
      */
     bool waitMotionDone(yarp::os::Port* p, int poll_ms = 80, int max_ms = -1);
 
+    /**
+     * @brief Log all available objects from the IMap2D server.
+     *
+     * Queries the list of stored objects and prints both the list of names
+     * and the detailed info (x, y, z) for each one. Intended to be called at
+     * startup for visibility/debugging.
+     */
+    void logAvailableObjects();
+
 private:
     // ROS2 core
     rclcpp::Node::SharedPtr m_node;
@@ -194,7 +198,6 @@ private:
     std::unique_ptr<tf2_ros::TransformListener> m_tfListener;
 
     /// Frame names (tune if your robot uses different naming)
-    std::string m_mapFrame       {"map"};
     std::string m_baseFrame      {"mobile_base_body_link"};
     std::string m_torsoFrame     {"chest_link"};
     std::string m_lShoulderFrame {"l_shoulder_1"};
