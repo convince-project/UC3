@@ -1,6 +1,21 @@
 // =========================
 // CartesianPointingComponent.cpp
 // =========================
+/**
+ * @file CartesianPointingComponent.cpp
+ * @brief Implementation of a ROS 2 / YARP component that points the robot arm to named targets.
+ *
+ * Responsibilities:
+ *  - Initialize ROS 2 node, TF2 listener, YARP RPC clients, and the Map2D client
+ *  - Expose a PointAt service that resolves a target name via IMap2D (Objects preferred, fallback to Locations)
+ *  - Transform target coordinates into the robot base frame
+ *  - Select an arm and compute a natural end-effector orientation (palm-down, Z towards target)
+ *  - Send a single go_to_pose and wait for completion using the controller's RPC interface
+ *
+ * Notes:
+ *  - This file contains convenience helpers (bottle parsing, quaternion utilities, etc.).
+ *  - Public API and main class documentation live in the header file.
+ */
 #include "CartesianPointingComponent.h"
 
 #include <sstream>
@@ -12,14 +27,32 @@
 // ========================================
 // Tunables: single trajectory and timings
 // ========================================
-static constexpr double kTrajDurationSec = 15.0;   // move-to duration (s)
-static constexpr int    kPollMs          = 80;     // is_motion_done polling period (ms)
-static constexpr int    kTimeoutMs       = 15000000; // overall timeout (ms)
+/**
+ * @brief Duration in seconds for a single smooth trajectory sent to the Cartesian controller.
+ */
+static constexpr double kTrajDurationSec = 15.0;
+/**
+ * @brief Polling period in milliseconds for the is_motion_done RPC.
+ */
+static constexpr int    kPollMs          = 80;
+/**
+ * @brief Overall timeout in milliseconds when waiting for motion completion.
+ */
+static constexpr int    kTimeoutMs       = 15000000;
 
 // =====================================================
 // Helper: detect "Version:" (1,2,3,...) from the .ini file
 // (diagnostic logging only; does not block anything)
 // =====================================================
+/**
+ * @brief Detect the numeric value that follows the tag "Version:" in a locations.ini file.
+ *
+ * Diagnostic helper: used only to log the detected format version; it does not block startup.
+ *
+ * @param path Absolute path to the locations.ini file.
+ * @param[out] why Optional pointer to a string receiving a human-readable error reason when detection fails.
+ * @return int Detected version (>=0) on success; -1 on failure.
+ */
 static int detectLocationsFileVersion(const std::string& path, std::string* why=nullptr)
 {
     std::ifstream f(path);
@@ -64,6 +97,19 @@ static int detectLocationsFileVersion(const std::string& path, std::string* why=
 // where roll/pitch/yaw/desc are optional.
 // Objects are inserted ONLY via IMap2D::storeObject.
 // ========================================
+/**
+ * @brief Compatibility importer for Objects: parse the "Objects" section and push entries via IMap2D::storeObject().
+ *
+ * Supported syntaxes per line:
+ *  - name ( map x y z roll pitch yaw "desc" )
+ *  - name map x y z [roll pitch yaw]
+ * Unrecognized fields are ignored. Description is ignored as well.
+ *
+ * @param filePath Absolute path to the locations.ini file.
+ * @param map2d IMap2D interface pointer where objects will be stored.
+ * @param logger ROS logger for warnings/info.
+ * @return size_t Number of objects successfully imported.
+ */
 static size_t importObjectsSectionWithIMap2D(const std::string& filePath,
                                              yarp::dev::Nav2D::IMap2D* map2d,
                                              rclcpp::Logger logger)
@@ -156,6 +202,16 @@ static size_t importObjectsSectionWithIMap2D(const std::string& filePath,
 // ==============================
 // Lifecycle: start/close/spin
 // ==============================
+/**
+ * @brief Initialize ROS 2, TF, YARP controllers clients, Map2D client and register the PointAt service.
+ *
+ * Waits for external Cartesian controller RPC ports to be available and connects to them.
+ * Optionally attempts to load locations.ini via IMap2D if a file path is provided.
+ *
+ * @param argc Forwarded to rclcpp::init if ROS 2 is not yet initialized.
+ * @param argv Forwarded to rclcpp::init if ROS 2 is not yet initialized.
+ * @return true on success; false on initialization failures.
+ */
 bool CartesianPointingComponent::start(int argc, char* argv[])
 {
     if (!rclcpp::ok()) rclcpp::init(argc, argv);
@@ -288,6 +344,10 @@ bool CartesianPointingComponent::start(int argc, char* argv[])
     return true;
 }
 
+/**
+ * @brief Gracefully close YARP ports and shutdown ROS 2.
+ * @return true on success.
+ */
 bool CartesianPointingComponent::close() {
     if (m_cartesianPortLeft.isOpen())  m_cartesianPortLeft.close();
     if (m_cartesianPortRight.isOpen()) m_cartesianPortRight.close();
@@ -295,11 +355,25 @@ bool CartesianPointingComponent::close() {
     return true;
 }
 
+/**
+ * @brief Spin the ROS 2 node (blocking).
+ */
 void CartesianPointingComponent::spin() { rclcpp::spin(m_node); }
 
 // ==================
 // TF2 helper methods
 // ==================
+/**
+ * @brief Retrieve a 4x4 homogeneous transform T(target ← source) from TF.
+ *
+ * The matrix maps points expressed in the source frame into the target frame:
+ * [p_target;1] = T * [p_source;1].
+ *
+ * @param target Destination frame id.
+ * @param source Origin frame id.
+ * @param[out] T Output homogeneous transform.
+ * @return true on success; false on TF unavailability or lookup failure.
+ */
 bool CartesianPointingComponent::getTFMatrix(const std::string& target,const std::string& source,Eigen::Matrix4d& T) const {
     if (!m_tfBuffer) return false;
     try {
@@ -317,10 +391,26 @@ bool CartesianPointingComponent::getTFMatrix(const std::string& target,const std
     }
 }
 
+/**
+ * @brief Apply a homogeneous transform to a 3D point.
+ * @param T 4x4 homogeneous transform.
+ * @param p 3D point to transform.
+ * @return Transformed 3D point.
+ */
 Eigen::Vector3d CartesianPointingComponent::transformPoint(const Eigen::Matrix4d& T,const Eigen::Vector3d& p) {
     Eigen::Vector4d ph; ph<<p,1.0; ph=T*ph; return ph.head<3>();
 }
 
+/**
+ * @brief Transform a point from a specified source frame into a robot frame using TF2.
+ *
+ * @param map_p Point in the source frame.
+ * @param[out] out_robot_p Transformed point in the destination robot frame.
+ * @param source_frame Source frame id (e.g., object.map_id).
+ * @param robot_frame Destination frame id (e.g., base frame).
+ * @param timeout_sec TF lookup timeout in seconds.
+ * @return true if the transform was available and applied; false otherwise.
+ */
 bool CartesianPointingComponent::transformPointMapToRobot(const geometry_msgs::msg::Point& map_p,
                                                           geometry_msgs::msg::Point& out_robot_p,
                                                           const std::string& source_frame,
@@ -345,6 +435,11 @@ bool CartesianPointingComponent::transformPointMapToRobot(const geometry_msgs::m
 // ==================
 // Log objects
 // ==================
+/**
+ * @brief Log all available objects from the IMap2D server.
+ *
+ * Queries and prints detailed information for each stored object.
+ */
 void CartesianPointingComponent::logAvailableObjects()
 {
     if (!m_map2dView) {
@@ -383,6 +478,12 @@ void CartesianPointingComponent::logAvailableObjects()
 // ==============================================================
 // Simple reach model and arm selection (as in your version)
 // ==============================================================
+/**
+ * @brief Compute a reachable point along the line shoulder → target, clipped by a spherical reach.
+ * @param shoulder_base Shoulder position in base frame.
+ * @param target_base Target position in base frame.
+ * @return Clipped reachable point in base frame.
+ */
 Eigen::Vector3d CartesianPointingComponent::sphereReachPoint(const Eigen::Vector3d& shoulder_base,
                                                              const Eigen::Vector3d& target_base) const
 {
@@ -394,6 +495,12 @@ Eigen::Vector3d CartesianPointingComponent::sphereReachPoint(const Eigen::Vector
     return shoulder_base + L * dir;
 }
 
+/**
+ * @brief Heuristic to select left/right arm by inspecting the target Y coordinate in the torso frame.
+ * @param p_base Target position in base frame.
+ * @param[out] outArm Set to "LEFT" if target.y > 0 in torso frame, "RIGHT" otherwise.
+ * @return true if TF was available to compute the torso transform; false otherwise.
+ */
 bool CartesianPointingComponent::chooseArmByTorsoY(const Eigen::Vector3d& p_base,std::string& outArm) const
 {
     Eigen::Matrix4d T; if (!getTFMatrix(m_torsoFrame, m_baseFrame, T)) return false;
@@ -401,6 +508,18 @@ bool CartesianPointingComponent::chooseArmByTorsoY(const Eigen::Vector3d& p_base
     outArm = (p_torso.y() > 0.0) ? "LEFT" : "RIGHT"; return true;
 }
 
+/**
+ * @brief Build a natural pointing orientation (palm-down, z-axis towards the target).
+ *
+ * Constructs an orthonormal basis {x_ee, y_ee, z_ee} such that:
+ *  - z_ee points from end-effector towards the target (account for hand meshes with +Z inward)
+ *  - y_ee aligns with world "down" projected on the plane orthogonal to z_ee (palm-down)
+ *  - x_ee = y_ee × z_ee (right-handed)
+ *
+ * @param shoulder_base Shoulder position in base frame.
+ * @param target_base Target position in base frame (possibly clipped elsewhere).
+ * @return Unit quaternion representing the desired EE orientation.
+ */
 static Eigen::Quaterniond buildPointingPalmDownQuat(const Eigen::Vector3d& shoulder_base,
                                                     const Eigen::Vector3d& target_base)
 {
@@ -425,6 +544,18 @@ static Eigen::Quaterniond buildPointingPalmDownQuat(const Eigen::Vector3d& shoul
     Eigen::Quaterniond q(R); q.normalize(); return q;
 }
 
+/**
+ * @brief Per-arm local Z roll compensation quaternion.
+ *
+ * Reads ROS 2 parameters:
+ *  - left_roll_bias_rad  (default: +pi)
+ *  - right_roll_bias_rad (default: 0)
+ * Compose as q_cmd = q_nat * q_fix to preserve the z_ee pointing direction.
+ *
+ * @param armName Arm identifier ("LEFT" or "RIGHT").
+ * @param node ROS 2 node used to access parameters.
+ * @return Unit quaternion for the roll compensation (Identity if near-zero).
+ */
 static Eigen::Quaterniond armCompensationQuat(const std::string& armName,
                                               rclcpp::Node::SharedPtr node)
 {
@@ -440,6 +571,11 @@ static Eigen::Quaterniond armCompensationQuat(const std::string& armName,
 // ======================================================
 // Wait for motion completion (as in previous version)
 // ======================================================
+/**
+ * @brief Convert a 1-element Bottle to bool, supporting bool/int/double conventions.
+ * @param b Input Bottle.
+ * @return true if Bottle converts to a non-zero/true value; false otherwise.
+ */
 static bool bottleAsBool(const yarp::os::Bottle& b) {
     if (b.size()==0) return false;
     if (b.get(0).isBool())    return b.get(0).asBool();
@@ -447,12 +583,27 @@ static bool bottleAsBool(const yarp::os::Bottle& b) {
     if (b.get(0).isFloat64()) return std::abs(b.get(0).asFloat64())>1e-12;
     return false;
 }
+/**
+ * @brief Interpret an RPC reply as acceptance: either boolean true or vocab32('o','k').
+ * @param b Input Bottle.
+ * @return true if the reply is accepted; false otherwise.
+ */
 static bool rpcAccepted(const yarp::os::Bottle& b) {
     if (b.size()==0) return false;
     if (b.get(0).isVocab32())
         return b.get(0).asVocab32() == yarp::os::createVocab32('o','k');
     return bottleAsBool(b);
 }
+/**
+ * @brief Poll the controller with is_motion_done until motion ends or a timeout occurs.
+ *
+ * Accepts either a boolean true or the YARP vocab32('o','k') as completion.
+ *
+ * @param p Open YARP port connected to the controller RPC server.
+ * @param poll_ms Polling period in milliseconds.
+ * @param max_ms Maximum wait time in milliseconds (-1 to use a safety default).
+ * @return true if motion completed; false on timeout or communication error.
+ */
 bool CartesianPointingComponent::waitMotionDone(yarp::os::Port* p, int poll_ms, int max_ms)
 {
     if (!p || !p->isOpen()) return false;
@@ -471,6 +622,18 @@ bool CartesianPointingComponent::waitMotionDone(yarp::os::Port* p, int poll_ms, 
 // ======================
 // Pointing routine
 // ======================
+/**
+ * @brief Core pointing task executed asynchronously upon PointAt service requests.
+ *
+ * Flow:
+ *  1) Lookup target coordinates by name from Map2D (Object first, fallback to Location+default Z)
+ *  2) Transform target from map to base frame (if TF available)
+ *  3) Choose a single arm (no switching) using torso-Y heuristic
+ *  4) Compute a reachable goal and a natural orientation (palm-down, Z to target) with per-arm roll bias
+ *  5) Send one go_to_pose and wait for completion
+ *
+ * @param request Service request containing the target name.
+ */
 void CartesianPointingComponent::pointTask(const std::shared_ptr<cartesian_pointing_interfaces::srv::PointAt::Request> request)
 {
     // 1) Try as OBJECT (3D x,y,z); if not present, fallback to LOCATION (2D) + default z
