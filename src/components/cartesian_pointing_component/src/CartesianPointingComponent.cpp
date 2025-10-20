@@ -10,15 +10,15 @@
 #include <string>
 
 // ========================================
-// Tunables: singola traiettoria ecc.
+// Tunables: single trajectory and timings
 // ========================================
-static constexpr double kTrajDurationSec = 15.0;   // durata move-to
-static constexpr int    kPollMs          = 80;     // polling is_motion_done
-static constexpr int    kTimeoutMs       = 15000000; // timeout complessivo (ms)
+static constexpr double kTrajDurationSec = 15.0;   // move-to duration (s)
+static constexpr int    kPollMs          = 80;     // is_motion_done polling period (ms)
+static constexpr int    kTimeoutMs       = 15000000; // overall timeout (ms)
 
 // =====================================================
-// Helper: detect "Version:" (1,2,3,...) dal file .ini
-// (solo per log diagnostico; non blocca nulla)
+// Helper: detect "Version:" (1,2,3,...) from the .ini file
+// (diagnostic logging only; does not block anything)
 // =====================================================
 static int detectLocationsFileVersion(const std::string& path, std::string* why=nullptr)
 {
@@ -56,13 +56,13 @@ static int detectLocationsFileVersion(const std::string& path, std::string* why=
 }
 
 // ========================================
-// Parser compatibile della sezione Objects:
-// - supporta forma estesa:
+// Compatibility parser for the Objects section:
+// - supports the extended form:
 //     name ( map x y z roll pitch yaw "desc" )
-// - e forma minimale (solo x y z):
+// - and the minimal form (only x y z):
 //     name map x y z
-// in cui roll/pitch/yaw/desc sono opzionali.
-// Gli oggetti vengono inseriti SOLO via IMap2D::storeObject.
+// where roll/pitch/yaw/desc are optional.
+// Objects are inserted ONLY via IMap2D::storeObject.
 // ========================================
 static size_t importObjectsSectionWithIMap2D(const std::string& filePath,
                                              yarp::dev::Nav2D::IMap2D* map2d,
@@ -92,18 +92,18 @@ static size_t importObjectsSectionWithIMap2D(const std::string& filePath,
             if (line=="Objects:" || line=="Objects") inObjects=true;
             continue;
         }
-        // Sezione Objects terminata quando arriva altra intestazione
+        // Objects section ends when another header is encountered
         if (line=="Locations:" || line=="Areas:" || line=="Paths:") break;
-        if (line[0]=='#') continue; // commenti
+        if (line[0]=='#') continue; // comments
 
-        // Tenta parsing
+        // Try parsing
         std::istringstream iss(line);
         std::string name; if (!(iss >> name)) continue;
 
-        // a) forma con parentesi: name ( map x y z roll pitch yaw "desc" )
+        // a) parenthesized form: name ( map x y z roll pitch yaw "desc" )
         size_t parPos = raw.find('(');
         if (parPos!=std::string::npos && parPos > raw.find(name)) {
-            // estrai dentro parentesi
+            // extract content within parentheses
             size_t closePos = raw.find(')', parPos);
             if (closePos==std::string::npos) {
                 RCLCPP_WARN(logger, "compat import: malformed line (missing ')'): %s", raw.c_str());
@@ -111,18 +111,17 @@ static size_t importObjectsSectionWithIMap2D(const std::string& filePath,
             }
             std::string inside = raw.substr(parPos+1, closePos-parPos-1);
             inside = trim(inside);
-            // tokenizza inside: map x y z [roll pitch yaw "desc"]
+            // tokenize: map x y z [roll pitch yaw "desc"]
             std::istringstream is2(inside);
             std::string map; double x=0,y=0,z=0, roll=0,pitch=0,yaw=0;
             if (!(is2 >> map >> x >> y >> z)) {
                 RCLCPP_WARN(logger, "compat import: cannot parse x y z: %s", raw.c_str());
                 continue;
             }
-            // opzionali
-            (void)(is2 >> roll >> pitch >> yaw); // se non ci sono restano 0
+            // optional values
+            (void)(is2 >> roll >> pitch >> yaw); // if absent they remain 0
 
-            // descrizione (opzionale, tra doppi apici) – non necessaria per te
-            // quindi la ignoriamo volontariamente
+            // description (optional, double-quoted) – not needed here; deliberately ignored
 
             yarp::dev::Nav2D::Map2DObject obj;
             obj.map_id = map; obj.x=x; obj.y=y; obj.z=z; obj.roll=0; obj.pitch=0; obj.yaw=0; obj.description="";
@@ -134,7 +133,7 @@ static size_t importObjectsSectionWithIMap2D(const std::string& filePath,
             continue;
         }
 
-        // b) forma minimale: name map x y z [opzionali...]
+        // b) minimal form: name map x y z [optional...]
         {
             std::string map; double x=0,y=0,z=0;
             if (!(iss >> map >> x >> y >> z)) {
@@ -161,7 +160,7 @@ bool CartesianPointingComponent::start(int argc, char* argv[])
 {
     if (!rclcpp::ok()) rclcpp::init(argc, argv);
 
-    // Avvisi se i controller cartesiani non ci sono (non blocca l’avvio)
+    // Warn if Cartesian controllers are not available (does not block startup)
     if (!yarp::os::Network::exists(cartesianPortLeft))
         RCLCPP_WARN(rclcpp::get_logger("rclcpp"),
                     "Left Cartesian controller not present. Start it externally.");
@@ -169,7 +168,7 @@ bool CartesianPointingComponent::start(int argc, char* argv[])
         RCLCPP_WARN(rclcpp::get_logger("rclcpp"),
                     "Right Cartesian controller not present. Start it externally.");
 
-    // Attendi deterministicamente entrambi
+    // Deterministically wait for both controllers to be available
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"),
                 "Waiting for LEFT controller port '%s'...", cartesianPortLeft.c_str());
     while (!yarp::os::Network::exists(cartesianPortLeft))
@@ -179,18 +178,18 @@ bool CartesianPointingComponent::start(int argc, char* argv[])
     while (!yarp::os::Network::exists(cartesianPortRight))
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
-    // ROS2 node + TF
+    // ROS 2 node and TF utilities
     m_node       = rclcpp::Node::make_shared("CartesianPointingComponentNode");
     m_tfBuffer   = std::make_unique<tf2_ros::Buffer>(m_node->get_clock());
     m_tfListener = std::make_unique<tf2_ros::TransformListener>(*m_tfBuffer);
 
-    // Bias roll mano sx/dx (non influisce sugli oggetti – orientamento non usato per target)
+    // Per-arm roll bias (does not affect objects – orientation is independent of targets)
     double left_roll_bias  = M_PI;
     double right_roll_bias = 0.0;
     m_node->declare_parameter<double>("left_roll_bias_rad",  left_roll_bias);
     m_node->declare_parameter<double>("right_roll_bias_rad", right_roll_bias);
 
-    // Porte YARP client verso i controller cartesiani
+    // YARP client ports towards the Cartesian controllers
     if (yarp::os::Network::exists(m_cartesianPortNameLeft))
         yarp::os::Network::disconnect(m_cartesianPortNameLeft, cartesianPortLeft);
     if (!m_cartesianPortLeft.open(m_cartesianPortNameLeft)) {
@@ -205,7 +204,7 @@ bool CartesianPointingComponent::start(int argc, char* argv[])
     }
     yarp::os::Network::connect(m_cartesianPortNameRight, cartesianPortRight);
 
-    // Servizio ROS2
+    // ROS 2 service
     m_srvPointAt = m_node->create_service<cartesian_pointing_interfaces::srv::PointAt>(
         "/CartesianPointingComponent/PointAt",
         [this](const std::shared_ptr<cartesian_pointing_interfaces::srv::PointAt::Request> req,
@@ -235,7 +234,7 @@ bool CartesianPointingComponent::start(int argc, char* argv[])
         RCLCPP_INFO(m_node->get_logger(),"Device map2D_nwc_yarp opened and IMap2D view obtained");
     }
 
-    // Risoluzione del path del locations.ini
+    // Resolve locations.ini path
     std::string default_locations_file = "";
     std::string source = "none";
     if (const char* env = std::getenv("MAP2D_LOCATIONS_FILE")) {
@@ -263,12 +262,12 @@ bool CartesianPointingComponent::start(int argc, char* argv[])
             RCLCPP_WARN(m_node->get_logger(),"Could not detect Version in '%s': %s", locations_file.c_str(), why.c_str());
         }
 
-        // 1) tentativo standard via interfaccia
+    // 1) Standard attempt via the IMap2D interface
         bool ok = static_cast<bool>(m_map2dView->loadLocationsAndExtras(locations_file));
         RCLCPP_INFO(m_node->get_logger(),"IMap2D.loadLocationsAndExtras('%s') -> %s",
                     locations_file.c_str(), ok ? "ok" : "fail");
 
-        // 2) se fallisce, prova import compatibile SOLO per gli Objects usando storeObject
+    // 2) If it fails, try a compatibility import ONLY for Objects using storeObject
         if (!ok) {
             const size_t n = importObjectsSectionWithIMap2D(locations_file, m_map2dView, m_node->get_logger());
             if (n > 0) {
@@ -282,7 +281,7 @@ bool CartesianPointingComponent::start(int argc, char* argv[])
                     "No locations.ini provided. Set ROS param 'map2d_locations_file' or env MAP2D_LOCATIONS_FILE to load objects at startup.");
     }
 
-    // Log oggetti disponibili
+    // Log available objects
     logAvailableObjects();
 
     RCLCPP_DEBUG(m_node->get_logger(), "CartesianPointingComponent READY");
@@ -344,7 +343,7 @@ bool CartesianPointingComponent::transformPointMapToRobot(const geometry_msgs::m
 }
 
 // ==================
-// Log oggetti
+// Log objects
 // ==================
 void CartesianPointingComponent::logAvailableObjects()
 {
@@ -382,7 +381,7 @@ void CartesianPointingComponent::logAvailableObjects()
 }
 
 // ==============================================================
-// Piccolo modello di reach e scelta braccio (come in tua versione)
+// Simple reach model and arm selection (as in your version)
 // ==============================================================
 Eigen::Vector3d CartesianPointingComponent::sphereReachPoint(const Eigen::Vector3d& shoulder_base,
                                                              const Eigen::Vector3d& target_base) const
@@ -439,7 +438,7 @@ static Eigen::Quaterniond armCompensationQuat(const std::string& armName,
 }
 
 // ======================================================
-// Attendi fine movimento (come avevi)
+// Wait for motion completion (as in previous version)
 // ======================================================
 static bool bottleAsBool(const yarp::os::Bottle& b) {
     if (b.size()==0) return false;
@@ -470,11 +469,11 @@ bool CartesianPointingComponent::waitMotionDone(yarp::os::Port* p, int poll_ms, 
 }
 
 // ======================
-// Routine di pointing
+// Pointing routine
 // ======================
 void CartesianPointingComponent::pointTask(const std::shared_ptr<cartesian_pointing_interfaces::srv::PointAt::Request> request)
 {
-    // 1) prova come OBJECT (3D x,y,z); se non esiste, fallback a LOCATION (2D) + z di default
+    // 1) Try as OBJECT (3D x,y,z); if not present, fallback to LOCATION (2D) + default z
     double map_x=0, map_y=0, map_z=0;
     std::string map_frame;
     bool found=false;
@@ -501,7 +500,7 @@ void CartesianPointingComponent::pointTask(const std::shared_ptr<cartesian_point
                     request->target_name.c_str(), map_frame.c_str(), map_x, map_y, map_z);
     }
 
-    // 2) Trasforma verso base
+    // 2) Transform to base frame
     Eigen::Vector3d p_base(map_x,map_y,map_z);
     geometry_msgs::msg::Point mapPt, basePt; mapPt.x=map_x; mapPt.y=map_y; mapPt.z=map_z;
     if (!map_frame.empty() && transformPointMapToRobot(mapPt, basePt, map_frame, m_baseFrame, 1.0)) {
@@ -513,10 +512,9 @@ void CartesianPointingComponent::pointTask(const std::shared_ptr<cartesian_point
         RCLCPP_INFO(m_node->get_logger(),"Target (base fallback): x=%.3f y=%.3f z=%.3f", p_base.x(), p_base.y(), p_base.z());
     }
 
-    // 3) Scegli braccio e raggiungi punto (orientamento calcolato “palm-down”, non dipende dagli oggetti)
+    // 3) Choose arm and reach the point (orientation computed as "palm-down", independent of objects)
     std::vector<std::pair<std::string,double>> armDist;
-    // Per semplicità usiamo la distanza attuale EE→target solo dal controller selezionato poi;
-    // qui scegliamo in base alla Y del torso per coerenza rapida:
+    // For simplicity we skip pre-scan here; choose by torso Y sign for quick consistency:
     std::string pref; if (!chooseArmByTorsoY(p_base, pref)) pref="LEFT";
     armDist = { {pref, 0.0} };
 
