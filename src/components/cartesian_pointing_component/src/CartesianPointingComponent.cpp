@@ -7,7 +7,7 @@
  *
  * Responsibilities:
  *  - Initialize ROS 2 node, TF2 listener, YARP RPC clients, and the Map2D client
- *  - Expose a PointAt service that resolves a target name via IMap2D (Objects preferred, fallback to Locations)
+ *  - Expose a PointAt service that resolves a target name via IMap2D (Objects only; no fallback to Locations)
  *  - Transform target coordinates into the robot base frame
  *  - Select an arm and compute a natural end-effector orientation (palm-down, Z towards target)
  *  - Send a single go_to_pose and wait for completion using the controller's RPC interface
@@ -23,6 +23,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <string>
+#include <cartesian_pointing_interfaces/srv/is_motion_done.hpp>
 
 // ========================================
 // Tunables: single trajectory and timings
@@ -40,154 +41,130 @@ static constexpr int    kPollMs          = 80;
  */
 static constexpr int    kTimeoutMs       = 15000000;
 
-// =====================================================
-// Helper: detect "Version:" (1,2,3,...) from the .ini file
-// (diagnostic logging only; does not block anything)
-// =====================================================
-/**
- * @brief Detect the numeric value that follows the tag "Version:" in a locations.ini file.
- *
- * Diagnostic helper: used only to log the detected format version; it does not block startup.
- *
- * @param path Absolute path to the locations.ini file.
- * @param[out] why Optional pointer to a string receiving a human-readable error reason when detection fails.
- * @return int Detected version (>=0) on success; -1 on failure.
- */
-static int detectLocationsFileVersion(const std::string& path, std::string* why=nullptr)
-{
-    std::ifstream f(path);
-    if (!f.is_open()) { if (why) *why = "cannot open file"; return -1; }
-
-    auto trim = [](std::string s){
-        const char* ws = " \t\r\n";
-        size_t a = s.find_first_not_of(ws);
-        size_t b = s.find_last_not_of(ws);
-        if (a==std::string::npos) return std::string();
-        return s.substr(a, b-a+1);
-    };
-
-    std::string line; bool sawVersionTag=false;
-    while (std::getline(f,line)) {
-        std::string raw=line; line=trim(line);
-        if (line.empty()) continue;
-        std::string l=line; for (auto& c:l) c=std::tolower(c);
-
-        if (!sawVersionTag) {
-            if (l=="version:" || l=="version") { sawVersionTag=true; continue; }
-            if (l.rfind("version:",0)==0) {
-                std::string rhs = trim(raw.substr(std::string("Version:").size()));
-                if (!rhs.empty()) { try { return std::stoi(rhs); } catch (...) { if (why) *why="invalid version value"; return -1; } }
-                sawVersionTag=true; continue;
-            }
-            continue;
-        } else {
-            try { return std::stoi(line); } catch (...) { if (why) *why="invalid version value"; return -1; }
-        }
-    }
-    if (why) *why = sawVersionTag ? "missing numeric value after Version:" : "Version: tag not found";
-    return -1;
-}
-
-// ========================================
-// Compatibility parser for the Objects section:
-// - supports the extended form:
-//     name ( map x y z roll pitch yaw "desc" )
-// - and the minimal form (only x y z):
-//     name map x y z
-// where roll/pitch/yaw/desc are optional.
-// Objects are inserted ONLY via IMap2D::storeObject.
-// ========================================
 /**
  * @brief Compatibility importer for Objects: parse the "Objects" section and push entries via IMap2D::storeObject().
  *
- * Supported syntaxes per line:
- *  - name ( map x y z roll pitch yaw "desc" )
+ * Supported syntaxes per line (orientation ignored):
+ *  - name ( map x y z [roll pitch yaw "desc"] )
  *  - name map x y z [roll pitch yaw]
- * Unrecognized fields are ignored. Description is ignored as well.
+ * Only map id and x,y,z are parsed; any extra tokens (including roll/pitch/yaw/desc) are ignored.
  *
  * @param filePath Absolute path to the locations.ini file.
  * @param map2d IMap2D interface pointer where objects will be stored.
  * @param logger ROS logger for warnings/info.
  * @return size_t Number of objects successfully imported.
  */
-static size_t importObjectsSectionWithIMap2D(const std::string& filePath,
-                                             yarp::dev::Nav2D::IMap2D* map2d,
-                                             rclcpp::Logger logger)
+static size_t importObjectsSectionWithIMap2D(
+    const std::string& filePath,
+    yarp::dev::Nav2D::IMap2D* map2d,
+    rclcpp::Logger logger)
 {
+    // Safety check: if no IMap2D interface is provided, nothing can be imported
     if (!map2d) return 0;
+
+    // Try to open the file
     std::ifstream f(filePath);
     if (!f.is_open()) {
-        RCLCPP_WARN(logger, "compat import: cannot open '%s'", filePath.c_str());
+        RCLCPP_WARN(logger, "cannot open file: '%s'", filePath.c_str());
         return 0;
     }
 
+    // Helper lambda: trims leading and trailing whitespace from a string
     auto trim = [](const std::string& s){
-        const char* ws=" \t\r\n";
-        size_t a=s.find_first_not_of(ws), b=s.find_last_not_of(ws);
-        if (a==std::string::npos) return std::string();
-        return s.substr(a, b-a+1);
+        const char* ws = " \t\r\n";
+        size_t a = s.find_first_not_of(ws), b = s.find_last_not_of(ws);
+        if (a == std::string::npos) return std::string();
+        return s.substr(a, b - a + 1);
     };
 
-    bool inObjects=false; size_t imported=0;
+    bool inObjects = false;   // whether we are currently inside the "Objects:" section
+    size_t imported = 0;      // counter of imported objects
     std::string line;
-    while (std::getline(f,line)) {
-        std::string raw=line; line=trim(line);
-        if (line.empty()) continue;
 
+    // Read file line by line
+    while (std::getline(f, line)) {
+        std::string raw = line;
+        line = trim(line);
+        if (line.empty()) continue;   // skip empty lines
+
+        // Wait until we encounter the "Objects:" header
         if (!inObjects) {
-            if (line=="Objects:" || line=="Objects") inObjects=true;
+            if (line == "Objects:" || line == "Objects") inObjects = true;
             continue;
         }
-        // Objects section ends when another header is encountered
-        if (line=="Locations:" || line=="Areas:" || line=="Paths:") break;
-        if (line[0]=='#') continue; // comments
 
-        // Try parsing
+        // The Objects section ends if we reach another header (Locations, Areas, Paths)
+        if (line == "Locations:" || line == "Areas:" || line == "Paths:") break;
+
+        // Skip comment lines
+        if (line[0] == '#') continue;
+
+        // Tokenize the line using stringstream
         std::istringstream iss(line);
-        std::string name; if (!(iss >> name)) continue;
+        std::string name;
+        if (!(iss >> name)) continue;   // if no first token (object name), skip
 
-        // a) parenthesized form: name ( map x y z roll pitch yaw "desc" )
+    // --------------------------------------------------------------------
+    // a) Parenthesized form:
+    //    name ( map x y z [roll pitch yaw "desc"] )
+    // --------------------------------------------------------------------
         size_t parPos = raw.find('(');
-        if (parPos!=std::string::npos && parPos > raw.find(name)) {
-            // extract content within parentheses
+        if (parPos != std::string::npos && parPos > raw.find(name)) {
+            // Find matching closing parenthesis
             size_t closePos = raw.find(')', parPos);
-            if (closePos==std::string::npos) {
+            if (closePos == std::string::npos) {
                 RCLCPP_WARN(logger, "compat import: malformed line (missing ')'): %s", raw.c_str());
                 continue;
             }
-            std::string inside = raw.substr(parPos+1, closePos-parPos-1);
+
+            // Extract content inside parentheses and trim it
+            std::string inside = raw.substr(parPos + 1, closePos - parPos - 1);
             inside = trim(inside);
-            // tokenize: map x y z [roll pitch yaw "desc"]
+
+            // Tokenize the inside section: map x y z [ ...ignored... ]
             std::istringstream is2(inside);
-            std::string map; double x=0,y=0,z=0, roll=0,pitch=0,yaw=0;
+            std::string map;
+            double x = 0, y = 0, z = 0;
             if (!(is2 >> map >> x >> y >> z)) {
                 RCLCPP_WARN(logger, "compat import: cannot parse x y z: %s", raw.c_str());
                 continue;
             }
-            // optional values
-            (void)(is2 >> roll >> pitch >> yaw); // if absent they remain 0
+            // Any additional tokens (including roll/pitch/yaw/"desc") are intentionally ignored.
 
-            // description (optional, double-quoted) – not needed here; deliberately ignored
-
+            // Construct a Map2DObject and store it in the map
             yarp::dev::Nav2D::Map2DObject obj;
-            obj.map_id = map; obj.x=x; obj.y=y; obj.z=z; obj.roll=0; obj.pitch=0; obj.yaw=0; obj.description="";
+            obj.map_id = map;
+            obj.x = x; obj.y = y; obj.z = z;
+            obj.roll = 0; obj.pitch = 0; obj.yaw = 0; // orientation intentionally ignored
+            obj.description = "";
+
             if (map2d->storeObject(name, obj)) {
                 ++imported;
             } else {
                 RCLCPP_WARN(logger, "compat import: storeObject('%s') failed", name.c_str());
             }
-            continue;
+            continue; // done with this line
         }
 
-        // b) minimal form: name map x y z [optional...]
+        // --------------------------------------------------------------------
+        // b) Minimal form:
+        //    name map x y z [ ...ignored... ]
+        // --------------------------------------------------------------------
         {
-            std::string map; double x=0,y=0,z=0;
+            std::string map;
+            double x = 0, y = 0, z = 0;
             if (!(iss >> map >> x >> y >> z)) {
                 RCLCPP_WARN(logger, "compat import: cannot parse minimal form: %s", raw.c_str());
                 continue;
             }
+
+            // Create and store the Map2DObject
             yarp::dev::Nav2D::Map2DObject obj;
-            obj.map_id = map; obj.x=x; obj.y=y; obj.z=z; obj.roll=0; obj.pitch=0; obj.yaw=0; obj.description="";
+            obj.map_id = map;
+            obj.x = x; obj.y = y; obj.z = z;
+            obj.roll = 0; obj.pitch = 0; obj.yaw = 0;
+            obj.description = "";
+
             if (map2d->storeObject(name, obj)) {
                 ++imported;
             } else {
@@ -196,12 +173,11 @@ static size_t importObjectsSectionWithIMap2D(const std::string& filePath,
         }
     }
 
+    // Return total number of successfully imported objects
     return imported;
 }
 
-// ==============================
-// Lifecycle: start/close/spin
-// ==============================
+
 /**
  * @brief Initialize ROS 2, TF, YARP controllers clients, Map2D client and register the PointAt service.
  *
@@ -216,49 +192,57 @@ bool CartesianPointingComponent::start(int argc, char* argv[])
 {
     if (!rclcpp::ok()) rclcpp::init(argc, argv);
 
-    // Warn if Cartesian controllers are not available (does not block startup)
-    if (!yarp::os::Network::exists(cartesianPortLeft))
-        RCLCPP_WARN(rclcpp::get_logger("rclcpp"),
-                    "Left Cartesian controller not present. Start it externally.");
-    if (!yarp::os::Network::exists(cartesianPortRight))
-        RCLCPP_WARN(rclcpp::get_logger("rclcpp"),
-                    "Right Cartesian controller not present. Start it externally.");
-
-    // Deterministically wait for both controllers to be available
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"),
-                "Waiting for LEFT controller port '%s'...", cartesianPortLeft.c_str());
-    while (!yarp::os::Network::exists(cartesianPortLeft))
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"),
-                "Waiting for RIGHT controller port '%s'...", cartesianPortRight.c_str());
-    while (!yarp::os::Network::exists(cartesianPortRight))
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-
-    // ROS 2 node and TF utilities
+    // ROS 2 node and TF utilities first, so logging and params are available early
     m_node       = rclcpp::Node::make_shared("CartesianPointingComponentNode");
     m_tfBuffer   = std::make_unique<tf2_ros::Buffer>(m_node->get_clock());
     m_tfListener = std::make_unique<tf2_ros::TransformListener>(*m_tfBuffer);
 
-    // Per-arm roll bias (does not affect objects – orientation is independent of targets)
-    double left_roll_bias  = M_PI;
-    double right_roll_bias = 0.0;
-    m_node->declare_parameter<double>("left_roll_bias_rad",  left_roll_bias);
-    m_node->declare_parameter<double>("right_roll_bias_rad", right_roll_bias);
+    // YARP network required
+    if (!yarp::os::Network::checkNetwork()) {
+        RCLCPP_ERROR(m_node->get_logger(), "YARP network is not available");
+        return false;
+    }
 
-    // YARP client ports towards the Cartesian controllers
-    if (yarp::os::Network::exists(m_cartesianPortNameLeft))
-        yarp::os::Network::disconnect(m_cartesianPortNameLeft, cartesianPortLeft);
-    if (!m_cartesianPortLeft.open(m_cartesianPortNameLeft)) {
+    // Open local client ports first (deterministic names), then connect with retry
+    if (yarp::os::Network::exists(m_cartesianClientLeftPort))
+        yarp::os::Network::disconnect(m_cartesianClientLeftPort, cartesianControlServerLeftPort);
+    if (!m_cartesianControlServerLeftPort.open(m_cartesianClientLeftPort)) {
         yError() << "Cannot open Left client port"; return false;
     }
-    yarp::os::Network::connect(m_cartesianPortNameLeft, cartesianPortLeft);
 
-    if (yarp::os::Network::exists(m_cartesianPortNameRight))
-        yarp::os::Network::disconnect(m_cartesianPortNameRight, cartesianPortRight);
-    if (!m_cartesianPortRight.open(m_cartesianPortNameRight)) {
+    if (yarp::os::Network::exists(m_cartesianClientRightPort))
+        yarp::os::Network::disconnect(m_cartesianClientRightPort, cartesianControlServerRightPort);
+    if (!m_cartesianControlServerRightPort.open(m_cartesianClientRightPort)) {
         yError() << "Cannot open Right client port"; return false;
     }
-    yarp::os::Network::connect(m_cartesianPortNameRight, cartesianPortRight);
+
+    auto connectWithRetry = [&](const std::string& local, const std::string& remote, const char* tag)->bool {
+        RCLCPP_INFO(m_node->get_logger(), "%s: connecting %s -> %s", tag, local.c_str(), remote.c_str());
+        int waited = 0;
+        while (true) {
+            if (yarp::os::Network::isConnected(local, remote)) {
+                RCLCPP_INFO(m_node->get_logger(), "%s: already connected", tag);
+                return true;
+            }
+            if (yarp::os::Network::exists(remote)) {
+                (void)yarp::os::Network::connect(local, remote);
+                if (yarp::os::Network::isConnected(local, remote)) {
+                    RCLCPP_INFO(m_node->get_logger(), "%s: connected", tag);
+                    return true;
+                }
+            }
+            if (connect_timeout_ms > 0 && waited >= connect_timeout_ms) {
+                RCLCPP_WARN(m_node->get_logger(), "%s: timeout waiting for %s; continuing without connection", tag, remote.c_str());
+                return false;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(connect_retry_ms));
+            waited += connect_retry_ms;
+        }
+    };
+
+    // Try to connect (non-fatal; the service can run and motion will only use available arms)
+    (void)connectWithRetry(m_cartesianClientLeftPort,  cartesianControlServerLeftPort,  "LEFT");
+    (void)connectWithRetry(m_cartesianClientRightPort, cartesianControlServerRightPort, "RIGHT");
 
     // ROS 2 service
     m_srvPointAt = m_node->create_service<cartesian_pointing_interfaces::srv::PointAt>(
@@ -275,66 +259,87 @@ bool CartesianPointingComponent::start(int argc, char* argv[])
             res->is_ok = true; res->error_msg = "";
         });
 
+    // Status query service: /CartesianPointingComponent/IsMotionDone
+    m_srvIsMotionDone = m_node->create_service<cartesian_pointing_interfaces::srv::IsMotionDone>(
+        "/CartesianPointingComponent/IsMotionDone",
+        [this](const std::shared_ptr<cartesian_pointing_interfaces::srv::IsMotionDone::Request>,
+               std::shared_ptr<cartesian_pointing_interfaces::srv::IsMotionDone::Response> res)
+        {
+            std::lock_guard<std::mutex> lk(m_flagMutex);
+            const bool done = !m_isPointing;
+            res->is_done = done;
+            res->is_ok   = true;
+        });
+
     // Map2D client
     {
-        yarp::os::Property p; p.put("device","map2D_nwc_yarp");
-        p.put("local","/cartesian_pointing_component/map2d_nwc");
-        p.put("remote","/map2D_nws_yarp");
-        if (!m_map2dDevice.open(p)) {
-            RCLCPP_ERROR(m_node->get_logger(),"Unable to open map2D_nwc_yarp"); return false;
+        const std::string local  = "/cartesian_pointing_component/map2d_nwc";
+        const std::string remote = "/map2D_nws_yarp";
+
+        RCLCPP_INFO(m_node->get_logger(),"Waiting for Map2D server '%s'...", remote.c_str());
+        int wait_ms = 0;
+        while (!yarp::os::Network::exists(remote) && wait_ms < 5000) { // wait up to 5s
+            std::this_thread::sleep_for(std::chrono::milliseconds(200));
+            wait_ms += 200;
         }
-        m_map2dDevice.view(m_map2dView);
+        if (!yarp::os::Network::exists(remote)) {
+            RCLCPP_WARN(m_node->get_logger(),"Map2D server '%s' not found, proceeding anyway", remote.c_str());
+        }
+
+        if (m_map2dClientDevice.isValid()) m_map2dClientDevice.close();
+
+        yarp::os::Property p;
+        p.put("device", "map2D_nwc_yarp");
+        p.put("local",  local);
+        p.put("remote", remote);
+
+        if (!m_map2dClientDevice.open(p)) {
+            RCLCPP_ERROR(m_node->get_logger(),"Unable to open map2D_nwc_yarp");
+            return false;
+        }
+        if (!m_map2dClientDevice.isValid()) {
+            RCLCPP_ERROR(m_node->get_logger(),"map2D_nwc_yarp opened but device is not valid");
+            m_map2dClientDevice.close();
+            return false;
+        }
+
+        m_map2dClientDevice.view(m_map2dView);
         if (!m_map2dView) {
-            RCLCPP_ERROR(m_node->get_logger(),"Unable to obtain IMap2D view"); return false;
+            RCLCPP_ERROR(m_node->get_logger(),"Unable to obtain IMap2D view");
+            m_map2dClientDevice.close();
+            return false;
         }
         RCLCPP_INFO(m_node->get_logger(),"Device map2D_nwc_yarp opened and IMap2D view obtained");
     }
 
-    // Resolve locations.ini path
-    std::string default_locations_file = "";
-    std::string source = "none";
-    if (const char* env = std::getenv("MAP2D_LOCATIONS_FILE")) {
-        default_locations_file = std::string(env);
-        source = "env MAP2D_LOCATIONS_FILE";
-        RCLCPP_INFO(m_node->get_logger(),"Default map2d_locations_file from %s: %s", source.c_str(), default_locations_file.c_str());
+    // Resolve locations.ini path from ROS parameter (passed via --ros-args -p map2d_locations_file:=<path>)
+    std::string locations_file = m_node->declare_parameter<std::string>("map2d_locations_file", "");
+    if (locations_file.empty()) {
+        RCLCPP_ERROR(m_node->get_logger(),
+                     "Required ROS param 'map2d_locations_file' not set; cannot read Map2D objects.");
+        return false;
     }
-    if (default_locations_file.empty()) {
-        const std::string fallback_path = "/usr/local/src/robot/tour-guide-robot/app/maps/locations.ini";
-        std::ifstream f(fallback_path);
-        if (f.good()) { default_locations_file = fallback_path; source = "fallback"; }
+    {
+        std::ifstream test_f(locations_file);
+        if (!test_f.is_open()) {
+            RCLCPP_ERROR(m_node->get_logger(),
+                         "Locations file '%s' not found or not readable.", locations_file.c_str());
+            return false;
+        }
     }
-    m_node->declare_parameter<std::string>("map2d_locations_file", default_locations_file);
-    std::string locations_file = "";
-    if (m_node->get_parameter("map2d_locations_file", locations_file) && !locations_file.empty())
-        source = "ROS param map2d_locations_file";
 
-    if (!locations_file.empty()) {
-        RCLCPP_INFO(m_node->get_logger(),"Using locations file '%s' (source: %s)", locations_file.c_str(), source.c_str());
+    RCLCPP_INFO(m_node->get_logger(),"Using locations file '%s'", locations_file.c_str());
 
-        std::string why; int ver = detectLocationsFileVersion(locations_file, &why);
-        if (ver >= 0) {
-            RCLCPP_INFO(m_node->get_logger(),"Detected locations.ini version: %d (path: %s)", ver, locations_file.c_str());
+    bool ok = false;
+    if (!ok) {
+        const size_t n = importObjectsSectionWithIMap2D(locations_file, m_map2dView, m_node->get_logger());
+        if (n > 0) {
+            RCLCPP_INFO(m_node->get_logger(),"Imported %zu Objects from '%s' using IMap2D::storeObject()", n, locations_file.c_str());
+            ok = true;
         } else {
-            RCLCPP_WARN(m_node->get_logger(),"Could not detect Version in '%s': %s", locations_file.c_str(), why.c_str());
+            RCLCPP_ERROR(m_node->get_logger(),"Failed to load any Objects from '%s'; aborting startup.", locations_file.c_str());
+            return false;
         }
-
-    // 1) Standard attempt via the IMap2D interface
-        bool ok = static_cast<bool>(m_map2dView->loadLocationsAndExtras(locations_file));
-        RCLCPP_INFO(m_node->get_logger(),"IMap2D.loadLocationsAndExtras('%s') -> %s",
-                    locations_file.c_str(), ok ? "ok" : "fail");
-
-    // 2) If it fails, try a compatibility import ONLY for Objects using storeObject
-        if (!ok) {
-            const size_t n = importObjectsSectionWithIMap2D(locations_file, m_map2dView, m_node->get_logger());
-            if (n > 0) {
-                RCLCPP_INFO(m_node->get_logger(),"Compat-imported %zu Objects from '%s' using IMap2D::storeObject()", n, locations_file.c_str());
-            } else {
-                RCLCPP_WARN(m_node->get_logger(),"No Objects compat-imported from '%s'", locations_file.c_str());
-            }
-        }
-    } else {
-        RCLCPP_INFO(m_node->get_logger(),
-                    "No locations.ini provided. Set ROS param 'map2d_locations_file' or env MAP2D_LOCATIONS_FILE to load objects at startup.");
     }
 
     // Log available objects
@@ -349,8 +354,8 @@ bool CartesianPointingComponent::start(int argc, char* argv[])
  * @return true on success.
  */
 bool CartesianPointingComponent::close() {
-    if (m_cartesianPortLeft.isOpen())  m_cartesianPortLeft.close();
-    if (m_cartesianPortRight.isOpen()) m_cartesianPortRight.close();
+    if (m_cartesianControlServerLeftPort.isOpen())  m_cartesianControlServerLeftPort.close();
+    if (m_cartesianControlServerRightPort.isOpen()) m_cartesianControlServerRightPort.close();
     rclcpp::shutdown();
     return true;
 }
@@ -446,33 +451,39 @@ void CartesianPointingComponent::logAvailableObjects()
         RCLCPP_WARN(m_node->get_logger(), "IMap2D view not available; cannot list objects");
         return;
     }
-    std::vector<yarp::dev::Nav2D::Map2DObject> allObjs;
-    if (m_map2dView->getAllObjects(allObjs)) {
-        RCLCPP_INFO(m_node->get_logger(),"Available objects (%zu)", allObjs.size());
-        if (allObjs.empty()) {
-            RCLCPP_INFO(m_node->get_logger(),"Hint: check locations.ini or compat-import.");
+    // Prefer retrieving names to print "name and coordinates"
+    std::vector<std::string> objNames;
+    if (m_map2dView->getObjectsList(objNames)) {
+        RCLCPP_INFO(m_node->get_logger(), "Available objects (%zu)", objNames.size());
+        if (objNames.empty()) {
+            RCLCPP_INFO(m_node->get_logger(), "Hint: check locations.ini or compat-import.");
         }
-        for (const auto& o : allObjs) {
-            RCLCPP_INFO(m_node->get_logger(),
-                        " - map='%s' x=%.3f y=%.3f z=%.3f  desc='%s'",
-                        o.map_id.c_str(), o.x, o.y, o.z, o.description.c_str());
-        }
-    } else {
-        std::vector<std::string> objNames;
-        if (!m_map2dView->getObjectsList(objNames)) {
-            RCLCPP_WARN(m_node->get_logger(), "IMap2D: unable to retrieve objects list");
-            return;
-        }
-        RCLCPP_INFO(m_node->get_logger(),"Available objects (%zu):", objNames.size());
         for (const auto& name : objNames) {
             yarp::dev::Nav2D::Map2DObject o;
             if (m_map2dView->getObject(name, o)) {
-                RCLCPP_INFO(m_node->get_logger(),
-                            " - %s: map='%s' x=%.3f y=%.3f z=%.3f",
-                            name.c_str(), o.map_id.c_str(), o.x, o.y, o.z);
+                // Print: object name and coordinates (no description)
+                RCLCPP_INFO(m_node->get_logger(), " - %s: x=%.3f y=%.3f z=%.3f",
+                            name.c_str(), o.x, o.y, o.z);
             }
         }
+        return;
     }
+
+    // Fallback: print without names if only the full objects list is available
+    std::vector<yarp::dev::Nav2D::Map2DObject> allObjs;
+    if (m_map2dView->getAllObjects(allObjs)) {
+        RCLCPP_INFO(m_node->get_logger(), "Available objects (%zu)", allObjs.size());
+        if (allObjs.empty()) {
+            RCLCPP_INFO(m_node->get_logger(), "Hint: check locations.ini or compat-import.");
+        }
+        for (const auto& o : allObjs) {
+            RCLCPP_INFO(m_node->get_logger(), " - x=%.3f y=%.3f z=%.3f",
+                        o.x, o.y, o.z);
+        }
+        return;
+    }
+
+    RCLCPP_WARN(m_node->get_logger(), "IMap2D: unable to retrieve objects list");
 }
 
 // ==============================================================
@@ -626,7 +637,7 @@ bool CartesianPointingComponent::waitMotionDone(yarp::os::Port* p, int poll_ms, 
  * @brief Core pointing task executed asynchronously upon PointAt service requests.
  *
  * Flow:
- *  1) Lookup target coordinates by name from Map2D (Object first, fallback to Location+default Z)
+ *  1) Lookup target coordinates by name from Map2D (Objects only)
  *  2) Transform target from map to base frame (if TF available)
  *  3) Choose a single arm (no switching) using torso-Y heuristic
  *  4) Compute a reachable goal and a natural orientation (palm-down, Z to target) with per-arm roll bias
@@ -636,7 +647,7 @@ bool CartesianPointingComponent::waitMotionDone(yarp::os::Port* p, int poll_ms, 
  */
 void CartesianPointingComponent::pointTask(const std::shared_ptr<cartesian_pointing_interfaces::srv::PointAt::Request> request)
 {
-    // 1) Try as OBJECT (3D x,y,z); if not present, fallback to LOCATION (2D) + default z
+    // 1) Try as OBJECT (3D x,y,z); if not present, abort (no fallback to Locations)
     double map_x=0, map_y=0, map_z=0;
     std::string map_frame;
     bool found=false;
@@ -650,17 +661,9 @@ void CartesianPointingComponent::pointTask(const std::shared_ptr<cartesian_point
         }
     }
     if (!found) {
-        yarp::dev::Nav2D::Map2DLocation loc;
-        if (!m_map2dView || !m_map2dView->getLocation(request->target_name, loc)) {
-            RCLCPP_WARN(m_node->get_logger(),"Map2D: target '%s' not found as Object or Location",
-                        request->target_name.c_str());
-            return;
-        }
-        double default_z = 1.2; (void)m_node->get_parameter("location_default_z", default_z);
-        map_x=loc.x; map_y=loc.y; map_z=default_z; map_frame=loc.map_id;
-        RCLCPP_INFO(m_node->get_logger(),
-                    "Target '%s' as LOCATION in map '%s': x=%.3f y=%.3f (z=default %.3f)",
-                    request->target_name.c_str(), map_frame.c_str(), map_x, map_y, map_z);
+        RCLCPP_ERROR(m_node->get_logger(), "Map2D: target '%s' not found as Object. Aborting.",
+                     request->target_name.c_str());
+        return;
     }
 
     // 2) Transform to base frame
@@ -685,8 +688,8 @@ void CartesianPointingComponent::pointTask(const std::shared_ptr<cartesian_point
 
     for (const auto& armEntry : armDist) {
         const std::string arm = armEntry.first;
-        yarp::os::Port* port = (arm=="LEFT") ? &m_cartesianPortLeft : &m_cartesianPortRight;
-        const std::string remote = (arm=="LEFT") ? cartesianPortLeft : cartesianPortRight;
+        yarp::os::Port* port = (arm=="LEFT") ? &m_cartesianControlServerLeftPort : &m_cartesianControlServerRightPort;
+        const std::string remote = (arm=="LEFT") ? cartesianControlServerLeftPort : cartesianControlServerRightPort;
         if (!port->isOpen() || !yarp::os::Network::isConnected(port->getName(), remote)) {
             RCLCPP_WARN(m_node->get_logger(),"ARM %s: port not ready, abort", arm.c_str());
             break;

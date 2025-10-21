@@ -42,6 +42,7 @@
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#include <cartesian_pointing_interfaces/srv/is_motion_done.hpp>
 
 #include <yarp/os/Network.h>
 #include <yarp/os/Port.h>
@@ -132,7 +133,6 @@ private:
      * @brief Retrieve a 4x4 homogeneous transform T(target ← source) from TF.
      *
      * The matrix maps points expressed in the source frame into the target frame:
-     * [p_target;1] = T * [p_source;1].
      *
      * @param[in] target Destination frame id.
      * @param[in] source Origin frame id.
@@ -164,9 +164,6 @@ private:
      * @return Clipped reachable point in base frame.
      */
     Eigen::Vector3d sphereReachPoint(const Eigen::Vector3d& shoulder_base, const Eigen::Vector3d& target_base) const;
-
-    // (Removed) JSON import helper; locations are now obtained directly from IMap2D
-
     /**
      * @brief Poll the controller with `is_motion_done` until motion ends or a timeout occurs.
      *
@@ -192,6 +189,7 @@ private:
     // ROS2 core
     rclcpp::Node::SharedPtr m_node;
     rclcpp::Service<cartesian_pointing_interfaces::srv::PointAt>::SharedPtr m_srvPointAt;
+    rclcpp::Service<cartesian_pointing_interfaces::srv::IsMotionDone>::SharedPtr m_srvIsMotionDone;
 
     /// TF2 utilities (persistent buffer + listener)
     std::unique_ptr<tf2_ros::Buffer> m_tfBuffer;
@@ -208,20 +206,30 @@ private:
     double m_minDist       {0.10};
 
     /// YARP cartesian controller server ports (must be running externally)
-    const std::string cartesianPortLeft  = "/cartesian-control/left_arm/rpc:i";
-    const std::string cartesianPortRight = "/cartesian-control/right_arm/rpc:i";
+    const std::string cartesianControlServerLeftPort  = "/cartesian-control/left_arm/rpc:i";
+    const std::string cartesianControlServerRightPort = "/cartesian-control/right_arm/rpc:i";
 
     /// Local client ports (this component talks through these)
-    std::string m_cartesianPortNameLeft  = "/CartesianPointingComponent/cartesianClientLeft/rpc";
-    std::string m_cartesianPortNameRight = "/CartesianPointingComponent/cartesianClientRight/rpc";
-    yarp::os::Port m_cartesianPortLeft;
-    yarp::os::Port m_cartesianPortRight;
+    std::string m_cartesianClientLeftPort  = "/CartesianPointingComponent/cartesianClientLeft/rpc";
+    std::string m_cartesianClientRightPort = "/CartesianPointingComponent/cartesianClientRight/rpc";
+    yarp::os::Port m_cartesianControlServerLeftPort;
+    yarp::os::Port m_cartesianControlServerRightPort;
 
     /// Map2D client device & view
-    yarp::dev::PolyDriver m_map2dDevice;
+    yarp::dev::PolyDriver m_map2dClientDevice;
     yarp::dev::Nav2D::IMap2D* m_map2dView = nullptr; // interface pointer
 
     /// Runtime flag: true while a pointing routine is active
     std::mutex m_flagMutex;
     bool m_isPointing {false};
+    
+    // Params
+    double left_roll_bias  = M_PI;
+    double right_roll_bias = 0.0;
+
+    // Connection policy for Cartesian controllers
+    //  - controller_connect_timeout_ms = 0 -> wait forever (legacy behavior)
+    //  - controller_connect_retry_ms   -> poll period
+    int connect_timeout_ms = 0;
+    int connect_retry_ms   = 300;
 };

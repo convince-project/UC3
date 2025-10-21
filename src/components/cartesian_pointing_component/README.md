@@ -9,14 +9,21 @@ A compact guide to build, run, and understand the geometry behind the pointing b
 ```bash
 colcon build --base-paths src/* --packages-up-to cartesian_pointing_component
 source install/setup.bash
-ros2 run cartesian_pointing_component cartesian_pointing_component
+
+# Option A: use the UC3 repository file (inside this repo)
+ros2 run cartesian_pointing_component cartesian_pointing_component \
+    --ros-args -p map2d_locations_file:=$PWD/config/locations.ini
+
+# Or pass your own absolute path to a file with an Objects: section
+# ros2 run cartesian_pointing_component cartesian_pointing_component \
+#   --ros-args -p map2d_locations_file:=/absolute/path/to/locations.ini
 ```
 
 Depends on:
 
 * ROS 2 (rclcpp, tf2, tf2_ros)
 * YARP (ports + Map2D_nwc_yarp)
-* Eigen, nlohmann/json
+* Eigen
 
 Make sure the Cartesian controllers are running and their RPC ports exist:
 
@@ -36,6 +43,52 @@ Response: bool   is_ok
 ```
 
 The callback is **non‑blocking**: the service returns immediately and the task runs in a detached thread.
+
+---
+
+## Motion status API
+
+- Service: `/CartesianPointingComponent/IsMotionDone` (cartesian_pointing_interfaces/IsMotionDone)
+    - Risposta:
+        - `is_done=false` finché un movimento è in corso
+        - `is_done=true` quando il movimento è finito (o non ce n’è nessuno attivo)
+        - `is_ok` indica l’esito della query (true se la lettura è andata a buon fine)
+
+---
+
+## Map2D input file (Objects only)
+
+At startup, the component imports the Objects section from the file passed via the ROS parameter `map2d_locations_file`.
+
+- Supported lines in the `Objects:` section:
+    - `name ( map x y z [roll pitch yaw "desc"] )`
+    - `name map x y z [anything...]`
+- Only `map` and `x y z` are used. Orientation (roll/pitch/yaw) and description are ignored.
+- Empty lines and lines starting with `#` are ignored.
+
+Example:
+
+```
+Objects:
+inizio            map 3.0   -0.3  1.5  "punto di inizio tour"
+quadro_principale map 1.058 -3.0  1.505 "opera principale"
+scultura_est      map 4.0    5.0  8.0
+dipinto_ovest     map 7.0    7.0  4.0
+```
+
+At startup you should see a summary like:
+
+```
+[INFO] [...] Available objects (4)
+[INFO] [...]  - inizio: x=3.000 y=-0.300 z=1.500
+[INFO] [...]  - quadro_principale: x=1.058 y=-3.000 z=1.505
+[INFO] [...]  - scultura_est: x=4.000 y=5.000 z=8.000
+[INFO] [...]  - dipinto_ovest: x=7.000 y=7.000 z=4.000
+```
+
+Notes:
+- Only Objects are imported by this component. Targets must exist in the `Objects` section; there is no fallback to `Locations`.
+    At the moment no default locations.ini is installed with the package; pass an explicit file path (e.g., the repo-level `config/locations.ini`).
 
 ---
 
@@ -121,6 +174,7 @@ go_to_pose( p_goal, q_cmd, duration )
 * `minDist`      (default ~0.10 m): avoid singular/too‑close configurations.
 * `left_roll_bias_rad`  (default π): extra roll for LEFT palm frame.
 * `right_roll_bias_rad` (default 0): extra roll for RIGHT palm frame.
+* `map2d_locations_file` (required): absolute path to a file containing an `Objects:` section.
 * Trajectory: duration and polling/timeout are constants in the source (see `kTrajDurationSec`, `kPollMs`, `kTimeoutMs`).
 
 ---
@@ -136,8 +190,8 @@ go_to_pose( p_goal, q_cmd, duration )
 ## Troubleshooting
 
 * **No reply to service**: check the node is running and Map2D has the object.
+* **No objects listed at startup**: verify `map2d_locations_file` points to a readable file and that it contains a valid `Objects:` section.
 * **TF warnings (map→base)**: start the TF broadcasters. Without TF the node will still run using map coords as base.
-* **`go_to_pose` rejected**: controller not in `Stop` or pose invalid. The node sends `stop` before each goal; verify controller state and limits.
 * **Timeout waiting motion**: tune `kTimeoutMs`, inspect joint limits/obstacles, or reduce target distance.
 * **Left palm looks flipped**: increase/decrease `left_roll_bias_rad` (typical value π).
 
