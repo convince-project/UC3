@@ -49,48 +49,47 @@ The callback is **non‑blocking**: the service returns immediately and the task
 ## Motion status API
 
 - Service: `/CartesianPointingComponent/IsMotionDone` (cartesian_pointing_interfaces/IsMotionDone)
-    - Risposta:
-        - `is_done=false` finché un movimento è in corso
-        - `is_done=true` quando il movimento è finito (o non ce n’è nessuno attivo)
-        - `is_ok` indica l’esito della query (true se la lettura è andata a buon fine)
+    - Response:
+        - `is_done=false` while a motion is in progress
+        - `is_done=true` when the motion has finished (or when no motion is active)
+        - `is_ok` indicates the query result (true if the read succeeded)
 
 ---
 
-## Map2D input file (Objects only)
+## How to call the services (CLI)
 
+You can use the ROS 2 command line to interact with the component.
+
+List available services and verify types:
+
+```bash
+ros2 service list | grep CartesianPointingComponent
+ros2 service type /CartesianPointingComponent/PointAt
+ros2 service type /CartesianPointingComponent/IsMotionDone
+```
+
+Call PointAt with a target name (must exist in the Objects list):
+
+```bash
+ros2 service call /CartesianPointingComponent/PointAt \
+    cartesian_pointing_interfaces/srv/PointAt "{target_name: 'main_painting'}"
+```
+
+Query motion status (empty request):
+
+```bash
+ros2 service call /CartesianPointingComponent/IsMotionDone \
+    cartesian_pointing_interfaces/srv/IsMotionDone "{}"
+```
+
+```bash
+# 1) Trigger motion
+ros2 service call /CartesianPointingComponent/PointAt \
+    cartesian_pointing_interfaces/srv/PointAt "{target_name: 'main_painting'}"
+
+```
 At startup, the component imports the Objects section from the file passed via the ROS parameter `map2d_locations_file`.
 
-- Supported lines in the `Objects:` section:
-    - `name ( map x y z [roll pitch yaw "desc"] )`
-    - `name map x y z [anything...]`
-- Only `map` and `x y z` are used. Orientation (roll/pitch/yaw) and description are ignored.
-- Empty lines and lines starting with `#` are ignored.
-
-Example:
-
-```
-Objects:
-inizio            map 3.0   -0.3  1.5  "punto di inizio tour"
-quadro_principale map 1.058 -3.0  1.505 "opera principale"
-scultura_est      map 4.0    5.0  8.0
-dipinto_ovest     map 7.0    7.0  4.0
-```
-
-At startup you should see a summary like:
-
-```
-[INFO] [...] Available objects (4)
-[INFO] [...]  - inizio: x=3.000 y=-0.300 z=1.500
-[INFO] [...]  - quadro_principale: x=1.058 y=-3.000 z=1.505
-[INFO] [...]  - scultura_est: x=4.000 y=5.000 z=8.000
-[INFO] [...]  - dipinto_ovest: x=7.000 y=7.000 z=4.000
-```
-
-Notes:
-- Only Objects are imported by this component. Targets must exist in the `Objects` section; there is no fallback to `Locations`.
-    At the moment no default locations.ini is installed with the package; pass an explicit file path (e.g., the repo-level `config/locations.ini`).
-
----
 
 ## YARP RPC expected (controller side)
 
@@ -117,7 +116,6 @@ The component sends these commands to the controller RPC port:
 
 ---
 
-## Math (compact, copy‑friendly)
 
 ### Reach point on the shoulder→target line (clamped)
 
@@ -179,13 +177,6 @@ go_to_pose( p_goal, q_cmd, duration )
 
 ---
 
-## Degenerate cases (handled)
-
-* **Target at shoulder**: use identity quaternion and shoulder position to avoid NaNs.
-* **Down ∥ z_ee**: if the projection length is tiny, pick any axis not collinear with `z_ee` (e.g., X or Y), then re‑orthogonalize.
-* **Numerical tiny cross**: if `x_ee` is almost zero after the cross, use `z_ee.unitOrthogonal()` and recompute `y_ee` as `z_ee × x_ee`.
-
----
 
 ## Troubleshooting
 

@@ -89,7 +89,7 @@ static size_t importObjectsSectionWithIMap2D(
 
         // Wait until we encounter the "Objects:" header
         if (!inObjects) {
-            if (line == "Objects:" || line == "Objects") inObjects = true;
+            if (line == "Objects:") inObjects = true;
             continue;
         }
 
