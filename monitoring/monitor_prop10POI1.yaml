@@ -1,0 +1,24 @@
+path: /home/user1/UC3/monitoring/monitor_propPOI1_ws/src  # this is the path to the ros workspace you'd like the monitor package in
+
+monitors: # here we list the monitors we are going to generate
+  - monitor:
+      id: monitor_propPOI1
+      log: ./log.txt # file where the monitor will log the observed events
+      silent: False # we let the monitor to print info during its execution
+      oracle: # the oracle running and ready to check the specification (localhost in this case)
+        port: 8051 # the port where it is listening
+        url: 127.0.0.1 # the url where it is listening
+        action: nothing # the oracle will not change the message
+      topics: # the list of topics this monitor is going to intercept
+        - name: /SchedulerComponent/GetCurrentPoi/_service_event #selected
+          type: scheduler_interfaces.srv.GetCurrentPoi_Event
+          action: log
+        - name: /BlackboardComponent/GetInt/_service_event #completed
+          type: blackboard_interfaces.srv.GetIntBlackboard_Event
+          action: log
+        - name: /monitoring_clock
+          type: builtin_interfaces.msg.Time
+          action: log
+        - name: /SchedulerComponent/Reset/_service_event #reset
+          type: scheduler_interfaces.srv.Reset_Event
+          action: log

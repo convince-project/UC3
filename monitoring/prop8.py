@@ -1,12 +1,12 @@
-# property to verify
+# property to verify: wheels in hardware fault
 """
-H(not critical_battery)
+H(not wheel_hardware_fault)
 """
-PROPERTY = r"historically(not {critical_battery})"
+PROPERTY = r"(not {wheel_hardware_fault})"
 
 # predicates used in the property (initialization for time 0)
 predicates = dict(
-    critical_battery = False,
+    wheel_hardware_fault = False,
     time = 0,
 )
 
@@ -17,13 +17,20 @@ def abstract_message(message):
     else:
         predicates['time'] = message['time']
 
-    if "topic" in message and "battery" in message['topic']:
-        battery_status = float(message.get('percentage', 100))
-        predicates['critical_battery'] = battery_status <= 10
-        print("battery status", battery_status, "critical:", predicates['critical_battery'])
+
+    # Accesso ai primi due dati dell'array
+    if "topic" in message and "controlModes" in message['topic']:
+        if "data" in message and len(message['data']) >= 2:
+            first_data = message['data'][0]
+            second_data = message['data'][1]
+            print(f"Primi due dati: {first_data}, {second_data}")
         
-    if "topic" in message and "/moniitoring_clock" in message['topic']:
-        predicates['alarm'] = False
-    # print("predicates", predicates)
-    # print("message", message)
+            # Esempio: usa i primi due dati per impostare wheel_hardware_fault
+            # Puoi modificare questa logica secondo le tue necessità
+            predicates['wheel_hardware_fault'] = first_data == 104 or second_data == 104
+
+    print("predicates", predicates)
+    print("message", message)
+
     return predicates
+
