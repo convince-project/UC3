@@ -9,6 +9,7 @@ RUN apt-get update
 RUN apt-get install -y libczmq-dev ros-jazzy-zmqpp-vendor-dbgsym ros-jazzy-zmqpp-vendor libczmq-dev libczmq4 curl 
 
 RUN apt install qtbase5-dev libqt5svg5-dev libzmq3-dev libdw-dev libboost-all-dev -y
+RUN apt-get clean
 
 RUN usermod -a -G audio user1
 # install behavior tree.cpp v3.8
