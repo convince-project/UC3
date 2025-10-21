@@ -20,7 +20,7 @@ using namespace std::chrono_literals;
 
 void CheckNetworkComponent::set_name(std::string name)
 {
-    m_name=name; 
+    m_name=name;
 }
 
 bool CheckNetworkComponent::setup(int argc, char* argv[])
@@ -29,7 +29,7 @@ bool CheckNetworkComponent::setup(int argc, char* argv[])
     {
         rclcpp::init(argc , argv);
     }
-    
+
     m_node = rclcpp::Node::make_shared(m_name);
     m_address_name = "192.168.100.103";
     m_publisherStatus = m_node->create_publisher<std_msgs::msg::Bool>("/CheckNetworkComponent/NetworkStatus", 10);
@@ -48,28 +48,27 @@ void CheckNetworkComponent::threadConnected() {
     while(m_threadActive) {
         bool networkIsCurrentlyUp=true;
         m_is_connected = isNetworkConnected(m_address_name);
-	std::cout << "m_is_connected " << m_is_connected << " m_lastStatus.size() "  <<  m_lastStatus.size() << std::endl;
+	    RCLCPP_DEBUG(m_node->get_logger(), "m_is_connected %d m_lastStatus.size() %d", m_is_connected, m_lastStatus.size());
         if (m_lastStatus.size() < 5) {
             m_changed = false;
             m_lastStatus.push_back(m_is_connected);
         } else {
             int countFalse = 0;
             for (auto status : m_lastStatus) {
-		std::cout << status << " ";
+                RCLCPP_DEBUG(m_node->get_logger(), "status %d", status);
                 if (status == false) {
                     countFalse++;
                 }
             }
-	    std::cout << std::endl;
             if (countFalse > 3) {
                 networkIsCurrentlyUp = false;
             }
             m_lastStatus.clear();
-	    std::cout << "m_previousStatusConnected " << m_previousStatusConnected << " networkIsCurrentlyUp " <<  networkIsCurrentlyUp << std::endl; 
+            RCLCPP_DEBUG(m_node->get_logger(), "m_previousStatusConnected %d networkIsCurrentlyUp %d", m_previousStatusConnected, networkIsCurrentlyUp);
             if (m_previousStatusConnected != networkIsCurrentlyUp) {
                 m_changed = true;
             } else {
-	        m_changed=false;
+                m_changed = false;
 	    }
             m_previousStatusConnected = networkIsCurrentlyUp;
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -93,9 +92,9 @@ void CheckNetworkComponent::spin()
 }
 
 bool CheckNetworkComponent::start() {
-    std::cout << "Before spinning" << std::endl;
-    spin();  
-    std::cout << "Finished spinning" << std::endl;
+    RCLCPP_DEBUG(m_node->get_logger(), "Before spinning");
+    spin();
+    RCLCPP_DEBUG(m_node->get_logger(), "Finished spinning");
     close();
     return true;
 }
@@ -119,9 +118,9 @@ bool CheckNetworkComponent::isNetworkConnected(const std::string& host) {
     std::string ping_output = exec(ping_command.c_str());
     //std::cout << "ping_output\n" << ping_output << std::endl;
 
-    if(ping_output.find("Temporary failure in name resolution") != std::string::npos  || 
+    if(ping_output.find("Temporary failure in name resolution") != std::string::npos  ||
         ping_output.find("Name or service not known") != std::string::npos ){
-        std::cout << "I am not connected to internet!" << std::endl;
+        RCLCPP_DEBUG(m_node->get_logger(), "Internet connection absent");
         return false;
     }
 
@@ -154,25 +153,25 @@ bool CheckNetworkComponent::isNetworkConnected(const std::string& host) {
     std::smatch match_ttl;
 
     if(std::regex_search(packets_summary_line, match_packets, rgx_packets))
-        std::cout << "matchmatch_packets, :" << match_packets[1] << std::endl;
+        RCLCPP_DEBUG(m_node->get_logger(), "match match_packets: %d", match_packets[1]);
 
-    double rtt = 0.0; 
+    double rtt = 0.0;
     bool match_ttl_found = std::regex_search(rtt_summary_line,match_ttl,rgx_ttl);
     if (match_ttl_found){
-		    
+
 	rtt = stod(match_ttl[1]);
-        std::cout << "match match_ttl: " << match_ttl[1] << std::endl;
+        RCLCPP_DEBUG(m_node->get_logger(), "match match_ttl: %d", match_ttl[1]);
     }
-    std::cout << "found " << match_ttl_found <<  "match: " << match_ttl[1] << std::endl;
+    RCLCPP_DEBUG(m_node->get_logger(), "found %d match: %d", match_ttl_found, match_ttl[1]);
     double packet_loss = stod(match_packets[1]);
 
     if(packet_loss < 100.){
 	if (!match_ttl_found) {
 	    is_connected = false;
-	} else {	
+	} else {
         if(rtt < threshold)
             is_connected = true;
-        else 
+        else
             is_connected = false;
 	}
     }
@@ -186,7 +185,7 @@ bool CheckNetworkComponent::isNetworkConnected(const std::string& host) {
 }
 
 std::string CheckNetworkComponent::exec(const char* cmd) {
-    
+
     std::array<char, 128> buffer;
     std::string result; //The ping output string
     std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
