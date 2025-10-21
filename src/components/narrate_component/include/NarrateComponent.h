@@ -34,6 +34,7 @@
 #include <rclcpp_action/rclcpp_action.hpp>
 
 #include "VerbalOutputBatchReader.hpp"
+#include "SafeVector.h"
 
 #define SERVICE_TIMEOUT 2
 
@@ -79,7 +80,7 @@ private:
      * @return true if the request was sent successfully
      * @return false if the request failed
      */
-    bool _sendForBatchSynthesis(const std::vector<std::string>& texts);
+    bool _sendForBatchSynthesis(const StringSafeVector& texts);
 
     /**
      * @brief Tries to extract a point action target from the given string
@@ -105,8 +106,8 @@ private:
     // rclcpp::Client<text_to_speech_interfaces::srv::Speak>::SharedPtr m_speakClient;
     int m_seconds_left;
     size_t m_toSend;
-    std::vector<std::string> m_speakBuffer;
-    std::vector<std::string> m_danceBuffer;
+    StringSafeVector m_speakBuffer;
+    StringSafeVector m_danceBuffer;
     int32_t m_currentPoi;
     bool m_doneWithPoi{false};
     bool m_isSpeaking{false};

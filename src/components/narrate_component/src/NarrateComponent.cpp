@@ -116,10 +116,10 @@ void NarrateComponent::_waitForPlayerStatus(bool discriminator)
         {
             keepOnWaiting = discriminator;
         }
-    } while (keepOnWaiting);
+    } while (keepOnWaiting && !m_stopped);
 }
 
-bool NarrateComponent::_sendForBatchSynthesis(const std::vector<std::string>& texts)
+bool NarrateComponent::_sendForBatchSynthesis(const StringSafeVector& texts)
 {
     if (!m_clientSynthesizeTexts)
     {
@@ -133,7 +133,7 @@ bool NarrateComponent::_sendForBatchSynthesis(const std::vector<std::string>& te
     }
 
     auto goal_msg = ActionSynthesizeTexts::Goal();
-    goal_msg.texts = texts;
+    goal_msg.texts = std::move(texts.copy());
 
     RCLCPP_INFO(m_node->get_logger(), "Sending goal");
 
