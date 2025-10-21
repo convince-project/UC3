@@ -5,6 +5,7 @@ from std_msgs.msg import String
 import time
 import threading
 import re
+import signal
 try:
     import tkinter as tk
 except Exception:
@@ -18,15 +19,16 @@ class MultiMonitor(Node):
         self.property_formulas = {
             'prop1': 'historically({high_battery} -> historically( not {alarm}))',
             'prop2': 'historically(({alarm} -> once{low_battery}) and not( not {alarm} since[5:] {low_battery}))',
-            'prop3': 'historically(once[5:]{t} -> once[:5]{battery_published})',
-            'prop5': 'historically(once[7:]{t} -> once[:7]{people_following_published})',
-            'prop6': 'historically(once[5:]{t} -> once[:3]{camera_published})',
-            'prop7': 'historically(not {critical_battery})',
+            'prop3': '(once[5:]{t} -> once[:5]{battery_published})',
+            'prop4': 'historically(({poi1_selected} -> once( not {poi1_completed})) and not( not {poi1_selected} since [50:] not {poi1_completed}))',
+            'prop5': '(once[7:]{t} -> once[:7]{people_following_published})',
+            'prop6': '(once[5:]{t} -> once[:3]{camera_published})',
+            'prop7': '(not {critical_battery})',
             'prop8': '(not {wheel_hardware_fault})',
             'prop9': '(not {hardware_fault})',
             'prop10POI': 'historically( ({poi1_completed} -> {poi1_selected}) and ({poi1_selected} -> ( not( ((not {poi1_completed}) and {poi1_selected}) since[50:] {poi1_sel_start} ))))',
             'prop11': '({well_localized})',
-            'prop12': 'TBD - da definire'
+            'prop12': '( {is_recording} -> (not {is_unplagged}) )'
         }
 
         # Elenco dei topic da monitorare (modifica i nomi come servono)
@@ -35,7 +37,7 @@ class MultiMonitor(Node):
             '/monitor_prop1/monitor_verdict',
             '/monitor_prop2/monitor_verdict',
             '/monitor_prop3/monitor_verdict',
-
+            '/monitor_prop4/monitor_verdict',
             '/monitor_prop5/monitor_verdict',
             '/monitor_prop6/monitor_verdict',
             '/monitor_prop7/monitor_verdict',
@@ -148,6 +150,38 @@ class MultiMonitor(Node):
 def main(args=None):
     rclpy.init(args=args)
     node = MultiMonitor()
+    # holder for GUI reference so signal handler can close it
+    gui_holder = {'gui': None}
+
+    # Register signal handlers so external managers (e.g. yarpmanager) can stop this process
+    # gracefully by sending SIGTERM/SIGINT instead of forcing a kill.
+    def _graceful_shutdown(signum, frame):
+        try:
+            node.get_logger().info(f"Signal {signum} received, shutting down...")
+        except Exception:
+            pass
+        # try to close GUI if running
+        try:
+            g = gui_holder.get('gui')
+            if g is not None:
+                try:
+                    g.root.quit()
+                except Exception:
+                    pass
+        except Exception:
+            pass
+        # Destroy ROS node and shutdown rclpy
+        try:
+            node.destroy_node()
+        except Exception:
+            pass
+        try:
+            rclpy.shutdown()
+        except Exception:
+            pass
+
+    signal.signal(signal.SIGTERM, _graceful_shutdown)
+    signal.signal(signal.SIGINT, _graceful_shutdown)
 
     # If tkinter is not available, fallback to headless behavior
     if tk is None:
@@ -314,11 +348,13 @@ def main(args=None):
             self.root.after(0, self.update_ui)
             self.root.mainloop()
 
-    # Start rclpy spin in background thread
-    spin_thread = threading.Thread(target=rclpy.spin, args=(node,), daemon=True)
+    # Start rclpy spin in background thread (non-daemon so we can join on shutdown)
+    spin_thread = threading.Thread(target=rclpy.spin, args=(node,), daemon=False)
     spin_thread.start()
 
     gui = MonitorGUI(node)
+    # expose gui to signal handler so it can be closed externally
+    gui_holder['gui'] = gui
     try:
         gui.run()
     except KeyboardInterrupt:
