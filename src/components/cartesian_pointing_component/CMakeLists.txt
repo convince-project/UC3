@@ -13,15 +13,11 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(geometry_msgs REQUIRED)
-find_package(visualization_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
-find_package(dance_interfaces REQUIRED)
 find_package(cartesian_pointing_interfaces REQUIRED)
-find_package(execute_dance_interfaces REQUIRED)
 find_package(Eigen3 REQUIRED)
-find_package(nlohmann_json REQUIRED)
 find_package(YARP 3.7 REQUIRED COMPONENTS os dev)
 
 # Target
@@ -41,13 +37,10 @@ target_include_directories(${PROJECT_NAME}
 ament_target_dependencies(${PROJECT_NAME}
   rclcpp
   geometry_msgs
-  visualization_msgs
   tf2
   tf2_ros
   tf2_geometry_msgs
   cartesian_pointing_interfaces
-  execute_dance_interfaces
-  nlohmann_json
 )
 
 # Link other libraries (YARP, Eigen)
@@ -63,6 +56,7 @@ install(TARGETS ${PROJECT_NAME}
 install(DIRECTORY include/
   DESTINATION include
 )
+
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
