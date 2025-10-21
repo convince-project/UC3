@@ -309,6 +309,7 @@
     <transition event="DialogComponent.InterpretCommand.Return" target="interpretCommandResult">
       <assign expr="_event.data.result" location="m_result"/>
       <assign expr="_event.data.reply" location="m_reply"/>
+      <assign expr="_event.data.dance" location="m_dance"/>
       <assign expr="_event.data.is_reply_finished" location="m_is_reply_finished"/>
     </transition>
   </state>

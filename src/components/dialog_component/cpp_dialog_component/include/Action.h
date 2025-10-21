@@ -55,9 +55,10 @@ private:
     bool m_isBlocking{true};
     ActionTypes m_type{ActionTypes::INVALID};
     std::string m_param;
+    std::string m_dance; // only for dance actions, the name of the dance to be performed
 
 public:
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Action, m_type, m_isBlocking, m_param)
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Action, m_type, m_isBlocking, m_param, m_dance)
 
     /**
      * Invalid constructor
@@ -71,7 +72,7 @@ public:
      * @param isBlocking true if the action is blocking
      * @param param the Action parameter
      */
-    Action(ActionTypes type, bool isBlocking, std::string param);
+    Action(ActionTypes type, bool isBlocking, std::string param, std::string dance);
 
     /**
      * Copy constructor.
@@ -99,6 +100,7 @@ public:
     [[nodiscard]] bool isBlocking() const;
     [[nodiscard]] ActionTypes getType() const;
     [[nodiscard]] std::string getParam() const;
+    [[nodiscard]] std::string getDance() const;
 };
 
 #endif // BEHAVIOR_TOUR_ROBOT_ACTION_H

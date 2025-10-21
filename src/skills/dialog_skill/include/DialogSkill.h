@@ -94,10 +94,11 @@ private:
 
 	std::shared_ptr<rclcpp::executors::SingleThreadedExecutor> m_SynthesizeTextExecutor;
 	QThread* m_SynthesizeTextThread = nullptr;
+	
+	// save the vector of pairs <text,dance> for the synthesis
+	std::vector<std::pair<std::string, std::string>> m_replies;
 
-	// save the vector of text for the reply
-	std::vector<std::string> m_replies;
-
+	std::string m_LlmGeneratedDance;
 
 };
 

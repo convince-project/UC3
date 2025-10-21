@@ -19,6 +19,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(dance_interfaces REQUIRED)
 find_package(execute_dance_interfaces REQUIRED)
+find_package(text_to_speech_interfaces REQUIRED)
 find_package(YARP 3.7 REQUIRED COMPONENTS dev os)
 
 add_executable(${PROJECT_NAME} )
