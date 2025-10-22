@@ -958,13 +958,13 @@
                 "m_isBlocking": false,
                 "m_param": "Perfetto! La sala è stata decorata tra il millesettecentootto e il millesettecentoquindici. Ora guarda in alto! La decorazione in stucco bianco presenta trofei d’armi inseriti agli angoli della volta che alludono alla destinazione dell’ambiente presidiato dalle guardie del corpo della duchessa: armature, lance, frecce, cannoni, scudi, trombe alludono al mondo della guerra e dei soldati.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": "point::scultura_est"
               },
               {
                 "m_isBlocking": false,
                 "m_param": "Nel profilo ondulato del cornicione si alternano quattro aquile con la croce di Savoia nel petto e la pianta di fritillaria, emblema di Madama Reale: si tratta di una pianta della famiglia dei gigli con grandi fiori arancioni. Lo zoccolo e le sovrapporte in stucco furono eseguiti nel millenovecentoventisette con calchi in gesso tratti dalle decorazioni della Reggia di Venaria Reale.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": "point::dipinto_ovest"
               },
               {
                 "m_isBlocking": false,

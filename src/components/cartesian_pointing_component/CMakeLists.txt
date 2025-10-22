@@ -17,6 +17,7 @@ find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(cartesian_pointing_interfaces REQUIRED)
+find_package(execute_dance_interfaces REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(YARP 3.7 REQUIRED COMPONENTS os dev)
 
@@ -41,6 +42,7 @@ ament_target_dependencies(${PROJECT_NAME}
   tf2_ros
   tf2_geometry_msgs
   cartesian_pointing_interfaces
+  execute_dance_interfaces
 )
 
 # Link other libraries (YARP, Eigen)

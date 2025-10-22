@@ -1395,9 +1395,11 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
     std::cout << "[DialogComponent::SpeakFromAudio] Speak ended" << std::endl;
 
     // Reset dance if it was not a pointing action
-    if (dance.find("point") == std::string::npos)
+    ResetDance();
+    if (dance.find("point") != std::string::npos)
     {
-        ResetDance();
+        // Go back to navigation position after pointing
+        WaitForPointingEnd();
     }
 
     m_predefined_answer_index++; // Reset the index of the predefined answer
@@ -1420,3 +1422,32 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
 }
 
 // Speak action fragment of code end
+
+void DialogComponent::WaitForPointingEnd() {
+    auto isMotionDoneClientNode = rclcpp::Node::make_shared("DialogComponentMotionDoneNode");
+    auto isMotionDoneClient = isMotionDoneClientNode->create_client<cartesian_pointing_interfaces::srv::IsMotionDone>("/CartesianPointingComponent/IsMotionDone");
+    auto isMotionDoneRequest = std::make_shared<cartesian_pointing_interfaces::srv::IsMotionDone::Request>();
+    while (!isMotionDoneClient->wait_for_service(std::chrono::milliseconds(100)))
+    {
+        if (!rclcpp::ok())
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'isMotionDoneClient'. Exiting.");
+        }
+    }
+
+    bool isMotionDone;
+    int counter = 0;
+    do
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        // calls the isMotionDone service
+
+        auto isMotionDoneResult = isMotionDoneClient->async_send_request(isMotionDoneRequest);
+        auto futureIsMotionDoneResult = rclcpp::spin_until_future_complete(isMotionDoneClientNode, isMotionDoneResult);
+        auto isMotionDoneResponse = isMotionDoneResult.get();
+        isMotionDone = isMotionDoneResponse->is_done;
+
+        yInfo() << "IsMotionDone " << isMotionDone << __LINE__ << counter++;
+
+    } while (!isMotionDone);
+}
