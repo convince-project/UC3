@@ -19,24 +19,26 @@ bool NarrateComponent::configureYARP(yarp::os::ResourceFinder &rf)
         if (component_config.check("local-suffix"))
         {
             std::string local_suffix = component_config.find("local-suffix").asString();
-            m_outSoundPort.open("/NarrateComponent" + local_suffix + "/outSound:o");
+            m_outSoundPort.open("/NarrateComponent" + local_suffix + "/sound:o");
             m_playerStatusInPort.open("/NarrateComponent" + local_suffix + "/playerStatus:i");
+            m_inSoundPort.open("/NarrateComponent" + local_suffix + "/sound:i");
         }
         else
         {
-            m_outSoundPort.open("/NarrateComponent/outSound:o");
+            m_outSoundPort.open("/NarrateComponent/sound:o");
             m_playerStatusInPort.open("/NarrateComponent/playerStatus:i");
+            m_inSoundPort.open("/NarrateComponent/sound:i");
         }
     }
     else
     {
-        m_outSoundPort.open("/NarrateComponent/outSound:o");
+        m_outSoundPort.open("/NarrateComponent/sound:o");
         m_playerStatusInPort.open("/NarrateComponent/playerStatus:i");
+        m_inSoundPort.open("/NarrateComponent/sound:i");
     }
 
     // Set the queue for the VerbalOutputBatchReader
     m_verbalOutputBatchReader.setSoundQueue(&m_soundQueue);
-    m_outSoundPort.useCallback(m_verbalOutputBatchReader);
 
     // Set the ports for the SoundConsumerThread
     // if (!m_soundConsumerThread.setPorts(&m_outSoundPort, &m_playerStatusInPort))
@@ -188,8 +190,6 @@ void NarrateComponent::_resetDance()
 // Execute Pointing action service client
 void NarrateComponent::_executePointing(std::string pointingTarget)
 {
-
-    // ---------------------------------Text to Speech Service SPEAK------------------------------
     yInfo() << "[NarrateComponent::_executePointing] Starting Cartesian Pointing Service";
     auto executePointingClientNode = rclcpp::Node::make_shared("NarrateCartesianPointingComponentPointTaskNode");
 
@@ -260,7 +260,7 @@ void NarrateComponent::_executeDance(std::string danceName, float estimatedSpeec
 
 void NarrateComponent::_speakTask() {
     RCLCPP_INFO_STREAM(m_node->get_logger(), "New Speak Thread ");
-    m_speakTask = true;
+    m_inSoundPort.useCallback(m_verbalOutputBatchReader);
     do{
         _waitForPlayerStatus(false);
         yarp::sig::Sound sound;
@@ -277,6 +277,10 @@ void NarrateComponent::_speakTask() {
 
     } while(!m_stopped && (!m_soundQueue.isEmpty() || m_toSend > 0));
 
+    _waitForPlayerStatus(false);
+    _resetDance();
+
+    m_inSoundPort.disableCallback();
     m_speakTask = false;
 }
 
@@ -291,18 +295,25 @@ void NarrateComponent::_narrateTask(const std::shared_ptr<narrate_interfaces::sr
         while (!setCommandClient->wait_for_service(std::chrono::seconds(1))) {
             if (!rclcpp::ok()) {
                 RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setCommandClient'. Exiting.");
+                m_speakTask = false;
+                m_errorOccurred = true;
+                return;
             }
         }
         auto setCommandResult = setCommandClient->async_send_request(setCommandRequest);
         auto futureSetCommandResult = rclcpp::spin_until_future_complete(setCommandClientNode, setCommandResult);
         if (futureSetCommandResult != rclcpp::FutureReturnCode::SUCCESS) {
             RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), "Error in SetCommand service");
+            m_speakTask = false;
+            m_errorOccurred = true;
             return;
         }
         auto setCommandResponse = setCommandResult.get();
         if (setCommandResponse->is_ok == false) {
             RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), "Error in SetCommand service" << setCommandResponse->error_msg);
-
+            m_speakTask = false;
+            m_errorOccurred = true;
+            return;
         }
         bool doneWithPoi = false;
 
@@ -321,6 +332,7 @@ void NarrateComponent::_narrateTask(const std::shared_ptr<narrate_interfaces::sr
                 if (!rclcpp::ok()) {
                     RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'getCurrentActionClient'. Exiting.");
                     m_errorOccurred = true;
+                    m_speakTask = false;
                     return;
                 }
             }
@@ -329,6 +341,7 @@ void NarrateComponent::_narrateTask(const std::shared_ptr<narrate_interfaces::sr
             if (futureGetCurrentActionResult != rclcpp::FutureReturnCode::SUCCESS) {
                 RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), "Error in GetCurrentAction service");
                 m_errorOccurred = true;
+                m_speakTask = false;
                 return;
             }
             auto currentAction = getCurrentActionResult.get();
@@ -354,6 +367,7 @@ void NarrateComponent::_narrateTask(const std::shared_ptr<narrate_interfaces::sr
                 if (!rclcpp::ok()) {
                     RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'updateActionClient'. Exiting.");
                     m_errorOccurred = true;
+                    m_speakTask = false;
                     return;
                 }
             }
@@ -362,6 +376,7 @@ void NarrateComponent::_narrateTask(const std::shared_ptr<narrate_interfaces::sr
             if (futureUpdateActionResult != rclcpp::FutureReturnCode::SUCCESS) {
                 RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), "Error in UpdateAction service");
                 m_errorOccurred = true;
+                m_speakTask = false;
                 return;
             }
             auto updateActionResponse = updateActionResult.get();
@@ -369,8 +384,8 @@ void NarrateComponent::_narrateTask(const std::shared_ptr<narrate_interfaces::sr
             if(m_stopped)
             {
                 RCLCPP_INFO_STREAM(m_node->get_logger(), "Stop Command received");
-                RCLCPP_INFO_STREAM(m_node->get_logger(), "Both Thread Joined");
-                break;
+                m_speakTask = false;
+                return;
             }
             actionCounter++;
         } while (!doneWithPoi);
@@ -400,6 +415,7 @@ void NarrateComponent::Narrate(const std::shared_ptr<narrate_interfaces::srv::Na
     }
     m_stopped = false;
     m_errorOccurred = false;
+    m_speakTask = true;
     m_threadNarration = std::thread([this, request]() { _narrateTask(request); });
     response->is_ok = true;
 }

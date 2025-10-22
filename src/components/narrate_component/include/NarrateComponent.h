@@ -120,6 +120,7 @@ private:
     SoundSafeQueue m_soundQueue;
     // SoundConsumerThread m_soundConsumerThread;
     VerbalOutputBatchReader m_verbalOutputBatchReader;
+    yarp::os::BufferedPort<yarp::sig::Sound> m_inSoundPort; // Port to receive the synthesized sound
     yarp::os::BufferedPort<yarp::sig::Sound> m_outSoundPort; // Port to send the sound to the player
     yarp::os::BufferedPort<yarp::sig::AudioPlayerStatus> m_playerStatusInPort;
 }; // class NarrateComponent
