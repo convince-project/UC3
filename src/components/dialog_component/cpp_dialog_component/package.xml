@@ -12,6 +12,7 @@
   <depend>scheduler_interfaces</depend>
   <depend>text_to_speech_interfaces</depend>
   <depend>execute_dance_interfaces</depend>
+  <depend>cartesian_pointing_interfaces</depend>
   <depend>rclcpp_action</depend>
 
   <test_depend>ament_lint_auto</test_depend>
