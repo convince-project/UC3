@@ -9,20 +9,21 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(YARP 3.12 REQUIRED COMPONENTS os)
 add_executable(${PROJECT_NAME} )
 # find dependencies
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-ament_target_dependencies(${PROJECT_NAME} std_msgs rclcpp)
+ament_target_dependencies(${PROJECT_NAME} YARP std_msgs rclcpp)
 target_include_directories(${PROJECT_NAME}
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
 target_sources( ${PROJECT_NAME} PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp 
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/CheckNetworkComponent.cpp 
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/CheckNetworkComponent.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/include/CheckNetworkComponent.h)
 
 
