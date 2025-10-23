@@ -8,6 +8,48 @@
 
 #include "NarrateComponent.h"
 
+YARP_LOG_COMPONENT(NARRATE_COMPONENT, "convince.narrate_component.NarrateComponent")
+
+bool NarrateComponent::configureYARP(yarp::os::ResourceFinder &rf)
+{
+    bool okCheck = rf.check("NARRATECOMPONENT");
+    if (okCheck)
+    {
+        yarp::os::Searchable &component_config = rf.findGroup("NARRATECOMPONENT");
+        if (component_config.check("local-suffix"))
+        {
+            std::string local_suffix = component_config.find("local-suffix").asString();
+            m_outSoundPort.open("/NarrateComponent" + local_suffix + "/sound:o");
+            m_playerStatusInPort.open("/NarrateComponent" + local_suffix + "/playerStatus:i");
+            m_inSoundPort.open("/NarrateComponent" + local_suffix + "/sound:i");
+        }
+        else
+        {
+            m_outSoundPort.open("/NarrateComponent/sound:o");
+            m_playerStatusInPort.open("/NarrateComponent/playerStatus:i");
+            m_inSoundPort.open("/NarrateComponent/sound:i");
+        }
+    }
+    else
+    {
+        m_outSoundPort.open("/NarrateComponent/sound:o");
+        m_playerStatusInPort.open("/NarrateComponent/playerStatus:i");
+        m_inSoundPort.open("/NarrateComponent/sound:i");
+    }
+
+    // Set the queue for the VerbalOutputBatchReader
+    m_verbalOutputBatchReader.setSoundQueue(&m_soundQueue);
+
+    // Set the ports for the SoundConsumerThread
+    // if (!m_soundConsumerThread.setPorts(&m_outSoundPort, &m_playerStatusInPort))
+    // {
+    //     yError() << "[NarrateComponent::ConfigureYARP] Unable to set ports for SoundConsumerThread";
+    //     return false;
+    // }
+
+    yInfo() << "[NarrateComponent::ConfigureYARP] Successfully configured component";
+    return true;
+}
 
 bool NarrateComponent::start(int argc, char*argv[])
 {
@@ -17,23 +59,23 @@ bool NarrateComponent::start(int argc, char*argv[])
         rclcpp::init(/*argc*/ argc, /*argv*/ argv);
     }
     m_node = rclcpp::Node::make_shared("NarrateComponentNode");
-    m_narrateService = m_node->create_service<narrate_interfaces::srv::Narrate>("/NarrateComponent/Narrate",  
+    m_narrateService = m_node->create_service<narrate_interfaces::srv::Narrate>("/NarrateComponent/Narrate",
                                                                                 std::bind(&NarrateComponent::Narrate,
                                                                                 this,
                                                                                 std::placeholders::_1,
                                                                                 std::placeholders::_2));
-    m_isDoneService = m_node->create_service<narrate_interfaces::srv::IsDone>("/NarrateComponent/IsDone",  
+    m_isDoneService = m_node->create_service<narrate_interfaces::srv::IsDone>("/NarrateComponent/IsDone",
                                                                                 std::bind(&NarrateComponent::IsDone,
                                                                                 this,
                                                                                 std::placeholders::_1,
                                                                                 std::placeholders::_2));
-    m_stopService = m_node->create_service<narrate_interfaces::srv::Stop>("/NarrateComponent/Stop",  
+    m_stopService = m_node->create_service<narrate_interfaces::srv::Stop>("/NarrateComponent/Stop",
                                                                                 std::bind(&NarrateComponent::Stop,
                                                                                 this,
                                                                                 std::placeholders::_1,
                                                                                 std::placeholders::_2));
 
-    RCLCPP_DEBUG(m_node->get_logger(), "NarrateComponent::start");     
+    RCLCPP_DEBUG(m_node->get_logger(), "NarrateComponent::start");
     return true;
 
 }
@@ -42,354 +84,386 @@ bool NarrateComponent::start(int argc, char*argv[])
 
 bool NarrateComponent::close()
 {
-    rclcpp::shutdown();  
+    rclcpp::shutdown();
     return true;
 }
 
 void NarrateComponent::spin()
 {
-    rclcpp::spin(m_node);  
+    rclcpp::spin(m_node);
 }
 
+bool NarrateComponent::_formatPointAction(const std::string& actionParam, std::string& target)
+{
+    size_t delimiterPos = actionParam.find("::");
+    if (delimiterPos == std::string::npos || delimiterPos + 2 >= actionParam.length())
+    {
+        RCLCPP_ERROR(m_node->get_logger(), "Invalid point action format: %s", actionParam.c_str());
+        return false;
+    }
+    target = actionParam.substr(delimiterPos + 2);
+    return true;
+}
+
+void NarrateComponent::_waitForPlayerStatus(bool discriminator)
+{
+    bool keepOnWaiting;
+    do{
+        yarp::sig::AudioPlayerStatus* player_status = m_playerStatusInPort.read();
+        if (player_status != nullptr && player_status->current_buffer_size > 0)
+        {
+            keepOnWaiting = !discriminator;
+        }
+        else
+        {
+            keepOnWaiting = discriminator;
+        }
+    } while (keepOnWaiting && !m_stopped);
+}
+
+bool NarrateComponent::_sendForBatchSynthesis(const StringSafeVector& texts)
+{
+    if (!m_clientSynthesizeTexts)
+    {
+        m_clientSynthesizeTexts = rclcpp_action::create_client<ActionSynthesizeTexts>(m_node, "/TextToSpeechComponent/BatchGenerationAction");
+    }
+
+    if (!m_clientSynthesizeTexts->wait_for_action_server(std::chrono::seconds(5)))
+    {
+        RCLCPP_ERROR(m_node->get_logger(), "Action server not available after waiting");
+        return false;
+    }
+
+    auto goal_msg = ActionSynthesizeTexts::Goal();
+    goal_msg.texts = std::move(texts.copy());
+
+    RCLCPP_INFO(m_node->get_logger(), "Sending goal");
+
+    auto send_goal_options = rclcpp_action::Client<ActionSynthesizeTexts>::SendGoalOptions();
+    send_goal_options.goal_response_callback =
+        std::bind(&NarrateComponent::_goal_response_callback, this, std::placeholders::_1);
+    send_goal_options.feedback_callback =
+        std::bind(&NarrateComponent::_feedback_callback, this, std::placeholders::_1, std::placeholders::_2);
+    send_goal_options.result_callback =
+        std::bind(&NarrateComponent::_result_callback, this, std::placeholders::_1);
+
+    m_clientSynthesizeTexts->async_send_goal(goal_msg, send_goal_options);
+    return true;
+}
 
 void NarrateComponent::IsDone([[maybe_unused]] const std::shared_ptr<narrate_interfaces::srv::IsDone::Request> request,
-             std::shared_ptr<narrate_interfaces::srv::IsDone::Response>      response) 
+             std::shared_ptr<narrate_interfaces::srv::IsDone::Response>      response)
 {
     // response->is_done = (!m_speakTask && !m_danceTask);
     response->is_done = !(m_speakTask);
     response->is_ok = true;
 }
 
+void NarrateComponent::_resetDance()
+{
+    yCInfo(NARRATE_COMPONENT) << "[NarrateComponent::_resetDance] Starting Reset Dance Service";
+    auto executeDanceClientNode = rclcpp::Node::make_shared("NarrateExecuteDanceComponentResetDanceNode");
 
-void NarrateComponent::speakTask() {
-    RCLCPP_INFO_STREAM(m_node->get_logger(), "New Speak Thread ");
-    m_speakMutex.lock();
-    int size = m_speakBuffer.size();
-    m_speakMutex.unlock();
-    do{
-        m_speakMutex.lock();
-        std::string text = m_speakBuffer.front();
-        m_speakBuffer.pop();
-        m_speakMutex.unlock();
-        RCLCPP_INFO_STREAM(m_node->get_logger(), "Speak Action " << text);
-        auto speakClientNode = rclcpp::Node::make_shared("NarrateComponentSpeakNode");
-        std::shared_ptr<rclcpp::Client<text_to_speech_interfaces::srv::Speak>> speakClient = 
-        speakClientNode->create_client<text_to_speech_interfaces::srv::Speak>("/TextToSpeechComponent/Speak");
-        auto speakRequest = std::make_shared<text_to_speech_interfaces::srv::Speak::Request>();
-        speakRequest->text = text;
-        bool wait_succeded{true};
-        int retries = 0;
-        while (!speakClient->wait_for_service(std::chrono::seconds(1))) {
-            if (!rclcpp::ok()) {
-                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service '/TextToSpeechComponent/Speak'. Exiting.");
-                wait_succeded = false;
-                break;
-            }
-            retries++;
-            if(retries == SERVICE_TIMEOUT) {
-                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while waiting for the service '/TextToSpeechComponent/Speak'.");
-                wait_succeded = false;
-                break;
-            }
-        }
-        if (!wait_succeded) {
-            break;
-        }
-        auto speakResult = speakClient->async_send_request(speakRequest);
-        auto futureSpeakResult = rclcpp::spin_until_future_complete(speakClientNode, speakResult);
-        auto speakFutureResult = speakResult.get();
-        if (speakFutureResult->is_ok == true) { // 0 is speak
-            std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        }
-        // std::this_thread::sleep_for(std::chrono::seconds(30));
-        // waits until the robot has finished speaking
-        bool isSpeaking = false;
-        do {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            // calls the isSpeaking service
-            auto isSpeakingClientNode = rclcpp::Node::make_shared("NarrateComponentIsSpeakingNode");
-            std::shared_ptr<rclcpp::Client<text_to_speech_interfaces::srv::IsSpeaking>> isSpeakingClient =
-            isSpeakingClientNode->create_client<text_to_speech_interfaces::srv::IsSpeaking>("/TextToSpeechComponent/IsSpeaking");
-            auto isSpeakingRequest = std::make_shared<text_to_speech_interfaces::srv::IsSpeaking::Request>();
-            retries = 0;
-            while (!isSpeakingClient->wait_for_service(std::chrono::seconds(1))) {
-                if (!rclcpp::ok()) {
-                    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service '/TextToSpeechComponent/IsSpeaking'. Exiting.");
-                }
-                retries++;
-                if(retries == SERVICE_TIMEOUT) {
-                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while waiting for the service '/TextToSpeechComponent/IsSpeaking'.");
-                wait_succeded = false;
-                break;
-                }
-            }
-            if (wait_succeded) {
-                auto isSpeakingResult = isSpeakingClient->async_send_request(isSpeakingRequest);
-                auto futureIsSpeakingResult = rclcpp::spin_until_future_complete(isSpeakingClientNode, isSpeakingResult);
-                auto isSpeakingResponse = isSpeakingResult.get();
-                isSpeaking = isSpeakingResponse->is_speaking;
-                m_timeMutex.lock();
-                m_seconds_left = isSpeakingResponse->seconds_left;
-                m_timeMutex.unlock(); 
-            }
-        } while (isSpeaking);
-        if(m_stopped)
+    auto danceClient = executeDanceClientNode->create_client<execute_dance_interfaces::srv::ResetDance>("/ExecuteDanceComponent/ResetDance");
+    auto dance_request = std::make_shared<execute_dance_interfaces::srv::ResetDance::Request>();
+    // Wait for service
+    while (!danceClient->wait_for_service(std::chrono::milliseconds(100)))
+    {
+        if (!rclcpp::ok())
         {
-            RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "Stop Recieved Speak Task" ); 
-            break;   
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'ExecuteDance'. Exiting.");
         }
-        m_speakMutex.lock();
-        size = m_speakBuffer.size();
-        m_speakMutex.unlock();
     }
-    while(size);
+    auto dance_result = danceClient->async_send_request(dance_request);
+
+    if (rclcpp::spin_until_future_complete(executeDanceClientNode, dance_result) == rclcpp::FutureReturnCode::SUCCESS)
+    {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Execute Dance succeeded");
+    }
+    else
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service execute_dance");
+        return;
+    }
+}
+
+// Execute Pointing action service client
+void NarrateComponent::_executePointing(std::string pointingTarget)
+{
+    yInfo() << "[NarrateComponent::_executePointing] Starting Cartesian Pointing Service";
+    auto executePointingClientNode = rclcpp::Node::make_shared("NarrateCartesianPointingComponentPointTaskNode");
+
+    auto pointingClient = executePointingClientNode->create_client<cartesian_pointing_interfaces::srv::PointAt>("/CartesianPointingComponent/PointAt");
+    auto pointing_request = std::make_shared<cartesian_pointing_interfaces::srv::PointAt::Request>();
+    pointing_request->target_name = pointingTarget;
+    // Wait for service
+    while (!pointingClient->wait_for_service(std::chrono::milliseconds(100)))
+    {
+        if (!rclcpp::ok())
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service '/CartesianPointingComponent/PointAt'. Exiting.");
+        }
+    }
+    auto pointing_result = pointingClient->async_send_request(pointing_request);
+
+    if (rclcpp::spin_until_future_complete(executePointingClientNode, pointing_result) == rclcpp::FutureReturnCode::SUCCESS)
+    {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Execute Pointing succeeded");
+    }
+    else
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service point_at");
+        return;
+    }
+}
+
+void NarrateComponent::_executeDance(std::string danceName, float estimatedSpeechTime)
+{
+    yInfo() << "[NarrateComponent::ExecuteDance] Starting Execute Dance Service";
+    auto executeDanceClientNode = rclcpp::Node::make_shared("NarrateExecuteDanceComponentExecuteDanceNode");
+
+    std::string pointTarget;
+    if (_formatPointAction(danceName, pointTarget))
+    {
+        // TODO: implement point action
+        RCLCPP_INFO(m_node->get_logger(), "Point action towards target: %s", pointTarget.c_str());
+        _executePointing(pointTarget);
+        return;
+    }
+    else
+    {
+        auto danceClient = executeDanceClientNode->create_client<execute_dance_interfaces::srv::ExecuteDance>("/ExecuteDanceComponent/ExecuteDance");
+        auto dance_request = std::make_shared<execute_dance_interfaces::srv::ExecuteDance::Request>();
+        dance_request->dance_name = danceName;
+        dance_request->speech_time = estimatedSpeechTime;
+        // Wait for service
+        while (!danceClient->wait_for_service(std::chrono::seconds(1)))
+        {
+            if (!rclcpp::ok())
+            {
+                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'ExecuteDance'. Exiting.");
+            }
+        }
+        auto dance_result = danceClient->async_send_request(dance_request);
+
+        if (rclcpp::spin_until_future_complete(executeDanceClientNode, dance_result) == rclcpp::FutureReturnCode::SUCCESS)
+        {
+            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Execute Dance succeeded");
+        }
+        else
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service execute_dance");
+            return;
+        }
+    }
+}
+
+void NarrateComponent::_speakTask() {
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "New Speak Thread ");
+    m_inSoundPort.useCallback(m_verbalOutputBatchReader);
+    do{
+        _waitForPlayerStatus(false);
+        yarp::sig::Sound sound;
+        if (m_soundQueue.pop(sound))
+        {
+            _resetDance();
+            yarp::sig::Sound& toSend = m_outSoundPort.prepare();
+            toSend = sound;
+            m_outSoundPort.write();
+            _waitForPlayerStatus(true);
+            _executeDance(m_danceBuffer[m_danceBuffer.size() - m_toSend], sound.getDuration());
+            m_toSend--;
+        }
+
+    } while(!m_stopped && (!m_soundQueue.isEmpty() || m_toSend > 0));
+
+    _waitForPlayerStatus(false);
+    _resetDance();
+
+    m_inSoundPort.disableCallback();
     m_speakTask = false;
 }
 
-void NarrateComponent::danceTask() {
-    RCLCPP_INFO_STREAM(m_node->get_logger(), "New Dance Thread ");
-    // m_danceMutex.lock();
-    // int size = m_danceBuffer.size();
-    // m_danceMutex.unlock();
-    // int l_seconds_left;
-    // int old_randomNumber;
-    // int randomNumber;
-    // do{
-    //     std::string text;
-    //     m_timeMutex.lock();
-    //     l_seconds_left = m_seconds_left;
-    //     m_timeMutex.unlock();
-    //     if(l_seconds_left < 3){
-    //         // m_danceMutex.lock();
-    //         // if(m_danceBuffer.size() != 0)
-    //         // {
-    //         //     m_danceBuffer.pop();
-    //         // }
-    //         // m_danceMutex.unlock();
-    //         text = "idleMove";
-    //     }
-    //     else{
-    //         m_danceMutex.lock();
-    //         if(m_danceBuffer.size() != 0){
-    //             text = m_danceBuffer.front();
-    //             if(text == "argue"){
-    //                 srand (time(NULL));
-    //                 randomNumber = rand() % 3;
-    //                 if(randomNumber == old_randomNumber)
-    //                 {
-    //                     randomNumber = (randomNumber + 1) % 3;
-    //                 }
-    //                 old_randomNumber = randomNumber;
-    //                 text += std::to_string(randomNumber);
-    //             }
-    //         }
-    //         m_danceMutex.unlock();
-    //     }
-    //     // m_danceMutex.lock();
-    //     // text = m_danceBuffer.front();
-    //     // m_danceBuffer.pop();
-    //     // m_danceMutex.unlock();
-    //     RCLCPP_INFO_STREAM(m_node->get_logger(), "Dance Action " << text); 
-    //     auto danceClientNode = rclcpp::Node::make_shared("NarrateComponentDanceNode");
-    //     std::shared_ptr<rclcpp::Client<execute_dance_interfaces::srv::ExecuteDance>> danceClient = 
-    //     danceClientNode->create_client<execute_dance_interfaces::srv::ExecuteDance>("/ExecuteDanceComponent/ExecuteDance");
-    //     auto danceRequest = std::make_shared<execute_dance_interfaces::srv::ExecuteDance::Request>();
-    //     danceRequest->dance_name = text;
-    //     bool wait_succeded{true};
-    //     int retries = 0;
-    //     while (!danceClient->wait_for_service(std::chrono::seconds(1))) {
-    //         if (!rclcpp::ok()) {
-    //             RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'ExecuteDance'. Exiting.");
-    //             wait_succeded = false;
-    //             break;
-    //         }
-    //         retries++;
-    //         if(retries == SERVICE_TIMEOUT) {
-    //            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while waiting for the service 'ExecuteDance'.");
-    //            wait_succeded = false;
-    //            break;
-    //         }
-    //     }
-    //     if (wait_succeded) {
-    //         auto danceResult = danceClient->async_send_request(danceRequest);
-    //         const std::chrono::seconds timeout_duration(SERVICE_TIMEOUT);
-    //         auto futureDanceResult = rclcpp::spin_until_future_complete(danceClientNode, danceResult, timeout_duration);
-    //         if(futureDanceResult == rclcpp::FutureReturnCode::SUCCESS)
-    //         {
-    //             auto danceFutureResult = danceResult.get();
-    //             if (danceFutureResult->is_ok == true) { // 0 is dance
-    //                 std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    //             }
-    //             std::this_thread::sleep_for(std::chrono::seconds(3));
-    //         }
-    //         else if(futureDanceResult == rclcpp::FutureReturnCode::TIMEOUT){
-    //            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'ExecuteDance'.");
-    //        }
-    //     }
-    //     if(m_stopped)
-    //     {
-    //         RCLCPP_INFO_STREAM(m_node->get_logger(), "Stop Recieved Dance Task" ); 
-    //         break;   
-    //     }
-        
-    //     m_danceMutex.lock();
-    //     size = m_danceBuffer.size();
-    //     m_danceMutex.unlock();
-    //     m_timeMutex.lock();
-    //     l_seconds_left = m_seconds_left;
-    //     m_timeMutex.unlock();
-    // }
-    // while(l_seconds_left > 0 || size > 0);
-    // // while(size);
-    // m_danceTask = false;
-}
-        
-void NarrateComponent::NarrateTask(const std::shared_ptr<narrate_interfaces::srv::Narrate::Request> request) {
+void NarrateComponent::_narrateTask(const std::shared_ptr<narrate_interfaces::srv::Narrate::Request> request) {
         // calls the SetCommand service
 	    RCLCPP_INFO_STREAM(m_node->get_logger(), "New Narrate Thread ");
         auto setCommandClientNode = rclcpp::Node::make_shared("NarrateComponentSetCommandNode");
-        std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::SetCommand>> setCommandClient =  
+        std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::SetCommand>> setCommandClient =
         setCommandClientNode->create_client<scheduler_interfaces::srv::SetCommand>("/SchedulerComponent/SetCommand");
         auto setCommandRequest = std::make_shared<scheduler_interfaces::srv::SetCommand::Request>();
         setCommandRequest->command = request->command;
         while (!setCommandClient->wait_for_service(std::chrono::seconds(1))) {
             if (!rclcpp::ok()) {
                 RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setCommandClient'. Exiting.");
+                m_speakTask = false;
+                m_errorOccurred = true;
+                return;
             }
         }
         auto setCommandResult = setCommandClient->async_send_request(setCommandRequest);
         auto futureSetCommandResult = rclcpp::spin_until_future_complete(setCommandClientNode, setCommandResult);
+        if (futureSetCommandResult != rclcpp::FutureReturnCode::SUCCESS) {
+            RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), "Error in SetCommand service");
+            m_speakTask = false;
+            m_errorOccurred = true;
+            return;
+        }
         auto setCommandResponse = setCommandResult.get();
         if (setCommandResponse->is_ok == false) {
             RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), "Error in SetCommand service" << setCommandResponse->error_msg);
-            
+            m_speakTask = false;
+            m_errorOccurred = true;
+            return;
         }
         bool doneWithPoi = false;
-        std::thread speakThread;
-        std::thread danceThread;
 
-        // bool m_doneWithPoi = false;
+        int actionCounter = 0;
+        m_speakBuffer.clear();
+        m_danceBuffer.clear();
+
         do {
-            //calls the GetCurrentAction service 
+            //calls the GetCurrentAction service
             auto getCurrentActionClientNode = rclcpp::Node::make_shared("NarrateComponentGetCurrentActionNode");
-            std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::GetCurrentAction>> getCurrentActionClient = 
+            std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::GetCurrentAction>> getCurrentActionClient =
             getCurrentActionClientNode->create_client<scheduler_interfaces::srv::GetCurrentAction>("/SchedulerComponent/GetCurrentAction");
             auto getCurrentActionRequest = std::make_shared<scheduler_interfaces::srv::GetCurrentAction::Request>();
 
             while (!getCurrentActionClient->wait_for_service(std::chrono::seconds(1))) {
                 if (!rclcpp::ok()) {
                     RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'getCurrentActionClient'. Exiting.");
+                    m_errorOccurred = true;
+                    m_speakTask = false;
+                    return;
                 }
             }
             auto getCurrentActionResult = getCurrentActionClient->async_send_request(getCurrentActionRequest);
             auto futureGetCurrentActionResult = rclcpp::spin_until_future_complete(getCurrentActionClientNode, getCurrentActionResult);
+            if (futureGetCurrentActionResult != rclcpp::FutureReturnCode::SUCCESS) {
+                RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), "Error in GetCurrentAction service");
+                m_errorOccurred = true;
+                m_speakTask = false;
+                return;
+            }
             auto currentAction = getCurrentActionResult.get();
-                if (currentAction->type == "speak")
-                {
-                    RCLCPP_INFO_STREAM(m_node->get_logger(), "Got speak action " ); 
-                    m_speakMutex.lock();
-                    m_speakBuffer.push(currentAction->param);
-                    m_speakMutex.unlock();
-                    if (!m_speakTask) {
-                        m_speakTask = true;
-                        // std::thread threadSpeak([=]() { speakTask();});
-                        if (speakThread.joinable()) {
-                            speakThread.join();
-                        }
-                        speakThread = std::thread(&NarrateComponent::speakTask, this);
-                        // threadSpeak.detach();
-                    } else {
-                        RCLCPP_INFO_STREAM(m_node->get_logger(), "Speak Task is already running");
-                    }
+            if (currentAction->type == "speak")
+            {
+                RCLCPP_INFO_STREAM(m_node->get_logger(), "Got speak action " );
+                m_speakBuffer.push_back(currentAction->param);
+                if (currentAction->dance == "") {
+                    RCLCPP_INFO_STREAM(m_node->get_logger(), "No dance action for the speak action. Putting \"gesture\"");
+                    m_danceBuffer.push_back("gesture");
                 }
-                // else if (currentAction->type == "dance")
-                // {
-                //     RCLCPP_INFO_STREAM(m_node->get_logger(), "Got dance action " ); 
-                //     m_danceMutex.lock();
-                //     m_danceBuffer.push(currentAction->param);
-                //     m_danceMutex.unlock();
-                //     std::this_thread::sleep_for(std::chrono::milliseconds(500));
-                //     if (!m_danceTask) {
-                //         m_danceTask = true;
-                //         if (danceThread.joinable()) {
-                //             danceThread.join();
-                //         }
-                //         danceThread = std::thread(&NarrateComponent::danceTask, this);
-                //     } else {
-                //         RCLCPP_INFO_STREAM(m_node->get_logger(), "Dance Task is already running");
-                //     }
-                // }
-                if(currentAction->is_blocking)
-                {
-                    RCLCPP_INFO_STREAM(m_node->get_logger(), "Blocking action " ); 
-                    if (speakThread.joinable()) {
-                        speakThread.join();
-                        // m_danceMutex.lock();
-                        // while(m_danceBuffer.size() != 0)
-                        // {
-                        //     m_danceBuffer.pop();
-                        // }
-                        // m_danceMutex.unlock();
-                        RCLCPP_INFO_STREAM(m_node->get_logger(), "Speak Thread Joined");
-                    }
-                    // if (danceThread.joinable() ) {
-                    //     danceThread.join();
-                    //     RCLCPP_INFO_STREAM(m_node->get_logger(), "Dance Thread Joined");
-                    // }
-                    RCLCPP_INFO_STREAM(m_node->get_logger(), "Both Threads Joined");
+                else {
+                    m_danceBuffer.push_back(currentAction->dance);
                 }
+            }
 
             // calls the UpdateAction service
             auto updateActionClientNode = rclcpp::Node::make_shared("NarrateComponentUpdateActionNode");
-            std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::UpdateAction>> updateActionClient = 
+            std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::UpdateAction>> updateActionClient =
             updateActionClientNode->create_client<scheduler_interfaces::srv::UpdateAction>("/SchedulerComponent/UpdateAction");
             auto updateActionRequest = std::make_shared<scheduler_interfaces::srv::UpdateAction::Request>();
             while (!updateActionClient->wait_for_service(std::chrono::seconds(1))) {
                 if (!rclcpp::ok()) {
                     RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'updateActionClient'. Exiting.");
+                    m_errorOccurred = true;
+                    m_speakTask = false;
+                    return;
                 }
             }
             auto updateActionResult = updateActionClient->async_send_request(updateActionRequest);
-            auto futureUpdateActionResult = rclcpp::spin_until_future_complete(updateActionClientNode, updateActionResult); 
+            auto futureUpdateActionResult = rclcpp::spin_until_future_complete(updateActionClientNode, updateActionResult);
+            if (futureUpdateActionResult != rclcpp::FutureReturnCode::SUCCESS) {
+                RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), "Error in UpdateAction service");
+                m_errorOccurred = true;
+                m_speakTask = false;
+                return;
+            }
             auto updateActionResponse = updateActionResult.get();
             doneWithPoi = updateActionResponse->done_with_poi;
             if(m_stopped)
             {
                 RCLCPP_INFO_STREAM(m_node->get_logger(), "Stop Command received");
-                if (speakThread.joinable()) {
-                    speakThread.join();
-                    RCLCPP_INFO_STREAM(m_node->get_logger(), "Speak Thread Joined");
-                }
-                // if (danceThread.joinable() ) {
-                //     danceThread.join();
-                //     RCLCPP_INFO_STREAM(m_node->get_logger(), "Dance Thread Joined");
-                // }
-                RCLCPP_INFO_STREAM(m_node->get_logger(), "Both Thread Joined");
-                break;   
+                m_speakTask = false;
+                return;
             }
-        } while (!doneWithPoi); 
-        m_doneWithPoi = true; 
-        RCLCPP_INFO_STREAM(m_node->get_logger(), "Done with PoI");
-        // } while (!m_doneWithPoi);  
+            actionCounter++;
+        } while (!doneWithPoi);
+
+        if (m_speakBuffer.size() == m_danceBuffer.size() + 1) {
+            RCLCPP_INFO_STREAM(m_node->get_logger(), "No dance action for the last speak action. Putting \"gesture\"");
+            m_danceBuffer.push_back("gesture");
+        }
+        if (m_speakBuffer.size() != m_danceBuffer.size()) {
+            RCLCPP_ERROR_STREAM(m_node->get_logger(), "Error: speak and dance actions do not match. Aborting narration");
+            return;
+        }
+
+        m_toSend = m_speakBuffer.size();
+        m_soundQueue.flush();
+
+        _sendForBatchSynthesis(m_speakBuffer);
+        _speakTask();
 }
 
 void NarrateComponent::Narrate(const std::shared_ptr<narrate_interfaces::srv::Narrate::Request> request,
-             std::shared_ptr<narrate_interfaces::srv::Narrate::Response>      response) 
+             std::shared_ptr<narrate_interfaces::srv::Narrate::Response>      response)
 {
     RCLCPP_INFO_STREAM(m_node->get_logger(), "NarrateComponent::Narrate ");
     if (m_threadNarration.joinable()) {
         m_threadNarration.join();
     }
     m_stopped = false;
-    m_threadNarration = std::thread([this, request]() { NarrateTask(request); });
+    m_errorOccurred = false;
+    m_speakTask = true;
+    m_threadNarration = std::thread([this, request]() { _narrateTask(request); });
     response->is_ok = true;
 }
 
+void NarrateComponent::_goal_response_callback(const rclcpp_action::ClientGoalHandle<ActionSynthesizeTexts>::SharedPtr & goal_handle)
+{
+    if (!goal_handle) {
+        RCLCPP_ERROR(m_node->get_logger(), "Goal was rejected by server");
+    } else {
+        RCLCPP_INFO(m_node->get_logger(), "Goal accepted by server, waiting for result");
+        m_goalHandleSynthesizeTexts = goal_handle;
+    }
+}
+
+void NarrateComponent::_feedback_callback([[maybe_unused]] rclcpp_action::ClientGoalHandle<ActionSynthesizeTexts>::SharedPtr,
+                           [[maybe_unused]] const std::shared_ptr<const ActionSynthesizeTexts::Feedback> feedback)
+{
+    // RCLCPP_INFO(m_node->get_logger(), "Next text to be synthesized: %s", feedback->partial_text.c_str());
+}
+
+void NarrateComponent::_result_callback(const rclcpp_action::ClientGoalHandle<ActionSynthesizeTexts>::WrappedResult & result)
+{
+    if (result.code == rclcpp_action::ResultCode::SUCCEEDED)
+    {
+        RCLCPP_INFO(m_node->get_logger(), "Goal succeeded");
+    }
+    else if (result.code == rclcpp_action::ResultCode::CANCELED) {
+        RCLCPP_WARN(m_node->get_logger(), "Goal was halted (canceled)");
+    } else {
+        RCLCPP_ERROR(m_node->get_logger(), "Goal failed");
+    }
+}
+
 void NarrateComponent::Stop([[maybe_unused]] const std::shared_ptr<narrate_interfaces::srv::Stop::Request> request,
-             std::shared_ptr<narrate_interfaces::srv::Stop::Response>      response) 
+             std::shared_ptr<narrate_interfaces::srv::Stop::Response>      response)
 {
     RCLCPP_INFO_STREAM(m_node->get_logger(), "NarrateComponent::Stop ");
     m_stopped = true;
+    if (m_goalHandleSynthesizeTexts) {
+        auto future_cancel = m_clientSynthesizeTexts->async_cancel_goal(m_goalHandleSynthesizeTexts);
+        if (rclcpp::spin_until_future_complete(m_node, future_cancel) !=
+            rclcpp::FutureReturnCode::SUCCESS)
+        {
+            RCLCPP_ERROR(m_node->get_logger(), "Failed to cancel goal");
+        } else {
+            RCLCPP_INFO(m_node->get_logger(), "Goal successfully canceled");
+        }
+    }
     if (m_threadNarration.joinable()) {
         m_threadNarration.join();
     }
