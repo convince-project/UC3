@@ -28,6 +28,8 @@ bool VerbalOutputBatchReader::ConfigureYARP(yarp::os::ResourceFinder &rf)
 
     yInfo() << "[VerbalOutputBatchReader::ConfigureYARP] Successfully configured component";
 
+    isDialogPhaseActive = false;
+
     return true;
 
 }
@@ -57,7 +59,18 @@ std::unique_ptr<yarp::sig::Sound> VerbalOutputBatchReader::GetVerbalOutput()
 
 
 void VerbalOutputBatchReader::onRead(yarp::sig::Sound &msg)
-{
+{   
+    if (!isDialogPhaseActive)
+    {
+        yInfo() << "[VerbalOutputBatchReader::onRead] Dialog phase is not active. Ignoring received audio message.";
+        return;
+    }
     m_audioQueue.push(std::make_unique<yarp::sig::Sound>(msg));
     yInfo() << "[VerbalOutputBatchReader::onRead] Received audio message. Queue size is now: " << m_audioQueue.size();
+}
+
+void VerbalOutputBatchReader::setDialogPhaseActive(bool isActive)
+{
+    isDialogPhaseActive = isActive;
+    yInfo() << "[VerbalOutputBatchReader::setDialogPhaseActive] Dialog phase active set to: " << isDialogPhaseActive;
 }

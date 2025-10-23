@@ -39,12 +39,15 @@ public:
 
     void onRead(yarp::sig::Sound &msg) override;
 
-private:
+    void setDialogPhaseActive(bool isActive);
 
+private:
 
     std::queue<std::unique_ptr<yarp::sig::Sound>> m_audioQueue;
 
     yarp::os::BufferedPort<yarp::sig::Sound> m_audioInputPort;
+
+    bool isDialogPhaseActive;
 };
 
 #endif // VERBAL_OUTPUT_BATCH_READER__HPP

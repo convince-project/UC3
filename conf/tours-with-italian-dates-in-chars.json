@@ -912,7 +912,7 @@
                 "m_isBlocking": false,
                 "m_param": "Donna di carattere forte, protesse la sua nuova patria durante la minore età del figlio, il futuro re Vittorio Amedeo II, rimasto orfano a soli nove anni. Quando il figlio si sposò, Maria Giovanna lasciò Palazzo Reale e scelse come sua residenza il primo piano del castello che arredò e decorò secondo il suo gusto.",
                 "m_type": "speak",
-                "m_dance": "point::scultura_est"
+                "m_dance": "gesture"
               },
               {
                 "m_isBlocking": false,
@@ -924,7 +924,7 @@
                 "m_isBlocking": false,
                 "m_param": "Hai qualche domanda? Posso parlarti della funzione di questa stanza, della sua decorazione. Oppure puoi farmi qualche domanda sul palazzo, il progetto Convince o su di me. Altrimenti possiamo proseguire con il tour.",
                 "m_type": "speak",
-                "m_dance": "point::dipinto_ovest"
+                "m_dance": "gesture"
               }
             ],
             "explainFunction": [
@@ -932,7 +932,7 @@
                 "m_isBlocking": false,
                 "m_param": "Benissimo, ci troviamo in Camera delle Guardie. Intorno al millesettecentoventuno l’ospite che faceva visita a Madama Reale poteva contare su due accessi: passare dal grande scalone di Filippo Juvarra ed entrare nel salone (oggi Sala Senato); oppure accedere al castello direttamente da Palazzo Reale percorrendo la manica di collegamento che univa i due edifici e che si concludeva presso la sala “della galleria”, ambiente che oggi ospita il Caffè Madama.",
                 "m_type": "speak",
-                "m_dance": "point::inizio"
+                "m_dance": "gesture"
               },
               {
                 "m_isBlocking": false,
@@ -944,7 +944,7 @@
                 "m_isBlocking": false,
                 "m_param": "Prima di arrivare alla stanza del trono (chiamata camera di parata) gli ospiti dovevano attraversare tre anticamere e attendere di essere introdotti alla presenza della duchessa. Solo gli ospiti di maggior riguardo potevano raggiungere gli ambienti più riservati e privati del palazzo.",
                 "m_type": "speak",
-                "m_dance": "point::quadro_principale"
+                "m_dance": "gesture"
               },
               {
                 "m_isBlocking": false,
@@ -958,13 +958,13 @@
                 "m_isBlocking": false,
                 "m_param": "Perfetto! La sala è stata decorata tra il millesettecentootto e il millesettecentoquindici. Ora guarda in alto! La decorazione in stucco bianco presenta trofei d’armi inseriti agli angoli della volta che alludono alla destinazione dell’ambiente presidiato dalle guardie del corpo della duchessa: armature, lance, frecce, cannoni, scudi, trombe alludono al mondo della guerra e dei soldati.",
                 "m_type": "speak",
-                "m_dance": "point::scultura_est"
+                "m_dance": "gesture"
               },
               {
                 "m_isBlocking": false,
                 "m_param": "Nel profilo ondulato del cornicione si alternano quattro aquile con la croce di Savoia nel petto e la pianta di fritillaria, emblema di Madama Reale: si tratta di una pianta della famiglia dei gigli con grandi fiori arancioni. Lo zoccolo e le sovrapporte in stucco furono eseguiti nel millenovecentoventisette con calchi in gesso tratti dalle decorazioni della Reggia di Venaria Reale.",
                 "m_type": "speak",
-                "m_dance": "point::dipinto_ovest"
+                "m_dance": "gesture"
               },
               {
                 "m_isBlocking": false,
