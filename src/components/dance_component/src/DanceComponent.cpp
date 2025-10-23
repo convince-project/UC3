@@ -202,7 +202,9 @@ void DanceComponent::GetBestDance([[maybe_unused]] const std::shared_ptr<dance_i
             RCLCPP_INFO_STREAM(m_node->get_logger(), "DanceComponent::GetBestDance: Found candidate dance " << danceName);
             danceExists = true;
             danceSpeedFactor = speechTime / dance.GetDuration();
-            if (std::abs(1 - danceSpeedFactor) <= bestDanceSpeedFactor)
+            std::cout << "absolute in int" << std::abs(1.0 - danceSpeedFactor) << std::endl;
+            std::cout << "absolute in float" << std::fabs(1.0 - danceSpeedFactor) << std::endl;
+            if (std::fabs(1.0 - danceSpeedFactor) <= std::fabs(1.0 - bestDanceSpeedFactor))
             {
                 bestDanceSpeedFactor = danceSpeedFactor;
                 bestDance = danceName;
