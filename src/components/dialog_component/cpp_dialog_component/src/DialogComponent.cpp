@@ -975,6 +975,8 @@ void DialogComponent::handle_accepted(const std::shared_ptr<GoalHandleWaitForInt
 void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitForInteraction> goal_handle)
 {
 
+    m_verbalOutputBatchReader.setDialogPhaseActive(true);
+
     RCLCPP_INFO(m_node->get_logger(), "Waiting for interaction");
     auto goal = goal_handle->get_goal();
     auto feedback = std::make_shared<dialog_interfaces::action::WaitForInteraction::Feedback>();
@@ -1413,6 +1415,7 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
         RCLCPP_INFO(m_node->get_logger(), "Reply finished, get back to navigation position");
         std::string navigation_position = "navigation_position";
         ExecuteDance(navigation_position, 0); // Go back to navigation position
+        m_verbalOutputBatchReader.setDialogPhaseActive(false);
     }
 
     result->is_ok = true;
