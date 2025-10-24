@@ -132,8 +132,8 @@ bool DialogSkill::start(int argc, char *argv[])
             auto goal_msg = dialog_interfaces::action::WaitForInteraction::Goal();
             auto eventParams = event.data().toMap();
             goal_msg.is_beginning_of_conversation = convert<decltype(goal_msg.is_beginning_of_conversation)>(eventParams["is_beginning_of_conversation"].toString().toStdString());
-            std::cout << "[OPTIONAL] Please enter the interaction from keyboard: ";
-            getline (std::cin, goal_msg.keyboard_interaction);
+            // std::cout << "[OPTIONAL] Please enter the interaction from keyboard: ";
+            // getline (std::cin, goal_msg.keyboard_interaction);
 
             RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.WaitForInteraction.Call received with is_beginning_of_conversation: %s and keyboard_interaction: %s",
                         goal_msg.is_beginning_of_conversation ? "true" : "false", goal_msg.keyboard_interaction.c_str());
