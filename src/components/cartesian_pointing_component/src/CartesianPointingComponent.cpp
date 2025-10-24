@@ -31,7 +31,7 @@
 /**
  * @brief Duration in seconds for a single smooth trajectory sent to the Cartesian controller.
  */
-static constexpr double kTrajDurationSec = 10.0;
+static constexpr double kTrajDurationSec = 15.0;
 /**
  * @brief Polling period in milliseconds for the is_motion_done RPC.
  */
@@ -531,41 +531,149 @@ bool CartesianPointingComponent::chooseArmByTorsoY(const Eigen::Vector3d& p_base
  * @param target_base Target position in base frame (possibly clipped elsewhere).
  * @return Unit quaternion representing the desired EE orientation.
  */
+// Costruisce un'orientazione "naturale": palmo verso il basso, asse Z dell'EE puntato verso il target.
+// Ritorna un quaternion unitario che rappresenta tale orientazione.
+/**
+ * @brief Build an end-effector orientation that points to a target with a palm-down convention.
+ *
+ * Given two positions in the same base frame (a shoulder/reference point and a target),
+ * this routine constructs a unit quaternion whose end-effector Z axis is aligned opposite
+ * to the shoulder→target direction. In other words, -Z_ee points toward the target,
+ * consistent with models where +Z_ee points from the wrist toward the forearm.
+ *
+ * To enforce a “palm-down” attitude, the base-frame downward vector [0, 0, -1] is projected
+ * onto the plane orthogonal to Z_ee to define Y_ee. The X_ee axis is then computed to complete
+ * a right-handed orthonormal frame (X_ee = Y_ee × Z_ee). 
+ *
+ * Degeneracy handling:
+ * - If the target is negligibly close to the shoulder (‖target - shoulder‖ < 1e-9), the identity
+ *   quaternion is returned (no well-defined pointing direction).
+ * - If the projected downward vector is nearly zero (norm < 1e-6), an auxiliary axis not parallel
+ *   to Z_ee is chosen, orthogonalized, and normalized to define Y_ee.
+ * - If X_ee derived from Y_ee × Z_ee is nearly zero (norm < 1e-6), an alternative orthogonal unit
+ *   vector to Z_ee is used and Y_ee is recomputed accordingly.
+ *
+ * Assumptions:
+ * - All input vectors are expressed in the same base coordinate frame.
+ * - The resulting orientation is right-handed with columns [X_ee, Y_ee, Z_ee] and “palm-down”
+ *   relative to the base negative Z direction.
+ *
+ * @param shoulder_base  3D position of the shoulder/reference point in the base frame.
+ * @param target_base    3D position of the target point in the base frame.
+ * @return Eigen::Quaterniond Unit quaternion representing the palm-down pointing orientation.
+ */
 static Eigen::Quaterniond buildPointingPalmDownQuat(const Eigen::Vector3d& shoulder_base,
                                                     const Eigen::Vector3d& target_base)
 {
+    // Direzione dal punto "spalla" al "target"
     Eigen::Vector3d dir = target_base - shoulder_base;
     const double n = dir.norm();
-    if (n < 1e-9) return Eigen::Quaterniond::Identity();
+    // Se la distanza è trascurabile, ritorna identità (nessuna rotazione definita)
+    if (n < 1e-9)
+        return Eigen::Quaterniond::Identity();
+
+    // Normalizza la direzione
     dir /= n;
+
+    // z_ee è l'asse Z dell'end-effector. Usiamo il verso opposto a dir
+    // per rispettare la convenzione del modello (es. +Z del polso verso l'avambraccio).
     Eigen::Vector3d z_ee = -dir;
+
+    // Vettore "verso il basso" nel frame base: palmo-down
     const Eigen::Vector3d base_down(0.0, 0.0, -1.0);
-    Eigen::Vector3d y_ee = base_down - (base_down.dot(z_ee))*z_ee;
+
+    // Proietta base_down sul piano ortogonale a z_ee per ottenere y_ee (palmo verso il basso)
+    Eigen::Vector3d y_ee = base_down - (base_down.dot(z_ee)) * z_ee;
+
+    // Normalizza y_ee; se è quasi nullo (z_ee quasi parallelo a base_down), gestisci il caso degenerato
     double ny = y_ee.norm();
     if (ny < 1e-6) {
-        y_ee = (std::abs(z_ee.x()) < 0.9 ? Eigen::Vector3d(1,0,0) : Eigen::Vector3d(0,1,0));
-        y_ee -= (y_ee.dot(z_ee))*z_ee;
+        // Scegli un asse ausiliario non parallelo a z_ee, poi ortogonalizza e normalizza
+        y_ee = (std::abs(z_ee.x()) < 0.9 ? Eigen::Vector3d(1, 0, 0) : Eigen::Vector3d(0, 1, 0));
+        y_ee -= (y_ee.dot(z_ee)) * z_ee;
         y_ee.normalize();
-    } else { y_ee /= ny; }
+    } else {
+        y_ee /= ny;
+    }
+
+    // x_ee completa la terna destra: x = y × z
     Eigen::Vector3d x_ee = y_ee.cross(z_ee);
+
+    // Normalizza x_ee; se degenerato, usa un ortogonale unitario a z_ee e ricalcola y_ee
     double nx = x_ee.norm();
-    if (nx < 1e-6) { x_ee = z_ee.unitOrthogonal(); y_ee = z_ee.cross(x_ee).normalized(); }
-    else { x_ee /= nx; }
-    Eigen::Matrix3d R; R.col(0)=x_ee; R.col(1)=y_ee; R.col(2)=z_ee;
-    Eigen::Quaterniond q(R); q.normalize(); return q;
+    if (nx < 1e-6) {
+        x_ee = z_ee.unitOrthogonal();
+        y_ee = z_ee.cross(x_ee).normalized();
+    } else {
+        x_ee /= nx;
+    }
+
+    // Costruisci la matrice di rotazione con assi (x,y,z) come colonne
+    Eigen::Matrix3d R;
+    R.col(0) = x_ee;
+    R.col(1) = y_ee;
+    R.col(2) = z_ee;
+
+    // Converti in quaternion e rinormalizza per robustezza numerica
+    Eigen::Quaterniond q(R);
+    q.normalize();
+    return q;
 }
 
 /**
- * @brief Per-arm local Z roll compensation quaternion.
+ * @brief Per-arm fixed mapping from the "model EE frame" used to build q_nat to the controller/tool EE frame.
  *
- * Reads ROS 2 parameters:
- *  - left_roll_bias_rad  (default: +pi)
- *  - right_roll_bias_rad (default: 0)
- * Compose as q_cmd = q_nat * q_fix to preserve the z_ee pointing direction.
+ * Motivation:
+ *  - On real hardware the controller's end-effector frame may differ from the model by a constant rotation
+ *    (different wrist/tool frames, left-right asymmetries, attachments). A pure Z roll bias may not suffice.
+ *  - Provide a per-arm constant quaternion S_arm (model -> tool). To command the tool to reach q_nat, we send
+ *    q_cmd = q_nat * S_arm^{-1}. This preserves the desired pointing axis and palm-down intent while mapping
+ *    to the controller's frame.
+ *
+ * Parameters (ROS 2):
+ *  - left_tool_from_model_xyzw  (vector<double>[4], default [0,0,0,1])
+ *  - right_tool_from_model_xyzw (vector<double>[4], default [0,0,0,1])
+ *  Values are [x,y,z,w] components of the quaternion S_arm (model -> tool). They are normalized at runtime.
+ */
+static Eigen::Quaterniond armToolMappingQuat(const std::string& armName,
+                                             rclcpp::Node::SharedPtr node)
+{
+    std::vector<double> qv = {0.0, 0.0, 0.0, 1.0};
+    const std::string param = (armName=="LEFT") ? "left_tool_from_model_xyzw"
+                                                 : "right_tool_from_model_xyzw";
+    (void)node->get_parameter(param, qv);
+    if (qv.size() != 4) {
+        qv = {0.0, 0.0, 0.0, 1.0};
+    }
+    Eigen::Quaterniond S(qv[3], qv[0], qv[1], qv[2]);
+    S.normalize();
+    return S.conjugate(); // inverse mapping: tool <- model -> send q_nat * S^{-1}
+}
+
+/**
+ * @brief Per-arm roll bias about the end-effector local Z axis (palm twist).
+ *
+ * Purpose:
+ *  - After building a “natural” pointing orientation q_nat (Z_ee toward the target, palm down),
+ *    different hand meshes/frames may still appear rotated around their own Z axis (palm “twist”).
+ *    This function returns a small corrective rotation q_fix = Rot_Z(roll) to align left and right hands.
+ *
+ * Composition and frame convention:
+ *  - The correction is applied as q_cmd = q_nat * q_fix (post-multiplication), so Rot_Z acts
+ *    in the end-effector LOCAL frame. A pure roll about local Z preserves the Z_ee pointing
+ *    direction (invariant) and only twists the palm around that axis.
+ *
+ * Parameters (ROS 2, radians):
+ *  - left_roll_bias_rad   (default: +pi)
+ *  - right_roll_bias_rad  (default: 0)
+ *  Typical use: LEFT = π flips the left palm by 180° to match the RIGHT palm frame.
+ *
+ * Numerical guard:
+ *  - If |roll| < 1e-12, the Identity quaternion is returned to avoid introducing tiny rotations.
  *
  * @param armName Arm identifier ("LEFT" or "RIGHT").
  * @param node ROS 2 node used to access parameters.
- * @return Unit quaternion for the roll compensation (Identity if near-zero).
+ * @return Unit quaternion q_fix for the roll compensation about local Z.
  */
 static Eigen::Quaterniond armCompensationQuat(const std::string& armName,
                                               rclcpp::Node::SharedPtr node)
@@ -704,9 +812,12 @@ void CartesianPointingComponent::pointTask(const std::shared_ptr<cartesian_point
         const Eigen::Vector3d p_sh   = T_base_sh.block<3,1>(0,3);
         const Eigen::Vector3d p_goal = sphereReachPoint(p_sh, p_base);
 
-        Eigen::Quaterniond q_nat = buildPointingPalmDownQuat(p_sh, p_goal);
-        Eigen::Quaterniond q_fix = armCompensationQuat(arm, m_node);
-        Eigen::Quaterniond q_cmd = q_nat * q_fix;
+    Eigen::Quaterniond q_nat = buildPointingPalmDownQuat(p_sh, p_goal);
+    // Map model EE frame to controller/tool frame (preserve pointing axis intent)
+    Eigen::Quaterniond q_map = armToolMappingQuat(arm, m_node);
+    // Optional additional local Z roll to iron out residual palm twist
+    Eigen::Quaterniond q_fix = armCompensationQuat(arm, m_node);
+    Eigen::Quaterniond q_cmd = q_nat * q_map * q_fix;
 
         RCLCPP_INFO(m_node->get_logger(),
                     "ARM %s: go_to_pose -> pos=(%.3f, %.3f, %.3f) quat=(%.4f, %.4f, %.4f, %.4f)",
@@ -724,7 +835,7 @@ void CartesianPointingComponent::pointTask(const std::shared_ptr<cartesian_point
         ExecuteDance(pref);
         const bool ok = port->write(cmd,res);
         if (!(ok && res.size()>0 && (res.get(0).asVocab32()==yarp::os::createVocab32('o','k') || bottleAsBool(res)))) {
-            RCLCPP_WARN(m_node->get_logger(),"ARM %s: go_to_pose rejected, abort", arm.c_str());
+         RCLCPP_WARN(m_node->get_logger(),"ARM %s: go_to_pose rejected, abort", arm.c_str());
             break;
         }
         if (!waitMotionDone(port, kPollMs, kTimeoutMs)) {
