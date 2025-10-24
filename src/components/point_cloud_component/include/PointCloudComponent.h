@@ -1,5 +1,5 @@
 // =========================
-// CameraSafetyComponent.h
+// PointCloudComponent.h
 // =========================
 #pragma once
 
@@ -18,7 +18,7 @@
 /**
  * @brief Node that evaluates a point cloud stream and exposes an is_safe flag over ROS and YARP.
  */
-class CameraSafetyComponent : public rclcpp::Node
+class PointCloudComponent : public rclcpp::Node
 {
 public:
   /**
@@ -26,7 +26,7 @@ public:
    *
    * @param options node options propagated to the base class.
    */
-  explicit CameraSafetyComponent(const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
+  explicit PointCloudComponent(const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
 
 private:
   /**

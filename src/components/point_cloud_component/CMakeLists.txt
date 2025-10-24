@@ -15,7 +15,7 @@ include_directories(include)
 
 add_executable(point_cloud_component
   src/main.cpp
-  src/CameraSafetyComponent.cpp)
+  src/PointCloudComponent.cpp)
 
 ament_target_dependencies(point_cloud_component
   rclcpp sensor_msgs std_msgs)

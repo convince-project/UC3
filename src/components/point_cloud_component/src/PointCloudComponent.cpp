@@ -1,4 +1,4 @@
-#include "CameraSafetyComponent.h"
+#include "PointCloudComponent.h"
 
 #include <sensor_msgs/point_cloud2_iterator.hpp>
 
@@ -12,8 +12,8 @@ constexpr char kRosSafetyTopic[] = "/CameraSafety/is_safe";
 constexpr char kYarpSafetyPort[] = "/CameraSafety/is_safe:o";
 }
 
-CameraSafetyComponent::CameraSafetyComponent(const rclcpp::NodeOptions & options)
-: rclcpp::Node("CameraSafetyComponent", options)
+PointCloudComponent::PointCloudComponent(const rclcpp::NodeOptions & options)
+: rclcpp::Node("PointCloudComponent", options)
 {
   // Declare parameters
   // These parameters let operators tune topic names and safety thresholds at runtime.
@@ -52,13 +52,13 @@ CameraSafetyComponent::CameraSafetyComponent(const rclcpp::NodeOptions & options
 
   RCLCPP_INFO(
     this->get_logger(),
-    "CameraSafetyComponent listening to '%s' (z_min_threshold=%.3f, min_violation_count=%d)",
+    "PointCloudComponent listening to '%s' (z_min_threshold=%.3f, min_violation_count=%d)",
     input_cloud_topic_.c_str(),
     z_min_threshold_,
     min_violation_count_);
 }
 
-void CameraSafetyComponent::handlePointCloud(const sensor_msgs::msg::PointCloud2::SharedPtr msg)
+void PointCloudComponent::handlePointCloud(const sensor_msgs::msg::PointCloud2::SharedPtr msg)
 {
   // The PointCloud2Iterator APIs rely on x/y/z fields; bail out early if the sensor omits them.
   if (!hasXYZFields(*msg))
@@ -83,7 +83,7 @@ void CameraSafetyComponent::handlePointCloud(const sensor_msgs::msg::PointCloud2
   publishSafetyState(is_safe_frame, *violation_count);
 }
 
-bool CameraSafetyComponent::hasXYZFields(const sensor_msgs::msg::PointCloud2 & cloud) const
+bool PointCloudComponent::hasXYZFields(const sensor_msgs::msg::PointCloud2 & cloud) const
 {
   bool has_x = false;
   bool has_y = false;
@@ -111,7 +111,7 @@ bool CameraSafetyComponent::hasXYZFields(const sensor_msgs::msg::PointCloud2 & c
   return has_x && has_y && has_z;
 }
 
-std::optional<int> CameraSafetyComponent::countThresholdViolations(const sensor_msgs::msg::PointCloud2 & cloud) const
+std::optional<int> PointCloudComponent::countThresholdViolations(const sensor_msgs::msg::PointCloud2 & cloud) const
 {
   try
   {
@@ -138,7 +138,7 @@ std::optional<int> CameraSafetyComponent::countThresholdViolations(const sensor_
   }
 }
 
-void CameraSafetyComponent::publishSafetyState(bool is_safe, int violation_count)
+void PointCloudComponent::publishSafetyState(bool is_safe, int violation_count)
 {
   {
     // Remember the latest decision for monitoring or future service calls.
