@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>point_cloud_component</name>
+  <version>0.1.0</version>
+  <description>ROS 2/YARP component that subscribes to a PointCloud2 and outputs a boolean safety flag based on a Z threshold.</description>
+
+  <maintainer email="beniamino.squitieri@iit.it">Beniamino Squitieri</maintainer>
+  <license>BSD-3-Clause</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
+
+  <exec_depend>yarp</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
