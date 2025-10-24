@@ -10,6 +10,8 @@
 
 YARP_LOG_COMPONENT(NARRATE_COMPONENT, "convince.narrate_component.NarrateComponent")
 
+const std::string NO_DANCE_PREFIX = "no_dance_XX";
+
 bool NarrateComponent::configureYARP(yarp::os::ResourceFinder &rf)
 {
     bool okCheck = rf.check("NARRATECOMPONENT");
@@ -260,25 +262,36 @@ void NarrateComponent::_executeDance(std::string danceName, float estimatedSpeec
 
 void NarrateComponent::_speakTask() {
     RCLCPP_INFO_STREAM(m_node->get_logger(), "New Speak Thread ");
+    bool danceStarted = false;
     m_inSoundPort.useCallback(m_verbalOutputBatchReader);
     do{
         _waitForPlayerStatus(false);
         yarp::sig::Sound sound;
         if (m_soundQueue.pop(sound))
         {
-            _resetDance();
+            if(danceStarted)
+            {
+                _resetDance();
+            }
             yarp::sig::Sound& toSend = m_outSoundPort.prepare();
             toSend = sound;
             m_outSoundPort.write();
             _waitForPlayerStatus(true);
-            _executeDance(m_danceBuffer[m_danceBuffer.size() - m_toSend], sound.getDuration());
+            if(m_danceBuffer[m_danceBuffer.size() - m_toSend] != NO_DANCE_PREFIX)
+            {
+                _executeDance(m_danceBuffer[m_danceBuffer.size() - m_toSend], sound.getDuration());
+                danceStarted = true;
+            }
             m_toSend--;
         }
 
     } while(!m_stopped && (!m_soundQueue.isEmpty() || m_toSend > 0));
 
     _waitForPlayerStatus(false);
-    _resetDance();
+    if(danceStarted)
+    {
+        _resetDance();
+    }
 
     m_inSoundPort.disableCallback();
     m_speakTask = false;
@@ -350,8 +363,8 @@ void NarrateComponent::_narrateTask(const std::shared_ptr<narrate_interfaces::sr
                 RCLCPP_INFO_STREAM(m_node->get_logger(), "Got speak action " );
                 m_speakBuffer.push_back(currentAction->param);
                 if (currentAction->dance == "") {
-                    RCLCPP_INFO_STREAM(m_node->get_logger(), "No dance action for the speak action. Putting \"gesture\"");
-                    m_danceBuffer.push_back("gesture");
+                    RCLCPP_INFO(m_node->get_logger(), "No dance action for the speak action. Putting \"%s\"", NO_DANCE_PREFIX.c_str());
+                    m_danceBuffer.push_back(NO_DANCE_PREFIX);
                 }
                 else {
                     m_danceBuffer.push_back(currentAction->dance);
@@ -390,10 +403,6 @@ void NarrateComponent::_narrateTask(const std::shared_ptr<narrate_interfaces::sr
             actionCounter++;
         } while (!doneWithPoi);
 
-        if (m_speakBuffer.size() == m_danceBuffer.size() + 1) {
-            RCLCPP_INFO_STREAM(m_node->get_logger(), "No dance action for the last speak action. Putting \"gesture\"");
-            m_danceBuffer.push_back("gesture");
-        }
         if (m_speakBuffer.size() != m_danceBuffer.size()) {
             RCLCPP_ERROR_STREAM(m_node->get_logger(), "Error: speak and dance actions do not match. Aborting narration");
             return;
