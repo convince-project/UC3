@@ -21,6 +21,7 @@
   <!-- Interfaces -->
   <depend>dance_interfaces</depend>
   <depend>cartesian_pointing_interfaces</depend>
+  <depend>execute_dance_interfaces</depend>
 
   <!-- YARP & Eigen & nlohmann -->
   <depend>yarp</depend>
