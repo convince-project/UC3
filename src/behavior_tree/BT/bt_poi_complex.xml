@@ -15,7 +15,7 @@
                              isMonitored="false"/>
             </Inverter>
             <Parallel failure_threshold="1"
-                      success_threshold="">
+                      success_threshold="2">
               <ROS2Action name="AlarmBatteryLow"
                           interface="ROS2SERVICE"
                           isMonitored="false"/>
