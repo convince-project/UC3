@@ -57,6 +57,7 @@
 
 // CartesianPointing Interfaces
 #include <cartesian_pointing_interfaces/srv/point_at.hpp>
+#include <cartesian_pointing_interfaces/srv/is_motion_done.hpp>
 
 #include "nlohmann/json.hpp"
 #include <random>
@@ -111,7 +112,8 @@ protected:
     // void SpeakFromText(std::string text, std::string dance); // ROS2 service client to TextToSpeechComponent to speak the text
     bool CommandManager(const std::string &command, std::shared_ptr<dialog_interfaces::srv::ManageContext::Response> &response);    // Manages the command received from the PoiChat LLM and returns the response to the caller
     void WaitForSpeakEnd();                                                                                                         // ROS2 service client to TextToSpeechComponent to get if the TTS is speaking. Wait until it is not
-    void WaitForSpeakStart();                                                                                                       // ROS2 service client to TextToSpeechComponent to get if the TTS is speaking. Wait until it starts
+    void WaitForSpeakStart();   
+    void WaitForPointingEnd();                                                                                                    // ROS2 service client to TextToSpeechComponent to get if the TTS is speaking. Wait until it starts
     bool UpdatePoILLMPrompt();                                                                                                      // Updates the prompt of the PoIChat LLM based on the current PoI. Leverages the SchedulerComponent service to get the current PoI name
     void ExecuteDance(std::string danceName, float estimatedSpeechTime);                                                            // ROS2 service client to ExecuteDanceComponent to execute the dance with the given name
     void ResetDance();                                                                                                              // ROS2 service client to ResetDanceComponent to reset the dance with the given name
