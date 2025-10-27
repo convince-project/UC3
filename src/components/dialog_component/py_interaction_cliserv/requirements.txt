@@ -1,5 +1,4 @@
 torch
-torchvision
 torchaudio
 transformers[torch]
 --extra-index-url https://download.pytorch.org/whl/cu118

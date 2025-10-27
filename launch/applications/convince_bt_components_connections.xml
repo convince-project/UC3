@@ -21,4 +21,20 @@
         <from>/audioPlayerWrapper/status:o</from>
         <to>/TextToSpeechComponent/audioPlayerWrapper/status:i</to>
     </connection>
+
+    <connection>
+        <from>/TextToSpeechComponent/batch:o</from>
+        <to>/NarrateComponent/sound:i</to>
+    </connection>
+
+    <connection>
+        <from>/NarrateComponent/sound:o</from>
+        <to>/audioPlayerWrapper/audio:i</to>
+        <protocol>tcp+recv.portmonitor+file.soundfilter_resample+type.dll+channel.0+frequency.16000</protocol>
+    </connection>
+
+    <connection>
+        <from>/audioPlayerWrapper/status:o</from>
+        <to>/NarrateComponent/playerStatus:i</to>
+    </connection>
 </application>

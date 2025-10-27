@@ -1,5 +1,5 @@
 <application>
-    <name>convince_bt_skills_no_dialog</name>
+    <name>convince_bt_skills</name>
 
     <module>
         <name>python3</name>
@@ -9,12 +9,33 @@
     </module>
 
     <module>
+         <name>ros2_dummy_condition</name>
+         <parameters>run dummy_condition dummy_condition --skill_name NarratePoi --default_status SUCCESS</parameters>
+         <workdir />
+         <node>bt</node>
+    </module>
+
+
+    <module>
+         <name>ros2_dummy_condition</name>
+         <parameters>run dummy_condition dummy_condition --skill_name Dialog --default_status SUCCESS</parameters>
+         <workdir />
+         <node>bt</node>
+    </module>
+
+    <!-- <module>
         <name>ros2_update_poi_skill</name>
         <parameters>run update_poi_skill update_poi_skill</parameters>
         <workdir />
         <node>bt</node>
-    </module>
+    </module> -->
 
+    <module>
+        <name>ros2_reset_counters_skill</name>
+        <parameters>run reset_counters_skill reset_counters_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
     <module>
         <name>ros2_start_poi_timer_skill</name>
         <parameters>run start_poi_timer_skill start_poi_timer_skill</parameters>
@@ -25,13 +46,6 @@
     <module>
         <name>ros2_stop_poi_timer_skill</name>
         <parameters>run stop_poi_timer_skill stop_poi_timer_skill</parameters>
-        <workdir />
-        <node>bt</node>
-    </module>
-
-    <module>
-        <name>ros2_reset_counters_skill</name>
-        <parameters>run reset_counters_skill reset_counters_skill</parameters>
         <workdir />
         <node>bt</node>
     </module>
@@ -70,6 +84,13 @@
         <parameters>run is_at_charging_station_skill is_at_charging_station_skill</parameters>
         <workdir />
         <node>bt</node>
+    </module>
+
+    <module>
+         <name>ros2_dummy_condition</name>
+         <parameters>run dummy_condition dummy_condition --skill_name SayBye --default_status SUCCESS</parameters>
+         <workdir />
+         <node>bt</node>
     </module>
 
     <module>
@@ -150,12 +171,12 @@
         <node>bt</node>
     </module>
 
-    <!-- <module>
+    <module>
         <name>ros2_visitors_following_robot_skill</name>
         <parameters>run visitors_following_robot_skill visitors_following_robot_skill</parameters>
         <workdir />
-        <node>bt</node>
-    </module> -->
+        <node>opt</node>
+    </module>
 
     <module>
         <name>ros2_is_checking_for_people_skill</name>
@@ -178,12 +199,20 @@
         <node>bt</node>
     </module>
 
-    <!-- <module>
-        <name>ros2_go_to_current_poi_skill</name>
-        <parameters>run go_to_current_poi_skill go_to_current_poi_skill</parameters>
-        <workdir />
-        <node>bt</node>
-    </module> -->
+    <module>
+         <name>ros2_dummy_condition</name>
+         <parameters>run dummy_condition dummy_condition --skill_name SayFollowMe --default_status SUCCESS</parameters>
+         <workdir />
+         <node>bt</node>
+    </module>
+
+    <module>
+         <name>ros2_dummy_condition</name>
+         <parameters>run dummy_condition dummy_condition --skill_name SayWhileNavigating --default_status SUCCESS</parameters>
+         <workdir />
+         <node>bt</node>
+    </module>
+
     <module>
         <name>ros2_go_to_poi_action_skill</name>
         <parameters>run go_to_poi_action_skill go_to_poi_action_skill</parameters>
@@ -219,6 +248,13 @@
         <parameters>run are_people_present_skill are_people_present_skill</parameters>
         <workdir />
         <node>bt</node>
+    </module>
+
+    <module>
+         <name>ros2_dummy_condition</name>
+         <parameters>run dummy_condition dummy_condition --skill_name SayPeopleLeft --default_status SUCCESS</parameters>
+         <workdir />
+         <node>bt</node>
     </module>
 
     <module>
@@ -265,18 +301,19 @@
     </module>
 
     <module>
-        <name>ros2_is_maximum_duration_skill</name>
-        <parameters>run is_maximum_duration_skill is_maximum_duration_skill</parameters>
-        <workdir />
-        <node>bt</node>
+         <name>ros2_dummy_condition</name>
+         <parameters>run dummy_condition dummy_condition --skill_name VisitorsFollowingRobot --default_status SUCCESS</parameters>
+         <workdir />
+         <node>bt</node>
     </module>
 
-    <!-- <module>
+
+    <module>
         <name>ros2_is_museum_closing_skill</name>
         <parameters>run is_museum_closing_skill is_museum_closing_skill</parameters>
         <workdir />
         <node>bt</node>
-    </module> -->
+    </module>
 
     <module>
         <name>ros2_set_current_poi_done_skill</name>
@@ -287,28 +324,14 @@
 
     <module>
         <name>ros2</name>
-        <parameters>launch bt_launch_poi_skills_generate_bt.py json_file:=/home/user1/UC3/conf/tours.json tour_name:=TOUR_MADAMA_3 bt_file:=../src/behavior_tree/BT/bt_poi_complex_no_dialog.xml</parameters>
+        <parameters>launch bt_launch_poi_skills_generate_bt.py json_file:=/home/user1/UC3/conf/tours.json tour_name:=TOUR_MADAMA_3 bt_file:=../src/behavior_tree/BT/bt_poi_complex.xml</parameters>
         <workdir>/home/user1/UC3/launch/</workdir>
         <node>bt</node>
     </module>
-    
+        
     <module>
          <name>ros2_dummy_condition</name>
          <parameters>run dummy_condition dummy_condition --skill_name VisitorsFollowingRobot --default_status SUCCESS</parameters>
-         <workdir />
-         <node>bt</node>
-    </module>
-
-    <module>
-         <name>ros2_dummy_condition</name>
-         <parameters>run dummy_condition dummy_condition --skill_name IsMuseumClosing --default_status FAILURE</parameters>
-         <workdir />
-         <node>bt</node>
-    </module>
-
-    <module>
-         <name>yarprobotinterface</name>
-         <parameters> --config /home/user1/UC3/src/components/fake_battery_component/robotinterface.xml</parameters>
          <workdir />
          <node>bt</node>
     </module>

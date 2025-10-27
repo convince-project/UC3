@@ -213,6 +213,7 @@ void SchedulerComponent::GetCurrentAction([[maybe_unused]] const std::shared_ptr
     response->is_blocking = actions_vec[m_currentAction].isBlocking();
     response->param = actions_vec[m_currentAction].getParam();
     response->type = actionTypeStr;
+    response->dance = actions_vec[m_currentAction].getDance();
     response->is_ok = true;
 }
 
