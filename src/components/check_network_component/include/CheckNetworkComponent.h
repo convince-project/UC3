@@ -41,6 +41,7 @@ public:
     bool setup(int argc, char* argv[]);
     void StatusChangedPublisher();
     void threadConnected();
+    void threadWebConnected();
     rclcpp::Logger getLogger();
 
 private:
@@ -69,6 +70,7 @@ private:
     std::vector<bool> m_lastStatus;
     std::vector<bool> m_lastWebStatus;
     std::shared_ptr<std::thread> m_threadStatus;
+    std::shared_ptr<std::thread> m_threadWebStatus;
 
     // Calculating the Check Sum
     // TODO: understand what is this

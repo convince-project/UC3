@@ -44,6 +44,7 @@ bool CheckNetworkComponent::setup(int argc, char* argv[])
     m_publisherWebStatus = m_node->create_publisher<std_msgs::msg::Bool>("/CheckNetworkComponent/WebStatus", 10);
     // timer_ = m_node->create_wall_timer(1000ms, std::bind(&CheckNetworkComponent::topic_callback, this));
     m_threadStatus = std::make_shared<std::thread>(&CheckNetworkComponent::threadConnected, this);
+    m_threadWebStatus = std::make_shared<std::thread>(&CheckNetworkComponent::threadWebConnected, this);
     m_publisherNetworkChanged = m_node->create_publisher<std_msgs::msg::Bool>("/CheckNetworkComponent/NetworkChanged", 10);
     m_publisherWebChanged = m_node->create_publisher<std_msgs::msg::Bool>("/CheckNetworkComponent/WebChanged", 10);
     timer_2 = m_node->create_wall_timer(1000ms, std::bind(&CheckNetworkComponent::StatusChangedPublisher, this));
@@ -53,37 +54,9 @@ bool CheckNetworkComponent::setup(int argc, char* argv[])
     return true;
 }
 
-
-void CheckNetworkComponent::threadConnected() {
-    while(m_threadActive) {
-        // Check R1 network status
-        bool networkIsCurrentlyUp=true;
-        m_is_connected = isNetworkConnected(m_address_name);
-	    RCLCPP_DEBUG(m_node->get_logger(), "m_is_connected %s m_lastStatus.size() %zu", m_is_connected ? "true" : "false", m_lastStatus.size());
-        if (m_lastStatus.size() < 5) {
-            m_changed = false;
-            m_lastStatus.push_back(m_is_connected);
-        } else {
-            int countFalse = 0;
-            for (auto status : m_lastStatus) {
-                RCLCPP_DEBUG(m_node->get_logger(), "status %s", status ? "true" : "false");
-                if (status == false) {
-                    countFalse++;
-                }
-            }
-            if (countFalse > 3) {
-                networkIsCurrentlyUp = false;
-            }
-            m_lastStatus.clear();
-            RCLCPP_INFO(m_node->get_logger(), "m_previousStatusConnected %s networkIsCurrentlyUp %s", m_previousStatusConnected ? "true" : "false", networkIsCurrentlyUp ? "true" : "false");
-            if (m_previousStatusConnected != networkIsCurrentlyUp) {
-                m_changed = true;
-            } else {
-                m_changed = false;
-	    }
-            m_previousStatusConnected = networkIsCurrentlyUp;
-        }
-
+void CheckNetworkComponent::threadWebConnected() {
+    while(m_threadActive)
+    {
         // Check web connection status
         bool webIsCurrentlyUp=true;
         bool web_connected = isNetworkConnected(m_web_address);
@@ -115,12 +88,48 @@ void CheckNetworkComponent::threadConnected() {
     }
 }
 
+void CheckNetworkComponent::threadConnected() {
+    while(m_threadActive) {
+        // Check R1 network status
+        bool networkIsCurrentlyUp=true;
+        m_is_connected = isNetworkConnected(m_address_name);
+	    RCLCPP_DEBUG(m_node->get_logger(), "m_is_connected %s m_lastStatus.size() %zu", m_is_connected ? "true" : "false", m_lastStatus.size());
+        if (m_lastStatus.size() < 5) {
+            m_changed = false;
+            m_lastStatus.push_back(m_is_connected);
+        } else {
+            int countFalse = 0;
+            for (auto status : m_lastStatus) {
+                RCLCPP_DEBUG(m_node->get_logger(), "status %s", status ? "true" : "false");
+                if (status == false) {
+                    countFalse++;
+                }
+            }
+            if (countFalse > 3) {
+                networkIsCurrentlyUp = false;
+            }
+            m_lastStatus.clear();
+            RCLCPP_INFO(m_node->get_logger(), "m_previousStatusConnected %s networkIsCurrentlyUp %s", m_previousStatusConnected ? "true" : "false", networkIsCurrentlyUp ? "true" : "false");
+            if (m_previousStatusConnected != networkIsCurrentlyUp) {
+                m_changed = true;
+            } else {
+                m_changed = false;
+	    }
+            m_previousStatusConnected = networkIsCurrentlyUp;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+}
+
 bool CheckNetworkComponent::close()
 {
     rclcpp::shutdown();
     m_threadActive = false;
     if (m_threadStatus != nullptr && m_threadStatus->joinable()) {
         m_threadStatus->join();
+    }
+    if (m_threadWebStatus != nullptr && m_threadWebStatus->joinable()) {
+        m_threadWebStatus->join();
     }
     return true;
 }
