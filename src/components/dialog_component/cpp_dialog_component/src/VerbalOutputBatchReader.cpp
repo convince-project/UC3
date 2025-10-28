@@ -17,9 +17,9 @@ bool VerbalOutputBatchReader::ConfigureYARP(yarp::os::ResourceFinder &rf)
     bool okCheck = rf.check("TEXT_TO_SPEECH_COMPONENT");
 
     m_audioInputPort.useCallback(*this);
-    if (!m_audioInputPort.open("/VerbalOutputBatchReader/batch:i"))
+    if (!m_audioInputPort.open("/DialogComponent/batch:i"))
     {
-        yError() << "[VerbalOutputBatchReader::ConfigureYARP] Unable to open port: " << "/VerbalOutputBatchReader/batch:i";
+        yError() << "[VerbalOutputBatchReader::ConfigureYARP] Unable to open port: " << "/DialogComponent/batch:i";
         return false;
     }
     

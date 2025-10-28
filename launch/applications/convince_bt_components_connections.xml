@@ -12,7 +12,7 @@
     </connection>
 
     <connection>
-        <from>/DialogComponent/batch:o</from>
+        <from>/DialogComponent/audio:o</from>
         <to>/audioPlayerWrapper/audio:i</to>
         <protocol>tcp+recv.portmonitor+file.soundfilter_resample+type.dll+channel.0+frequency.16000</protocol>
     </connection>
@@ -37,4 +37,36 @@
         <from>/audioPlayerWrapper/status:o</from>
         <to>/NarrateComponent/playerStatus:i</to>
     </connection>
+
+    <connection>
+        <from>/audioRecorder_nws/audio:o</from>
+        <to>/wake/audio:i</to>
+        <protocol>tcp+recv.portmonitor+file.soundfilter_resample+type.dll+channel.0+frequency.16000</protocol>
+    </connection>
+
+    <connection>
+        <from>/wake/audio:o</from>
+        <to>/vad/audio:i</to>
+    </connection>
+
+    <connection>
+        <from>/vad/rpc:o</from>
+        <to>/wake/rpc:i</to>
+        <protocol>fast_tcp</protocol>
+    </connection>
+
+    <connection>
+        <from>/wake/notification:o</from>
+        <to>/wake_notification:i</to>
+        <protocol>fast_tcp</protocol>
+    </connection>
+    
+    <connection>
+        <from>/wake/face:o</from>
+        <to>/faceExpressionImage/rpc </to>
+        <protocol>fast_tcp</protocol>
+    </connection>
+
+
+
 </application>

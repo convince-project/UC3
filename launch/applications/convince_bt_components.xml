@@ -7,6 +7,7 @@
         <workdir>/home/user1/UC3/launch/symbolic_links/</workdir>
         <node>bt</node>
     </module>
+
     <module>
         <name>ros2_speech_to_text_component</name>
         <parameters>run speech_to_text_component speech_to_text_component</parameters>
@@ -91,6 +92,20 @@
     </module>
 
     <module>
+        <name>ros2_scheduler_component</name>
+        <parameters>run scheduler_component scheduler_component conf/tours-with-italian-dates-in-chars.json TOUR_MADAMA_3</parameters>
+        <workdir>/home/user1/UC3</workdir>
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2_dance_component</name>
+        <parameters>run dance_component dance_component movements.json</parameters>
+        <workdir>/home/user1/UC3/conf/</workdir>
+        <node>bt</node>
+    </module>
+
+    <module>
         <name>ros2_execute_dance_component</name>
         <parameters>run execute_dance_component execute_dance_component</parameters>
         <workdir />
@@ -104,21 +119,11 @@
         <node>bt</node>
     </module>
 
-    <module>
-        <name>ros2_dance_component</name>
-        <parameters>run dance_component dance_component conf/movements.json</parameters>
-        <workdir>/home/user1/UC3</workdir>
-        <node>bt</node>
-    </module>
+   
 
 
 
-    <module>
-        <name>ros2_scheduler_component</name>
-        <parameters>run scheduler_component scheduler_component conf/tours.json TOUR_MADAMA_3</parameters>
-        <workdir>/home/user1/UC3</workdir>
-        <node>bt</node>
-    </module>
+    
 
 
     <module>
@@ -156,14 +161,14 @@
         <node>bt</node>
     </module>
 
-
-
     <module>
         <name>ros2_cpp_dialog_component</name>
-        <parameters>run dialog_component dialog_component</parameters>
+        <parameters>run dialog_component dialog_component --from config.ini</parameters>
         <workdir>/home/user1/UC3/src/components/dialog_component/cpp_dialog_component/config</workdir>
         <node>bt</node>
     </module>
+
+
 
     <module>
         <name>ros2_py_dialog_component</name>
