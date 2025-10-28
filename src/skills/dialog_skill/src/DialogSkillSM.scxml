@@ -37,7 +37,7 @@
           <param name="is_beginning_of_conversation" expr="m_is_beginning_of_conversation == 'true'"/>
         </send>
       </transition>
-      <transition event="CMD_HALT" target="idle">
+      <transition event="CMD_HALT" target="stop">
         <send event="HALT_RESPONSE">
         </send>
       </transition> 
@@ -489,12 +489,12 @@
 
   <state id="stop">
     <onentry>
-        <send event="DialogComponent.EnableDialog.Call">
-          <param name="enable" expr='"false"'/>
+        <send event="DialogComponent.SetLanguage.Call">
+          <param name="language" expr='"IT-it"'/>
         </send>
     </onentry>
 
-    <transition event="DialogComponent.EnableDialog.Return" target="stopResult">
+    <transition event="DialogComponent.SetLanguage.Return" target="stopResult">
       <assign expr="_event.data.result" location="m_result"/>
     </transition>
   </state>
