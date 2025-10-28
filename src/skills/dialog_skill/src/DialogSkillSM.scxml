@@ -127,7 +127,7 @@
     </onentry>
 
     <!-- If the visitor asked to start/continue/end the tour, we send a success response and end the conversation -->
-    <transition cond="m_is_poi_ended == true" target="sendSuccess"/>
+    <transition cond="m_is_poi_ended == true" target="resetToInitialState"/>
     <!-- Else, continue the pipeline -->
     <transition cond="m_is_poi_ended == false" target="setLanguage">
         <send event="DialogComponent.SetLanguage.Call">
@@ -520,13 +520,35 @@
       <transition target="idle" />
   </state>
 
-  <!-- STATE END -->
+  <state id="resetToInitialState">
+    <onentry>
+        <log label="State resetToInitialState" expr="m_result"/>
+        <log label="Is reply finished" expr="m_is_reply_finished"/>
+        <log label="Dance" expr="m_dance"/>
+
+        <send event="DialogComponent.SetLanguage.Call">
+          <param name="language" expr='"IT-it"'/>
+        </send>
+    </onentry>
+
+    <transition event="DialogComponent.SetLanguage.Return" target="resetToInitialStateResult">
+      <assign expr="_event.data.result" location="m_result"/>
+    </transition>
+  </state>
+
+  <state id="resetToInitialStateResult">
+
+    <transition cond="m_result == 'SUCCESS'" target="sendSuccess" />
+    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+  </state>
+
 
   <state id="sendSuccess">
     <transition event="CMD_TICK" target="idle">
       <send event="TICK_RESPONSE">
         <param name="result" expr='"SUCCESS"'/>
       </send>
+
     </transition>
   </state>
 

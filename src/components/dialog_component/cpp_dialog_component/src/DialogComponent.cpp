@@ -1416,6 +1416,7 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
         std::string navigation_position = "navigation_position";
         ExecuteDance(navigation_position, 0); // Go back to navigation position
         m_verbalOutputBatchReader.setDialogPhaseActive(false);
+        m_verbalOutputBatchReader.resetQueue();
     }
 
     result->is_ok = true;
