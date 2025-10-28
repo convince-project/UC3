@@ -61,12 +61,34 @@
         <protocol>fast_tcp</protocol>
     </connection>
     
-    <connection>
-        <from>/wake/face:o</from>
-        <to>/faceExpressionImage/rpc </to>
-        <protocol>fast_tcp</protocol>
-    </connection>
+  <!-- <connection>
+    <from>/TextToSpeechComponent/sound:o</from>
+    <to>/audioPlayerWrapper/audio:i</to>
+    <protocol>fast_tcp</protocol>
+  </connection> -->
 
+  <connection>
+    <from>/faceExpressionImage/image:o</from>
+    <to>/robot/faceDisplay/image:i</to>
+    <protocol>fast_tcp</protocol>
+  </connection>
 
+  <connection>
+    <from>/audioPlayerWrapper/status:o</from>
+    <to>/faceExpressionImage/mouthAudioData:i </to>
+    <protocol>fast_tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/audioRecorder_nws/status:o</from>
+    <to>/faceExpressionImage/earsAudioStatus:i</to>
+    <protocol>fast_tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/wake/face:o</from>
+    <to>/faceExpressionImage/rpc </to>
+    <protocol>fast_tcp</protocol>
+  </connection>
 
 </application>
