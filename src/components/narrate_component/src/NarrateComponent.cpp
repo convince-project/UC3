@@ -409,8 +409,16 @@ void NarrateComponent::_narrateTask(const std::shared_ptr<narrate_interfaces::sr
         }
 
         m_toSend = m_speakBuffer.size();
+        for(int i = 0; i < m_inSoundPort.getPendingReads(); i++)
+        {
+            auto leftOverAudio = m_inSoundPort.read(false);
+            if (leftOverAudio != nullptr)
+            {
+                RCLCPP_DEBUG_STREAM(m_node->get_logger(), "Clearing leftover audio from previous narration");
+            }
+        }
         m_soundQueue.flush();
-
+        // m_inSoundPort.useCallback(m_verbalOutputBatchReader);
         _sendForBatchSynthesis(m_speakBuffer);
         _speakTask();
 }
