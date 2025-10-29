@@ -28,7 +28,9 @@ class MultiMonitor(Node):
             'prop9': '(not {hardware_fault})',
             'prop10POI': 'historically( ({poi1_completed} -> {poi1_selected}) and ({poi1_selected} -> ( not( ((not {poi1_completed}) and {poi1_selected}) since[50:] {poi1_sel_start} ))))',
             'prop11': '({well_localized})',
-            'prop12': '( {is_recording} -> (not {is_unplagged}) )'
+            'prop12': '( {is_recording} -> (not {is_unplagged}) )',
+            'prop13': '(once[5:]{t} -> once[:3]{connected_to_network})',
+            'prop14': '(once[5:]{t} -> once[:3]{connected_to_web})'
         }
 
         # Elenco dei topic da monitorare (modifica i nomi come servono)
@@ -50,6 +52,8 @@ class MultiMonitor(Node):
             '/monitor_propPOI5/monitor_verdict',
             '/monitor_prop11/monitor_verdict',
             '/monitor_prop12/monitor_verdict',
+            '/monitor_prop13/monitor_verdict',
+            '/monitor_prop14/monitor_verdict'            
         ]
 
         # Stato attuale di ogni topic

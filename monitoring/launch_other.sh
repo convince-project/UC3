@@ -6,7 +6,7 @@ MONITORING_DIR="$USER_HOME/UC3/monitoring"
 ORACLE_PY="$USER_HOME/ROSMonitoring/oracle/TLOracle/oracle.py"
 PY_ENV="$USER_HOME/monitoring-python-env/bin/python"
 # Proprietà da 1 a 9 (escluso 4) e da 11 a 12 (salta la 10)
-PROPS=(1 2 3 4 5 6 7 8 9 11 12)
+PROPS=(1 2 3 4 5 6 7 8 9 11 12 13 14)
 WS_PATTERN="$MONITORING_DIR/monitor_prop%s_ws/src"
 PROPERTY_PREFIX="prop"
 BASE_PORT=8080
