@@ -127,7 +127,11 @@
     </onentry>
 
     <!-- If the visitor asked to start/continue/end the tour, we send a success response and end the conversation -->
-    <transition cond="m_is_poi_ended == true" target="resetToInitialState"/>
+    <transition cond="m_is_poi_ended == true" target="resetToInitialState">
+      <send event="DialogComponent.SetLanguage.Call">
+          <param name="new_language" expr='"it-IT"'/>
+        </send>
+    </transition>
     <!-- Else, continue the pipeline -->
     <transition cond="m_is_poi_ended == false" target="setLanguage">
         <send event="DialogComponent.SetLanguage.Call">
@@ -230,13 +234,13 @@
     <!-- <transition cond="m_duplicate_index &gt; 0" target="shortenReply"/>
     <transition cond="m_duplicate_index &lt; 0" target="interpret"/> -->
     <!-- undesirable solution, but I couldn't make the integer comparison work -->
-    <transition cond="m_duplicate_index != '-1'" target="shortenReply">
+    <!-- <transition cond="m_duplicate_index != '-1'" target="shortenReply">
         <send event="DialogComponent.ShortenReply.Call">
           <param name="index" expr="m_duplicate_index"/>
           <param name="context" expr="m_context"/>
           <param name="interaction" expr="m_interaction"/>
         </send>
-    </transition>
+    </transition> -->
     <!-- if the context requires a predefined answer, such as for describing something or explaining the function, go in InterpretCommans State -->
     <transition cond="m_context == 'explainFunction' || m_context == 'explainDescription'" target="interpretCommand">
         <send event="DialogComponent.InterpretCommand.Call">
@@ -490,7 +494,7 @@
   <state id="stop">
     <onentry>
         <send event="DialogComponent.SetLanguage.Call">
-          <param name="language" expr='"IT-it"'/>
+          <param name="new_language" expr='"it-IT"'/>
         </send>
     </onentry>
 
@@ -525,11 +529,13 @@
         <log label="State resetToInitialState" expr="m_result"/>
         <log label="Is reply finished" expr="m_is_reply_finished"/>
         <log label="Dance" expr="m_dance"/>
-
-        <send event="DialogComponent.SetLanguage.Call">
-          <param name="language" expr='"IT-it"'/>
-        </send>
     </onentry>
+
+    <transition event="CMD_TICK" target="resetToInitialState">
+      <send event="TICK_RESPONSE">
+        <param name="result" expr='"RUNNING"'/>
+      </send>
+    </transition>
 
     <transition event="DialogComponent.SetLanguage.Return" target="resetToInitialStateResult">
       <assign expr="_event.data.result" location="m_result"/>
@@ -538,12 +544,28 @@
 
   <state id="resetToInitialStateResult">
 
+    <onentry>
+      <log label="State resetToInitialStateResult" expr="m_result"/>
+      <log label="Is reply finished" expr="m_is_reply_finished"/>
+      <log label="Dance" expr="m_dance"/>
+      <log label="Language resetted " expr="m_result"/>
+
+    </onentry>
+
     <transition cond="m_result == 'SUCCESS'" target="sendSuccess" />
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
   </state>
 
 
   <state id="sendSuccess">
+
+    <onentry>
+      <log label="State sendSuccess" expr="m_result"/>
+      <log label="Is reply finished" expr="m_is_reply_finished"/>
+      <log label="Dance" expr="m_dance"/>
+      <log label="Language resetted " expr="m_result"/>
+    </onentry>
+
     <transition event="CMD_TICK" target="idle">
       <send event="TICK_RESPONSE">
         <param name="result" expr='"SUCCESS"'/>

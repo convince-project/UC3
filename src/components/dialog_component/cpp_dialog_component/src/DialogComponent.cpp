@@ -28,6 +28,8 @@ DialogComponent::DialogComponent() : m_random_gen(m_rand_engine()),
     m_last_received_interaction = "";
 
     m_number_of_predefined_answers = 0;
+
+
 }
 
 bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
@@ -556,12 +558,15 @@ bool DialogComponent::CommandManager(const std::string &command, std::shared_ptr
 
         m_state = SUCCESS;
         yInfo() << "[DialogComponent::CommandManager] Next Poi Detected" << __LINE__;
+
+        m_verbalOutputBatchReader.setDialogPhaseActive(false);
         response->is_ok = true;
         response->is_poi_ended = true;
     }
     else if (action == "end_tour") // END TOUR
     {
         yInfo() << "[DialogComponent::CommandManager] End Tour Detected" << __LINE__;
+        m_verbalOutputBatchReader.setDialogPhaseActive(false);
 
         response->is_ok = true;
         response->is_poi_ended = true;
@@ -636,6 +641,8 @@ void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::
     response->is_ok = true;
 
     std::string newLang = request->language;
+
+    std::cout << "Setting language to " << newLang << std::endl;
 
     if (!m_tourStorage->m_loadedTour.setCurrentLanguage(newLang))
     {
@@ -1317,6 +1324,8 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
 
     std::unique_ptr<yarp::sig::Sound> verbalOutput = nullptr;
 
+    int maxWaitingForVerbalOutputCounter = 100;
+
     do
     {
         verbalOutput = m_verbalOutputBatchReader.GetVerbalOutput();
@@ -1330,12 +1339,27 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
 
         // Publish feedback
         goal_handle->publish_feedback(feedback);
+        
         RCLCPP_INFO(m_node->get_logger(), "Waiting for verbal output");
 
-        // wait for a while before trying to read again
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-    } while (verbalOutput == nullptr);
+        // wait for a while before trying to read again
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+        maxWaitingForVerbalOutputCounter--;
+
+    } while (verbalOutput == nullptr && maxWaitingForVerbalOutputCounter > 0);
+
+    if (maxWaitingForVerbalOutputCounter <= 0) {
+        m_predefined_answer_index = 0;
+        m_number_of_predefined_answers = 0;
+        result->is_reply_finished = true;
+        RCLCPP_INFO(m_node->get_logger(), "Verbal Output Not received, get back to navigation position");
+        std::string navigation_position = "navigation_position";
+        ExecuteDance(navigation_position, 0); // Go back to navigation position
+        m_verbalOutputBatchReader.setDialogPhaseActive(false);
+        m_verbalOutputBatchReader.resetQueue();
+    }
 
     yarp::sig::Sound &sound = m_audioPort.prepare();
     std::cout << "[DialogComponent::SpeakFromAudio] Preparing to speak" << std::endl;
@@ -1344,16 +1368,6 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
 
     sound = *verbalOutput;
     std::cout << "[DialogComponent::SpeakFromAudio] Copied sound data" << std::endl;
-
-    // for (auto &text : texts)
-    // {
-    //     std::cout << "[DialogComponent::SpeakFromAudio] Text to speak: " << text << std::endl;
-    // }
-
-    // for (auto &dance : dances)
-    // {
-    //     std::cout << "[DialogComponent::SpeakFromAudio] Dance to perform: " << dance << std::endl;
-    // }
 
     std::string dance = dances[m_predefined_answer_index];
 
