@@ -222,7 +222,10 @@ void SpeechToTextComponent::onRead(yarp::sig::Sound &msg)
         if(!m_iSpeechTranscr->transcribe(msg, transcriptionText, confidence))
 
         {
-            yError() << "[SpeechToTextComponent::onRead] Error transcribing audio";
+            yError() << "[SpeechToTextComponent::onRead] Error transcribing audio, sending empty transcription. May the credentials be wrong?";
+            outputText.addString("");
+            outputText.addFloat64(1.0);
+            m_transcriptionOutputPort.write();
             return;
         }
         yInfo() << "[SpeechToTextComponent::onRead] Transcription: " << transcriptionText << " with confidence: " << confidence;
