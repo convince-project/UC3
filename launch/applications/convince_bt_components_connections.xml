@@ -7,6 +7,11 @@
     </connection>
 
     <connection>
+        <from>/SpeechToTextComponent/text:o</from>
+        <to>/DialogComponent/SpeechToTextClient:i</to>
+    </connection>
+
+    <connection>
         <from>/TextToSpeechComponent/batch:o</from>
         <to>/DialogComponent/batch:i</to>
     </connection>
