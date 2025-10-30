@@ -28,6 +28,8 @@ DialogComponent::DialogComponent() : m_random_gen(m_rand_engine()),
     m_last_received_interaction = "";
 
     m_number_of_predefined_answers = 0;
+
+
 }
 
 bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
@@ -556,12 +558,15 @@ bool DialogComponent::CommandManager(const std::string &command, std::shared_ptr
 
         m_state = SUCCESS;
         yInfo() << "[DialogComponent::CommandManager] Next Poi Detected" << __LINE__;
+
+        m_verbalOutputBatchReader.setDialogPhaseActive(false);
         response->is_ok = true;
         response->is_poi_ended = true;
     }
     else if (action == "end_tour") // END TOUR
     {
         yInfo() << "[DialogComponent::CommandManager] End Tour Detected" << __LINE__;
+        m_verbalOutputBatchReader.setDialogPhaseActive(false);
 
         response->is_ok = true;
         response->is_poi_ended = true;
@@ -636,6 +641,8 @@ void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::
     response->is_ok = true;
 
     std::string newLang = request->language;
+
+    std::cout << "Setting language to " << newLang << std::endl;
 
     if (!m_tourStorage->m_loadedTour.setCurrentLanguage(newLang))
     {
@@ -722,9 +729,10 @@ void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::
         response->is_ok = false;
         return;
     }
+
 }
 
-void DialogComponent::WaitForSpeakStart()
+bool DialogComponent::WaitForSpeakStart()
 {
     auto isSpeakingClientNode = rclcpp::Node::make_shared("DialogComponentIsSpeakingNode");
     auto isSpeakingClient = isSpeakingClientNode->create_client<text_to_speech_interfaces::srv::IsSpeaking>("/TextToSpeechComponent/IsSpeaking");
@@ -737,10 +745,11 @@ void DialogComponent::WaitForSpeakStart()
         }
     }
 
+    auto startTime = std::chrono::steady_clock::now();
+
     bool isSpeaking;
     do
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
         // calls the isSpeaking service
 
         auto isSpeakingResult = isSpeakingClient->async_send_request(isSpeakingRequest);
@@ -751,7 +760,18 @@ void DialogComponent::WaitForSpeakStart()
         yInfo() << "Waiting for speak to start, IsSpeaking: " << isSpeaking << __LINE__;
         RCLCPP_INFO_STREAM(m_node->get_logger(), "Waiting for speak to start, IsSpeaking: " << isSpeaking << __LINE__);
 
+        auto currentTime = std::chrono::steady_clock::now();
+        auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(currentTime - startTime).count();
+        if (elapsedTime > 10) // Timeout after 10 seconds
+        {
+            RCLCPP_WARN(rclcpp::get_logger("rclcpp"), "Timeout while waiting for speech to start.");
+            return false;
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
     } while (!isSpeaking);
+    return true;
 }
 
 void DialogComponent::WaitForSpeakEnd()
@@ -974,6 +994,8 @@ void DialogComponent::handle_accepted(const std::shared_ptr<GoalHandleWaitForInt
 
 void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitForInteraction> goal_handle)
 {
+
+    m_verbalOutputBatchReader.setDialogPhaseActive(true);
 
     RCLCPP_INFO(m_node->get_logger(), "Waiting for interaction");
     auto goal = goal_handle->get_goal();
@@ -1315,6 +1337,8 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
 
     std::unique_ptr<yarp::sig::Sound> verbalOutput = nullptr;
 
+    auto start_time = std::chrono::high_resolution_clock::now();
+
     do
     {
         verbalOutput = m_verbalOutputBatchReader.GetVerbalOutput();
@@ -1328,12 +1352,34 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
 
         // Publish feedback
         goal_handle->publish_feedback(feedback);
+        
         RCLCPP_INFO(m_node->get_logger(), "Waiting for verbal output");
 
         // wait for a while before trying to read again
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+        auto elapsed_time = std::chrono::high_resolution_clock::now() - start_time;
+        if (elapsed_time > std::chrono::seconds(10)) {
+            RCLCPP_WARN(m_node->get_logger(), "Timeout waiting for verbal output");
+            break;
+        }
 
     } while (verbalOutput == nullptr);
+
+    if (verbalOutput == nullptr) {
+        m_predefined_answer_index = 0;
+        m_number_of_predefined_answers = 0;
+        result->is_reply_finished = true;
+        RCLCPP_INFO(m_node->get_logger(), "Verbal Output Not received, get back to navigation position");
+        std::string navigation_position = "navigation_position";
+        ExecuteDance(navigation_position, 0); // Go back to navigation position
+        m_verbalOutputBatchReader.setDialogPhaseActive(false);
+        m_verbalOutputBatchReader.resetQueue();
+        result->is_ok = true;
+        goal_handle->succeed(result);
+        RCLCPP_INFO(m_node->get_logger(), "Goal succeeded");
+        return;
+    }
 
     yarp::sig::Sound &sound = m_audioPort.prepare();
     std::cout << "[DialogComponent::SpeakFromAudio] Preparing to speak" << std::endl;
@@ -1343,16 +1389,6 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
     sound = *verbalOutput;
     std::cout << "[DialogComponent::SpeakFromAudio] Copied sound data" << std::endl;
 
-    // for (auto &text : texts)
-    // {
-    //     std::cout << "[DialogComponent::SpeakFromAudio] Text to speak: " << text << std::endl;
-    // }
-
-    // for (auto &dance : dances)
-    // {
-    //     std::cout << "[DialogComponent::SpeakFromAudio] Dance to perform: " << dance << std::endl;
-    // }
-
     std::string dance = dances[m_predefined_answer_index];
 
     m_audioPort.write();
@@ -1360,25 +1396,31 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
     std::cout << "[DialogComponent::SpeakFromAudio] Audio written to port" << std::endl;
 
     if (dance != "none")
-    {
-        WaitForSpeakStart();
-        if (dance.find("point") != std::string::npos)
-        {
-            std::cout << "[DialogComponent::SpeakFromAudio] Pointing detected, executing pointing" << std::endl;
-            std::string danceTarget = dance.substr(dance.find("::") + 2);
-            ExecutePointing(danceTarget);
+    {   
+        // Wait for a maximum of 10 seconds, if the return is false, we skip the dance
+        if (WaitForSpeakStart()){
+            if (dance.find("point") != std::string::npos)
+            {
+                std::cout << "[DialogComponent::SpeakFromAudio] Pointing detected, executing pointing" << std::endl;
+                std::string danceTarget = dance.substr(dance.find("::") + 2);
+                ExecutePointing(danceTarget);
+            }
+            else
+            {
+
+                std::cout << "[DialogComponent::SpeakFromAudio] Sending audio to port" << std::endl;
+
+                float estimatedSpeechTime = sound.getDuration();
+
+                std::cout << "[DialogComponent::SpeakFromAudio] Speak request sent with estimated speech time: " << estimatedSpeechTime << std::endl;
+
+                yInfo() << "[DialogComponent::CommandManager] Dance detected: " << dance;
+                ExecuteDance(dance, estimatedSpeechTime);
+            }
         }
-        else
-        {
-
-            std::cout << "[DialogComponent::SpeakFromAudio] Sending audio to port" << std::endl;
-
-            float estimatedSpeechTime = sound.getDuration();
-
-            std::cout << "[DialogComponent::SpeakFromAudio] Speak request sent with estimated speech time: " << estimatedSpeechTime << std::endl;
-
-            yInfo() << "[DialogComponent::CommandManager] Dance detected: " << dance;
-            ExecuteDance(dance, estimatedSpeechTime);
+        else {
+            yInfo() << "[DialogComponent::CommandManager] Speak did not start in time, skipping dance: " << dance;
+            yInfo() << "[DialogComponent::CommandManager] May the connection between dialog component and audio player be down?";
         }
     }
     else
@@ -1394,7 +1436,7 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
 
     std::cout << "[DialogComponent::SpeakFromAudio] Speak ended" << std::endl;
 
-    // Reset dance if it was not a pointing action
+    // Reset dance
     ResetDance();
     if (dance.find("point") != std::string::npos)
     {
@@ -1413,6 +1455,8 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
         RCLCPP_INFO(m_node->get_logger(), "Reply finished, get back to navigation position");
         std::string navigation_position = "navigation_position";
         ExecuteDance(navigation_position, 0); // Go back to navigation position
+        m_verbalOutputBatchReader.setDialogPhaseActive(false);
+        m_verbalOutputBatchReader.resetQueue();
     }
 
     result->is_ok = true;

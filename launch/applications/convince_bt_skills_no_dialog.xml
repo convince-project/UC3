@@ -1,5 +1,5 @@
 <application>
-    <name>convince_bt_skills</name>
+    <name>convince_bt_skills_no_dialog</name>
 
     <module>
         <name>python3</name>

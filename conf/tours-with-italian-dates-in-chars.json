@@ -175,7 +175,7 @@
                 "m_isBlocking": true,
                 "m_param": "thank you for participating, don't forget to fill the questionnaire. goodbye.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               }
             ],
             "greetings": [
@@ -196,7 +196,7 @@
                 "m_isBlocking": true,
                 "m_param": "Very well. Then follow me to the first stop on this tour.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               }
             ],
             "explainRoom": [
@@ -281,7 +281,7 @@
                 "m_isBlocking": true,
                 "m_param": "Good, I'm glad to continue illustrating this beautiful floor of Palazzo Madama. Please follow me, I'll take you to the next room.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               }
             ],
             "explainRoom": [
@@ -390,7 +390,7 @@
                 "m_isBlocking": true,
                 "m_param": "Follow me, I'll take you to the best spot to appreciate this environment and where you can sit for a while. As you can hear, the floor creaks under our feet... it's cherry wood, giving a very elegant look to this place but it needs continuous restoration and maintenance. You can sit here, but always stay close to me!",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               }
             ],
             "explainRoom": [
@@ -499,13 +499,13 @@
                 "m_isBlocking": true,
                 "m_param": "Let's go! Can you stand up and follow me to the next room? I'm a bit slow because the floor is slightly uneven and I have to be careful! I kindly ask you to stay behind me.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               },
               {
                 "m_isBlocking": true,
                 "m_param": "In the next room, you'll see on your left a delimited area because the restorers are repositioning the boards following a precise geometric pattern. As I mentioned, continuous maintenance is necessary.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               }
             ],
             "explainRoom": [
@@ -596,7 +596,7 @@
                 "m_isBlocking": true,
                 "m_param": "We are moving into the Chamber of Madama Reale.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               }
             ],
             "explainRoom": [
@@ -877,7 +877,7 @@
                 "m_isBlocking": true,
                 "m_param": "grazie mille per aver partecipato, ricordati di compilare il questionario. Arrivederci.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               }
             ],
             "greetings": [
@@ -898,7 +898,7 @@
                 "m_isBlocking": true,
                 "m_param": "Molto bene. Allora seguimi nella prima tappa di questo tour.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               }
             ],
             "explainRoom": [
@@ -912,7 +912,7 @@
                 "m_isBlocking": false,
                 "m_param": "Donna di carattere forte, protesse la sua nuova patria durante la minore età del figlio, il futuro re Vittorio Amedeo II, rimasto orfano a soli nove anni. Quando il figlio si sposò, Maria Giovanna lasciò Palazzo Reale e scelse come sua residenza il primo piano del castello che arredò e decorò secondo il suo gusto.",
                 "m_type": "speak",
-                "m_dance": "point::scultura_est"
+                "m_dance": "gesture"
               },
               {
                 "m_isBlocking": false,
@@ -924,7 +924,7 @@
                 "m_isBlocking": false,
                 "m_param": "Hai qualche domanda? Posso parlarti della funzione di questa stanza, della sua decorazione. Oppure puoi farmi qualche domanda sul palazzo, il progetto Convince o su di me. Altrimenti possiamo proseguire con il tour.",
                 "m_type": "speak",
-                "m_dance": "point::dipinto_ovest"
+                "m_dance": "gesture"
               }
             ],
             "explainFunction": [
@@ -932,7 +932,7 @@
                 "m_isBlocking": false,
                 "m_param": "Benissimo, ci troviamo in Camera delle Guardie. Intorno al millesettecentoventuno l’ospite che faceva visita a Madama Reale poteva contare su due accessi: passare dal grande scalone di Filippo Juvarra ed entrare nel salone (oggi Sala Senato); oppure accedere al castello direttamente da Palazzo Reale percorrendo la manica di collegamento che univa i due edifici e che si concludeva presso la sala “della galleria”, ambiente che oggi ospita il Caffè Madama.",
                 "m_type": "speak",
-                "m_dance": "point::inizio"
+                "m_dance": "gesture"
               },
               {
                 "m_isBlocking": false,
@@ -944,7 +944,7 @@
                 "m_isBlocking": false,
                 "m_param": "Prima di arrivare alla stanza del trono (chiamata camera di parata) gli ospiti dovevano attraversare tre anticamere e attendere di essere introdotti alla presenza della duchessa. Solo gli ospiti di maggior riguardo potevano raggiungere gli ambienti più riservati e privati del palazzo.",
                 "m_type": "speak",
-                "m_dance": "point::quadro_principale"
+                "m_dance": "gesture"
               },
               {
                 "m_isBlocking": false,
@@ -958,13 +958,13 @@
                 "m_isBlocking": false,
                 "m_param": "Perfetto! La sala è stata decorata tra il millesettecentootto e il millesettecentoquindici. Ora guarda in alto! La decorazione in stucco bianco presenta trofei d’armi inseriti agli angoli della volta che alludono alla destinazione dell’ambiente presidiato dalle guardie del corpo della duchessa: armature, lance, frecce, cannoni, scudi, trombe alludono al mondo della guerra e dei soldati.",
                 "m_type": "speak",
-                "m_dance": "point::scultura_est"
+                "m_dance": "gesture"
               },
               {
                 "m_isBlocking": false,
                 "m_param": "Nel profilo ondulato del cornicione si alternano quattro aquile con la croce di Savoia nel petto e la pianta di fritillaria, emblema di Madama Reale: si tratta di una pianta della famiglia dei gigli con grandi fiori arancioni. Lo zoccolo e le sovrapporte in stucco furono eseguiti nel millenovecentoventisette con calchi in gesso tratti dalle decorazioni della Reggia di Venaria Reale.",
                 "m_type": "speak",
-                "m_dance": "point::dipinto_ovest"
+                "m_dance": "gesture"
               },
               {
                 "m_isBlocking": false,
@@ -983,7 +983,7 @@
                 "m_isBlocking": true,
                 "m_param": "Bene, mi fa piacere continuare ad illustrare questo piano bellissimo di Palazzo Madama. Per favore seguimi, ti porterò nella prossima sala.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               }
             ],
             "explainRoom": [
@@ -1092,7 +1092,7 @@
                 "m_isBlocking": true,
                 "m_param": "Seguimi, ti porto nel punto migliore per poter apprezzare questo ambiente e dove potrai sederti un po’. Come puoi sentire il pavimento scricchiola sotto i nostri piedi…è in legno di ciliegio, conferisce un aspetto molto elegante a questo luogo ma ha bisogno di continui restauri e manutenzioni. Qui puoi sederti ma resta sempre vicino a me!",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               }
             ],
             "explainRoom": [
@@ -1201,13 +1201,13 @@
                 "m_isBlocking": true,
                 "m_param": "Allora andiamo! Puoi alzarti e seguirmi nella prossima sala? Sono un po’ lento perché il pavimento è lievemente disconnesso e devo fare attenzione! Ti chiedo la cortesia di restare dietro di me.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               },
               {
                 "m_isBlocking": true,
                 "m_param": "Nella prossima sala vedrai sulla tua sinistra una zona delimitata perché i restauratori stanno rimettendo in posa le assi seguendo un preciso disegno geometrico. Come ti dicevo é necessaria una continua manutenzione.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               }
             ],
             "explainRoom": [
@@ -1298,7 +1298,7 @@
                 "m_isBlocking": true,
                 "m_param": "Ci stiamo spostando nella Camera di Madama Reale.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               }
             ],
             "explainRoom": [
@@ -1474,7 +1474,7 @@
                 "m_isBlocking": true,
                 "m_param": "merci de votre participation, n'oubliez pas de remplir le questionnaire. Au revoir.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               }
             ],
             "greetings": [
@@ -1495,7 +1495,7 @@
                 "m_isBlocking": true,
                 "m_param": "Très bien. Alors suivez-moi jusqu'à la première étape de cette visite.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               }
             ],
             "explainRoom": [
@@ -1580,7 +1580,7 @@
                 "m_isBlocking": true,
                 "m_param": "Très bien, je suis ravi de continuer à illustrer ce magnifique étage du Palazzo Madama. Veuillez me suivre, je vais vous emmener à la prochaine salle.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               }
             ],
             "explainRoom": [
@@ -1689,7 +1689,7 @@
                 "m_isBlocking": true,
                 "m_param": "Suivez-moi, je vais vous emmener à l'endroit idéal pour apprécier cet environnement et où vous pourrez vous asseoir un moment. Comme vous pouvez l'entendre, le sol craque sous nos pieds... c'est du bois de cerisier, donnant un aspect très élégant à cet endroit mais nécessitant une restauration et un entretien continus. Vous pouvez vous asseoir ici, mais restez toujours près de moi !",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               }
             ],
             "explainRoom": [
@@ -1798,13 +1798,13 @@
                 "m_isBlocking": true,
                 "m_param": "Allons-y ! Pouvez-vous vous lever et me suivre jusqu'à la prochaine pièce ? Je suis un peu lent car le sol est légèrement irrégulier et je dois faire attention ! Je vous demande gentiment de rester derrière moi.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               },
               {
                 "m_isBlocking": true,
                 "m_param": "Dans la pièce suivante, vous verrez sur votre gauche une zone délimitée car les restaurateurs repositionnent les planches selon un motif géométrique précis. Comme je l'ai mentionné, un entretien continu est nécessaire.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               }
             ],
             "explainRoom": [
@@ -1895,7 +1895,7 @@
                 "m_isBlocking": true,
                 "m_param": "Nous entrons dans la Chambre de Madama Reale.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               }
             ],
             "explainRoom": [
@@ -2071,7 +2071,7 @@
                 "m_isBlocking": true,
                 "m_param": "gracias por participar, recuerda completar la encuesta. ¡Adiós!",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               }
           ],
           "greetings": [
@@ -2092,7 +2092,7 @@
                 "m_isBlocking": true,
                 "m_param": "Muy bien. Entonces, sígueme hasta la primera parada de este recorrido.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               }
             ],
             "explainRoom": [
@@ -2183,7 +2183,7 @@
                 "m_isBlocking": true,
                 "m_param": "¡Bueno, me alegra continuar ilustrando este hermoso piso del Palazzo Madama! Por favor, sígueme, te llevaré a la próxima habitación.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               }
             ],
             "explainRoom": [
@@ -2280,7 +2280,7 @@
                 "m_isBlocking": true,
                 "m_param": "Sígueme, te llevaré al mejor lugar para apreciar este ambiente y donde puedas sentarte un rato. Como puedes escuchar, el suelo cruje bajo nuestros pies... es madera de cerezo, que le da un aspecto muy elegante a este lugar pero necesita restauración y mantenimiento continuo. Puedes sentarte aquí, ¡pero siempre mantente cerca de mí!",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               }
             ],
             "explainRoom": [
@@ -2389,13 +2389,13 @@
                 "m_isBlocking": true,
                 "m_param": "¡Vamos! ¿Puedes ponerte de pie y seguirme a la próxima habitación? Soy un poco lento porque el piso está ligeramente irregular y debo tener cuidado. Te pido amablemente que te quedes detrás de mí.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               },
               {
                 "m_isBlocking": true,
                 "m_param": "En la próxima habitación, verás a tu izquierda un área delimitada porque los restauradores están reposicionando las tablas siguiendo un patrón geométrico preciso. Como mencioné, es necesaria una mantenimiento continuo.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               }
             ],
             "explainRoom": [
@@ -2486,7 +2486,7 @@
                 "m_isBlocking": true,
                 "m_param": "Estamos entrando en la Cámara de Madama Reale.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               }
             ],
             "explainRoom": [
@@ -2662,7 +2662,7 @@
                 "m_isBlocking": true,
                 "m_param": "Vielen Dank für die Teilnahme, bitte vergessen Sie nicht, den Fragebogen auszufüllen. Auf Wiedersehen.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               }
             ],
             "greetings": [
@@ -2683,7 +2683,7 @@
                 "m_isBlocking": true,
                 "m_param": "Sehr gut. Dann folge mir zum ersten Stopp dieser Tour.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               }
             ],
             "explainRoom": [
@@ -2768,7 +2768,7 @@
                 "m_isBlocking": true,
                 "m_param": "Gut, ich freue mich, weiterhin diesen wunderschönen Stock des Palazzo Madama zu erklären. Bitte folge mir, ich werde dich in den nächsten Raum bringen.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               }
             ],
             "explainRoom": [
@@ -2877,7 +2877,7 @@
                 "m_isBlocking": true,
                 "m_param": "Folge mir, ich bringe dich zum besten Ort, um diese Umgebung zu schätzen und wo du dich ein wenig hinsetzen kannst. Wie du hören kannst, knarrt der Boden unter unseren Füßen... er ist aus Kirschholz und verleiht diesem Ort ein sehr elegantes Aussehen, benötigt aber kontinuierliche Restaurierungen und Wartungen. Hier kannst du dich hinsetzen, aber bleib immer in meiner Nähe!",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               }
             ],
             "explainRoom": [
@@ -2986,13 +2986,13 @@
                 "m_isBlocking": true,
                 "m_param": "Dann lass uns gehen! Kannst du aufstehen und mir in den nächsten Raum folgen? Ich bin etwas langsam, weil der Boden leicht uneben ist, und ich muss aufpassen! Ich bitte dich höflich, hinter mir zu bleiben.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               },
               {
                 "m_isBlocking": true,
                 "m_param": "Im nächsten Raum wirst du auf deiner linken Seite einen abgegrenzten Bereich sehen, weil die Restauratoren die Dielen nach einem präzisen geometrischen Muster neu verlegen. Wie ich bereits sagte, ist kontinuierliche Wartung erforderlich.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               }
             ],
             "explainRoom": [
@@ -3083,7 +3083,7 @@
                 "m_isBlocking": true,
                 "m_param": "Wir bewegen uns jetzt in das Zimmer von Madama Reale.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               }
             ],
             "explainRoom": [
@@ -3259,7 +3259,7 @@
                 "m_isBlocking": true,
                 "m_param": "Sankashite itadaki, arigatou gozaimasu. Ankēto no kinyū o onegai shimasu. Sayōnara.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               }
             ],
             "greetings": [
@@ -3280,7 +3280,7 @@
                 "m_isBlocking": true,
                 "m_param": "Totemo yoroshii desu. Soredewa, kono tour no saisho no supotto ni shitagatte kudasai.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               }
             ],
             "explainRoom": [
@@ -3365,7 +3365,7 @@
                       "m_isBlocking": true,
                       "m_param": "Yoshi, kono subarashī madama kyūden no puran o setsumei shi tsuzukete ureshīdesu. Dōzo tsuite kite kudasai, tsugi no heya ni annai shimasu.",
                       "m_type": "speak",
-                "m_dance": "gesture"
+                      "m_dance": ""
                   }
               ],
               "explainRoom": [
@@ -3474,7 +3474,7 @@
                       "m_isBlocking": true,
                       "m_param": "Tsuite kite, koko wa kono kankyō o kansha suru tame no saiteki na basho ni tsurete ikimasu, soshite sukoshi suwaru koto ga dekimasu. Watashitachi no ashi no moto ni wa, tenjō ga koshitsu shimasu... kore wa sakuragi no mokuzai de, kono basho ni totemo yūbi na keshiki o ataeru ga, shūryo teien to shūkyū wa hitsuyō to shiteimasu. Koko de suwatte mo, itsumo watashi no soba ni imasu!",
                       "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
                   }
               ],
               "explainRoom": [
@@ -3577,13 +3577,13 @@
                 "m_isBlocking": true,
                 "m_param": "Soredewa, ikimashou! Tachiagatte, tsugi no heya ni tsuite kite kudasai. Sukoshi osoi desu ga, yuka ga sukoshi surete irunode chūi ga hitsuyōdesu. Ushiro ni tsuite ite kudasaine.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               },
               {
                 "m_isBlocking": true,
                 "m_param": "Tsugi no heya de wa, hidarigawa ni kugirareta eria ga arimasu. Shūfukusayōna kikkake ni shitagatte, soku ni itadakimasu. Renzoku shita mentenansu ga hitsuyōdesu.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               }
             ],
             "explainRoom": [
@@ -3674,7 +3674,7 @@
                 "m_isBlocking": true,
                 "m_param": "Watashitachi wa Madama Reale no heya ni idō shite imasu.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": ""
               }
             ],
             "explainRoom": [
