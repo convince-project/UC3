@@ -8,7 +8,7 @@ Subscribes to a PointCloud2 stream and outputs a boolean "is_safe" flag (ROS 2 a
 - Logic: counts points where z < z_min_threshold; if violations >= min_violation_count, then is_safe=false
 - Output:
   - ROS 2 topic: `/CameraSafety/is_safe` (std_msgs/Bool)
-  - YARP port: `/CameraSafety/is_safe:o` (Bottle: `is_safe <0|1> violations <N>`)
+  - YARP port: `.../CameraSafety/is_safe:o` (Bottle: `is_safe <0|1> violations <N>`)
 
 ## Parameters
 
