@@ -102,6 +102,7 @@ private:
     void _executePointing(std::string pointingTarget);
     void _executeDance(std::string danceName, float estimatedSpeechTime);
     void _resetDance();
+    void _setLanguage(const std::string &language);
     // void NarrateTask(const std::shared_ptr<narrate_interfaces::srv::Narrate::Request> request);
     // rclcpp::Client<text_to_speech_interfaces::srv::Speak>::SharedPtr m_speakClient;
     int m_seconds_left;
