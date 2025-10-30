@@ -67,6 +67,140 @@ void DialogSkill::spin(std::shared_ptr<rclcpp::Node> node)
     rclcpp::shutdown();
 }
 
+void DialogSkill::goal_response_wait_for_interaction_callback(rclcpp_action::ClientGoalHandle<dialog_interfaces::action::WaitForInteraction>::SharedPtr goal_handle)
+{
+    if (!goal_handle)
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Goal was rejected by server");
+    }
+    else
+    {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Goal accepted by server, waiting for result");
+    }
+}
+
+void DialogSkill::feedback_wait_for_interaction_callback(rclcpp_action::ClientGoalHandle<dialog_interfaces::action::WaitForInteraction>::SharedPtr,
+                                                         const std::shared_ptr<const dialog_interfaces::action::WaitForInteraction::Feedback> feedback)
+{
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Received feedback: %s", feedback->status.c_str());
+
+}
+
+void DialogSkill::result_wait_for_interaction_callback(const rclcpp_action::ClientGoalHandle<dialog_interfaces::action::WaitForInteraction>::WrappedResult &result)
+{
+    if (result.code == rclcpp_action::ResultCode::SUCCEEDED)
+    {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Goal succeeded");
+        QVariantMap data;
+        data.insert("result", "SUCCESS");
+        data.insert("interaction", QString::fromStdString(result.result->interaction));
+        m_stateMachine.submitEvent("DialogComponent.WaitForInteraction.Return", data);
+    }
+    else if (result.code == rclcpp_action::ResultCode::CANCELED) {
+        QVariantMap data;
+        RCLCPP_WARN(rclcpp::get_logger("rclcpp"), "Goal was halted (canceled)");
+        data.insert("result", "HALTED");
+        m_stateMachine.submitEvent("DialogComponent.WaitForInteraction.Return", data);
+    } else
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Goal failed");
+        QVariantMap data;
+        data.insert("result", "FAILURE");
+        m_stateMachine.submitEvent("DialogComponent.WaitForInteraction.Return", data);
+    }
+}
+
+
+void DialogSkill::goal_response_synthesize_text_callback(rclcpp_action::ClientGoalHandle<text_to_speech_interfaces::action::BatchGeneration>::SharedPtr goal_handle)
+{
+    if (!goal_handle)
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Goal was rejected by server");
+    }
+    else
+    {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Goal accepted by server, waiting for result");
+    }
+}
+
+void DialogSkill::feedback_synthesize_text_callback(rclcpp_action::ClientGoalHandle<text_to_speech_interfaces::action::BatchGeneration>::SharedPtr,
+                                                  const std::shared_ptr<const text_to_speech_interfaces::action::BatchGeneration::Feedback> feedback)
+{
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Received feedback: %d", feedback->texts_left);
+}
+
+void DialogSkill::result_synthesize_text_callback(const rclcpp_action::ClientGoalHandle<text_to_speech_interfaces::action::BatchGeneration>::WrappedResult &result)
+{
+    if (result.code == rclcpp_action::ResultCode::SUCCEEDED)
+    {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Goal succeeded");
+        QVariantMap data;
+        data.insert("result", "SUCCESS");
+        m_stateMachine.submitEvent("TextToSpeechComponent.SynthesizeText.Return", data);
+    }
+    else if (result.code == rclcpp_action::ResultCode::CANCELED) {
+        QVariantMap data;
+        RCLCPP_WARN(rclcpp::get_logger("rclcpp"), "Goal was halted (canceled)");
+        data.insert("result", "HALTED");
+        m_stateMachine.submitEvent("TextToSpeechComponent.SynthesizeText.Return", data);
+    } else
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Goal failed");
+        QVariantMap data;
+        data.insert("result", "FAILURE");
+        m_stateMachine.submitEvent("TextToSpeechComponent.SynthesizeText.Return", data);
+    }
+
+}
+
+void DialogSkill::goal_response_speak_callback(rclcpp_action::ClientGoalHandle<dialog_interfaces::action::Speak>::SharedPtr goal_handle)
+{
+    if (!goal_handle)
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Goal was rejected by server");
+    }
+    else
+    {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Goal accepted by server, waiting for result");
+    }
+}
+
+void DialogSkill::feedback_speak_callback(rclcpp_action::ClientGoalHandle<dialog_interfaces::action::Speak>::SharedPtr,
+                                     const std::shared_ptr<const dialog_interfaces::action::Speak::Feedback> feedback)
+{
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Received feedback: %s", feedback->status.c_str());
+}
+
+void DialogSkill::result_speak_callback(const rclcpp_action::ClientGoalHandle<dialog_interfaces::action::Speak>::WrappedResult &result)
+{
+    if (result.code == rclcpp_action::ResultCode::SUCCEEDED)
+    {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Goal succeeded");
+        QVariantMap data;
+        data.insert("result", "SUCCESS");
+        data.insert("is_reply_finished", result.result->is_reply_finished);
+        if (result.result->is_reply_finished) {
+            // Clear replies vector only if the whole reply has been spoken
+            std::cout << "Clearing replies vector" << std::endl;
+            m_replies.clear();
+        }
+        m_stateMachine.submitEvent("DialogComponent.Speak.Return", data);
+    }
+    else if (result.code == rclcpp_action::ResultCode::CANCELED) {
+        QVariantMap data;
+        RCLCPP_WARN(rclcpp::get_logger("rclcpp"), "Goal was halted (canceled)");
+        m_replies.clear();
+        data.insert("result", "HALTED");
+        m_stateMachine.submitEvent("DialogComponent.Speak.Return", data);
+    } else
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Goal failed");
+        QVariantMap data;
+        data.insert("result", "FAILURE");
+        m_stateMachine.submitEvent("DialogComponent.Speak.Return", data);
+    }
+}
+
 bool DialogSkill::start(int argc, char *argv[])
 {
     if (!rclcpp::ok())
@@ -102,15 +236,15 @@ bool DialogSkill::start(int argc, char *argv[])
 
     nodeWaitForInteraction = rclcpp::Node::make_shared(m_name + "SkillNodeWaitForInteraction");
     this->clientWaitForInteraction =
-        rclcpp_action::create_client<dialog_interfaces::action::WaitForInteraction>(this->nodeWaitForInteraction, "/DialogComponent/WaitForInteractionAction");
+        rclcpp_action::create_client<dialog_interfaces::action::WaitForInteraction>(m_node, "/DialogComponent/WaitForInteractionAction");
 
-    nodeSpeak = rclcpp::Node::make_shared(m_name + "SkillNodeSpeak");
+    // nodeSpeak = rclcpp::Node::make_shared(m_name + "SkillNodeSpeak");
     this->clientSpeak =
-        rclcpp_action::create_client<dialog_interfaces::action::Speak>(this->nodeSpeak, "/DialogComponent/SpeakAction");
+        rclcpp_action::create_client<dialog_interfaces::action::Speak>(m_node, "/DialogComponent/SpeakAction");
 
-    nodeSynthesizeText = rclcpp::Node::make_shared(m_name + "SkillNodeSynthesizeText");
+    // nodeSynthesizeText = rclcpp::Node::make_shared(m_name + "SkillNodeSynthesizeText");
     this->clientSynthesizeText =
-        rclcpp_action::create_client<text_to_speech_interfaces::action::BatchGeneration>(this->nodeSynthesizeText, "/TextToSpeechComponent/BatchGenerationAction");
+        rclcpp_action::create_client<text_to_speech_interfaces::action::BatchGeneration>(m_node, "/TextToSpeechComponent/BatchGenerationAction");
 
     nodeSetLanguage = rclcpp::Node::make_shared(m_name + "SkillSetLanguage");
     clientSetLanguage = nodeSetLanguage->create_client<dialog_interfaces::srv::SetLanguage>("/DialogComponent/SetLanguage");
@@ -131,14 +265,14 @@ bool DialogSkill::start(int argc, char *argv[])
     setCommandClientNode = rclcpp::Node::make_shared("DialogComponentSetCommandNode");
     setMicrophoneClient = setCommandClientNode->create_client<text_to_speech_interfaces::srv::SetMicrophone>("/TextToSpeechComponent/SetMicrophone");
 
-    m_executor = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
-    m_executor->add_node(nodeWaitForInteraction);
+    // m_executor = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
+    // m_executor->add_node(nodeWaitForInteraction);
 
-    m_SpeakExecutor = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
-    m_SpeakExecutor->add_node(nodeSpeak);
+    // m_SpeakExecutor = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
+    // m_SpeakExecutor->add_node(nodeSpeak);
 
-    m_SynthesizeTextExecutor = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
-    m_SynthesizeTextExecutor->add_node(nodeSynthesizeText);
+    // m_SynthesizeTextExecutor = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
+    // m_SynthesizeTextExecutor->add_node(nodeSynthesizeText);
 
     // WaitForInteraction action fragment of code start
 
@@ -150,77 +284,81 @@ bool DialogSkill::start(int argc, char *argv[])
         EnableMicrophone();
         std::cout << "ENABLE MICROPHONE DONE" << std::endl;
 
-        m_thread = QThread::create([event, this]() {
+        if (!clientWaitForInteraction->wait_for_action_server())
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Action server not available after waiting");
+            rclcpp::shutdown();
+        }
 
-            if (!clientWaitForInteraction->wait_for_action_server())
-            {
-                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Action server not available after waiting");
-                rclcpp::shutdown();
-            }
+        auto goal_msg = dialog_interfaces::action::WaitForInteraction::Goal();
+        auto eventParams = event.data().toMap();
+        goal_msg.is_beginning_of_conversation = convert<decltype(goal_msg.is_beginning_of_conversation)>(eventParams["is_beginning_of_conversation"].toString().toStdString());
+        // std::cout << "[OPTIONAL] Please enter the interaction from keyboard: ";
+        // getline (std::cin, goal_msg.keyboard_interaction);
 
-            auto goal_msg = dialog_interfaces::action::WaitForInteraction::Goal();
-            auto eventParams = event.data().toMap();
-            goal_msg.is_beginning_of_conversation = convert<decltype(goal_msg.is_beginning_of_conversation)>(eventParams["is_beginning_of_conversation"].toString().toStdString());
-            // std::cout << "[OPTIONAL] Please enter the interaction from keyboard: ";
-            // getline (std::cin, goal_msg.keyboard_interaction);
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.WaitForInteraction.Call received with is_beginning_of_conversation: %s and keyboard_interaction: %s",
+                    goal_msg.is_beginning_of_conversation ? "true" : "false", goal_msg.keyboard_interaction.c_str());
+        auto send_goal_options = rclcpp_action::Client<dialog_interfaces::action::WaitForInteraction>::SendGoalOptions();
+        send_goal_options.goal_response_callback =
+            std::bind(&DialogSkill::goal_response_wait_for_interaction_callback, this, _1);
+        send_goal_options.feedback_callback =
+            std::bind(&DialogSkill::feedback_wait_for_interaction_callback, this, _1, _2);
+        send_goal_options.result_callback =
+            std::bind(&DialogSkill::result_wait_for_interaction_callback, this, _1);
+        // send_goal_options.goal_response_callback =
+        //     [this](rclcpp_action::ClientGoalHandle<dialog_interfaces::action::WaitForInteraction>::SharedPtr goal_handle)
+        // {
+        //     if (!goal_handle)
+        //     {
+        //         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Goal was rejected by server");
+        //     }
+        //     else
+        //     {
+        //         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Goal accepted by server, waiting for result");
+        //     }
+        // };
+        // send_goal_options.feedback_callback =
+        //     [this](rclcpp_action::ClientGoalHandle<dialog_interfaces::action::WaitForInteraction>::SharedPtr,
+        //             const std::shared_ptr<const dialog_interfaces::action::WaitForInteraction::Feedback> feedback)
+        // {
+        //     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Received feedback: %s", feedback->status.c_str());
 
-            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.WaitForInteraction.Call received with is_beginning_of_conversation: %s and keyboard_interaction: %s",
-                        goal_msg.is_beginning_of_conversation ? "true" : "false", goal_msg.keyboard_interaction.c_str());
-            auto send_goal_options = rclcpp_action::Client<dialog_interfaces::action::WaitForInteraction>::SendGoalOptions();
-            send_goal_options.goal_response_callback =
-                [this](rclcpp_action::ClientGoalHandle<dialog_interfaces::action::WaitForInteraction>::SharedPtr goal_handle)
-            {
-                if (!goal_handle)
-                {
-                    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Goal was rejected by server");
-                }
-                else
-                {
-                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Goal accepted by server, waiting for result");
-                }
-            };
-            send_goal_options.feedback_callback =
-                [this](rclcpp_action::ClientGoalHandle<dialog_interfaces::action::WaitForInteraction>::SharedPtr,
-                        const std::shared_ptr<const dialog_interfaces::action::WaitForInteraction::Feedback> feedback)
-            {
-                // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Received feedback: %s", feedback->status.c_str());
-                RCLCPP_INFO_THROTTLE(m_node->get_logger(), *m_node->get_clock(), 10000, "Received feedback");
+        //     QVariantMap data;
+        //     data.insert("result", "SUCCESS");
+        //     data.insert("interaction", QString::fromStdString(result.result->interaction));
+        //     m_stateMachine.submitEvent("DialogComponent.WaitForInteraction.Return", data);
+        // };
+        // send_goal_options.result_callback =
+        //     [this](const rclcpp_action::ClientGoalHandle<dialog_interfaces::action::WaitForInteraction>::WrappedResult &result)
+        // {
+        //     if (result.code == rclcpp_action::ResultCode::SUCCEEDED)
+        //     {
+        //         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Goal succeeded");
+        //         QVariantMap data;
+        //         data.insert("result", "SUCCESS");
+        //         data.insert("interaction", QString::fromStdString(result.result->interaction));
+        //         m_stateMachine.submitEvent("DialogComponent.WaitForInteraction.Return", data);
+        //     }
+        //     else if (result.code == rclcpp_action::ResultCode::CANCELED) {
+        //         QVariantMap data;
+        //         RCLCPP_WARN(rclcpp::get_logger("rclcpp"), "Goal was halted (canceled)");
+        //         data.insert("result", "HALTED");
+        //         m_stateMachine.submitEvent("DialogComponent.WaitForInteraction.Return", data);
+        //     } else
+        //     {
+        //         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Goal failed");
+        //         QVariantMap data;
+        //         data.insert("result", "FAILURE");
+        //         m_stateMachine.submitEvent("DialogComponent.WaitForInteraction.Return", data);
+        //     }
 
-            };
-            send_goal_options.result_callback =
-                [this](const rclcpp_action::ClientGoalHandle<dialog_interfaces::action::WaitForInteraction>::WrappedResult &result)
-            {
-                if (result.code == rclcpp_action::ResultCode::SUCCEEDED)
-                {
-                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Goal succeeded");
-                    QVariantMap data;
-                    data.insert("result", "SUCCESS");
-                    data.insert("interaction", QString::fromStdString(result.result->interaction));
-                    m_stateMachine.submitEvent("DialogComponent.WaitForInteraction.Return", data);
-                }
-                else if (result.code == rclcpp_action::ResultCode::CANCELED) {
-                    QVariantMap data;
-                    RCLCPP_WARN(rclcpp::get_logger("rclcpp"), "Goal was halted (canceled)");
-                    data.insert("result", "HALTED");
-                    m_stateMachine.submitEvent("DialogComponent.WaitForInteraction.Return", data);
-                } else
-                {
-                    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Goal failed");
-                    QVariantMap data;
-                    data.insert("result", "FAILURE");
-                    m_stateMachine.submitEvent("DialogComponent.WaitForInteraction.Return", data);
-                }
 
-                // Stop executor if needed:
-                m_executor->cancel();
+        // };
+        clientWaitForInteraction->async_send_goal(goal_msg, send_goal_options); 
 
-            };
-            clientWaitForInteraction->async_send_goal(goal_msg, send_goal_options);
+        std::cout << "Goal sent" << std::endl;
 
-            m_executor->spin();
         });
-
-        m_thread->start(); });
 
     // WaitForInteraction action fragment of code end
 
@@ -563,192 +701,101 @@ bool DialogSkill::start(int argc, char *argv[])
                                   {
 
         std::cout << "Starting SynthesizeTextThread creation" << std::endl;                            
-        m_SynthesizeTextThread = QThread::create([event, this]() {
 
-            if (!clientSynthesizeText->wait_for_action_server())
-            {
-                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "TextToSpeech Batch Generation Action server not available after waiting");
-                rclcpp::shutdown();
-            }
+        if (!clientSynthesizeText->wait_for_action_server())
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "TextToSpeech Batch Generation Action server not available after waiting");
+            rclcpp::shutdown();
+        }
 
-            auto goal_msg = text_to_speech_interfaces::action::BatchGeneration::Goal();
-            std::vector<std::string> repliesText;
+        auto goal_msg = text_to_speech_interfaces::action::BatchGeneration::Goal();
+        std::vector<std::string> repliesText;
 
-            for (const auto& reply : m_replies) {
-                repliesText.push_back(reply.first);
-            }
+        for (const auto& reply : m_replies) {
+            repliesText.push_back(reply.first);
+        }
 
-            goal_msg.texts = repliesText;
+        goal_msg.texts = repliesText;
 
-            for (auto &text : goal_msg.texts)
-            {
-                std::cout << "[TextToSpeechComponent::SynthesizeText] Text to be synthesized: " << text << std::endl;
-            }
+        for (auto &text : goal_msg.texts)
+        {
+            std::cout << "[TextToSpeechComponent::SynthesizeText] Text to be synthesized: " << text << std::endl;
+        }
 
-            auto send_goal_options = rclcpp_action::Client<text_to_speech_interfaces::action::BatchGeneration>::SendGoalOptions();
-            send_goal_options.goal_response_callback =
-                [this](rclcpp_action::ClientGoalHandle<text_to_speech_interfaces::action::BatchGeneration>::SharedPtr goal_handle)
-            {
-                if (!goal_handle)
-                {
-                    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Goal was rejected by server");
-                }
-                else
-                {
-                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Goal accepted by server, waiting for result");
-                }
-            };
-            send_goal_options.feedback_callback =
-                [this](rclcpp_action::ClientGoalHandle<text_to_speech_interfaces::action::BatchGeneration>::SharedPtr,
-                        const std::shared_ptr<const text_to_speech_interfaces::action::BatchGeneration::Feedback> feedback)
-            {
-                RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Received feedback: %d", feedback->texts_left);
-            };
-            send_goal_options.result_callback =
-                [this](const rclcpp_action::ClientGoalHandle<text_to_speech_interfaces::action::BatchGeneration>::WrappedResult &result)
-            {
-                if (result.code == rclcpp_action::ResultCode::SUCCEEDED)
-                {
-                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Goal succeeded");
-                    QVariantMap data;
-                    data.insert("result", "SUCCESS");
-                    m_stateMachine.submitEvent("TextToSpeechComponent.SynthesizeText.Return", data);
-                }
-                else if (result.code == rclcpp_action::ResultCode::CANCELED) {
-                    QVariantMap data;
-                    RCLCPP_WARN(rclcpp::get_logger("rclcpp"), "Goal was halted (canceled)");
-                    data.insert("result", "HALTED");
-                    m_stateMachine.submitEvent("TextToSpeechComponent.SynthesizeText.Return", data);
-                } else
-                {
-                    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Goal failed");
-                    QVariantMap data;
-                    data.insert("result", "FAILURE");
-                    m_stateMachine.submitEvent("TextToSpeechComponent.SynthesizeText.Return", data);
-                }
+        auto send_goal_options = rclcpp_action::Client<text_to_speech_interfaces::action::BatchGeneration>::SendGoalOptions();
+        send_goal_options.goal_response_callback =
+            std::bind(&DialogSkill::goal_response_synthesize_text_callback, this, _1);
+        send_goal_options.feedback_callback =
+            std::bind(&DialogSkill::feedback_synthesize_text_callback, this, _1, _2);
+        send_goal_options.result_callback =
+            std::bind(&DialogSkill::result_synthesize_text_callback, this, _1);
 
-                std::cout << "Cancel executor" << std::endl;
-                m_SynthesizeTextExecutor->cancel();
-                std::cout << "Executor cancelled" << std::endl;
+        std::cout << "Sending goal to TextToSpeech Batch Generation Action server" << std::endl;
+        clientSynthesizeText->async_send_goal(goal_msg, send_goal_options);
+        std::cout << "Goal sent" << std::endl;
 
-            };
-            std::cout << "Sending goal to TextToSpeech Batch Generation Action server" << std::endl;
-            clientSynthesizeText->async_send_goal(goal_msg, send_goal_options);
-            std::cout << "Goal sent" << std::endl;
+        // std::cout << "Spinning SynthesizeTextExecutor" << std::endl;
+        // m_SynthesizeTextExecutor->spin();
+        // std::cout << "SynthesizeTextExecutor spinned" << std::endl;
 
-            std::cout << "Spinning SynthesizeTextExecutor" << std::endl;
-            m_SynthesizeTextExecutor->spin();
-            std::cout << "SynthesizeTextExecutor spinned" << std::endl;
         });
-
-        std::cout << "Starting SynthesizeTextThread" << std::endl;
-        m_SynthesizeTextThread->start();
-        std::cout << "SynthesizeTextThread started" << std::endl; });
 
     // Speak action fragment of code start
 
     m_stateMachine.connectToEvent("DialogComponent.Speak.Call", [this]([[maybe_unused]] const QScxmlEvent &event)
+    {
+        std::cout << "Starting SpeakThread creation" << std::endl;
 
-                                  {
-            std::cout << "Starting SpeakThread creation" << std::endl;
-                                    m_SpeakThread = QThread::create([event, this]() {
 
-            if (!clientSpeak->wait_for_action_server())
-            {
-                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Speak Action server not available after waiting");
-                rclcpp::shutdown();
-            }
+        if (!clientSpeak->wait_for_action_server())
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Speak Action server not available after waiting");
+            rclcpp::shutdown();
+        }
 
-            auto goal_msg = dialog_interfaces::action::Speak::Goal();
+        auto goal_msg = dialog_interfaces::action::Speak::Goal();
 
-            std::vector<std::string> repliesText;
-            std::vector<std::string> dances;
+        std::vector<std::string> repliesText;
+        std::vector<std::string> dances;
 
-            for (const auto& [reply, dance] : m_replies) {
-                std::cout << "Reply: " << reply << " Dance: " << dance << std::endl;
-                repliesText.push_back(reply);
-                dances.push_back(dance);
-            }
+        for (const auto& [reply, dance] : m_replies) {
+            std::cout << "Reply: " << reply << " Dance: " << dance << std::endl;
+            repliesText.push_back(reply);
+            dances.push_back(dance);
+        }
 
-            goal_msg.texts = repliesText;
-            goal_msg.dances = dances;
+        goal_msg.texts = repliesText;
+        goal_msg.dances = dances;
 
-            for (const auto &text : goal_msg.texts)
-            {
-                std::cout << "[DialogComponent::Speak] Text to be spoken: " << text << std::endl;
-            }
-            for (const auto &dance : goal_msg.dances)
-            {
-                std::cout << "[DialogComponent::Speak] Dance to be performed: " << dance << std::endl;
-            }
+        for (const auto &text : goal_msg.texts)
+        {
+            std::cout << "[DialogComponent::Speak] Text to be spoken: " << text << std::endl;
+        }
+        for (const auto &dance : goal_msg.dances)
+        {
+            std::cout << "[DialogComponent::Speak] Dance to be performed: " << dance << std::endl;
+        }
 
-            auto send_goal_options = rclcpp_action::Client<dialog_interfaces::action::Speak>::SendGoalOptions();
-            send_goal_options.goal_response_callback =
-                [this](rclcpp_action::ClientGoalHandle<dialog_interfaces::action::Speak>::SharedPtr goal_handle)
-            {
-                if (!goal_handle)
-                {
-                    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Speak Goal was rejected by server");
-                }
-                else
-                {
-                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Speak Goal accepted by server, waiting for result");
-                }
-            };
-            send_goal_options.feedback_callback =
-                [this](rclcpp_action::ClientGoalHandle<dialog_interfaces::action::Speak>::SharedPtr,
-                        const std::shared_ptr<const dialog_interfaces::action::Speak::Feedback> feedback)
-            {
-                RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Speak Received feedback: %s", feedback->status.c_str());
-            };
-            send_goal_options.result_callback =
-                [this](const rclcpp_action::ClientGoalHandle<dialog_interfaces::action::Speak>::WrappedResult &result)
-            {
-                if (result.code == rclcpp_action::ResultCode::SUCCEEDED)
-                {
-                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Speak Goal succeeded");
-                    QVariantMap data;
-                    data.insert("result", "SUCCESS");
-                    data.insert("is_reply_finished", result.result->is_reply_finished);
-                    if (result.result->is_reply_finished) {
-                        // Clear replies vector only if the whole reply has been spoken
-                        std::cout << "Clearing replies vector" << std::endl;
-                        m_replies.clear();
-                    }
-                    m_stateMachine.submitEvent("DialogComponent.Speak.Return", data);
-                }
-                else if (result.code == rclcpp_action::ResultCode::CANCELED) {
-                    QVariantMap data;
-                    RCLCPP_WARN(rclcpp::get_logger("rclcpp"), "Speak Goal was halted (canceled)");
-                    m_replies.clear();
-                    data.insert("result", "HALTED");
-                    m_stateMachine.submitEvent("DialogComponent.Speak.Return", data);
-                } else
-                {
-                    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Speak Goal failed");
-                    QVariantMap data;
-                    data.insert("result", "FAILURE");
-                    m_stateMachine.submitEvent("DialogComponent.Speak.Return", data);
-                }
+        auto send_goal_options = rclcpp_action::Client<dialog_interfaces::action::Speak>::SendGoalOptions();
+        send_goal_options.goal_response_callback =
+            std::bind(&DialogSkill::goal_response_speak_callback, this, _1);
+        send_goal_options.feedback_callback =
+            std::bind(&DialogSkill::feedback_speak_callback, this, _1, _2);
+        send_goal_options.result_callback =
+            std::bind(&DialogSkill::result_speak_callback, this, _1);
+        
+        std::cout << "Sending goal to Speak Action server" << std::endl;
+        clientSpeak->async_send_goal(goal_msg, send_goal_options);
+        std::cout << "Goal sent" << std::endl;
 
-                std::cout << "Cancelling Speak executor" << std::endl;
-                // Stop executor if needed:
-                m_SpeakExecutor->cancel();
-                std::cout << "Executor cancelled" << std::endl;
+            // std::cout << "Spinning SpeakExecutor" << std::endl;
+            // m_SpeakExecutor->spin();
+            // std::cout << "SpeakExecutor spinned" << std::endl;
 
-            };
-            std::cout << "Sending goal to Speak Action server" << std::endl;
-            clientSpeak->async_send_goal(goal_msg, send_goal_options);
-            std::cout << "Goal sent" << std::endl;
-
-            std::cout << "Spinning SpeakExecutor" << std::endl;
-            m_SpeakExecutor->spin();
-            std::cout << "SpeakExecutor spinned" << std::endl;
-        });
-
-        std::cout << "Starting SpeakThread" << std::endl;
-        m_SpeakThread->start();
-        std::cout << "SpeakThread started" << std::endl; });
+        // std::cout << "Starting SpeakThread" << std::endl;
+        // m_SpeakThread->start();
+        // std::cout << "SpeakThread started" << std::endl;
+    });
 
     // Speak action fragment of code end
 

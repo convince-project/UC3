@@ -41,6 +41,8 @@ enum class Status{
 	failure
 };
 
+using namespace std::placeholders;
+
 class DialogSkill
 {
 public:
@@ -61,6 +63,24 @@ public:
 	using ActionSynthesizeText = text_to_speech_interfaces::action::BatchGeneration;
 	using GoalHandleSynthesizeText = rclcpp_action::ClientGoalHandle<ActionSynthesizeText>;
 
+	// ROS2 Action Client for WaitForInteraction
+	void goal_response_wait_for_interaction_callback(rclcpp_action::ClientGoalHandle<dialog_interfaces::action::WaitForInteraction>::SharedPtr goal_handle);
+	void feedback_wait_for_interaction_callback(rclcpp_action::ClientGoalHandle<dialog_interfaces::action::WaitForInteraction>::SharedPtr,
+											   const std::shared_ptr<const dialog_interfaces::action::WaitForInteraction::Feedback> feedback);
+	void result_wait_for_interaction_callback(const rclcpp_action::ClientGoalHandle<dialog_interfaces::action::WaitForInteraction>::WrappedResult & result);	
+
+	// ROS2 Action Client for Speak
+	void goal_response_speak_callback(rclcpp_action::ClientGoalHandle<dialog_interfaces::action::Speak>::SharedPtr goal_handle);
+	void feedback_speak_callback(rclcpp_action::ClientGoalHandle<dialog_interfaces::action::Speak>::SharedPtr,
+								const std::shared_ptr<const dialog_interfaces::action::Speak::Feedback> feedback);
+	void result_speak_callback(const rclcpp_action::ClientGoalHandle<dialog_interfaces::action::Speak>::WrappedResult & result);
+
+	// ROS2 Action Client for SynthesizeText
+	void goal_response_synthesize_text_callback(rclcpp_action::ClientGoalHandle<text_to_speech_interfaces::action::BatchGeneration>::SharedPtr goal_handle);
+	void feedback_synthesize_text_callback(rclcpp_action::ClientGoalHandle<text_to_speech_interfaces::action::BatchGeneration>::SharedPtr,
+										  const std::shared_ptr<const text_to_speech_interfaces::action::BatchGeneration::Feedback> feedback);
+	void result_synthesize_text_callback(const rclcpp_action::ClientGoalHandle<text_to_speech_interfaces::action::BatchGeneration>::WrappedResult & result);
+
 private:
 	void EnableMicrophone();
 
@@ -75,13 +95,13 @@ private:
 	std::atomic<bool> m_haltResult{false};
 	rclcpp::Service<bt_interfaces_dummy::srv::HaltAction>::SharedPtr m_haltService;
 
-	std::shared_ptr<rclcpp::Node> nodeWaitForInteraction;
+	// std::shared_ptr<rclcpp::Node> nodeWaitForInteraction;
 	std::shared_ptr<rclcpp_action::Client<dialog_interfaces::action::WaitForInteraction>> clientWaitForInteraction;
 
-	std::shared_ptr<rclcpp::Node> nodeSpeak;
+	// std::shared_ptr<rclcpp::Node> nodeSpeak;
 	std::shared_ptr<rclcpp_action::Client<dialog_interfaces::action::Speak>> clientSpeak;
 
-	std::shared_ptr<rclcpp::Node> nodeSynthesizeText;
+	// std::shared_ptr<rclcpp::Node> nodeSynthesizeText;
 	std::shared_ptr<rclcpp_action::Client<text_to_speech_interfaces::action::BatchGeneration>> clientSynthesizeText;
 
 	std::shared_ptr<rclcpp::Node> nodeManageContext;
