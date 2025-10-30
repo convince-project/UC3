@@ -7,9 +7,9 @@
 namespace
 {
 // Default endpoints so the node can run with zero configuration.
-constexpr char kDefaultInputTopic[] = "/camera/depth/color/points";
-constexpr char kRosSafetyTopic[] = "/CameraSafety/is_safe";
-constexpr char kYarpSafetyPort[] = "/CameraSafety/is_safe:o";
+const std::string kDefaultInputTopic = "/camera/depth/color/points";
+const std::string kRosSafetyTopic = "/CameraSafety/is_safe";
+const std::string kYarpSafetyPort = "/CameraSafety/is_safe:o";
 }
 
 PointCloudComponent::PointCloudComponent(const rclcpp::NodeOptions & options)
