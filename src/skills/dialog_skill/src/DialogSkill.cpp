@@ -150,6 +150,7 @@ bool DialogSkill::start(int argc, char *argv[])
         EnableMicrophone();
         std::cout << "ENABLE MICROPHONE DONE" << std::endl;
 
+
         m_thread = QThread::create([event, this]() {
 
             if (!clientWaitForInteraction->wait_for_action_server())
