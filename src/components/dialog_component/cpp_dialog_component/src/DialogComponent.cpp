@@ -28,8 +28,6 @@ DialogComponent::DialogComponent() : m_random_gen(m_rand_engine()),
     m_last_received_interaction = "";
 
     m_number_of_predefined_answers = 0;
-
-
 }
 
 bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
@@ -1136,11 +1134,11 @@ void DialogComponent::ResetDance()
 
     if (rclcpp::spin_until_future_complete(executeDanceClientNode, dance_result) == rclcpp::FutureReturnCode::SUCCESS)
     {
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Execute Dance succeeded");
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Reset Dance succeeded");
     }
     else
     {
-        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service execute_dance");
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service reset_dance");
         return;
     }
 }
