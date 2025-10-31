@@ -11,7 +11,17 @@
       "m_movements": [
         {
           "m_partName": "all_joints",
-          "m_time": 10,
+          "m_time": 8,
+          "m_offset": 0,
+          "m_joints": []
+        }
+      ]
+    },
+    "gesture_mid": {
+      "m_movements": [
+        {
+          "m_partName": "all_joints",
+          "m_time": 16,
           "m_offset": 0,
           "m_joints": []
         }
@@ -21,7 +31,7 @@
       "m_movements": [
         {
           "m_partName": "all_joints",
-          "m_time": 16,
+          "m_time": 24,
           "m_offset": 0,
           "m_joints": []
         }

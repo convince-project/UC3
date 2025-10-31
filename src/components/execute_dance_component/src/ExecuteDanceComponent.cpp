@@ -121,7 +121,16 @@ void ExecuteDanceComponent::ExecuteDance(const std::shared_ptr<execute_dance_int
             return;
         }
 
-        float reaching_start_position_time = 5.0; // seconds
+        // assume reaching the starting position will take 5 secs
+        float reaching_start_position_time = 5.0;
+        // if the last executed dance category is the same of the current one, then we can assume that
+        // the last ending position is the same of the current start position, and estimate a lower
+        // reaching-start-position time
+        if (m_lastExecutedDanceCategory == danceCategory)
+        {
+            RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::ExecuteDance. Dance is the same as last executed");
+            reaching_start_position_time = 2.0; // seconds
+        }
 
         float speech_dance_synchronization_speed_factor = (bestDance->dance_duration + reaching_start_position_time) / speechTime;
 
@@ -161,9 +170,10 @@ void ExecuteDanceComponent::ExecuteDance(const std::shared_ptr<execute_dance_int
             response->is_ok = false;
             return;
         }
+        m_lastExecutedDanceCategory = danceCategory;
     }
     else
-    {
+    {   
         std::cout << "ExecuteDanceComponent::executeTask not sending dance because speed factor too low or too high. Speed Factor: " << speedFactor << std::endl;
     }
 

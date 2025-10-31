@@ -57,4 +57,6 @@ private:
     yarp::os::Port m_yAPClientPort;
 
     bool m_timerTask{false};
+
+    std::string m_lastExecutedDanceCategory{""};
 };
