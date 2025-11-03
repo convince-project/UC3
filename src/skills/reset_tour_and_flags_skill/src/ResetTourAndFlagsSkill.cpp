@@ -74,6 +74,9 @@ bool ResetTourAndFlagsSkill::start(int argc, char*argv[])
   
   
   m_stateMachine.connectToEvent("SchedulerComponent.Reset.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
+
+      ResetSpeechToTextComponentLanguage();
+
       std::shared_ptr<rclcpp::Node> nodeReset = rclcpp::Node::make_shared(m_name + "SkillNodeReset");
       std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::Reset>> clientReset = nodeReset->create_client<scheduler_interfaces::srv::Reset>("/SchedulerComponent/Reset");
       clientReset->configure_introspection(nodeReset->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
@@ -246,9 +249,34 @@ void ResetTourAndFlagsSkill::halt( [[maybe_unused]] const std::shared_ptr<bt_int
 }
 
 
+void ResetTourAndFlagsSkill::ResetSpeechToTextComponentLanguage()
+{
+    auto setCommandClientNode = rclcpp::Node::make_shared("ResetTourSkillSetLanguageNode");
 
-
-
+    auto setLanguageClient = setCommandClientNode->create_client<text_to_speech_interfaces::srv::SetLanguage>("/SpeechToTextComponent/SetLanguage");
+    auto request = std::make_shared<text_to_speech_interfaces::srv::SetLanguage::Request>();
+    request->new_language = "unknown";
+    // Check for the presence of the service. Wait for it if not available
+    while (!setLanguageClient->wait_for_service(std::chrono::milliseconds(100)))
+    {
+        // While waiting, check if the node is still alive, otherwise exit
+        if (!rclcpp::ok())
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'SetLanguage'. Exiting.");
+        }
+    }
+    // Send request and record the result from the service
+    auto result = setLanguageClient->async_send_request(request);
+    // Wait for the result.
+    if (rclcpp::spin_until_future_complete(setCommandClientNode, result) == rclcpp::FutureReturnCode::SUCCESS)
+    {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SpeechToTextComponent Language Reset to unknown");
+    }
+    else
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service SetLanguage");
+    }
+}
 
 
 

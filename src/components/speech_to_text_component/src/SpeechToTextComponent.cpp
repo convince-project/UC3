@@ -172,6 +172,13 @@ void SpeechToTextComponent::SetLanguage(const std::shared_ptr<text_to_speech_int
         return;
     }
 
+    if (request->new_language == "unknown")
+    {
+        m_currentLanguage = "unknown";
+        response->is_ok=true;
+        return;
+    }
+
     auto ret = m_iSpeechTranscr->setLanguage(request->new_language);
     if (ret || ret == yarp::dev::ReturnValue::return_code::return_value_error_not_implemented_by_device)
     {
@@ -218,7 +225,12 @@ void SpeechToTextComponent::onRead(yarp::sig::Sound &msg)
 
     auto startTime = std::chrono::steady_clock::now();
 
-    std::vector<std::string> languages = {"en-US", "it-IT", "es-ES", "fr-FR", "de-DE"};
+    std::vector<std::string> languages;
+    if (m_currentLanguage != "unknown") {
+        languages = {m_currentLanguage};
+    } else {
+        languages = {"en-US", "it-IT", "es-ES", "fr-FR", "de-DE"};
+    }
 
     std::string bestTranscription;
     double bestConfidence = -1.0;
@@ -269,6 +281,12 @@ void SpeechToTextComponent::onRead(yarp::sig::Sound &msg)
                 }
             }
             
+        }
+
+        if (m_currentLanguage == "unknown") {
+            if (bestConfidence > 0.85) {
+                m_currentLanguage = bestLanguageForTranscription;
+            }
         }
 
         yInfo() << "[SpeechToTextComponent::onRead] Transcription: " << bestTranscription << " with confidence: " << bestConfidence;

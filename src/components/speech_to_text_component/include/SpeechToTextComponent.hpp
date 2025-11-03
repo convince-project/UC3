@@ -51,6 +51,8 @@ private:
 
     yarp::dev::PolyDriver m_audioRecorderPoly;
     yarp::dev::IAudioGrabberSound *m_iAudioGrabberSound{nullptr};
+
+    std::string m_currentLanguage{"unknown"};
 };
 
 #endif // SPEECH_TO_TEXT_COMPONENT__HPP
