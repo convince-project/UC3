@@ -531,27 +531,129 @@ bool CartesianPointingComponent::chooseArmByTorsoY(const Eigen::Vector3d& p_base
  * @param target_base Target position in base frame (possibly clipped elsewhere).
  * @return Unit quaternion representing the desired EE orientation.
  */
+// static Eigen::Quaterniond buildPointingPalmDownQuat(const Eigen::Vector3d& shoulder_base,
+//                                                     const Eigen::Vector3d& target_base)
+// {
+//     Eigen::Vector3d dir = target_base - shoulder_base;
+//     const double n = dir.norm();
+//     if (n < 1e-9) return Eigen::Quaterniond::Identity();
+//     dir /= n;
+//     Eigen::Vector3d z_ee = -dir;
+//     const Eigen::Vector3d base_down(0.0, 0.0, -1.0);
+//     Eigen::Vector3d y_ee = base_down - (base_down.dot(z_ee))*z_ee;
+//     double ny = y_ee.norm();
+//     if (ny < 1e-6) {
+//         y_ee = (std::abs(z_ee.x()) < 0.9 ? Eigen::Vector3d(1,0,0) : Eigen::Vector3d(0,1,0));
+//         y_ee -= (y_ee.dot(z_ee))*z_ee;
+//         y_ee.normalize();
+//     } else { y_ee /= ny; }
+//     Eigen::Vector3d x_ee = y_ee.cross(z_ee);
+//     double nx = x_ee.norm();
+//     if (nx < 1e-6) { x_ee = z_ee.unitOrthogonal(); y_ee = z_ee.cross(x_ee).normalized(); }
+//     else { x_ee /= nx; }
+//     Eigen::Matrix3d R; R.col(0)=x_ee; R.col(1)=y_ee; R.col(2)=z_ee;
+//     Eigen::Quaterniond q(R); q.normalize(); return q;
+// }
+
 static Eigen::Quaterniond buildPointingPalmDownQuat(const Eigen::Vector3d& shoulder_base,
-                                                    const Eigen::Vector3d& target_base)
+                                                    const Eigen::Vector3d& target_base, std::string pref)
 {
     Eigen::Vector3d dir = target_base - shoulder_base;
     const double n = dir.norm();
     if (n < 1e-9) return Eigen::Quaterniond::Identity();
     dir /= n;
-    Eigen::Vector3d z_ee = -dir;
+    const Eigen::Vector3d z_ee = -dir;
     const Eigen::Vector3d base_down(0.0, 0.0, -1.0);
-    Eigen::Vector3d y_ee = base_down - (base_down.dot(z_ee))*z_ee;
-    double ny = y_ee.norm();
-    if (ny < 1e-6) {
-        y_ee = (std::abs(z_ee.x()) < 0.9 ? Eigen::Vector3d(1,0,0) : Eigen::Vector3d(0,1,0));
-        y_ee -= (y_ee.dot(z_ee))*z_ee;
-        y_ee.normalize();
-    } else { y_ee /= ny; }
-    Eigen::Vector3d x_ee = y_ee.cross(z_ee);
-    double nx = x_ee.norm();
-    if (nx < 1e-6) { x_ee = z_ee.unitOrthogonal(); y_ee = z_ee.cross(x_ee).normalized(); }
-    else { x_ee /= nx; }
-    Eigen::Matrix3d R; R.col(0)=x_ee; R.col(1)=y_ee; R.col(2)=z_ee;
+    const Eigen::Vector3d base_left(0.0, 1.0, 0.0);
+
+    // Helper: costruisce una y_ee ortogonale a z_ee partendo da un vettore di riferimento ref.
+    auto make_ortho = [&](Eigen::Vector3d ref)->Eigen::Vector3d {
+        Eigen::Vector3d y = ref - (ref.dot(z_ee)) * z_ee;
+        double ny = y.norm();
+        if (ny < 1e-12) return Eigen::Vector3d::Zero();
+        return y / ny;
+    };
+
+    // 1) tentativo principale: proiezione di base_down
+    Eigen::Vector3d y0 = make_ortho(base_down);
+    // fallback di riferimento se proiezione nulla
+    Eigen::Vector3d fallback1 = make_ortho(Eigen::Vector3d(1,0,0));
+    Eigen::Vector3d fallback2 = make_ortho(Eigen::Vector3d(0,1,0));
+
+    // crea lista candidati (y e -y per ogni riferimento non-zero)
+    std::vector<Eigen::Vector3d> candidates;
+    if (y0.squaredNorm() > 0) { candidates.push_back(y0); candidates.push_back(-y0); }
+    if (fallback1.squaredNorm() > 0) { candidates.push_back(fallback1); candidates.push_back(-fallback1); }
+    if (fallback2.squaredNorm() > 0) { candidates.push_back(fallback2); candidates.push_back(-fallback2); }
+
+    // funzione di valutazione: controlla le due condizioni
+    // se pref == "RIGHT" vogliamo base_left·x > 0
+    // se pref == "LEFT"  vogliamo base_left·x < 0  (equivalente a -base_left·x > 0)
+    auto scoreCandidate = [&](const Eigen::Vector3d& y)->std::pair<bool,double>{
+        Eigen::Vector3d x = y.cross(z_ee);
+        double nx = x.norm();
+        if (nx < 1e-12) return {false, -1e9};
+        x /= nx;
+        double s1 = y.dot(base_down); // vogliamo s1 > 0
+        double s2_raw = base_left.dot(x);
+        double s2_signed = (pref == "LEFT") ? -s2_raw : s2_raw; // mapparlo in modo che >0 sia desiderabile
+        bool okBoth = (s1 > 0.0 && s2_signed > 0.0);
+        // score preferisce soluzioni che rendono entrambi positivi; altrimenti somma 'normalized'
+        double score = s1 + s2_signed;
+        return {okBoth, score};
+    };
+
+    // 2) cerca candidato che soddisfi entrambe le condizioni
+    for (const auto& yCand : candidates) {
+        auto res = scoreCandidate(yCand);
+        if (res.first) {
+            Eigen::Vector3d y = yCand;
+            Eigen::Vector3d x = y.cross(z_ee).normalized();
+            Eigen::Matrix3d R; R.col(0)=x; R.col(1)=y; R.col(2)=z_ee;
+            Eigen::Quaterniond q(R); q.normalize(); return q;
+        }
+    }
+
+    // 3) se nessuno soddisfa entrambe, scegli il candidato col miglior score
+    double bestScore = -1e12;
+    Eigen::Vector3d bestY = Eigen::Vector3d::Zero();
+    for (const auto& yCand : candidates) {
+        auto res = scoreCandidate(yCand);
+        if (res.second > bestScore) { bestScore = res.second; bestY = yCand; }
+    }
+
+    if (bestY.squaredNorm() < 1e-12) {
+        // come ultima risorsa, costruisci orthogonal basis da z_ee
+        Eigen::Vector3d x = z_ee.unitOrthogonal().normalized();
+        Eigen::Vector3d y = z_ee.cross(x).normalized();
+        Eigen::Matrix3d R; R.col(0)=x; R.col(1)=y; R.col(2)=z_ee;
+        Eigen::Quaterniond q(R); q.normalize(); return q;
+    }
+
+    // normalizza e costruisci base destrorsa
+    Eigen::Vector3d y_final = bestY.normalized();
+    Eigen::Vector3d x_final = y_final.cross(z_ee).normalized();
+
+    // assicura orientamenti (se possibile)
+    if (y_final.dot(base_down) < 0) {
+        y_final = -y_final;
+        x_final = y_final.cross(z_ee).normalized();
+    }
+    // per pref==RIGHT vogliamo base_left·x_final > 0
+    // per pref==LEFT  vogliamo  base_left·x_final < 0
+    if (pref == "RIGHT") {
+        if (base_left.dot(x_final) < 0) {
+            x_final = -x_final;
+            y_final = z_ee.cross(x_final).normalized();
+        }
+    } else { // LEFT or other: prefer base_left·x_final < 0
+        if (base_left.dot(x_final) > 0) {
+            x_final = -x_final;
+            y_final = z_ee.cross(x_final).normalized();
+        }
+    }
+
+    Eigen::Matrix3d R; R.col(0)=x_final; R.col(1)=y_final; R.col(2)=z_ee;
     Eigen::Quaterniond q(R); q.normalize(); return q;
 }
 
@@ -704,9 +806,24 @@ void CartesianPointingComponent::pointTask(const std::shared_ptr<cartesian_point
         const Eigen::Vector3d p_sh   = T_base_sh.block<3,1>(0,3);
         const Eigen::Vector3d p_goal = sphereReachPoint(p_sh, p_base);
 
-        Eigen::Quaterniond q_nat = buildPointingPalmDownQuat(p_sh, p_goal);
-        Eigen::Quaterniond q_fix = armCompensationQuat(arm, m_node);
-        Eigen::Quaterniond q_cmd = q_nat * q_fix;
+        Eigen::Quaterniond q_nat = buildPointingPalmDownQuat(p_sh, p_goal, pref);
+        // Eigen::Quaterniond q_fix = armCompensationQuat(arm, m_node);
+        Eigen::Quaterniond q_cmd = q_nat; // * q_fix;
+
+        if (p_goal.x() < 0)
+        {
+            RCLCPP_WARN(m_node->get_logger(),"ARM %s: goal behind robot (x=%.3f), abort", arm.c_str(), p_goal.x());
+            break;
+        }
+
+        // Check: Euclidean distance from origin (sqrt(x^2+y^2+z^2)) must be >= 40
+        
+        const double dist = std::sqrt(p_goal.x()*p_goal.x() + p_goal.y()*p_goal.y() + p_goal.z()*p_goal.z());
+        if (dist < 0.40) {
+            RCLCPP_WARN(m_node->get_logger(), "ARM %s: goal too close (dist=%.3f < 40.0), abort", arm.c_str(), dist);
+            break;
+        }
+        
 
         RCLCPP_INFO(m_node->get_logger(),
                     "ARM %s: go_to_pose -> pos=(%.3f, %.3f, %.3f) quat=(%.4f, %.4f, %.4f, %.4f)",
@@ -721,7 +838,7 @@ void CartesianPointingComponent::pointTask(const std::shared_ptr<cartesian_point
         cmd.addFloat64(q_cmd.x());  cmd.addFloat64(q_cmd.y());  cmd.addFloat64(q_cmd.z()); cmd.addFloat64(q_cmd.w());
         cmd.addFloat64(kTrajDurationSec);
 
-        ExecuteDance(pref);
+        // ExecuteDance(pref);
         const bool ok = port->write(cmd,res);
         if (!(ok && res.size()>0 && (res.get(0).asVocab32()==yarp::os::createVocab32('o','k') || bottleAsBool(res)))) {
             RCLCPP_WARN(m_node->get_logger(),"ARM %s: go_to_pose rejected, abort", arm.c_str());
