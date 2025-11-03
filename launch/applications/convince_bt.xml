@@ -3,6 +3,11 @@
 
     <!-- APPLICATIONS -->
     <application>
+        <name>convince_external_modules</name>
+        <prefix></prefix>
+    </application>
+
+    <application>
         <name>convince_bt_components</name>
         <prefix></prefix>
     </application>

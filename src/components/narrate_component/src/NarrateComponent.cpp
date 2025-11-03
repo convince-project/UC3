@@ -336,6 +336,7 @@ void NarrateComponent::_narrateTask(const std::shared_ptr<narrate_interfaces::sr
 
         do {
             //calls the GetCurrentAction service
+            std::cout << "Inside the loop for getting actions " << std::endl;
             auto getCurrentActionClientNode = rclcpp::Node::make_shared("NarrateComponentGetCurrentActionNode");
             std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::GetCurrentAction>> getCurrentActionClient =
             getCurrentActionClientNode->create_client<scheduler_interfaces::srv::GetCurrentAction>("/SchedulerComponent/GetCurrentAction");
@@ -409,6 +410,19 @@ void NarrateComponent::_narrateTask(const std::shared_ptr<narrate_interfaces::sr
         }
 
         m_toSend = m_speakBuffer.size();
+        for(int i = 0; i < m_inSoundPort.getPendingReads(); i++)
+        {
+            auto leftOverAudio = m_inSoundPort.read(false);
+
+
+            if (leftOverAudio != nullptr)
+
+            {
+                RCLCPP_DEBUG_STREAM(m_node->get_logger(), "Clearing leftover audio from previous narration");
+
+            }
+
+        }
         m_soundQueue.flush();
 
         _sendForBatchSynthesis(m_speakBuffer);
