@@ -838,7 +838,7 @@ void CartesianPointingComponent::pointTask(const std::shared_ptr<cartesian_point
         cmd.addFloat64(q_cmd.x());  cmd.addFloat64(q_cmd.y());  cmd.addFloat64(q_cmd.z()); cmd.addFloat64(q_cmd.w());
         cmd.addFloat64(kTrajDurationSec);
 
-        // ExecuteDance(pref);
+        ExecuteDance(pref);
         const bool ok = port->write(cmd,res);
         if (!(ok && res.size()>0 && (res.get(0).asVocab32()==yarp::os::createVocab32('o','k') || bottleAsBool(res)))) {
             RCLCPP_WARN(m_node->get_logger(),"ARM %s: go_to_pose rejected, abort", arm.c_str());
