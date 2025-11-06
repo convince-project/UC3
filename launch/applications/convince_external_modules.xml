@@ -57,7 +57,7 @@
 
     <module>
         <name>yarprobotinterface</name>
-        <parameters>--context speechPipeline --from azureSynthesizer.ini</parameters>
+        <parameters>--context google --from googleSynthesizer.ini --synthesis_lang it-IT --synthesis_voice it-IT-Neural2-A</parameters>
         <environment></environment>
         <node>console-llm</node>
     </module>
