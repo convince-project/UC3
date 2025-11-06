@@ -170,15 +170,18 @@ void SpeechToTextComponent::SetLanguage(const std::shared_ptr<text_to_speech_int
     {
         response->is_ok=false;
         response->error_msg="Empty string passed to setting language";
+        return;
     }
-    else if (!m_iSpeechTranscr->setLanguage(request->new_language))
+
+    auto ret = m_iSpeechTranscr->setLanguage(request->new_language);
+    if (ret || ret == yarp::dev::ReturnValue::return_code::return_value_error_not_implemented_by_device)
     {
-        response->is_ok=false;
-        response->error_msg="Unable to set new language";
+        response->is_ok=true;
     }
     else
     {
-        response->is_ok=true;
+        response->is_ok=false;
+        response->error_msg="Unable to set new language";
     }
 }
 
