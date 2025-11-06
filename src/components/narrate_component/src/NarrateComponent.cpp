@@ -119,23 +119,38 @@ bool NarrateComponent::_formatPointAction(const std::string& actionParam, std::s
 
 bool NarrateComponent::_waitForPlayerStatus(bool discriminator)
 {
-    bool keepOnWaiting; // default timeout
-    double t0 = yarp::os::Time::now();
+    bool keepOnWaiting = true; // default timeout
+    double t0;
     do{
-        yarp::sig::AudioPlayerStatus* player_status = m_playerStatusInPort.read();
-        if (player_status != nullptr && player_status->current_buffer_size > 0)
+        yarp::sig::AudioPlayerStatus* player_status = m_playerStatusInPort.read(false);
+        if(!player_status)
+        {
+            t0 = yarp::os::Time::now();
+            while(!m_stopped && !player_status)
+            {
+                player_status = m_playerStatusInPort.read(false);
+                if(!player_status)
+                {
+                    RCLCPP_WARN_THROTTLE(m_node->get_logger(), *m_node->get_clock(), 1000, "No player status received yet");
+                }
+                if( (yarp::os::Time::now() - t0) > m_speakTimeout )
+                {
+                    RCLCPP_WARN(m_node->get_logger(), "Timeout while waiting for player status to change");
+                    return false;
+                }
+                yarp::os::Time::delay(0.01);
+            }
+        }
+        RCLCPP_INFO_THROTTLE(m_node->get_logger(), *m_node->get_clock(), 1000, "Current buffer size: %d", (int)player_status->current_buffer_size);
+        if (player_status->current_buffer_size > 0)
         {
             keepOnWaiting = !discriminator;
         }
-        else if(player_status != nullptr && player_status->current_buffer_size == 0)
+        else if(player_status->current_buffer_size == 0)
         {
             keepOnWaiting = discriminator;
         }
-        if( (yarp::os::Time::now() - t0) > m_speakTimeout )
-        {
-            RCLCPP_WARN(m_node->get_logger(), "Timeout while waiting for player status to change");
-            return false;
-        }
+        yarp::os::Time::delay(0.01);
     } while (keepOnWaiting && !m_stopped);
     return true;
 }
@@ -312,7 +327,7 @@ void NarrateComponent::_speakTask() {
             }
             m_toSend--;
         }
-
+        yarp::os::Time::delay(0.01);
     } while(!m_stopped && (!m_soundQueue.isEmpty() || m_toSend > 0));
 
     connectionError = connectionError || !_waitForPlayerStatus(false);
