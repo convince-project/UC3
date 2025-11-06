@@ -70,8 +70,9 @@ private:
      * @brief Waits for the player status to change based on the discriminator
      *
      * @param discriminator if false, waits until the player is not speaking; if true, waits until the player is speaking
+     * @return true if the wait was successful
      */
-    void _waitForPlayerStatus(bool discriminator);
+    bool _waitForPlayerStatus(bool discriminator);
 
     /**
      * @brief Sends a batch synthesis request to the text to speech action server
@@ -105,6 +106,7 @@ private:
     // void NarrateTask(const std::shared_ptr<narrate_interfaces::srv::Narrate::Request> request);
     // rclcpp::Client<text_to_speech_interfaces::srv::Speak>::SharedPtr m_speakClient;
     int m_seconds_left;
+    double m_speakTimeout;
     size_t m_toSend;
     StringSafeVector m_speakBuffer;
     StringSafeVector m_danceBuffer;

@@ -11,6 +11,7 @@
 YARP_LOG_COMPONENT(NARRATE_COMPONENT, "convince.narrate_component.NarrateComponent")
 
 const std::string NO_DANCE_PREFIX = "no_dance_XX";
+const double DEFAULT_SPEAK_TIMEOUT = 5.0;
 
 bool NarrateComponent::configureYARP(yarp::os::ResourceFinder &rf)
 {
@@ -31,12 +32,21 @@ bool NarrateComponent::configureYARP(yarp::os::ResourceFinder &rf)
             m_playerStatusInPort.open("/NarrateComponent/playerStatus:i");
             m_inSoundPort.open("/NarrateComponent/sound:i");
         }
+        if (component_config.check("speak-timeout"))
+        {
+            m_speakTimeout = component_config.find("speak-timeout").asFloat64();
+        }
+        else
+        {
+            m_speakTimeout = DEFAULT_SPEAK_TIMEOUT;
+        }
     }
     else
     {
         m_outSoundPort.open("/NarrateComponent/sound:o");
         m_playerStatusInPort.open("/NarrateComponent/playerStatus:i");
         m_inSoundPort.open("/NarrateComponent/sound:i");
+        m_speakTimeout = DEFAULT_SPEAK_TIMEOUT;
     }
 
     // Set the queue for the VerbalOutputBatchReader
@@ -107,20 +117,27 @@ bool NarrateComponent::_formatPointAction(const std::string& actionParam, std::s
     return true;
 }
 
-void NarrateComponent::_waitForPlayerStatus(bool discriminator)
+bool NarrateComponent::_waitForPlayerStatus(bool discriminator)
 {
-    bool keepOnWaiting;
+    bool keepOnWaiting; // default timeout
+    double t0 = yarp::os::Time::now();
     do{
         yarp::sig::AudioPlayerStatus* player_status = m_playerStatusInPort.read();
         if (player_status != nullptr && player_status->current_buffer_size > 0)
         {
             keepOnWaiting = !discriminator;
         }
-        else
+        else if(player_status != nullptr && player_status->current_buffer_size == 0)
         {
             keepOnWaiting = discriminator;
         }
+        if( (yarp::os::Time::now() - t0) > m_speakTimeout )
+        {
+            RCLCPP_WARN(m_node->get_logger(), "Timeout while waiting for player status to change");
+            return false;
+        }
     } while (keepOnWaiting && !m_stopped);
+    return true;
 }
 
 bool NarrateComponent::_sendForBatchSynthesis(const StringSafeVector& texts)
@@ -158,7 +175,7 @@ void NarrateComponent::IsDone([[maybe_unused]] const std::shared_ptr<narrate_int
 {
     // response->is_done = (!m_speakTask && !m_danceTask);
     response->is_done = !(m_speakTask);
-    response->is_ok = true;
+    response->is_ok = !m_errorOccurred;
 }
 
 void NarrateComponent::_resetDance()
@@ -264,8 +281,14 @@ void NarrateComponent::_speakTask() {
     RCLCPP_INFO_STREAM(m_node->get_logger(), "New Speak Thread ");
     bool danceStarted = false;
     m_inSoundPort.useCallback(m_verbalOutputBatchReader);
+    bool connectionError = false;
     do{
-        _waitForPlayerStatus(false);
+        connectionError = !_waitForPlayerStatus(false);
+        if (connectionError)
+        {
+            RCLCPP_ERROR(m_node->get_logger(), "Connection error while waiting for player status to be not speaking");
+            break;
+        }
         yarp::sig::Sound sound;
         if (m_soundQueue.pop(sound))
         {
@@ -276,7 +299,12 @@ void NarrateComponent::_speakTask() {
             yarp::sig::Sound& toSend = m_outSoundPort.prepare();
             toSend = sound;
             m_outSoundPort.write();
-            _waitForPlayerStatus(true);
+            connectionError = !_waitForPlayerStatus(true);
+            if (connectionError)
+            {
+                RCLCPP_ERROR(m_node->get_logger(), "Connection error while waiting for player status to be not speaking");
+                break;
+            }
             if(m_danceBuffer[m_danceBuffer.size() - m_toSend] != NO_DANCE_PREFIX)
             {
                 _executeDance(m_danceBuffer[m_danceBuffer.size() - m_toSend], sound.getDuration());
@@ -287,7 +315,7 @@ void NarrateComponent::_speakTask() {
 
     } while(!m_stopped && (!m_soundQueue.isEmpty() || m_toSend > 0));
 
-    _waitForPlayerStatus(false);
+    connectionError = connectionError || !_waitForPlayerStatus(false);
     if(danceStarted)
     {
         _resetDance();
@@ -295,6 +323,8 @@ void NarrateComponent::_speakTask() {
 
     m_inSoundPort.disableCallback();
     m_speakTask = false;
+    m_errorOccurred = connectionError;
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "Speak Task ended. Error occurred: " << m_errorOccurred);
 }
 
 void NarrateComponent::_narrateTask(const std::shared_ptr<narrate_interfaces::srv::Narrate::Request> request) {
