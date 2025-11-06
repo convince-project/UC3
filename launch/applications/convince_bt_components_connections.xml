@@ -102,5 +102,11 @@
     <protocol>tcp+recv.portmonitor+file.soundfilter_resample+type.dll+channel.0+frequency.16000</protocol>
   </connection>
 
+  <connection>
+    <from>/DialogComponent/FaceExpressionClient/rpc:o</from>
+    <to>/faceExpressionComponent/rpc:i</to>
+    <protocol>fast_tcp</protocol>
+  </connection>
+
 
 </application>
