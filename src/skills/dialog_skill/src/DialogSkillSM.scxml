@@ -169,13 +169,14 @@
   <!-- STATE END -->
 
   <state id="setLanguageResult">
-    <transition cond="m_result == 'SUCCESS'" target="checkDuplicate" >
+    <!-- <transition cond="m_result == 'SUCCESS'" target="checkDuplicate" >
         <send event="DialogComponent.CheckDuplicate.Call">
           <param name="interaction" expr="m_interaction"/>
           <param name="is_beginning_of_conversation" expr="m_is_beginning_of_conversation == 'true'"/>
           <param name="context" expr="m_context"/>
         </send>
-    </transition>
+    </transition> -->
+    <transition cond="m_result == 'SUCCESS'" target="evaluateDuplicate" />
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
   </state>
 
