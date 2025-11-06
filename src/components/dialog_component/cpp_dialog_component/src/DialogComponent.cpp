@@ -341,6 +341,17 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
     }
 
     yInfo() << "[DialogComponent::ConfigureYARP] Successfully configured component";
+
+
+    // set face expression port
+    m_faceexpression_rpc_port_name = "/DialogComponent/FaceExpressionClient/rpc:o";
+    if (!m_faceexpression_rpc_port.open(m_faceexpression_rpc_port_name))
+    {
+        yError() << "[DialogComponent::ConfigureYARP] Unable to open Face Expression RPC port: " << m_faceexpression_rpc_port_name;
+        return false;
+    }
+
+
     return true;
 }
 
@@ -442,7 +453,6 @@ void DialogComponent::ManageContext(const std::shared_ptr<dialog_interfaces::srv
     if (!m_iPoiChat->ask(m_last_received_interaction, answer))
     {
         yError() << "[DialogComponent::ManageContext] Unable to interact with chatGPT with question: " << m_last_received_interaction;
-        std::this_thread::sleep_for(wait_ms);
     }
     std::string answerText = answer.content;
     yInfo() << "[DialogComponent::ManageContext] ChatBot Output: " << answerText << __LINE__;
@@ -451,7 +461,6 @@ void DialogComponent::ManageContext(const std::shared_ptr<dialog_interfaces::srv
     if (!CommandManager(answerText, response))
     {
         yError() << "[DialogComponent::ManageContext] Error in Command Manager for the command: " << answerText;
-        std::this_thread::sleep_for(wait_ms);
     }
 
     yDebug() << "[DialogComponent::ManageContext] Response from Command Manager: " << response->is_ok << response->language << response->context;
@@ -590,7 +599,6 @@ bool DialogComponent::UpdatePoILLMPrompt()
     auto requestGetCurrentPoi = std::make_shared<scheduler_interfaces::srv::GetCurrentPoi::Request>();
     while (!clientGetCurrentPoi->wait_for_service(std::chrono::milliseconds(100)))
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
         if (!rclcpp::ok())
         {
             RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'GetCurrentPoi'. Exiting.");
@@ -1043,10 +1051,11 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitFor
 
             // Publish feedback
             goal_handle->publish_feedback(feedback);
-            RCLCPP_INFO(m_node->get_logger(), "Publish feedback");
+
+            RCLCPP_INFO_THROTTLE(m_node->get_logger(), *m_node->get_clock(), 1000, "Publish feedback");
 
             // wait for a while before trying to read again
-            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
         } while (vocalInteraction == nullptr);
 
@@ -1068,6 +1077,11 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitFor
         yInfo() << "[DialogComponent::WaitForInteraction] call received: " << goal->keyboard_interaction << __LINE__;
         questionText = goal->keyboard_interaction;
         confidence = 1.0;
+    }
+
+
+    if (questionText != "") {
+        SetFaceExpression("thinking");
     }
 
     m_last_received_interaction = questionText;
@@ -1198,7 +1212,7 @@ void DialogComponent::ShortenReply(const std::shared_ptr<dialog_interfaces::srv:
                               "The previous answer was: " + previousReply + ". " +
                               "Please maintain the context and shorten it to a single sentence. Be careful to reply in the same language of the question!!!";
 
-    std::chrono::duration wait_ms = 200ms;
+
     yarp::dev::LLM_Message answer;
 
     if (request->context == "general" || request->context == "explainFunction" || request->context == "explainDescription")
@@ -1206,7 +1220,6 @@ void DialogComponent::ShortenReply(const std::shared_ptr<dialog_interfaces::srv:
         if (!m_iGenericChat->ask(LLMQuestion, answer))
         {
             yError() << "[DialogComponent::ShortenReply] Unable to interact with chatGPT with question: " << request->interaction;
-            std::this_thread::sleep_for(wait_ms);
         }
     }
     else if (request->context == "museum")
@@ -1214,7 +1227,6 @@ void DialogComponent::ShortenReply(const std::shared_ptr<dialog_interfaces::srv:
         if (!m_iMuseumChat->ask(LLMQuestion, answer))
         {
             yError() << "[DialogComponent::ShortenReply] Unable to interact with chatGPT with question: " << request->interaction;
-            std::this_thread::sleep_for(wait_ms);
         }
     }
     else
@@ -1251,7 +1263,6 @@ void DialogComponent::Answer(const std::shared_ptr<dialog_interfaces::srv::Answe
         if (!m_iGenericChat->ask(LLMQuestion, answer))
         {
             yError() << "[DialogComponent::Answer] Unable to interact with chatGPT with question: " << request->interaction;
-            std::this_thread::sleep_for(wait_ms);
         }
     }
     else if (request->context == "museum")
@@ -1259,7 +1270,6 @@ void DialogComponent::Answer(const std::shared_ptr<dialog_interfaces::srv::Answe
         if (!m_iMuseumChat->ask(LLMQuestion, answer))
         {
             yError() << "[DialogComponent::Answer] Unable to interact with chatGPT with question: " << request->interaction;
-            std::this_thread::sleep_for(wait_ms);
         }
     }
     else
@@ -1315,7 +1325,7 @@ void DialogComponent::handle_speak_accepted(const std::shared_ptr<GoalHandleSpea
 }
 
 void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
-{
+{   
 
     RCLCPP_INFO(m_node->get_logger(), "Starting Speak");
     auto goal = goal_handle->get_goal();
@@ -1352,11 +1362,11 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
 
         // Publish feedback
         goal_handle->publish_feedback(feedback);
-        
-        RCLCPP_INFO(m_node->get_logger(), "Waiting for verbal output");
+
+        RCLCPP_INFO_THROTTLE(m_node->get_logger(), *m_node->get_clock(), 1000, "Waiting for verbal output");
 
         // wait for a while before trying to read again
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
         auto elapsed_time = std::chrono::high_resolution_clock::now() - start_time;
         if (elapsed_time > std::chrono::seconds(10)) {
@@ -1390,6 +1400,8 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
     std::cout << "[DialogComponent::SpeakFromAudio] Copied sound data" << std::endl;
 
     std::string dance = dances[m_predefined_answer_index];
+
+    SetFaceExpression("happy");
 
     m_audioPort.write();
 
@@ -1494,4 +1506,20 @@ void DialogComponent::WaitForPointingEnd() {
         yInfo() << "IsMotionDone " << isMotionDone << __LINE__ << counter++;
 
     } while (!isMotionDone);
+}
+
+void DialogComponent::SetFaceExpression(std::string expressionName) {
+
+    yarp::os::Bottle request, reply;
+
+    if (expressionName == "happy")
+        request.fromString("emotion 1"); //happy
+    else if (expressionName == "sad")
+        request.fromString("emotion 0"); //sad
+    else if (expressionName == "thinking")
+        request.fromString("emotion 2"); //thinking
+    else
+        request.fromString("emotion 1"); //happy
+ 
+    m_faceexpression_rpc_port.write(request,reply);
 }

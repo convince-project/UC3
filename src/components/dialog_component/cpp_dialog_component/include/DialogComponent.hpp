@@ -21,6 +21,7 @@
 #include <yarp/dev/ISpeechSynthesizer.h>
 #include <yarp/dev/ILLM.h>
 #include <yarp/dev/IAudioGrabberSound.h>
+#include <yarp/os/RpcClient.h>
 
 // Dialog Component Service Interfaces
 #include <dialog_interfaces/srv/manage_context.hpp>
@@ -118,6 +119,8 @@ protected:
     void ExecuteDance(std::string danceName, float estimatedSpeechTime); // ROS2 service client to ExecuteDanceComponent to execute the dance with the given name
     void ResetDance(); // ROS2 service client to ResetDanceComponent to reset the dance with the given name
     void ExecutePointing(std::string pointingTarget); // ROS2 service client to CartesianPointingComponent to point at the given target
+    
+    void SetFaceExpression(std::string expressionName); // ROS2 service client to FaceExpressionComponent to set the face expression with the given name
 
     private:
     // ChatGPT
@@ -216,6 +219,9 @@ protected:
     VerbalOutputBatchReader m_verbalOutputBatchReader;
 
     yarp::os::BufferedPort<yarp::sig::Sound> m_audioPort;
+
+    std::string m_faceexpression_rpc_port_name;
+    yarp::os::RpcClient m_faceexpression_rpc_port;
 
 };
 
