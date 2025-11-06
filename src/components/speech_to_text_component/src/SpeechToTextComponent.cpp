@@ -162,7 +162,6 @@ void SpeechToTextComponent::spin()
     rclcpp::spin(m_node);
 }
 
-
 void SpeechToTextComponent::SetLanguage(const std::shared_ptr<text_to_speech_interfaces::srv::SetLanguage::Request> request,
                         std::shared_ptr<text_to_speech_interfaces::srv::SetLanguage::Response> response)
 {
@@ -170,15 +169,25 @@ void SpeechToTextComponent::SetLanguage(const std::shared_ptr<text_to_speech_int
     {
         response->is_ok=false;
         response->error_msg="Empty string passed to setting language";
+        return;
     }
-    else if (!m_iSpeechTranscr->setLanguage(request->new_language))
+
+    if (request->new_language == "unknown")
     {
-        response->is_ok=false;
-        response->error_msg="Unable to set new language";
+        m_currentLanguage = "unknown";
+        response->is_ok=true;
+        return;
+    }
+
+    auto ret = m_iSpeechTranscr->setLanguage(request->new_language);
+    if (ret || ret == yarp::dev::ReturnValue::return_code::return_value_error_not_implemented_by_device)
+    {
+        response->is_ok=true;
     }
     else
     {
-        response->is_ok=true;
+        response->is_ok=false;
+        response->error_msg="Unable to set new language";
     }
 }
 
@@ -213,28 +222,88 @@ void SpeechToTextComponent::onRead(yarp::sig::Sound &msg)
         m_iAudioGrabberSound->stopRecording();
         yInfo() << "[SpeechToTextComponent::onRead] Stopping the recording";
     }
+
+    auto startTime = std::chrono::steady_clock::now();
+
+    std::vector<std::string> languages;
+    if (m_currentLanguage != "unknown") {
+        languages = {m_currentLanguage};
+    } else {
+        languages = {"en-US", "it-IT", "es-ES", "fr-FR", "de-DE"};
+    }
+
+    std::string bestTranscription;
+    double bestConfidence = -1.0;
+    std::string bestLanguageForTranscription = "";
+    yarp::os::Bottle& outputText = m_transcriptionOutputPort.prepare();
+    outputText.clear();
+
     if (m_iSpeechTranscr)
-    {
-        yarp::os::Bottle& outputText = m_transcriptionOutputPort.prepare();
-        outputText.clear();
+    {   
         std::string transcriptionText;
         double confidence;
-        if(!m_iSpeechTranscr->transcribe(msg, transcriptionText, confidence))
-
+        for (const auto &lang : languages)
         {
-            yError() << "[SpeechToTextComponent::onRead] Error transcribing audio, sending empty transcription. May the credentials be wrong?";
-            outputText.addString("");
-            outputText.addFloat64(1.0);
-            m_transcriptionOutputPort.write();
-            return;
+            auto ret = m_iSpeechTranscr->setLanguage(lang);
+
+            if(!ret)
+            {
+                yError() << "[SpeechToTextComponent::onRead] Unable to set language to " << lang << ", trying next language";
+                continue;
+            }
+            else{
+
+                if(!m_iSpeechTranscr->transcribe(msg, transcriptionText, confidence))
+                {
+                    yError() << "[SpeechToTextComponent::onRead] Error transcribing audio, sending empty transcription. May the credentials be wrong?";
+                    outputText.addString("");
+                    outputText.addFloat64(1.0);
+                    m_transcriptionOutputPort.write();
+                    return;
+                }
+                
+                if (ret == yarp::dev::ReturnValue::return_code::return_value_error_not_implemented_by_device)
+                {   
+                    // If the device does not implement language setting, this means that the transcription
+                    // is indipendent from the language set, so we can break here to avoid unnecessary iterations
+                    bestTranscription = transcriptionText;
+                    bestConfidence = confidence;
+                    break;
+                }
+                else
+                {
+                    if (confidence > bestConfidence)
+                    {
+                        bestConfidence = confidence;
+                        bestTranscription = transcriptionText;
+                        bestLanguageForTranscription = lang;
+                    }
+                }
+            }
+            
         }
-        yInfo() << "[SpeechToTextComponent::onRead] Transcription: " << transcriptionText << " with confidence: " << confidence;
-        outputText.addString(transcriptionText);
-        outputText.addFloat64(confidence);
+
+        if (m_currentLanguage == "unknown") {
+            if (bestConfidence > 0.85) {
+                m_currentLanguage = bestLanguageForTranscription;
+            }
+        }
+
+        yInfo() << "[SpeechToTextComponent::onRead] Transcription: " << bestTranscription << " with confidence: " << bestConfidence;
+        if (bestLanguageForTranscription != "")
+        {
+            yInfo() << "[SpeechToTextComponent::onRead] Language used for transcription: " << bestLanguageForTranscription;
+        }
+        outputText.addString(bestTranscription);
+        outputText.addFloat64(bestConfidence);
         m_transcriptionOutputPort.write();
     }
     else
     {
         yError() << "[SpeechToTextComponent::onRead] Error opening iSpeechSynth interface. Device not available";
     }
+
+    auto currentTime = std::chrono::steady_clock::now();
+    auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(currentTime - startTime).count();
+    std::cout << "Elapsed time: " << elapsedTime << " seconds" << std::endl;
 }

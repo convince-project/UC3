@@ -14,6 +14,7 @@ find_package(std_msgs REQUIRED)
 find_package(bt_interfaces_dummy REQUIRED)
 
 find_package(scheduler_interfaces REQUIRED)
+find_package(text_to_speech_interfaces REQUIRED)
 find_package(blackboard_interfaces REQUIRED)
 find_package(Qt6 COMPONENTS Core Scxml StateMachine  REQUIRED)
 
@@ -35,7 +36,7 @@ ament_target_dependencies(${PROJECT_NAME}
   rclcpp_action 
   scheduler_interfaces 
   blackboard_interfaces 
-  
+  text_to_speech_interfaces
   )
 target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Scxml Qt6::StateMachine)
 target_include_directories(${PROJECT_NAME}

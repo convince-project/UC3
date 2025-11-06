@@ -14,6 +14,8 @@
 #include <bt_interfaces_dummy/srv/tick_action.hpp>
 #include <bt_interfaces_dummy/srv/halt_action.hpp>
 
+#include <text_to_speech_interfaces/srv/set_language.hpp>
+
 
 #define SERVICE_TIMEOUT 8
 #define SKILL_SUCCESS 0
@@ -43,6 +45,8 @@ public:
 	
 
 private:
+	void ResetSpeechToTextComponentLanguage();
+
 	std::shared_ptr<std::thread> m_threadSpin;
 	std::shared_ptr<rclcpp::Node> m_node;
 	std::mutex m_requestMutex;
