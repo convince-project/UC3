@@ -555,55 +555,87 @@ bool CartesianPointingComponent::chooseArmByTorsoY(const Eigen::Vector3d& p_base
 //     Eigen::Quaterniond q(R); q.normalize(); return q;
 // }
 
+/**
+ * @brief Build a pointing orientation (hand Z toward target, palm down, lateral bias by arm preference).
+ *
+ * Given the shoulder position, the target position (both in base frame), and a lateral preference ("LEFT"/"RIGHT"),
+ * this function computes a hand orientation quaternion that:
+ *   1) Aligns the hand's +Z axis *back* toward the robot (i.e., -dir from shoulder to target),
+ *      so the finger tips point *outward* toward the target.
+ *   2) Tries to keep the palm (Y axis) facing downward (aligned with base -Z).
+ *   3) Respects the lateral preference: for "RIGHT", prefer the hand X axis aligned with base +Y (left);
+ *      for "LEFT", prefer X aligned with base -Y (robot's right), yielding a more natural left-arm gesture.
+ *
+ * Implementation steps:
+ *   - Compute z_ee = -(target - shoulder).normalized() (pointing direction, inverted).
+ *   - Project base_down onto the plane perpendicular to z_ee to get candidate y_ee directions.
+ *   - Generate multiple candidate orientations (y and -y for robustness in degenerate configurations).
+ *   - Score each candidate by:
+ *       a) y·base_down > 0  (palm facing down),
+ *       b) lateral preference check on the resulting x (x·base_left sign matches the preference).
+ *   - Return the best candidate, ensuring orthogonal, right-handed basis (X, Y, Z) → quaternion.
+ *
+ * @param shoulder_base  3D position of the shoulder in base frame.
+ * @param target_base    3D position of the pointing target in base frame.
+ * @param pref           Lateral preference: "LEFT" or "RIGHT".
+ * @return               Quaternion representing the desired hand orientation (identity if dir too small).
+ */
 static Eigen::Quaterniond buildPointingPalmDownQuat(const Eigen::Vector3d& shoulder_base,
                                                     const Eigen::Vector3d& target_base, std::string pref)
 {
+    // 1) Compute pointing direction (shoulder → target) and invert for hand +Z axis
     Eigen::Vector3d dir = target_base - shoulder_base;
     const double n = dir.norm();
     if (n < 1e-9) return Eigen::Quaterniond::Identity();
     dir /= n;
-    const Eigen::Vector3d z_ee = -dir;
-    const Eigen::Vector3d base_down(0.0, 0.0, -1.0);
-    const Eigen::Vector3d base_left(0.0, 1.0, 0.0);
+    const Eigen::Vector3d z_ee = -dir;  // hand Z points back toward robot
+    const Eigen::Vector3d base_down(0.0, 0.0, -1.0);  // world "down"
+    const Eigen::Vector3d base_left(0.0, 1.0, 0.0);   // world "left" (base +Y)
 
-    // Helper: costruisce una y_ee ortogonale a z_ee partendo da un vettore di riferimento ref.
-    auto make_ortho = [&](Eigen::Vector3d ref)->Eigen::Vector3d {
+    // 2) Helper: project a reference vector onto the plane perpendicular to z_ee, normalizing the result.
+    //    Returns zero vector if projection is too small (near-parallel case).
+    // Project 'ref' onto the plane orthogonal to z_ee and normalize; return zero on degeneracy.
+    auto make_ortho = [&](const Eigen::Vector3d& ref) -> Eigen::Vector3d {
+        // Remove the component of ref parallel to z_ee (projection step)
         Eigen::Vector3d y = ref - (ref.dot(z_ee)) * z_ee;
-        double ny = y.norm();
+        // Compute the norm to detect near-parallel/degenerate cases
+        const double ny = y.norm();
+        // If the projection is too small, signal degeneracy with a zero vector
         if (ny < 1e-12) return Eigen::Vector3d::Zero();
+        // Normalize the projected vector to unit length
         return y / ny;
     };
 
-    // 1) tentativo principale: proiezione di base_down
+    // 3) Generate candidate Y axes by projecting base_down and fallback references, plus their inverses.
     Eigen::Vector3d y0 = make_ortho(base_down);
-    // fallback di riferimento se proiezione nulla
     Eigen::Vector3d fallback1 = make_ortho(Eigen::Vector3d(1,0,0));
     Eigen::Vector3d fallback2 = make_ortho(Eigen::Vector3d(0,1,0));
 
-    // crea lista candidati (y e -y per ogni riferimento non-zero)
     std::vector<Eigen::Vector3d> candidates;
     if (y0.squaredNorm() > 0) { candidates.push_back(y0); candidates.push_back(-y0); }
     if (fallback1.squaredNorm() > 0) { candidates.push_back(fallback1); candidates.push_back(-fallback1); }
     if (fallback2.squaredNorm() > 0) { candidates.push_back(fallback2); candidates.push_back(-fallback2); }
 
-    // funzione di valutazione: controlla le due condizioni
-    // se pref == "RIGHT" vogliamo base_left·x > 0
-    // se pref == "LEFT"  vogliamo base_left·x < 0  (equivalente a -base_left·x > 0)
+    // 4) Scoring function:
+    //    - s1 = y·base_down > 0 → palm facing down
+    //    - s2_signed = lateral preference check:
+    //        RIGHT: base_left·x > 0 (hand X aligned with world left → natural right-arm gesture)
+    //        LEFT:  base_left·x < 0 (hand X aligned with world right → natural left-arm gesture)
+    //    Return {okBoth, score} where okBoth=true if both conditions satisfied, score=s1+s2_signed.
     auto scoreCandidate = [&](const Eigen::Vector3d& y)->std::pair<bool,double>{
         Eigen::Vector3d x = y.cross(z_ee);
         double nx = x.norm();
         if (nx < 1e-12) return {false, -1e9};
         x /= nx;
-        double s1 = y.dot(base_down); // vogliamo s1 > 0
+        double s1 = y.dot(base_down);  // prefer s1 > 0
         double s2_raw = base_left.dot(x);
-        double s2_signed = (pref == "LEFT") ? -s2_raw : s2_raw; // mapparlo in modo che >0 sia desiderabile
+        double s2_signed = (pref == "LEFT") ? -s2_raw : s2_raw;  // map to >0 desirable
         bool okBoth = (s1 > 0.0 && s2_signed > 0.0);
-        // score preferisce soluzioni che rendono entrambi positivi; altrimenti somma 'normalized'
         double score = s1 + s2_signed;
         return {okBoth, score};
     };
 
-    // 2) cerca candidato che soddisfi entrambe le condizioni
+    // 5) Search for a candidate that satisfies both constraints (palm down + lateral preference).
     for (const auto& yCand : candidates) {
         auto res = scoreCandidate(yCand);
         if (res.first) {
@@ -614,7 +646,7 @@ static Eigen::Quaterniond buildPointingPalmDownQuat(const Eigen::Vector3d& shoul
         }
     }
 
-    // 3) se nessuno soddisfa entrambe, scegli il candidato col miglior score
+    // 6) If no candidate satisfies both, pick the one with the highest combined score.
     double bestScore = -1e12;
     Eigen::Vector3d bestY = Eigen::Vector3d::Zero();
     for (const auto& yCand : candidates) {
@@ -622,37 +654,40 @@ static Eigen::Quaterniond buildPointingPalmDownQuat(const Eigen::Vector3d& shoul
         if (res.second > bestScore) { bestScore = res.second; bestY = yCand; }
     }
 
+    // 7) Fallback: if all candidates degenerate, use unitOrthogonal for a minimal solution.
     if (bestY.squaredNorm() < 1e-12) {
-        // come ultima risorsa, costruisci orthogonal basis da z_ee
         Eigen::Vector3d x = z_ee.unitOrthogonal().normalized();
         Eigen::Vector3d y = z_ee.cross(x).normalized();
         Eigen::Matrix3d R; R.col(0)=x; R.col(1)=y; R.col(2)=z_ee;
         Eigen::Quaterniond q(R); q.normalize(); return q;
     }
 
-    // normalizza e costruisci base destrorsa
+    // 8) Finalize the best candidate: normalize and build right-handed basis.
     Eigen::Vector3d y_final = bestY.normalized();
     Eigen::Vector3d x_final = y_final.cross(z_ee).normalized();
 
-    // assicura orientamenti (se possibile)
+    // 9) Enforce palm-down constraint: if y·base_down < 0, flip y (and recompute x).
     if (y_final.dot(base_down) < 0) {
         y_final = -y_final;
         x_final = y_final.cross(z_ee).normalized();
     }
-    // per pref==RIGHT vogliamo base_left·x_final > 0
-    // per pref==LEFT  vogliamo  base_left·x_final < 0
+
+    // 10) Enforce lateral preference:
+    //     RIGHT → base_left·x > 0 (hand X along world left)
+    //     LEFT  → base_left·x < 0 (hand X along world right)
     if (pref == "RIGHT") {
         if (base_left.dot(x_final) < 0) {
             x_final = -x_final;
             y_final = z_ee.cross(x_final).normalized();
         }
-    } else { // LEFT or other: prefer base_left·x_final < 0
+    } else {
         if (base_left.dot(x_final) > 0) {
             x_final = -x_final;
             y_final = z_ee.cross(x_final).normalized();
         }
     }
 
+    // 11) Construct final rotation matrix and convert to quaternion.
     Eigen::Matrix3d R; R.col(0)=x_final; R.col(1)=y_final; R.col(2)=z_ee;
     Eigen::Quaterniond q(R); q.normalize(); return q;
 }
