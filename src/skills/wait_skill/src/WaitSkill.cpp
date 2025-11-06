@@ -75,18 +75,26 @@ bool WaitSkill::start(int argc, char*argv[])
   
   m_stateMachine.connectToEvent("TICK_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){
     RCLCPP_INFO(m_node->get_logger(), "WaitSkill::tickReturn %s", event.data().toMap()["status"].toString().toStdString().c_str());
-    std::string result = event.data().toMap()["status"].toString().toStdString();
+    std::string result = event.data().toMap()["status"].toString().toStdString().c_str();
     if (result == std::to_string(SKILL_SUCCESS) )
     {
       m_tickResult.store(Status::success);
+      RCLCPP_INFO(m_node->get_logger(), "WaitSkill::tickReturn SUCCESS");
     }
     else if (result == std::to_string(SKILL_RUNNING) )
     {
       m_tickResult.store(Status::running);
+      RCLCPP_INFO(m_node->get_logger(), "WaitSkill::tickReturn RUNNING");
     }
     else if (result == std::to_string(SKILL_FAILURE) )
     { 
       m_tickResult.store(Status::failure);
+      RCLCPP_INFO(m_node->get_logger(), "WaitSkill::tickReturn FAILURE");
+    }
+    else
+    {
+      m_tickResult.store(Status::failure);
+      RCLCPP_INFO(m_node->get_logger(), "WaitSkill::tickReturn UNKNOWN RESULT");
     }
   });
     

@@ -16,7 +16,7 @@
     <state id="checkWait">
         <onentry>
                 <send event="TICK_RESPONSE">
-                    <param name="status" expr="'SKILL_RUNNING'"/>
+                    <param name="status" expr="SKILL_RUNNING"/>
                     <param name="is_ok" expr="true"/>
                 </send>
         </onentry>
