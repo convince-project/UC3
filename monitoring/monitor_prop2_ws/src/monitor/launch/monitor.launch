@@ -1,0 +1,1 @@
+<launch><node pkg="monitor" exec="monitor_prop2" name="monitor_prop2" output="screen" /></launch>
