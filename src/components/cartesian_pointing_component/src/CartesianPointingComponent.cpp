@@ -312,7 +312,7 @@ bool CartesianPointingComponent::start(int argc, char* argv[])
         RCLCPP_INFO(m_node->get_logger(),"Device map2D_nwc_yarp opened and IMap2D view obtained");
     }
 
-    // Resolve locations.ini path: prefer argv[1], fallback to ROS param 'map2d_locations_file', then env MAP2D_LOCATIONS_FILE
+    // Resolve locations.ini path: prefer argv[1], fallback to ROS param 'map2d_locations_file'
     std::string locations_file;
     std::string source_tag;
     if (argc >= 2 && argv && argv[1] && std::string(argv[1]).size() > 0) {
@@ -324,16 +324,12 @@ bool CartesianPointingComponent::start(int argc, char* argv[])
         if (!locations_file.empty()) source_tag = "ROS param map2d_locations_file";
     }
     if (locations_file.empty()) {
-        const char* envp = std::getenv("MAP2D_LOCATIONS_FILE");
-        if (envp) { locations_file = envp; source_tag = "env MAP2D_LOCATIONS_FILE"; }
-    }
-    if (locations_file.empty()) {
         RCLCPP_ERROR(m_node->get_logger(),
-                     "No locations.ini provided. Pass it as first argument, or set ROS param 'map2d_locations_file', or env MAP2D_LOCATIONS_FILE.");
+                     "No locations.ini provided. Pass it as first argument, or set ROS param 'map2d_locations_file'.");
         return false;
     }
     {
-        std::ifstream test_f(locations_file);
+        std::ifstream test_f(locations_file); 
         if (!test_f.is_open()) {
             RCLCPP_ERROR(m_node->get_logger(),
                          "Locations file '%s' not found or not readable.", locations_file.c_str());
