@@ -43,7 +43,7 @@
 
     <module>
         <name>yarprobotinterface</name>
-        <parameters>--context convince --from poiMadamaChat.ini </parameters>
+        <parameters>--context convince --from welcomeChat.ini </parameters>
         <environment></environment>
         <node>console-llm</node>
     </module>
