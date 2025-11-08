@@ -18,7 +18,7 @@
         <name>sileroVAD</name>
         <parameters></parameters>
         <environment>YARP_LOG_PROCESS_LABEL=VAD</environment>
-        <node>console-llm</node>
+        <node>r1-base</node>
     </module>
 
     <module>
@@ -72,7 +72,7 @@
     <module>
         <name>faceExpressionImage5GTour</name>
         <parameters></parameters>
-        <node>console-llm</node>
+        <node>r1-base</node>
     </module>
 
     <module>
