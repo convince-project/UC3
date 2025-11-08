@@ -1379,6 +1379,7 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
     } while (verbalOutput == nullptr);
 
     if (verbalOutput == nullptr) {
+        SetFaceExpression("happy");
         m_predefined_answer_index = 0;
         m_number_of_predefined_answers = 0;
         result->is_reply_finished = true;
