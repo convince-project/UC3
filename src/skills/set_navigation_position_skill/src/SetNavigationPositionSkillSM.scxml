@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="SetNavigationPositionSkillAction" datamodel="ecmascript" initial="idle">
     <datamodel>
-        <data id="DANCE_NAME" expr="&apos;navigationPosition&apos;"/>
+        <data id="DANCE_NAME" expr="&apos;navigation_position&apos;"/>
         <data id="is_dancing" expr="false"/>
         <data id="result" expr="&apos;&apos;"/>
         <data id="SKILL_SUCCESS" expr="0"/>
