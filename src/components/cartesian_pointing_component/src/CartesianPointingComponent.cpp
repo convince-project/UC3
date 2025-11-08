@@ -461,9 +461,10 @@ void CartesianPointingComponent::logAvailableObjects()
         for (const auto& name : objNames) {
             yarp::dev::Nav2D::Map2DObject o;
             if (m_map2dView->getObject(name, o)) {
-                // Print: object name and coordinates (no description)
-                RCLCPP_INFO(m_node->get_logger(), " - %s: x=%.3f y=%.3f z=%.3f",
-                            name.c_str(), o.x, o.y, o.z);
+                // Print: object name, coordinates, and orientation (rpy in radians; not used)
+                RCLCPP_INFO(m_node->get_logger(),
+                            " - %s: pos=(%.3f, %.3f, %.3f) rpy(rad)=(%.3f, %.3f, %.3f)",
+                            name.c_str(), o.x, o.y, o.z, o.roll, o.pitch, o.yaw);
             }
         }
         return;
@@ -692,30 +693,6 @@ static Eigen::Quaterniond buildPointingPalmDownQuat(const Eigen::Vector3d& shoul
     Eigen::Quaterniond q(R); q.normalize(); return q;
 }
 
-/**
- * @brief Per-arm local Z roll compensation quaternion.
- *
- * Reads ROS 2 parameters:
- *  - left_roll_bias_rad  (default: +pi)
- *  - right_roll_bias_rad (default: 0)
- * Compose as q_cmd = q_nat * q_fix to preserve the z_ee pointing direction.
- *
- * @param armName Arm identifier ("LEFT" or "RIGHT").
- * @param node ROS 2 node used to access parameters.
- * @return Unit quaternion for the roll compensation (Identity if near-zero).
- */
-static Eigen::Quaterniond armCompensationQuat(const std::string& armName,
-                                              rclcpp::Node::SharedPtr node)
-{
-    double left_roll_bias= M_PI;
-    double right_roll_bias=0.0;
-    (void)node->get_parameter("left_roll_bias_rad",  left_roll_bias);
-    (void)node->get_parameter("right_roll_bias_rad", right_roll_bias);
-    const double roll = (armName=="LEFT") ? left_roll_bias : right_roll_bias;
-    if (std::abs(roll) < 1e-12) return Eigen::Quaterniond::Identity();
-    return Eigen::Quaterniond(Eigen::AngleAxisd(roll, Eigen::Vector3d::UnitZ()));
-}
-
 // ======================================================
 // Wait for motion completion (as in previous version)
 // ======================================================
@@ -842,7 +819,6 @@ void CartesianPointingComponent::pointTask(const std::shared_ptr<cartesian_point
         const Eigen::Vector3d p_goal = sphereReachPoint(p_sh, p_base);
 
         Eigen::Quaterniond q_nat = buildPointingPalmDownQuat(p_sh, p_goal, pref);
-        // Eigen::Quaterniond q_fix = armCompensationQuat(arm, m_node);
         Eigen::Quaterniond q_cmd = q_nat; // * q_fix;
 
         if (p_goal.x() < 0)
@@ -873,7 +849,7 @@ void CartesianPointingComponent::pointTask(const std::shared_ptr<cartesian_point
         cmd.addFloat64(q_cmd.x());  cmd.addFloat64(q_cmd.y());  cmd.addFloat64(q_cmd.z()); cmd.addFloat64(q_cmd.w());
         cmd.addFloat64(kTrajDurationSec);
 
-        ExecuteDance(pref);
+        // ExecuteDance(pref);
         const bool ok = port->write(cmd,res);
         if (!(ok && res.size()>0 && (res.get(0).asVocab32()==yarp::os::createVocab32('o','k') || bottleAsBool(res)))) {
             RCLCPP_WARN(m_node->get_logger(),"ARM %s: go_to_pose rejected, abort", arm.c_str());
