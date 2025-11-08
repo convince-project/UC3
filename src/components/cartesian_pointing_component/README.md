@@ -10,13 +10,19 @@ A compact guide to build, run, and understand the geometry behind the pointing b
 colcon build --base-paths src/* --packages-up-to cartesian_pointing_component
 source install/setup.bash
 
-# Option A: use the UC3 repository file (inside this repo)
+# Preferred (argv[1]): pass locations.ini as first argument
+ros2 run cartesian_pointing_component cartesian_pointing_component $PWD/config/locations.ini
+
+# Absolute path example
+ros2 run cartesian_pointing_component cartesian_pointing_component /home/user1/UC3/config/locations.ini
+
+# Fallback option: still supports ROS param if you prefer
 ros2 run cartesian_pointing_component cartesian_pointing_component \
     --ros-args -p map2d_locations_file:=$PWD/config/locations.ini
 
-# Or pass your own absolute path to a file with an Objects: section
-# ros2 run cartesian_pointing_component cartesian_pointing_component \
-#   --ros-args -p map2d_locations_file:=/absolute/path/to/locations.ini
+# Environment variable alternative (MAP2D_LOCATIONS_FILE)
+export MAP2D_LOCATIONS_FILE=$PWD/config/locations.ini
+ros2 run cartesian_pointing_component cartesian_pointing_component
 ```
 
 Depends on:
@@ -88,7 +94,13 @@ ros2 service call /CartesianPointingComponent/PointAt \
     cartesian_pointing_interfaces/srv/PointAt "{target_name: 'main_painting'}"
 
 ```
-At startup, the component imports the Objects section from the file passed via the ROS parameter `map2d_locations_file`.
+At startup, the component imports the Objects section from the first available source (precedence order):
+
+1. `argv[1]` (first positional argument passed to the executable)
+2. ROS parameter `map2d_locations_file`
+3. Environment variable `MAP2D_LOCATIONS_FILE`
+
+If none are provided or the file is unreadable, startup fails with an explicit error. Use absolute paths or `$PWD/...`; avoid missing leading `/`.
 
 
 ## YARP RPC expected (controller side)
@@ -172,7 +184,7 @@ go_to_pose( p_goal, q_cmd, duration )
 * `minDist`      (default ~0.10 m): avoid singular/too‑close configurations.
 * `left_roll_bias_rad`  (default π): extra roll for LEFT palm frame.
 * `right_roll_bias_rad` (default 0): extra roll for RIGHT palm frame.
-* `map2d_locations_file` (required): absolute path to a file containing an `Objects:` section.
+* Path to locations file (required): provided via argv[1] OR ROS param `map2d_locations_file` OR env `MAP2D_LOCATIONS_FILE`.
 * Trajectory: duration and polling/timeout are constants in the source (see `kTrajDurationSec`, `kPollMs`, `kTimeoutMs`).
 
 ---

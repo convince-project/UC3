@@ -99,7 +99,7 @@
 
     <module>
         <name>ros2_cartesian_pointing_component</name>
-        <parameters>run cartesian_pointing_component cartesian_pointing_component --ros-args -p map2d_locations_file:=/home/user1/UC3/config/locations.ini</parameters>
+        <parameters>run cartesian_pointing_component cartesian_pointing_component config/locations.ini</parameters>
         <workdir>/home/user1/UC3</workdir>
         <node>bt</node>
     </module>
