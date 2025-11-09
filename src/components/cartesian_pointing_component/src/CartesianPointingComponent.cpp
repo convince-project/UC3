@@ -497,7 +497,7 @@ void CartesianPointingComponent::logAvailableObjects()
 }
 
 // ==============================================================
-// Simple reach model and arm selection (as in your version)
+// Simple reach model and arm selection 
 // ==============================================================
 /**
  * @brief Compute a reachable point along the line shoulder → target, clipped by a spherical reach.
@@ -702,8 +702,6 @@ static Eigen::Quaterniond buildPointingPalmDownQuat(const Eigen::Vector3d& shoul
     Eigen::Quaterniond q(R); q.normalize(); return q;
 }
 
-// ======================================================
-// Wait for motion completion (as in previous version)
 // ======================================================
 /**
  * @brief Convert a 1-element Bottle to bool, supporting bool/int/double conventions.
