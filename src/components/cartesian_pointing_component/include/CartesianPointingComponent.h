@@ -189,6 +189,14 @@ private:
 
     // ROS2 call to ExecuteDanceComponent ExecuteDance service
     void ExecuteDance(std::string pointingArm);
+    
+    void GetJointsConf();
+
+    // Computes the distance between two std::vectors
+    double vectors_distance(const std::vector<double>& a, const std::vector<double>& b);
+
+    void ConnectToControllerPorts(std::string pref);
+
 
 private:
 
@@ -238,4 +246,15 @@ private:
     //  - controller_connect_retry_ms   -> poll period
     int connect_timeout_ms = 0;
     int connect_retry_ms   = 300;
+
+    std::string localJ;
+    std::string remoteJ;
+    yarp::os::BufferedPort<yarp::os::Bottle> reader;
+    std::array<double, 8> savedVals{};
+
+    std::vector<std::vector<double>> pointingPoses;
+    std::vector<std::string> actionNames;
+
+    std::string bestPointing;
+
 };
