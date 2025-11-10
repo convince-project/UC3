@@ -31,7 +31,7 @@
 /**
  * @brief Duration in seconds for a single smooth trajectory sent to the Cartesian controller.
  */
-static constexpr double kTrajDurationSec = 10.0;
+static constexpr double kTrajDurationSec = 1.0;
 /**
  * @brief Polling period in milliseconds for the is_motion_done RPC.
  */
@@ -1074,7 +1074,7 @@ void CartesianPointingComponent::pointTask(const std::shared_ptr<cartesian_point
         std::lock_guard<std::mutex> lk(m_flagMutex);
         m_isPointing = false;
     }
-
+    ConnectToControllerPorts(pref);
     GetJointsConf();
 
     double mindiff = 100000.0;
@@ -1145,6 +1145,7 @@ void CartesianPointingComponent::GetJointsConf()
     while (rclcpp::ok() && !done && cycles < max_cycles)
     {
         yarp::os::Bottle *b = reader.read(false); // non-blocking
+        yInfo() << "[CartesianPointingComponent::GetJointsConf] Reading joints from " << remoteJ.c_str();
         if (!b)
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -1160,15 +1161,19 @@ void CartesianPointingComponent::GetJointsConf()
         if (havePrev)
         {
             bool equal = true;
+            std::string values = "";
             for (size_t i = 0; i < 8; i++)
             {
+                yInfo() << "Inside the for loop of GetJointsConf";
                 const double a = b->get(i).asFloat64();
                 const double c = prevCopy.get(i).asFloat64();
+                values += std::to_string(a) + " ";
                 if (std::abs(a - c) > 1e-9)
                 {
                     equal = false;
                     break;
                 }
+                yInfo() << "Values " << values.c_str();
             }
             if (equal)
             {
