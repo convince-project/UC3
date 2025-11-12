@@ -24,6 +24,7 @@
 #include <cmath>
 #include <string>
 #include <cartesian_pointing_interfaces/srv/is_motion_done.hpp>
+#include <bits/stdc++.h>
 
 // ========================================
 // Tunables: single trajectory and timings
@@ -233,57 +234,6 @@ bool CartesianPointingComponent::start(int argc, char *argv[])
         return false;
     }
 
-    // Open local client ports first (deterministic names), then connect with retry
-    if (yarp::os::Network::exists(m_cartesianClientLeftPort))
-        yarp::os::Network::disconnect(m_cartesianClientLeftPort, cartesianControlServerLeftPort);
-    if (!m_cartesianControlServerLeftPort.open(m_cartesianClientLeftPort))
-    {
-        yError() << "Cannot open Left client port";
-        return false;
-    }
-
-    if (yarp::os::Network::exists(m_cartesianClientRightPort))
-        yarp::os::Network::disconnect(m_cartesianClientRightPort, cartesianControlServerRightPort);
-    if (!m_cartesianControlServerRightPort.open(m_cartesianClientRightPort))
-    {
-        yError() << "Cannot open Right client port";
-        return false;
-    }
-
-    auto connectWithRetry = [&](const std::string &local, const std::string &remote, const char *tag) -> bool
-    {
-        RCLCPP_INFO(m_node->get_logger(), "%s: connecting %s -> %s", tag, local.c_str(), remote.c_str());
-        int waited = 0;
-        while (true)
-        {
-            if (yarp::os::Network::isConnected(local, remote))
-            {
-                RCLCPP_INFO(m_node->get_logger(), "%s: already connected", tag);
-                return true;
-            }
-            if (yarp::os::Network::exists(remote))
-            {
-                (void)yarp::os::Network::connect(local, remote);
-                if (yarp::os::Network::isConnected(local, remote))
-                {
-                    RCLCPP_INFO(m_node->get_logger(), "%s: connected", tag);
-                    return true;
-                }
-            }
-            if (connect_timeout_ms > 0 && waited >= connect_timeout_ms)
-            {
-                RCLCPP_WARN(m_node->get_logger(), "%s: timeout waiting for %s; continuing without connection", tag, remote.c_str());
-                return false;
-            }
-            std::this_thread::sleep_for(std::chrono::milliseconds(connect_retry_ms));
-            waited += connect_retry_ms;
-        }
-    };
-
-    // Try to connect (non-fatal; the service can run and motion will only use available arms)
-    (void)connectWithRetry(m_cartesianClientLeftPort, cartesianControlServerLeftPort, "LEFT");
-    (void)connectWithRetry(m_cartesianClientRightPort, cartesianControlServerRightPort, "RIGHT");
-
     // ROS 2 service
     m_srvPointAt = m_node->create_service<cartesian_pointing_interfaces::srv::PointAt>(
         "/CartesianPointingComponent/PointAt",
@@ -415,12 +365,12 @@ bool CartesianPointingComponent::start(int argc, char *argv[])
     // local temporary buffered port name (unique per arm)
     localJ = std::string("/cartesian_pointing_component/joints_reader_");
 
-    actionNames = {"h60v0", "h30v0", "h90v0"};
-    pointingPoses = {{-75, 60, 65, 0, 0, 0, 0},
-                        {-75, 30, 65, 0, 0, 0, 0},
-                        {0, 90, 0, 0, 0, 0, 0}};
-
-
+    actions = {
+        {"h0v0",   0,  0}, {"h0v20",   0, 20}, {"h0v35",   0, 35},
+        {"h30v0", 30,  0}, {"h30v20", 30, 20}, {"h30v35", 30, 35},
+        {"h60v0", 60,  0}, {"h60v20", 60, 20}, {"h60v35", 60, 35},
+        {"h90v0", 90,  0}, {"h90v20", 90, 20}, {"h90v35", 90, 35}
+    };
 
     RCLCPP_DEBUG(m_node->get_logger(), "CartesianPointingComponent READY");
     return true;
@@ -649,29 +599,6 @@ bool CartesianPointingComponent::chooseArmByTorsoY(const Eigen::Vector3d &p_base
  * @param target_base Target position in base frame (possibly clipped elsewhere).
  * @return Unit quaternion representing the desired EE orientation.
  */
-// static Eigen::Quaterniond buildPointingPalmDownQuat(const Eigen::Vector3d& shoulder_base,
-//                                                     const Eigen::Vector3d& target_base)
-// {
-//     Eigen::Vector3d dir = target_base - shoulder_base;
-//     const double n = dir.norm();
-//     if (n < 1e-9) return Eigen::Quaterniond::Identity();
-//     dir /= n;
-//     Eigen::Vector3d z_ee = -dir;
-//     const Eigen::Vector3d base_down(0.0, 0.0, -1.0);
-//     Eigen::Vector3d y_ee = base_down - (base_down.dot(z_ee))*z_ee;
-//     double ny = y_ee.norm();
-//     if (ny < 1e-6) {
-//         y_ee = (std::abs(z_ee.x()) < 0.9 ? Eigen::Vector3d(1,0,0) : Eigen::Vector3d(0,1,0));
-//         y_ee -= (y_ee.dot(z_ee))*z_ee;
-//         y_ee.normalize();
-//     } else { y_ee /= ny; }
-//     Eigen::Vector3d x_ee = y_ee.cross(z_ee);
-//     double nx = x_ee.norm();
-//     if (nx < 1e-6) { x_ee = z_ee.unitOrthogonal(); y_ee = z_ee.cross(x_ee).normalized(); }
-//     else { x_ee /= nx; }
-//     Eigen::Matrix3d R; R.col(0)=x_ee; R.col(1)=y_ee; R.col(2)=z_ee;
-//     Eigen::Quaterniond q(R); q.normalize(); return q;
-// }
 
 /**
  * @brief Build a pointing orientation (hand Z toward target, palm down, lateral bias by arm preference).
@@ -698,163 +625,7 @@ bool CartesianPointingComponent::chooseArmByTorsoY(const Eigen::Vector3d &p_base
  * @param pref           Lateral preference: "LEFT" or "RIGHT".
  * @return               Quaternion representing the desired hand orientation (identity if dir too small).
  */
-static Eigen::Quaterniond buildPointingPalmDownQuat(const Eigen::Vector3d &shoulder_base,
-                                                    const Eigen::Vector3d &target_base, std::string pref)
-{
-    // 1) Compute pointing direction (shoulder → target) and invert for hand +Z axis
-    Eigen::Vector3d dir = target_base - shoulder_base;
-    const double n = dir.norm();
-    if (n < 1e-9)
-        return Eigen::Quaterniond::Identity();
-    dir /= n;
-    const Eigen::Vector3d z_ee = -dir;               // hand Z points back toward robot
-    const Eigen::Vector3d base_down(0.0, 0.0, -1.0); // world "down"
-    const Eigen::Vector3d base_left(0.0, 1.0, 0.0);  // world "left" (base +Y)
 
-    // 2) Helper: project a reference vector onto the plane perpendicular to z_ee, normalizing the result.
-    //    Returns zero vector if projection is too small (near-parallel case).
-    // Project 'ref' onto the plane orthogonal to z_ee and normalize; return zero on degeneracy.
-    auto make_ortho = [&](const Eigen::Vector3d &ref) -> Eigen::Vector3d
-    {
-        // Remove the component of ref parallel to z_ee (projection step)
-        Eigen::Vector3d y = ref - (ref.dot(z_ee)) * z_ee;
-        // Compute the norm to detect near-parallel/degenerate cases
-        const double ny = y.norm();
-        // If the projection is too small, signal degeneracy with a zero vector
-        if (ny < 1e-12)
-            return Eigen::Vector3d::Zero();
-        // Normalize the projected vector to unit length
-        return y / ny;
-    };
-
-    // 3) Generate candidate Y axes by projecting base_down and fallback references, plus their inverses.
-    Eigen::Vector3d y0 = make_ortho(base_down);
-    Eigen::Vector3d fallback1 = make_ortho(Eigen::Vector3d(1, 0, 0));
-    Eigen::Vector3d fallback2 = make_ortho(Eigen::Vector3d(0, 1, 0));
-
-    std::vector<Eigen::Vector3d> candidates;
-    if (y0.squaredNorm() > 0)
-    {
-        candidates.push_back(y0);
-        candidates.push_back(-y0);
-    }
-    if (fallback1.squaredNorm() > 0)
-    {
-        candidates.push_back(fallback1);
-        candidates.push_back(-fallback1);
-    }
-    if (fallback2.squaredNorm() > 0)
-    {
-        candidates.push_back(fallback2);
-        candidates.push_back(-fallback2);
-    }
-
-    // 4) Scoring function:
-    //    - s1 = y·base_down > 0 → palm facing down
-    //    - s2_signed = lateral preference check:
-    //        RIGHT: base_left·x > 0 (hand X aligned with world left → natural right-arm gesture)
-    //        LEFT:  base_left·x < 0 (hand X aligned with world right → natural left-arm gesture)
-    //    Return {okBoth, score} where okBoth=true if both conditions satisfied, score=s1+s2_signed.
-    auto scoreCandidate = [&](const Eigen::Vector3d &y) -> std::pair<bool, double>
-    {
-        Eigen::Vector3d x = y.cross(z_ee);
-        double nx = x.norm();
-        if (nx < 1e-12)
-            return {false, -1e9};
-        x /= nx;
-        double s1 = y.dot(base_down); // prefer s1 > 0
-        double s2_raw = base_left.dot(x);
-        double s2_signed = (pref == "LEFT") ? -s2_raw : s2_raw; // map to >0 desirable
-        bool okBoth = (s1 > 0.0 && s2_signed > 0.0);
-        double score = s1 + s2_signed;
-        return {okBoth, score};
-    };
-
-    // 5) Search for a candidate that satisfies both constraints (palm down + lateral preference).
-    for (const auto &yCand : candidates)
-    {
-        auto res = scoreCandidate(yCand);
-        if (res.first)
-        {
-            Eigen::Vector3d y = yCand;
-            Eigen::Vector3d x = y.cross(z_ee).normalized();
-            Eigen::Matrix3d R;
-            R.col(0) = x;
-            R.col(1) = y;
-            R.col(2) = z_ee;
-            Eigen::Quaterniond q(R);
-            q.normalize();
-            return q;
-        }
-    }
-
-    // 6) If no candidate satisfies both, pick the one with the highest combined score.
-    double bestScore = -1e12;
-    Eigen::Vector3d bestY = Eigen::Vector3d::Zero();
-    for (const auto &yCand : candidates)
-    {
-        auto res = scoreCandidate(yCand);
-        if (res.second > bestScore)
-        {
-            bestScore = res.second;
-            bestY = yCand;
-        }
-    }
-
-    // 7) Fallback: if all candidates degenerate, use unitOrthogonal for a minimal solution.
-    if (bestY.squaredNorm() < 1e-12)
-    {
-        Eigen::Vector3d x = z_ee.unitOrthogonal().normalized();
-        Eigen::Vector3d y = z_ee.cross(x).normalized();
-        Eigen::Matrix3d R;
-        R.col(0) = x;
-        R.col(1) = y;
-        R.col(2) = z_ee;
-        Eigen::Quaterniond q(R);
-        q.normalize();
-        return q;
-    }
-
-    // 8) Finalize the best candidate: normalize and build right-handed basis.
-    Eigen::Vector3d y_final = bestY.normalized();
-    Eigen::Vector3d x_final = y_final.cross(z_ee).normalized();
-
-    // 9) Enforce palm-down constraint: if y·base_down < 0, flip y (and recompute x).
-    if (y_final.dot(base_down) < 0)
-    {
-        y_final = -y_final;
-        x_final = y_final.cross(z_ee).normalized();
-    }
-
-    // 10) Enforce lateral preference:
-    //     RIGHT → base_left·x > 0 (hand X along world left)
-    //     LEFT  → base_left·x < 0 (hand X along world right)
-    if (pref == "RIGHT")
-    {
-        if (base_left.dot(x_final) < 0)
-        {
-            x_final = -x_final;
-            y_final = z_ee.cross(x_final).normalized();
-        }
-    }
-    else
-    {
-        if (base_left.dot(x_final) > 0)
-        {
-            x_final = -x_final;
-            y_final = z_ee.cross(x_final).normalized();
-        }
-    }
-
-    // 11) Construct final rotation matrix and convert to quaternion.
-    Eigen::Matrix3d R;
-    R.col(0) = x_final;
-    R.col(1) = y_final;
-    R.col(2) = z_ee;
-    Eigen::Quaterniond q(R);
-    q.normalize();
-    return q;
-}
 
 // ======================================================
 /**
@@ -897,28 +668,6 @@ static bool rpcAccepted(const yarp::os::Bottle &b)
  * @param max_ms Maximum wait time in milliseconds (-1 to use a safety default).
  * @return true if motion completed; false on timeout or communication error.
  */
-bool CartesianPointingComponent::waitMotionDone(yarp::os::Port *p, int poll_ms, int max_ms)
-{
-    if (!p || !p->isOpen())
-        return false;
-    yarp::os::Bottle cmd, res;
-    cmd.addString("is_motion_done");
-    int waited = 0;
-    if (max_ms < 0)
-        max_ms = 30000;
-    while (true)
-    {
-        res.clear();
-        if (!p->write(cmd, res))
-            return false;
-        if (rpcAccepted(res) || bottleAsBool(res))
-            return true;
-        if (max_ms > 0 && waited >= max_ms)
-            return false;
-        std::this_thread::sleep_for(std::chrono::milliseconds(poll_ms));
-        waited += poll_ms;
-    }
-}
 
 // ======================
 // Pointing routine
@@ -993,17 +742,10 @@ void CartesianPointingComponent::pointTask(const std::shared_ptr<cartesian_point
         std::lock_guard<std::mutex> lk(m_flagMutex);
         m_isPointing = true;
     }
-
+    bool behind = false;
     for (const auto &armEntry : armDist)
     {
         const std::string arm = armEntry.first;
-        yarp::os::Port *port = (arm == "LEFT") ? &m_cartesianControlServerLeftPort : &m_cartesianControlServerRightPort;
-        const std::string remote = (arm == "LEFT") ? cartesianControlServerLeftPort : cartesianControlServerRightPort;
-        if (!port->isOpen() || !yarp::os::Network::isConnected(port->getName(), remote))
-        {
-            RCLCPP_WARN(m_node->get_logger(), "ARM %s: port not ready, abort", arm.c_str());
-            break;
-        }
 
         const std::string shoulder_frame = (arm == "LEFT") ? m_lShoulderFrame : m_rShoulderFrame;
         Eigen::Matrix4d T_base_sh;
@@ -1015,17 +757,15 @@ void CartesianPointingComponent::pointTask(const std::shared_ptr<cartesian_point
         const Eigen::Vector3d p_sh = T_base_sh.block<3, 1>(0, 3);
         const Eigen::Vector3d p_goal = sphereReachPoint(p_sh, p_base);
 
-        Eigen::Quaterniond q_nat = buildPointingPalmDownQuat(p_sh, p_goal, pref);
-        Eigen::Quaterniond q_cmd = q_nat; // * q_fix;
-
         if (p_goal.x() < 0)
         {
             RCLCPP_WARN(m_node->get_logger(), "ARM %s: goal behind robot (x=%.3f), abort", arm.c_str(), p_goal.x());
+            behind = true;
             break;
         }
 
         // Check: Euclidean distance from origin (sqrt(x^2+y^2+z^2)) must be >= 40
-
+        
         const double dist = std::sqrt(p_goal.x() * p_goal.x() + p_goal.y() * p_goal.y() + p_goal.z() * p_goal.z());
         if (dist < 0.40)
         {
@@ -1034,174 +774,65 @@ void CartesianPointingComponent::pointTask(const std::shared_ptr<cartesian_point
         }
 
         RCLCPP_INFO(m_node->get_logger(),
-                    "ARM %s: go_to_pose -> pos=(%.3f, %.3f, %.3f) quat=(%.4f, %.4f, %.4f, %.4f)",
-                    arm.c_str(), p_goal.x(), p_goal.y(), p_goal.z(),
-                    q_cmd.x(), q_cmd.y(), q_cmd.z(), q_cmd.w());
+                    "ARM %s: go_to_pose -> pos=(%.3f, %.3f, %.3f)",
+                    arm.c_str(), p_goal.x(), p_goal.y(), p_goal.z());
+        yInfo() << "p_goal.z() - 0.80: " << p_goal.z() - 0.80;
 
-        {
-            yarp::os::Bottle c, r;
-            c.addString("stop");
-            (void)port->write(c, r);
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        double theta_x = computeThetaX(p_goal.x(), p_goal.y());
+        double theta_z = computeThetaZ(p_goal.x(), p_goal.z()-0.80);
+
+        yInfo() << "Theta_x: " << theta_x << ", Theta_z: " << theta_z;
+
+        // Find the best action along h and select the candidates
+        double bestH = 10000.0;
+        std::vector<int> cand;
+        for (int i = 0; i < (int)actions.size(); ++i) {
+            double dh = angularDist(theta_x, actions[i].h, 0.0);
+            yInfo() << "Action: " << actions[i].name << ", dh: " << dh;
+            if (dh < bestH - 1e-12) {       
+                bestH = dh;
+                cand.clear();
+                cand.push_back(i);
+            } else if (fabs(dh - bestH) <= 1e-12) {
+                cand.push_back(i);
+            }
         }
 
-        yarp::os::Bottle cmd, res;
-        cmd.addString("go_to_pose");
-        cmd.addFloat64(p_goal.x());
-        cmd.addFloat64(p_goal.y());
-        cmd.addFloat64(p_goal.z());
-        cmd.addFloat64(q_cmd.x());
-        cmd.addFloat64(q_cmd.y());
-        cmd.addFloat64(q_cmd.z());
-        cmd.addFloat64(q_cmd.w());
-        cmd.addFloat64(kTrajDurationSec);
+        // Among candidates, find the best along v
+        double bestV = 10000.0;
+        int bestIdx = -1;
+        for (int i : cand) {
+            double dv = angularDist(theta_z, actions[i].v, 0.0);
+            if (dv < bestV - 1e-12) {
+                bestV = dv;
+                bestIdx = i;
+            }
+        }
+        bestPointing = actions[bestIdx].name;
+        yInfo() << "Action scelta: " << bestPointing
+            << " (|dh|=" << bestH << ", |dv|=" << bestV << ")\n";
 
-        const bool ok = port->write(cmd, res);
-        if (!(ok && res.size() > 0 && (res.get(0).asVocab32() == yarp::os::createVocab32('o', 'k') || bottleAsBool(res))))
-        {
-            RCLCPP_WARN(m_node->get_logger(), "ARM %s: go_to_pose rejected, abort", arm.c_str());
-            break;
-        }
-        if (!waitMotionDone(port, kPollMs, kTimeoutMs))
-        {
-            RCLCPP_WARN(m_node->get_logger(), "ARM %s: timeout waiting motion", arm.c_str());
-            break;
-        }
-        break; // niente switch di braccio
+
     }
 
     {
         std::lock_guard<std::mutex> lk(m_flagMutex);
         m_isPointing = false;
     }
-    ConnectToControllerPorts(pref);
-    GetJointsConf();
-
-    double mindiff = 100000.0;
-    double currentdiff = 0.0;
-
-
-    for (int i=0; i<pointingPoses.size(); i++)
+    if (!behind)
     {
-        currentdiff = vectors_distance(std::vector<double>(savedVals.begin() + 1, savedVals.end()), pointingPoses[i]);
-        if (currentdiff < mindiff)
-        {
-            mindiff = currentdiff;
-            bestPointing = actionNames[i];
-        }
+        ExecuteDance(pref);
     }
-
-    ExecuteDance(pref);
+    
 
 }
 
-void CartesianPointingComponent::ConnectToControllerPorts(std::string pref) {
-    remoteJ = (pref == "LEFT") ? "/r1-cartesian-control/left_arm/joints_pos:o" : "/r1-cartesian-control/right_arm/joints_pos:o";
-    std::string oldConnection = (pref == "RIGHT") ? "/r1-cartesian-control/left_arm/joints_pos:o" : "/r1-cartesian-control/right_arm/joints_pos:o";
-    
-    if (yarp::os::Network::isConnected(oldConnection, localJ))
-    {
-        yarp::os::Network::disconnect(oldConnection, localJ);
-        RCLCPP_DEBUG(m_node->get_logger(), "Disconnected old connection %s -> %s", oldConnection.c_str(), localJ.c_str());
-    }
-    
-    if (!reader.open(localJ))
-    {
-        RCLCPP_WARN(m_node->get_logger(), "Failed to open local joints reader port %s", localJ.c_str());
-    }
-    else
-    {
-        // try to connect remote -> local
-        if (!yarp::os::Network::connect(remoteJ, localJ))
-        {
-            RCLCPP_WARN(m_node->get_logger(), "Failed to connect %s -> %s", remoteJ.c_str(), localJ.c_str());
-        }
-        else
-        {
-            RCLCPP_DEBUG(m_node->get_logger(), "Connected %s -> %s", remoteJ.c_str(), localJ.c_str());
-        }
-    }
-}
-
-
-double	CartesianPointingComponent::vectors_distance(const std::vector<double>& a, const std::vector<double>& b) {
-	std::vector<double>	auxiliary;
-
-	std::transform (a.begin(), a.end(), b.begin(), std::back_inserter(auxiliary),//
-	[](double element1, double element2) {return pow((element1-element2),2);});
-	auxiliary.shrink_to_fit();
-
-	return  sqrt(std::accumulate(auxiliary.begin(), auxiliary.end(), 0));
-} // end template vectors_distance
-
-void CartesianPointingComponent::GetJointsConf()
-{
-    // read loop: stop when two consecutive bottles (with at least 8 entries) are equal
-    yarp::os::Bottle prevCopy;
-    bool havePrev = false;
-    bool done = false;
-    const int max_cycles = 2000; // safety limit (~20s with 10ms sleep)
-    int cycles = 0;
-    while (rclcpp::ok() && !done && cycles < max_cycles)
-    {
-        yarp::os::Bottle *b = reader.read(false); // non-blocking
-        yInfo() << "[CartesianPointingComponent::GetJointsConf] Reading joints from " << remoteJ.c_str();
-        if (!b)
-        {
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-            ++cycles;
-            continue;
-        }
-        if (b->size() < 8)
-        {
-            ++cycles;
-            continue;
-        }
-        // compare with previous
-        if (havePrev)
-        {
-            bool equal = true;
-            std::string values = "";
-            for (size_t i = 0; i < 8; i++)
-            {
-                yInfo() << "Inside the for loop of GetJointsConf";
-                const double a = b->get(i).asFloat64();
-                const double c = prevCopy.get(i).asFloat64();
-                values += std::to_string(a) + " ";
-                if (std::abs(a - c) > 1e-9)
-                {
-                    equal = false;
-                    break;
-                }
-                yInfo() << "Values " << values.c_str();
-            }
-            if (equal)
-            {
-                for (size_t i = 0; i < 8; i++)
-                    savedVals[i] = b->get(i).asFloat64();
-                done = true;
-                break;
-            }
-        }
-        // store current as previous
-        prevCopy.clear();
-        for (size_t i = 0; i < (size_t)std::min((size_t)b->size(), (size_t)8); ++i)
-            prevCopy.addFloat64(b->get(i).asFloat64());
-        havePrev = true;
-        ++cycles;
-    }
-    if (done)
-    {
-        RCLCPP_INFO(m_node->get_logger(), "Captured 8 joint values from %s", remoteJ.c_str());
-        // example: you may want to store savedVals somewhere persistent or use them immediately
-        // here we simply log them
-        RCLCPP_INFO(m_node->get_logger(), "vals: [%.6f %.6f %.6f %.6f %.6f %.6f %.6f %.6f]",
-                    savedVals[0], savedVals[1], savedVals[2], savedVals[3], savedVals[4], savedVals[5], savedVals[6], savedVals[7]);
-    }
-    else
-    {
-        RCLCPP_WARN(m_node->get_logger(), "Joint capture timed out or failed for %s", remoteJ.c_str());
-    }
+double CartesianPointingComponent::angularDist(double a, double b, double period) {
+    a = abs(a);
+    yInfo() << "Angular Dist called with a: " << a << ", b: " << b << ", period: " << period;
+    if (period <= 0.0) return fabs(a - b);
+    double d = fmod(fabs(a - b), period);
+    return std::min(d, period - d);
 }
 
 
@@ -1249,48 +880,17 @@ void CartesianPointingComponent::ExecuteDance(std::string pointingArm)
     }
 }
 
+double CartesianPointingComponent::computeThetaX(double x, double y)
+{
+    double theta_rad = atan2(y,x);
+    double theta_deg = theta_rad*180/M_PI;
+    return theta_deg;
+}
 
+double CartesianPointingComponent::computeThetaZ(double x, double z)
+{
+    double theta_rad = atan2(z,x);
+    double theta_deg = theta_rad*180/M_PI;
+    return theta_deg;
+}
 
-// void CartesianPointingComponent::ExecuteDance(std::string pointingArm)
-// {
-//     // ---------------------------------Execute Dance Component Service ExecuteDance------------------------------
-//     yInfo() << "[CartesianPointingComponent::ExecuteDance] Starting Execute Dance Service";
-//     auto executeDanceClientNode = rclcpp::Node::make_shared("CartesianPointingComponentExecuteDanceNode");
-
-//     auto danceClient = executeDanceClientNode->create_client<execute_dance_interfaces::srv::ExecuteDance>("/ExecuteDanceComponent/ExecuteDance");
-//     auto dance_request = std::make_shared<execute_dance_interfaces::srv::ExecuteDance::Request>();
-
-//     if (pointingArm == "LEFT")
-//     {
-//         dance_request->dance_name = "rest_position_for_left_pointing";
-//     }
-//     else if (pointingArm == "RIGHT")
-//     {
-//         dance_request->dance_name = "rest_position_for_right_pointing";
-//     }
-//     else
-//     {
-//         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Invalid pointing arm specified for ExecuteDance: %s", pointingArm.c_str());
-//         return;
-//     }
-
-//     // Wait for service
-//     while (!danceClient->wait_for_service(std::chrono::milliseconds(100)))
-//     {
-//         if (!rclcpp::ok())
-//         {
-//             RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'ExecuteDance'. Exiting.");
-//         }
-//     }
-//     auto dance_result = danceClient->async_send_request(dance_request);
-
-//     if (rclcpp::spin_until_future_complete(executeDanceClientNode, dance_result) == rclcpp::FutureReturnCode::SUCCESS)
-//     {
-//         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Execute Dance succeeded");
-//     }
-//     else
-//     {
-//         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service execute_dance");
-//         return;
-//     }
-// }

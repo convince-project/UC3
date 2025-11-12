@@ -176,7 +176,6 @@ private:
      * @param[in] max_ms Maximum wait time in milliseconds (-1 to use a safety default).
      * @return true if motion completed; false on timeout or communication error.
      */
-    bool waitMotionDone(yarp::os::Port* p, int poll_ms = 80, int max_ms = -1);
 
     /**
      * @brief Log all available objects from the IMap2D server.
@@ -189,13 +188,10 @@ private:
 
     // ROS2 call to ExecuteDanceComponent ExecuteDance service
     void ExecuteDance(std::string pointingArm);
-    
-    void GetJointsConf();
 
-    // Computes the distance between two std::vectors
-    double vectors_distance(const std::vector<double>& a, const std::vector<double>& b);
-
-    void ConnectToControllerPorts(std::string pref);
+    double computeThetaX(double x, double y);
+    double computeThetaZ(double x, double z);
+    double angularDist(double a, double b, double period);
 
 
 private:
@@ -240,6 +236,7 @@ private:
     // Params
     double left_roll_bias  = M_PI;
     double right_roll_bias = 0.0;
+    
 
     // Connection policy for Cartesian controllers
     //  - controller_connect_timeout_ms = 0 -> wait forever (legacy behavior)
@@ -256,5 +253,13 @@ private:
     std::vector<std::string> actionNames;
 
     std::string bestPointing;
+
+    struct Action {
+    std::string name;
+    double h; // horizontal degrees
+    double v; // vertical degrees
+    };
+
+    std::vector<Action> actions;
 
 };
