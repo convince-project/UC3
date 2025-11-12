@@ -55,6 +55,7 @@ static constexpr int kTimeoutMs = 15000000;
  * @param logger ROS logger for warnings/info.
  * @return size_t Number of objects successfully imported.
  */
+ /*
 static size_t importObjectsSectionWithIMap2D(
     const std::string &filePath,
     yarp::dev::Nav2D::IMap2D *map2d,
@@ -205,7 +206,7 @@ static size_t importObjectsSectionWithIMap2D(
 
     // Return total number of successfully imported objects
     return imported;
-}
+}*/
 
 /**
  * @brief Initialize ROS 2, TF, YARP controllers clients, Map2D client and register the PointAt service.
@@ -312,7 +313,7 @@ bool CartesianPointingComponent::start(int argc, char *argv[])
     }
 
     // Resolve locations.ini path: prefer argv[1], fallback to ROS param 'map2d_locations_file'
-    std::string locations_file;
+    /*std::string locations_file;
     std::string source_tag;
     if (argc >= 2 && argv && argv[1] && std::string(argv[1]).size() > 0)
     {
@@ -343,7 +344,7 @@ bool CartesianPointingComponent::start(int argc, char *argv[])
 
     RCLCPP_INFO(m_node->get_logger(), "Using locations file '%s' (source: %s)", locations_file.c_str(), source_tag.c_str());
 
-    bool ok = false;
+     bool ok = false;
     if (!ok)
     {
         const size_t n = importObjectsSectionWithIMap2D(locations_file, m_map2dView, m_node->get_logger());
@@ -357,7 +358,7 @@ bool CartesianPointingComponent::start(int argc, char *argv[])
             RCLCPP_ERROR(m_node->get_logger(), "Failed to load any Objects from '%s'; aborting startup.", locations_file.c_str());
             return false;
         }
-    }
+    }*/
 
     // Log available objects
     logAvailableObjects();
@@ -369,7 +370,8 @@ bool CartesianPointingComponent::start(int argc, char *argv[])
         {"h0v0",   0,  0}, {"h0v20",   0, 20}, {"h0v35",   0, 35},
         {"h30v0", 30,  0}, {"h30v20", 30, 20}, {"h30v35", 30, 35},
         {"h60v0", 60,  0}, {"h60v20", 60, 20}, {"h60v35", 60, 35},
-        {"h90v0", 90,  0}, {"h90v20", 90, 20}, {"h90v35", 90, 35}
+        {"h90v0", 90,  0}, {"h90v20", 90, 20}, {"h90v35", 90, 35},
+        {"h30v70", 30, 70}, {"h60v70", 60, 70}, {"h90v70", 90, 70}
     };
 
     RCLCPP_DEBUG(m_node->get_logger(), "CartesianPointingComponent READY");
