@@ -9,8 +9,8 @@
   <datamodel>
     <data id="m_name"         type="string" expr="'TourDurationWarningFlag'"/>
     <data id="m_value"        type="int32"  expr="0"/>
-    <data id="m_result"       type="string" expr="''"/>
-    <data id="SUCCESS_RESULT" type="string" expr="'SUCCESS'"/>
+    <data id="m_result"       type="bool" expr="false"/>
+    <data id="SUCCESS_RESULT" type="bool" expr="true"/>
     <data id="SKILL_SUCCESS"  type="int8"   expr="0"/>
     <data id="SKILL_FAILURE"  type="int8"   expr="1"/>
   </datamodel>
