@@ -1,5 +1,5 @@
 <application>
-    <name>convince_bt_components_no_navigation</name>
+    <name>convince_bt_components_sim</name>
 
     <module>
         <name>python3</name>
@@ -21,12 +21,12 @@
         <node>bt</node>
     </module>
 
-    <!-- <module>
+    <module>
         <name>ros2_navigation_component</name>
         <parameters>run navigation_component navigation_component</parameters>
         <workdir />
         <node>bt</node>
-    </module> -->
+    </module>
 
     <module>
         <name>ros2_blackboard_component</name>

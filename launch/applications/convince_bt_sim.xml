@@ -1,0 +1,46 @@
+<application>
+    <name>convince_bt_sim</name>
+
+    <!-- APPLICATIONS -->
+    <application>
+        <name>convince_external_modules</name>
+        <prefix></prefix>
+    </application>
+
+    <application>
+        <name>convince_bt_components_sim</name>
+        <prefix></prefix>
+    </application>
+
+    <application>
+        <name>convince_bt_skills_sim</name>
+        <prefix></prefix>
+    </application>
+
+    <application>
+        <name>convince_bt_components_connections</name>
+        <prefix></prefix>
+    </application>
+
+    <module>
+        <name>yarprobotinterface</name>
+        <parameters>--config robotinterface.xml</parameters>
+        <workdir>/home/user1/UC3/src/components/fake_battery_component</workdir>
+    </module>
+
+    <!-- MODULES -->
+    <module>
+        <name>python3</name>
+        <parameters>create_symlinks.py ../applications/convince_bt.xml</parameters>
+        <workdir>/home/user1/UC3/launch/symbolic_links/</workdir>
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2_bt</name>
+        <parameters>launch launch/bt_launch_poi_complex.py</parameters>
+        <workdir>/home/user1/UC3</workdir>
+        <node>bt</node>
+    </module>
+
+</application>

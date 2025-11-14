@@ -9,11 +9,8 @@
             <Inverter>
               <ROS2Condition name="BatteryCharging" interface="ROS2SERVICE" isMonitored="false" />
             </Inverter>
-            <Parallel failure_threshold="1"
-                      success_threshold="2">
-              <ROS2Action name="AlarmBatteryLow"
-                          interface="ROS2SERVICE"
-                          isMonitored="false"/>
+            <Parallel failure_threshold="1" success_threshold="2">
+              <ROS2Action name="AlarmBatteryLow" interface="ROS2SERVICE" isMonitored="false" />
               <ReactiveFallback>
                 <ROS2Condition name="IsAtChargingStation" interface="ROS2SERVICE" isMonitored="false" />
                 <Sequence>
