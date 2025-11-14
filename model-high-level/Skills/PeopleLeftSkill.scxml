@@ -7,8 +7,8 @@
   initial="idle">
 
   <datamodel>
-    <data id="m_result"       type="string" expr="''"/>
-    <data id="SUCCESS_RESULT" type="string" expr="true"/>
+    <data id="m_result"       type="bool" expr="false"/>
+    <data id="SUCCESS_RESULT" type="bool" expr="true"/>
     <data id="SKILL_SUCCESS"  type="int8"   expr="0"/>
     <data id="SKILL_FAILURE"  type="int8"   expr="1"/>
   </datamodel>
