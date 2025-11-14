@@ -7,7 +7,6 @@
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
-#include <rcl/service_introspection.h>
 
 #include <type_traits>
 
@@ -74,12 +73,14 @@ bool AlarmBatteryLowSkill::start(int argc, char*argv[])
                                                                            	this,
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
+  m_tickService->configure_introspection(m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
   
 	m_haltService = m_node->create_service<bt_interfaces_dummy::srv::HaltAction>(m_name + "Skill/halt",
                                                                             	std::bind(&AlarmBatteryLowSkill::halt,
                                                                             	this,
                                                                             	std::placeholders::_1,
                                                                             	std::placeholders::_2));
+  m_haltService->configure_introspection(m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
   
   
   
@@ -87,6 +88,7 @@ bool AlarmBatteryLowSkill::start(int argc, char*argv[])
       std::shared_ptr<rclcpp::Node> nodeStopAlarm = rclcpp::Node::make_shared(m_name + "SkillNodeStopAlarm");
       std::shared_ptr<rclcpp::Client<notify_user_interfaces::srv::StopAlarm>> clientStopAlarm = nodeStopAlarm->create_client<notify_user_interfaces::srv::StopAlarm>("/NotifyUserComponent/StopAlarm");
       auto request = std::make_shared<notify_user_interfaces::srv::StopAlarm::Request>();
+      clientStopAlarm->configure_introspection(nodeStopAlarm->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
       auto eventParams = event.data().toMap();
       
       bool wait_succeded{true};
@@ -111,28 +113,27 @@ bool AlarmBatteryLowSkill::start(int argc, char*argv[])
           if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
           {
               auto response = result.get();
-              if( response->is_ok == true) {
-                  QVariantMap data;
-                  data.insert("is_ok", true);
-                  m_stateMachine.submitEvent("NotifyUserComponent.StopAlarm.Return", data);
-                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NotifyUserComponent.StopAlarm.Return");
-                  return;
-              }
+              QVariantMap data;
+              data.insert("call_succeeded", true);
+              m_stateMachine.submitEvent("NotifyUserComponent.StopAlarm.Return", data);
+              RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NotifyUserComponent.StopAlarm.Return");
+              return;
+              
           }
           else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'StopAlarm'.");
           }
       }
       QVariantMap data;
-      data.insert("is_ok", false);
+      data.insert("call_succeeded", false);
       m_stateMachine.submitEvent("NotifyUserComponent.StopAlarm.Return", data);
       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NotifyUserComponent.StopAlarm.Return");
   });
   m_stateMachine.connectToEvent("NotifyUserComponent.StartAlarm.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
       std::shared_ptr<rclcpp::Node> nodeStartAlarm = rclcpp::Node::make_shared(m_name + "SkillNodeStartAlarm");
       std::shared_ptr<rclcpp::Client<notify_user_interfaces::srv::StartAlarm>> clientStartAlarm = nodeStartAlarm->create_client<notify_user_interfaces::srv::StartAlarm>("/NotifyUserComponent/StartAlarm");
-      clientStartAlarm->configure_introspection(nodeStartAlarm->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
       auto request = std::make_shared<notify_user_interfaces::srv::StartAlarm::Request>();
+      clientStartAlarm->configure_introspection(nodeStartAlarm->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
       auto eventParams = event.data().toMap();
       
       bool wait_succeded{true};
@@ -157,20 +158,19 @@ bool AlarmBatteryLowSkill::start(int argc, char*argv[])
           if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
           {
               auto response = result.get();
-              if( response->is_ok == true) {
-                  QVariantMap data;
-                  data.insert("is_ok", true);
-                  m_stateMachine.submitEvent("NotifyUserComponent.StartAlarm.Return", data);
-                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NotifyUserComponent.StartAlarm.Return");
-                  return;
-              }
+              QVariantMap data;
+              data.insert("call_succeeded", true);
+              m_stateMachine.submitEvent("NotifyUserComponent.StartAlarm.Return", data);
+              RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NotifyUserComponent.StartAlarm.Return");
+              return;
+              
           }
           else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'StartAlarm'.");
           }
       }
       QVariantMap data;
-      data.insert("is_ok", false);
+      data.insert("call_succeeded", false);
       m_stateMachine.submitEvent("NotifyUserComponent.StartAlarm.Return", data);
       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NotifyUserComponent.StartAlarm.Return");
   });
@@ -204,14 +204,13 @@ bool AlarmBatteryLowSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
 void AlarmBatteryLowSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Request> request,
                                 std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Response>      response)
 {
-  std::cout << "AlarmBatteryLowSkill::tick" << std::endl;
   std::lock_guard<std::mutex> lock(m_requestMutex);
   RCLCPP_INFO(m_node->get_logger(), "AlarmBatteryLowSkill::tick");
   m_tickResult.store(Status::undefined);

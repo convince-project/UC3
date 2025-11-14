@@ -26,7 +26,7 @@
     <state id="decideCount">
         <transition cond="!m_result" target="fail"/>
         <transition cond="m_counter!=0" target="success"/>
-        <transition target="startNarration"/>
+        <transition cond="!m_result &amp;&amp; m_counter==0" target="startNarration"/>
     </state>
     <state id="fail">
         <onentry>
@@ -68,10 +68,10 @@
         <transition target="stopNarration" event="CMD_HALT"/>
     </state>
     <state id="checkDone">
-        <transition cond="!_event.data.is_ok" target="fail" event="NarrateComponent.IsDone.Return"/>
         <transition target="onCheck" event="NarrateComponent.IsDone.Return">
             <assign location="m_is_done" expr="_event.data.is_done"/>
         </transition>
+        <transition cond="!_event.data.is_ok" target="fail" event="NarrateComponent.IsDone.Return"/>
     </state>
     <state id="onCheck">
         <transition cond="m_is_done" target="success"/>

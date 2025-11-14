@@ -73,12 +73,14 @@ bool StartPoiTimerSkill::start(int argc, char*argv[])
                                                                            	this,
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
+  m_tickService->configure_introspection(m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
   
 	m_haltService = m_node->create_service<bt_interfaces_dummy::srv::HaltAction>(m_name + "Skill/halt",
                                                                             	std::bind(&StartPoiTimerSkill::halt,
                                                                             	this,
                                                                             	std::placeholders::_1,
                                                                             	std::placeholders::_2));
+  m_haltService->configure_introspection(m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
   
   
   
@@ -86,6 +88,7 @@ bool StartPoiTimerSkill::start(int argc, char*argv[])
       std::shared_ptr<rclcpp::Node> nodeStartPoiTimer = rclcpp::Node::make_shared(m_name + "SkillNodeStartPoiTimer");
       std::shared_ptr<rclcpp::Client<time_interfaces::srv::StartPoiTimer>> clientStartPoiTimer = nodeStartPoiTimer->create_client<time_interfaces::srv::StartPoiTimer>("/TimeComponent/StartPoiTimer");
       auto request = std::make_shared<time_interfaces::srv::StartPoiTimer::Request>();
+      clientStartPoiTimer->configure_introspection(nodeStartPoiTimer->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
       auto eventParams = event.data().toMap();
       
       bool wait_succeded{true};
@@ -110,21 +113,20 @@ bool StartPoiTimerSkill::start(int argc, char*argv[])
           if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
           {
               auto response = result.get();
-              if( response->is_ok == true) {
-                  QVariantMap data;
-                  data.insert("is_ok", true);
-                  data.insert("is_ok", response->is_ok);
-                  m_stateMachine.submitEvent("TimeComponent.StartPoiTimer.Return", data);
-                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TimeComponent.StartPoiTimer.Return");
-                  return;
-              }
+              QVariantMap data;
+              data.insert("call_succeeded", true);
+              data.insert("is_ok", response->is_ok);
+              m_stateMachine.submitEvent("TimeComponent.StartPoiTimer.Return", data);
+              RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TimeComponent.StartPoiTimer.Return");
+              return;
+              
           }
           else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'StartPoiTimer'.");
           }
       }
       QVariantMap data;
-      data.insert("is_ok", false);
+      data.insert("call_succeeded", false);
       m_stateMachine.submitEvent("TimeComponent.StartPoiTimer.Return", data);
       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TimeComponent.StartPoiTimer.Return");
   });
@@ -132,6 +134,7 @@ bool StartPoiTimerSkill::start(int argc, char*argv[])
       std::shared_ptr<rclcpp::Node> nodeSetInt = rclcpp::Node::make_shared(m_name + "SkillNodeSetInt");
       std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::SetIntBlackboard>> clientSetInt = nodeSetInt->create_client<blackboard_interfaces::srv::SetIntBlackboard>("/BlackboardComponent/SetInt");
       auto request = std::make_shared<blackboard_interfaces::srv::SetIntBlackboard::Request>();
+      clientSetInt->configure_introspection(nodeSetInt->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
       auto eventParams = event.data().toMap();
       
       request->value = convert<decltype(request->value)>(eventParams["value"].toString().toStdString());
@@ -158,20 +161,19 @@ bool StartPoiTimerSkill::start(int argc, char*argv[])
           if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
           {
               auto response = result.get();
-              if( response->is_ok == true) {
-                  QVariantMap data;
-                  data.insert("is_ok", true);
-                  m_stateMachine.submitEvent("BlackboardComponent.SetInt.Return", data);
-                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.SetInt.Return");
-                  return;
-              }
+              QVariantMap data;
+              data.insert("call_succeeded", true);
+              m_stateMachine.submitEvent("BlackboardComponent.SetInt.Return", data);
+              RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.SetInt.Return");
+              return;
+              
           }
           else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'SetInt'.");
           }
       }
       QVariantMap data;
-      data.insert("is_ok", false);
+      data.insert("call_succeeded", false);
       m_stateMachine.submitEvent("BlackboardComponent.SetInt.Return", data);
       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.SetInt.Return");
   });

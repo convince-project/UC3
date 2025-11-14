@@ -73,6 +73,7 @@ bool IsAllowedToMoveSkill::start(int argc, char*argv[])
                                                                            	this,
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
+  m_tickService->configure_introspection(m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
   
   
   
@@ -81,6 +82,7 @@ bool IsAllowedToMoveSkill::start(int argc, char*argv[])
       std::shared_ptr<rclcpp::Node> nodeIsAllowedToMove = rclcpp::Node::make_shared(m_name + "SkillNodeIsAllowedToMove");
       std::shared_ptr<rclcpp::Client<allowed_to_move_interfaces::srv::IsAllowedToMove>> clientIsAllowedToMove = nodeIsAllowedToMove->create_client<allowed_to_move_interfaces::srv::IsAllowedToMove>("/AllowedToMoveComponent/IsAllowedToMove");
       auto request = std::make_shared<allowed_to_move_interfaces::srv::IsAllowedToMove::Request>();
+      clientIsAllowedToMove->configure_introspection(nodeIsAllowedToMove->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
       auto eventParams = event.data().toMap();
       
       bool wait_succeded{true};
@@ -105,21 +107,20 @@ bool IsAllowedToMoveSkill::start(int argc, char*argv[])
           if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
           {
               auto response = result.get();
-              if( response->is_ok == true) {
-                  QVariantMap data;
-                  data.insert("is_ok", true);
-                  data.insert("is_allowed_to_move", response->is_allowed_to_move);
-                  m_stateMachine.submitEvent("AllowedToMoveComponent.IsAllowedToMove.Return", data);
-                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "AllowedToMoveComponent.IsAllowedToMove.Return");
-                  return;
-              }
+              QVariantMap data;
+              data.insert("call_succeeded", true);
+              data.insert("is_allowed_to_move", response->is_allowed_to_move);
+              m_stateMachine.submitEvent("AllowedToMoveComponent.IsAllowedToMove.Return", data);
+              RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "AllowedToMoveComponent.IsAllowedToMove.Return");
+              return;
+              
           }
           else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'IsAllowedToMove'.");
           }
       }
       QVariantMap data;
-      data.insert("is_ok", false);
+      data.insert("call_succeeded", false);
       m_stateMachine.submitEvent("AllowedToMoveComponent.IsAllowedToMove.Return", data);
       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "AllowedToMoveComponent.IsAllowedToMove.Return");
   });
