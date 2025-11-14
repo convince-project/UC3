@@ -33,16 +33,18 @@ def abstract_message(message):
     # if the message is from an audio topic, compute stddev of the data
     if "topic" in message and "status" in message['topic']:
         # update is_recording from message status: 'ok' -> True, otherwise False
-        status = message.get('status')
-        if (str(status).lower() == 'ok'):
+        # print("message", message)
+        if message['layout']['data_offset'] == 0:
+            # print("predicates", predicates)
             predicates['is_recording'] = True
         else:
             predicates['is_recording'] = False
 
     if predicates.get('is_recording'):
 
-        if "topic" in message and "audio" in message['topic']:
+        if "topic" in message and "sound_array" in message['topic']:
             import statistics
+            #print("message", message)
 
             data = message.get('data')
 
@@ -63,6 +65,7 @@ def abstract_message(message):
                     # convert to floats defensively
                     nums_f = [float(x) for x in nums]
                     stddev = statistics.pstdev(nums_f)
+                    print("stddev:", stddev)
             except Exception:
                 # fallback: if conversion fails, mark as not unplagged
                 stddev = float('inf')
@@ -71,7 +74,7 @@ def abstract_message(message):
 
 
     print("predicates", predicates)
-    print("message", message)
+    #print("message", message)
 
     return predicates
 

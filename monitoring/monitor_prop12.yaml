@@ -10,11 +10,11 @@ monitors: # here we list the monitors we are going to generate
         url: 127.0.0.1 # the url where it is listening
         action: nothing # the oracle will not change the message
       topics: # the list of topics this monitor is going to intercept
-        - name: /audio_recorder/audio #selected
-          type: scheduler_interfaces.srv.Audio
+        - name: /sound_array #selected
+          type: std_msgs.msg.Int16MultiArray
           action: log
         - name: /audio_recorder/status #completed
-          type: blackboard_interfaces.srv.status
+          type: std_msgs.msg.Int16MultiArray
           action: log
         - name: /monitoring_clock
           type: builtin_interfaces.msg.Time

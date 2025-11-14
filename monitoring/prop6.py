@@ -3,7 +3,7 @@
 H((P[5:] True) IMPLIES P[:3] camera_published)
 """
 
-PROPERTY = r"historically(once[5:]{t} -> once[:3]{camera_published})"
+PROPERTY = r"(once[5:]{t} -> once[:3]{camera_published})"
 
 predicates = dict(
     camera_published = False,
