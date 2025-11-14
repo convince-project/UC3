@@ -14,6 +14,7 @@
 #include <bt_interfaces_dummy/srv/tick_condition.hpp>
 
 
+#include <rcl/service_introspection.h>
 
 #define SERVICE_TIMEOUT 8
 #define SKILL_SUCCESS 0

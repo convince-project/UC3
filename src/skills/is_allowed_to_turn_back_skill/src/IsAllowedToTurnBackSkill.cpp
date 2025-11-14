@@ -73,6 +73,7 @@ bool IsAllowedToTurnBackSkill::start(int argc, char*argv[])
                                                                            	this,
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
+  m_tickService->configure_introspection(m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
   
   
   
@@ -81,6 +82,7 @@ bool IsAllowedToTurnBackSkill::start(int argc, char*argv[])
       std::shared_ptr<rclcpp::Node> nodeIsAllowedToTurnBack = rclcpp::Node::make_shared(m_name + "SkillNodeIsAllowedToTurnBack");
       std::shared_ptr<rclcpp::Client<turn_back_manager_interfaces::srv::IsAllowedToTurnBack>> clientIsAllowedToTurnBack = nodeIsAllowedToTurnBack->create_client<turn_back_manager_interfaces::srv::IsAllowedToTurnBack>("/TurnBackManagerComponent/IsAllowedToTurnBack");
       auto request = std::make_shared<turn_back_manager_interfaces::srv::IsAllowedToTurnBack::Request>();
+      clientIsAllowedToTurnBack->configure_introspection(nodeIsAllowedToTurnBack->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
       auto eventParams = event.data().toMap();
       
       bool wait_succeded{true};
@@ -105,22 +107,21 @@ bool IsAllowedToTurnBackSkill::start(int argc, char*argv[])
           if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
           {
               auto response = result.get();
-              if( response->is_ok == true) {
-                  QVariantMap data;
-                  data.insert("is_ok", true);
-                  data.insert("is_allowed", response->is_allowed);
-                  data.insert("is_ok", response->is_ok);
-                  m_stateMachine.submitEvent("TurnBackManagerComponent.IsAllowedToTurnBack.Return", data);
-                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TurnBackManagerComponent.IsAllowedToTurnBack.Return");
-                  return;
-              }
+              QVariantMap data;
+              data.insert("call_succeeded", true);
+              data.insert("is_allowed", response->is_allowed);
+              data.insert("is_ok", response->is_ok);
+              m_stateMachine.submitEvent("TurnBackManagerComponent.IsAllowedToTurnBack.Return", data);
+              RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TurnBackManagerComponent.IsAllowedToTurnBack.Return");
+              return;
+              
           }
           else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'IsAllowedToTurnBack'.");
           }
       }
       QVariantMap data;
-      data.insert("is_ok", false);
+      data.insert("call_succeeded", false);
       m_stateMachine.submitEvent("TurnBackManagerComponent.IsAllowedToTurnBack.Return", data);
       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TurnBackManagerComponent.IsAllowedToTurnBack.Return");
   });
@@ -128,6 +129,7 @@ bool IsAllowedToTurnBackSkill::start(int argc, char*argv[])
       std::shared_ptr<rclcpp::Node> nodeGetString = rclcpp::Node::make_shared(m_name + "SkillNodeGetString");
       std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::GetStringBlackboard>> clientGetString = nodeGetString->create_client<blackboard_interfaces::srv::GetStringBlackboard>("/BlackboardComponent/GetString");
       auto request = std::make_shared<blackboard_interfaces::srv::GetStringBlackboard::Request>();
+      clientGetString->configure_introspection(nodeGetString->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
       auto eventParams = event.data().toMap();
       
       request->field_name = convert<decltype(request->field_name)>(eventParams["field_name"].toString().toStdString());
@@ -153,21 +155,20 @@ bool IsAllowedToTurnBackSkill::start(int argc, char*argv[])
           if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
           {
               auto response = result.get();
-              if( response->is_ok == true) {
-                  QVariantMap data;
-                  data.insert("is_ok", true);
-                  data.insert("is_ok", response->is_ok);
-                  m_stateMachine.submitEvent("BlackboardComponent.GetString.Return", data);
-                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.GetString.Return");
-                  return;
-              }
+              QVariantMap data;
+              data.insert("call_succeeded", true);
+              data.insert("is_ok", response->is_ok);
+              m_stateMachine.submitEvent("BlackboardComponent.GetString.Return", data);
+              RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.GetString.Return");
+              return;
+              
           }
           else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'GetString'.");
           }
       }
       QVariantMap data;
-      data.insert("is_ok", false);
+      data.insert("call_succeeded", false);
       m_stateMachine.submitEvent("BlackboardComponent.GetString.Return", data);
       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.GetString.Return");
   });

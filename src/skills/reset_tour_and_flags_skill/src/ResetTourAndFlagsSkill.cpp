@@ -7,7 +7,6 @@
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
-#include <rcl/service_introspection.h>
 
 #include <type_traits>
 
@@ -74,20 +73,22 @@ bool ResetTourAndFlagsSkill::start(int argc, char*argv[])
                                                                            	this,
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
+  m_tickService->configure_introspection(m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
   
 	m_haltService = m_node->create_service<bt_interfaces_dummy::srv::HaltAction>(m_name + "Skill/halt",
                                                                             	std::bind(&ResetTourAndFlagsSkill::halt,
                                                                             	this,
                                                                             	std::placeholders::_1,
                                                                             	std::placeholders::_2));
+  m_haltService->configure_introspection(m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
   
   
   
   m_stateMachine.connectToEvent("SchedulerComponent.Reset.Call", [this]([[maybe_unused]]const QScxmlEvent & event){
       std::shared_ptr<rclcpp::Node> nodeReset = rclcpp::Node::make_shared(m_name + "SkillNodeReset");
       std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::Reset>> clientReset = nodeReset->create_client<scheduler_interfaces::srv::Reset>("/SchedulerComponent/Reset");
-      clientReset->configure_introspection(nodeReset->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
       auto request = std::make_shared<scheduler_interfaces::srv::Reset::Request>();
+      clientReset->configure_introspection(nodeReset->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
       auto eventParams = event.data().toMap();
       
       bool wait_succeded{true};
@@ -112,21 +113,20 @@ bool ResetTourAndFlagsSkill::start(int argc, char*argv[])
           if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
           {
               auto response = result.get();
-              if( response->is_ok == true) {
-                  QVariantMap data;
-                  data.insert("is_ok", true);
-                  data.insert("is_ok", response->is_ok);
-                  m_stateMachine.submitEvent("SchedulerComponent.Reset.Return", data);
-                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.Reset.Return");
-                  return;
-              }
+              QVariantMap data;
+              data.insert("call_succeeded", true);
+              data.insert("is_ok", response->is_ok);
+              m_stateMachine.submitEvent("SchedulerComponent.Reset.Return", data);
+              RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.Reset.Return");
+              return;
+              
           }
           else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'Reset'.");
           }
       }
       QVariantMap data;
-      data.insert("is_ok", false);
+      data.insert("call_succeeded", false);
       m_stateMachine.submitEvent("SchedulerComponent.Reset.Return", data);
       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.Reset.Return");
   });
@@ -134,6 +134,7 @@ bool ResetTourAndFlagsSkill::start(int argc, char*argv[])
       std::shared_ptr<rclcpp::Node> nodeSetAllIntsWithPrefix = rclcpp::Node::make_shared(m_name + "SkillNodeSetAllIntsWithPrefix");
       std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::SetAllIntsWithPrefixBlackboard>> clientSetAllIntsWithPrefix = nodeSetAllIntsWithPrefix->create_client<blackboard_interfaces::srv::SetAllIntsWithPrefixBlackboard>("/BlackboardComponent/SetAllIntsWithPrefix");
       auto request = std::make_shared<blackboard_interfaces::srv::SetAllIntsWithPrefixBlackboard::Request>();
+      clientSetAllIntsWithPrefix->configure_introspection(nodeSetAllIntsWithPrefix->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
       auto eventParams = event.data().toMap();
       
       request->value = convert<decltype(request->value)>(eventParams["value"].toString().toStdString());
@@ -160,21 +161,20 @@ bool ResetTourAndFlagsSkill::start(int argc, char*argv[])
           if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
           {
               auto response = result.get();
-              if( response->is_ok == true) {
-                  QVariantMap data;
-                  data.insert("is_ok", true);
-                  data.insert("is_ok", response->is_ok);
-                  m_stateMachine.submitEvent("BlackboardComponent.SetAllIntsWithPrefix.Return", data);
-                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.SetAllIntsWithPrefix.Return");
-                  return;
-              }
+              QVariantMap data;
+              data.insert("call_succeeded", true);
+              data.insert("is_ok", response->is_ok);
+              m_stateMachine.submitEvent("BlackboardComponent.SetAllIntsWithPrefix.Return", data);
+              RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.SetAllIntsWithPrefix.Return");
+              return;
+              
           }
           else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'SetAllIntsWithPrefix'.");
           }
       }
       QVariantMap data;
-      data.insert("is_ok", false);
+      data.insert("call_succeeded", false);
       m_stateMachine.submitEvent("BlackboardComponent.SetAllIntsWithPrefix.Return", data);
       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.SetAllIntsWithPrefix.Return");
   });
