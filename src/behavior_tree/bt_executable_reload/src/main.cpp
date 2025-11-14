@@ -139,7 +139,7 @@ int main(int argc, char* argv[])
     // Create the reload service and pass the tree by reference
     rclcpp::Service<bt_interfaces_dummy::srv::ReloadTree>::SharedPtr m_reloadTreeService = 
         m_node->create_service<bt_interfaces_dummy::srv::ReloadTree>(
-            "/BtExecutable/ReloadTree",
+            "/BtExecutableComponent/ReloadTree",
             [&tree, &path, &halt, &bt_factory, &publisher_zmq](const std::shared_ptr<bt_interfaces_dummy::srv::ReloadTree::Request> request,
                     std::shared_ptr<bt_interfaces_dummy::srv::ReloadTree::Response> response)
             {
