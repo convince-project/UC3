@@ -351,4 +351,20 @@
     </module>
 
 
+    <module>
+        <name>ros2_plan_skill</name>
+        <parameters>run plan_skill plan_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+
+    <module>
+        <name>ros2_reload_bt_scheduler_skill</name>
+        <parameters>run reload_bt_scheduler_skill reload_bt_scheduler_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+
 </application>
