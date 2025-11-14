@@ -20,6 +20,7 @@
 #include <scheduler_interfaces/srv/get_current_command.hpp>
 #include <scheduler_interfaces/srv/get_available_commands.hpp>
 #include <scheduler_interfaces/srv/set_poi.hpp>
+#include <cmath>
 
 #include <map>
 #include "TourStorage.h"
@@ -60,6 +61,10 @@ public:
                 std::shared_ptr<scheduler_interfaces::srv::GetAvailableCommands::Response>      response);
     void SetPoi([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::SetPoi::Request> request,
                 std::shared_ptr<scheduler_interfaces::srv::SetPoi::Response>      response);
+    void SetPoiFromPlanner([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::SetPoi::Request> request,
+                std::shared_ptr<scheduler_interfaces::srv::SetPoi::Response>      response);
+    void GetCurrentPoiForNavigation([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::GetCurrentPoi::Request> request,
+                std::shared_ptr<scheduler_interfaces::srv::GetCurrentPoi::Response>      response);
 
 private:
     rclcpp::Node::SharedPtr m_node;
@@ -75,6 +80,8 @@ private:
     rclcpp::Service<scheduler_interfaces::srv::SetCommand>::SharedPtr m_setCommandService;
     rclcpp::Service<scheduler_interfaces::srv::GetAvailableCommands>::SharedPtr m_getAvailableCommandsService;
     rclcpp::Service<scheduler_interfaces::srv::SetPoi>::SharedPtr m_setPoiService;
+    rclcpp::Service<scheduler_interfaces::srv::GetCurrentPoi>::SharedPtr m_getCurrentPoiForNavigationService;
+    rclcpp::Service<scheduler_interfaces::srv::SetPoi>::SharedPtr m_setPoiFromPlannerService;
     rclcpp::Publisher<std_msgs::msg::String>::SharedPtr m_publisher;
 
 
@@ -84,6 +91,7 @@ private:
     std::mutex m_mutex;
     int32_t m_currentPoi{0};
     int32_t m_currentAction{0};
+    int32_t m_alternative_poi{false};
     std::string m_currentCommand;
     std::shared_ptr<TourStorage> m_tourStorage;
 };

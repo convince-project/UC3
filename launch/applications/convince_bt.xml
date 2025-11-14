@@ -16,6 +16,10 @@
         <name>convince_bt_skills</name>
         <prefix></prefix>
     </application>
+    <application>
+        <name>convince_bt_skills_pois</name>
+        <prefix></prefix>
+    </application>
 
     <application>
         <name>convince_bt_components_connections</name>
@@ -31,10 +35,18 @@
     </module>
 
     <module>
+        <name>ros2_bt_scheduler</name>
+        <parameters>launch launch/bt_launch_scheduler.py</parameters>
+        <workdir>/home/user1/UC3</workdir>
+        <node>bt</node>
+    </module>
+
+    <module>
         <name>ros2_bt</name>
         <parameters>launch launch/bt_launch_poi_complex.py</parameters>
         <workdir>/home/user1/UC3</workdir>
         <node>bt</node>
     </module>
+
 
 </application>

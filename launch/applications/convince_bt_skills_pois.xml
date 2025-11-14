@@ -1,0 +1,161 @@
+<application>
+    <name>convince_bt_skills_pois</name>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run is_poi_done0_skill is_poi_done0_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run is_poi_done1_skill is_poi_done1_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run is_poi_done2_skill is_poi_done2_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    
+    <module>
+        <name>ros2</name>
+        <parameters>run is_poi_done3_skill is_poi_done3_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run is_poi_done4_skill is_poi_done4_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+
+    <module>
+        <name>ros2</name>
+        <parameters>run is_poi_done5_skill is_poi_done5_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run is_poi_done6_skill is_poi_done6_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+
+    <module>
+        <name>ros2</name>
+        <parameters>run is_poi_done7_skill is_poi_done7_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run is_poi_done8_skill is_poi_done8_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run is_poi_done9_skill is_poi_done9_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run is_poi_done10_skill is_poi_done10_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run set_poi0_skill set_poi0_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run set_poi1_skill set_poi1_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run set_poi2_skill set_poi2_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run set_poi3_skill set_poi3_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run set_poi4_skill set_poi4_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run set_poi5_skill set_poi5_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run set_poi6_skill set_poi6_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run set_poi7_skill set_poi7_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run set_poi8_skill set_poi8_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run set_poi9_skill set_poi9_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run set_poi10_skill set_poi10_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+</application>

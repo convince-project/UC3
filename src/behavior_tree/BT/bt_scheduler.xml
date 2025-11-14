@@ -1,0 +1,68 @@
+
+<?xml version="1.0"?>
+<root main_tree_to_execute="BehaviorTree">
+    <!-- ////////// -->
+    <BehaviorTree ID="BehaviorTree">
+        <Sequence>
+            <SubTree ID="PoiScheduler"/>
+        </Sequence>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <BehaviorTree ID="PoiScheduler">
+
+            <Fallback>
+                
+                <Sequence>
+                    <Inverter>
+                        <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsPoiDone2"/>
+                    </Inverter>
+                    <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SetPoi2"/>
+                </Sequence>
+            
+                <Sequence>
+                    <Inverter>
+                        <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsPoiDone3"/>
+                    </Inverter>
+                    <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SetPoi3"/>
+                </Sequence>
+            
+                <Sequence>
+                    <Inverter>
+                        <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsPoiDone5"/>
+                    </Inverter>
+                    <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SetPoi5"/>
+                </Sequence>
+            
+                <Sequence>
+                    <Inverter>
+                        <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsPoiDone8"/>
+                    </Inverter>
+                    <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SetPoi8"/>
+                </Sequence>
+            
+                <Sequence>
+                    <Inverter>
+                        <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsPoiDone10"/>
+                    </Inverter>
+                    <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SetPoi10"/>
+                </Sequence>
+                       
+                        <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="ResetTourAndFlags"/>
+            </Fallback>
+
+    </BehaviorTree>
+    <TreeNodesModel>
+        <SubTree ID="PoiScheduler"/>
+        <Action ID="ROS2Action">
+            <input_port name="interface" type="std::string"/>
+            <input_port name="isMonitored" type="std::string"/>
+        </Action>
+        <Condition ID="ROS2Condition">
+            <input_port name="interface" type="std::string"/>
+            <input_port name="isMonitored" type="std::string"/>
+        </Condition>
+    </TreeNodesModel>
+    <!-- ////////// -->
+</root>
+
+        

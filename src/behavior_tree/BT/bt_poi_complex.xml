@@ -232,71 +232,11 @@
   </BehaviorTree>
 
   <BehaviorTree ID="PoiScheduler">
-    <Fallback>
       <Sequence>
-        <Inverter>
-          <ROS2Condition name="IsPoiDone0"
-                         interface="ROS2SERVICE"
-                         isMonitored="false"/>
-        </Inverter>
-        <ROS2Action name="SetPoi0"
-                    interface="ROS2SERVICE"
-                    isMonitored="false"/>
+          <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="Plan"/>
+          <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="ReloadBtScheduler"/>
+          <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="BtExecutableScheduler"/>
       </Sequence>
-      <Sequence>
-        <Inverter>
-          <ROS2Condition name="IsPoiDone1"
-                         interface="ROS2SERVICE"
-                         isMonitored="false"/>
-        </Inverter>
-        <ROS2Action name="SetPoi1"
-                    interface="ROS2SERVICE"
-                    isMonitored="false"/>
-      </Sequence>
-      <Sequence>
-        <Inverter>
-          <ROS2Condition name="IsPoiDone2"
-                         interface="ROS2SERVICE"
-                         isMonitored="false"/>
-        </Inverter>
-        <ROS2Action name="SetPoi2"
-                    interface="ROS2SERVICE"
-                    isMonitored="false"/>
-      </Sequence>
-      <Sequence>
-        <Inverter>
-          <ROS2Condition name="IsPoiDone3"
-                         interface="ROS2SERVICE"
-                         isMonitored="false"/>
-        </Inverter>
-        <ROS2Action name="SetPoi3"
-                    interface="ROS2SERVICE"
-                    isMonitored="false"/>
-      </Sequence>
-      <Sequence>
-        <Inverter>
-          <ROS2Condition name="IsPoiDone4"
-                         interface="ROS2SERVICE"
-                         isMonitored="false"/>
-        </Inverter>
-        <ROS2Action name="SetPoi4"
-                    interface="ROS2SERVICE"
-                    isMonitored="false"/>
-      </Sequence>
-      <Sequence>
-        <Inverter>
-          <ROS2Condition name="IsPoiDone5"
-                         interface="ROS2SERVICE"
-                         isMonitored="false"/>
-        </Inverter>
-        <ROS2Action name="SetPoi5"
-                    interface="ROS2SERVICE"
-                    isMonitored="false"/>
-      </Sequence>
-      <ROS2Action name="ResetTourAndFlags"
-                  interface="ROS2SERVICE"
-                  isMonitored="false"/>
-    </Fallback>
   </BehaviorTree>
 
   <BehaviorTree ID="TourDuration">

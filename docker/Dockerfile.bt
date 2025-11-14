@@ -37,6 +37,30 @@ WORKDIR ${robotology_install_folder}
     
 WORKDIR /home/user1 
 
+# install tinyxml2
+RUN /bin/bash -c "git clone https://github.com/Microsoft/vcpkg.git && \
+cd vcpkg && \
+./bootstrap-vcpkg.sh && \
+./vcpkg integrate install && \
+./vcpkg install tinyxml2"
+
+# install model2code
+RUN /bin/bash -c "git clone https://github.com/convince-project/model2code.git && \
+cd model2code && \
+mkdir build && \
+cd build && \
+cmake .. && \
+make"
+
+ENV PATH=${PATH}:/home/user1/model2code/build/bin
+
+# clone the repo
+
+
+ENV  PYTHONPATH={$PYTHONPATH}:/home/user1/venv-congestion-coverage-plan/lib/python3.12/site-packages
+
+ENV PYTHONPATH=${PYTHONPATH}:/home/user1/UC3/src/components/dialog_component/py_interaction_cliserv/sbert/lib/python3.12/site-packages
+
 # RUN /bin/bash -c "cd /home/user1 && rm -rf ROSMonitoring"
 
 # RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
@@ -79,10 +103,20 @@ ENV PATH=/usr/local/Qt-6.8.3/bin:$PATH
 RUN /bin/bash -c "echo 'updated on 202602041529' && \
     source /opt/ros/jazzy/setup.bash && \
     cd /home/user1 && \
-    git clone https://github.com/convince-project/UC3.git && \
+    git clone https://github.com/convince-project/UC3.git -b  feat/bt_with_planner && \
     source /opt/ros/jazzy/setup.bash && \
     cd /home/user1/UC3/ && \
     colcon build --base-paths src/* --packages-ignore face_expressions_wrapper"
+
+RUN /bin/bash -c "cd ~; git clone --branch fix/UC3 https://github.com/convince-project/congestion-coverage-plan.git;\
+        cd /home/user1/UC3/src/components/planner_component;\
+        python3 -m venv create venv-congestion-coverage-plan;\
+        source ./venv-congestion-coverage-plan/bin/activate;\
+        touch ./venv-congestion-coverage-plan/COLCON_IGNORE;\
+        python3 -m pip install --upgrade pip;\
+        cd ~/congestion-coverage-plan/;\
+        python3 -m pip install -e .;"
+
 
 RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
     cd /home/user1/UC3/src/components/dialog_component/py_interaction_cliserv/ && \

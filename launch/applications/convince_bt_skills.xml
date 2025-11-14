@@ -327,89 +327,15 @@
     </module>
 
     <module>
-        <name>ros2</name>
-        <parameters>run is_poi_done0_skill is_poi_done0_skill</parameters>
+        <name>ros2_reload_bt_scheduler_skill</name>
+        <parameters>run reload_bt_scheduler_skill reload_bt_scheduler_skill</parameters>
         <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2</name>
-        <parameters>run is_poi_done1_skill is_poi_done1_skill</parameters>
-        <workdir />
-        <node>bt</node>
-    </module>
-
-    <module>
-        <name>ros2</name>
-        <parameters>run is_poi_done2_skill is_poi_done2_skill</parameters>
-        <workdir />
-        <node>bt</node>
-    </module>
-
-    
-    <module>
-        <name>ros2</name>
-        <parameters>run is_poi_done3_skill is_poi_done3_skill</parameters>
-        <workdir />
-        <node>bt</node>
-    </module>
-
-
-    <module>
-        <name>ros2</name>
-        <parameters>run is_poi_done4_skill is_poi_done4_skill</parameters>
-        <workdir />
-        <node>bt</node>
-    </module>
-
-
-    <module>
-        <name>ros2</name>
-        <parameters>run is_poi_done5_skill is_poi_done5_skill</parameters>
-        <workdir />
-        <node>bt</node>
-    </module>
-
-
-    <module>
-        <name>ros2</name>
-        <parameters>run set_poi0_skill set_poi0_skill</parameters>
-        <workdir />
-        <node>bt</node>
-    </module>
-
-    <module>
-        <name>ros2</name>
-        <parameters>run set_poi1_skill set_poi1_skill</parameters>
-        <workdir />
-        <node>bt</node>
-    </module>
-
-    <module>
-        <name>ros2</name>
-        <parameters>run set_poi2_skill set_poi2_skill</parameters>
-        <workdir />
-        <node>bt</node>
-    </module>
-
-    <module>
-        <name>ros2</name>
-        <parameters>run set_poi3_skill set_poi3_skill</parameters>
-        <workdir />
-        <node>bt</node>
-    </module>
-
-    <module>
-        <name>ros2</name>
-        <parameters>run set_poi4_skill set_poi4_skill</parameters>
-        <workdir />
-        <node>bt</node>
-    </module>
-
-    <module>
-        <name>ros2</name>
-        <parameters>run set_poi5_skill set_poi5_skill</parameters>
+        <name>ros2_plan_skill</name>
+        <parameters>run plan_skill plan_skill</parameters>
         <workdir />
         <node>bt</node>
     </module>
