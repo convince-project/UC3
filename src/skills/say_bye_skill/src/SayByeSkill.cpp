@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ SayByeSkill::SayByeSkill(std::string name ) :
     
 }
 
+SayByeSkill::~SayByeSkill()
+{
+    //std::cout << "DEBUG: Invoked destructor of SayByeSkill" << std::endl;
+    m_threadSpin->join();
+}
+
 void SayByeSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: SayByeSkill::spin successfully ended" << std::endl;
 }
 
 bool SayByeSkill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool SayByeSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "SayByeSkill::start");
-	std::cout << "SayByeSkill::start";
+	std::cout << "DEBUG: SayByeSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
@@ -63,12 +73,14 @@ bool SayByeSkill::start(int argc, char*argv[])
                                                                            	this,
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
+  m_tickService->configure_introspection(m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
   
 	m_haltService = m_node->create_service<bt_interfaces_dummy::srv::HaltAction>(m_name + "Skill/halt",
                                                                             	std::bind(&SayByeSkill::halt,
                                                                             	this,
                                                                             	std::placeholders::_1,
                                                                             	std::placeholders::_2));
+  m_haltService->configure_introspection(m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
   
   
   
@@ -76,10 +88,10 @@ bool SayByeSkill::start(int argc, char*argv[])
       std::shared_ptr<rclcpp::Node> nodeSpeak = rclcpp::Node::make_shared(m_name + "SkillNodeSpeak");
       std::shared_ptr<rclcpp::Client<text_to_speech_interfaces::srv::Speak>> clientSpeak = nodeSpeak->create_client<text_to_speech_interfaces::srv::Speak>("/TextToSpeechComponent/Speak");
       auto request = std::make_shared<text_to_speech_interfaces::srv::Speak::Request>();
+      clientSpeak->configure_introspection(nodeSpeak->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
       auto eventParams = event.data().toMap();
       
-      request->text = "sorry but my battery is low, I have to leave you.";
-      
+      request->text = convert<decltype(request->text)>(eventParams["text"].toString().toStdString());
       bool wait_succeded{true};
       int retries = 0;
       while (!clientSpeak->wait_for_service(std::chrono::seconds(1))) {
@@ -102,20 +114,20 @@ bool SayByeSkill::start(int argc, char*argv[])
           if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
           {
               auto response = result.get();
-              if( response->is_ok == true) {
-                  QVariantMap data;
-                  data.insert("is_ok", true);
-                  m_stateMachine.submitEvent("TextToSpeechComponent.Speak.Return", data);
-                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TextToSpeechComponent.Speak.Return");
-                  return;
-              }
+              QVariantMap data;
+              data.insert("call_succeeded", true);
+              data.insert("is_ok", response->is_ok);
+              m_stateMachine.submitEvent("TextToSpeechComponent.Speak.Return", data);
+              RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TextToSpeechComponent.Speak.Return");
+              return;
+              
           }
           else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'Speak'.");
           }
       }
       QVariantMap data;
-      data.insert("is_ok", false);
+      data.insert("call_succeeded", false);
       m_stateMachine.submitEvent("TextToSpeechComponent.Speak.Return", data);
       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TextToSpeechComponent.Speak.Return");
   });
@@ -123,6 +135,7 @@ bool SayByeSkill::start(int argc, char*argv[])
       std::shared_ptr<rclcpp::Node> nodeIsSpeaking = rclcpp::Node::make_shared(m_name + "SkillNodeIsSpeaking");
       std::shared_ptr<rclcpp::Client<text_to_speech_interfaces::srv::IsSpeaking>> clientIsSpeaking = nodeIsSpeaking->create_client<text_to_speech_interfaces::srv::IsSpeaking>("/TextToSpeechComponent/IsSpeaking");
       auto request = std::make_shared<text_to_speech_interfaces::srv::IsSpeaking::Request>();
+      clientIsSpeaking->configure_introspection(nodeIsSpeaking->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
       auto eventParams = event.data().toMap();
       
       bool wait_succeded{true};
@@ -147,21 +160,21 @@ bool SayByeSkill::start(int argc, char*argv[])
           if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
           {
               auto response = result.get();
-              if( response->is_ok == true) {
-                  QVariantMap data;
-                  data.insert("is_ok", true);
-                  data.insert("is_speaking", response->is_speaking);
-                  m_stateMachine.submitEvent("TextToSpeechComponent.IsSpeaking.Return", data);
-                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TextToSpeechComponent.IsSpeaking.Return");
-                  return;
-              }
+              QVariantMap data;
+              data.insert("call_succeeded", true);
+              data.insert("is_ok", response->is_ok);
+              data.insert("is_speaking", response->is_speaking);
+              m_stateMachine.submitEvent("TextToSpeechComponent.IsSpeaking.Return", data);
+              RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TextToSpeechComponent.IsSpeaking.Return");
+              return;
+              
           }
           else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'IsSpeaking'.");
           }
       }
       QVariantMap data;
-      data.insert("is_ok", false);
+      data.insert("call_succeeded", false);
       m_stateMachine.submitEvent("TextToSpeechComponent.IsSpeaking.Return", data);
       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TextToSpeechComponent.IsSpeaking.Return");
   });
@@ -169,6 +182,7 @@ bool SayByeSkill::start(int argc, char*argv[])
       std::shared_ptr<rclcpp::Node> nodeSetCommand = rclcpp::Node::make_shared(m_name + "SkillNodeSetCommand");
       std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::SetCommand>> clientSetCommand = nodeSetCommand->create_client<scheduler_interfaces::srv::SetCommand>("/SchedulerComponent/SetCommand");
       auto request = std::make_shared<scheduler_interfaces::srv::SetCommand::Request>();
+      clientSetCommand->configure_introspection(nodeSetCommand->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
       auto eventParams = event.data().toMap();
       
       request->command = convert<decltype(request->command)>(eventParams["command"].toString().toStdString());
@@ -194,20 +208,20 @@ bool SayByeSkill::start(int argc, char*argv[])
           if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
           {
               auto response = result.get();
-              if( response->is_ok == true) {
-                  QVariantMap data;
-                  data.insert("is_ok", true);
-                  m_stateMachine.submitEvent("SchedulerComponent.SetCommand.Return", data);
-                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.SetCommand.Return");
-                  return;
-              }
+              QVariantMap data;
+              data.insert("call_succeeded", true);
+              data.insert("is_ok", response->is_ok);
+              m_stateMachine.submitEvent("SchedulerComponent.SetCommand.Return", data);
+              RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.SetCommand.Return");
+              return;
+              
           }
           else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'SetCommand'.");
           }
       }
       QVariantMap data;
-      data.insert("is_ok", false);
+      data.insert("call_succeeded", false);
       m_stateMachine.submitEvent("SchedulerComponent.SetCommand.Return", data);
       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.SetCommand.Return");
   });
@@ -215,6 +229,7 @@ bool SayByeSkill::start(int argc, char*argv[])
       std::shared_ptr<rclcpp::Node> nodeGetCurrentAction = rclcpp::Node::make_shared(m_name + "SkillNodeGetCurrentAction");
       std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::GetCurrentAction>> clientGetCurrentAction = nodeGetCurrentAction->create_client<scheduler_interfaces::srv::GetCurrentAction>("/SchedulerComponent/GetCurrentAction");
       auto request = std::make_shared<scheduler_interfaces::srv::GetCurrentAction::Request>();
+      clientGetCurrentAction->configure_introspection(nodeGetCurrentAction->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
       auto eventParams = event.data().toMap();
       
       bool wait_succeded{true};
@@ -239,22 +254,21 @@ bool SayByeSkill::start(int argc, char*argv[])
           if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
           {
               auto response = result.get();
-              if( response->is_ok == true) {
-                  QVariantMap data;
-                  data.insert("is_ok", true);
-                  data.insert("type", response->type.c_str());
-                  data.insert("is_blocking", response->is_blocking);
-                  m_stateMachine.submitEvent("SchedulerComponent.GetCurrentAction.Return", data);
-                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.GetCurrentAction.Return");
-                  return;
-              }
+              QVariantMap data;
+              data.insert("call_succeeded", true);
+              data.insert("is_ok", response->is_ok);
+              data.insert("param", response->param.c_str());
+              m_stateMachine.submitEvent("SchedulerComponent.GetCurrentAction.Return", data);
+              RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.GetCurrentAction.Return");
+              return;
+              
           }
           else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'GetCurrentAction'.");
           }
       }
       QVariantMap data;
-      data.insert("is_ok", false);
+      data.insert("call_succeeded", false);
       m_stateMachine.submitEvent("SchedulerComponent.GetCurrentAction.Return", data);
       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "SchedulerComponent.GetCurrentAction.Return");
   });
@@ -288,7 +302,7 @@ bool SayByeSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -313,10 +327,10 @@ void SayByeSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dum
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;  
+          break;
       case Status::undefined:
           response->status = SKILL_FAILURE;
-          break;          
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "SayByeSkill::tickDone");
   response->is_ok = true;

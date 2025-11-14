@@ -8,6 +8,7 @@
 #include <bt_interfaces_dummy/msg/action_response.hpp>
 #include <turn_back_manager_interfaces/srv/reset_counters.hpp> 
 #include <time_interfaces/srv/stop_tour_timer.hpp> 
+#include <time_interfaces/srv/stop_poi_timer.hpp> 
 #include <scheduler_interfaces/srv/reset.hpp> 
 
 
@@ -15,6 +16,7 @@
 #include <bt_interfaces_dummy/srv/tick_action.hpp>
 #include <bt_interfaces_dummy/srv/halt_action.hpp>
 
+#include <rcl/service_introspection.h>
 
 #define SERVICE_TIMEOUT 8
 #define SKILL_SUCCESS 0
@@ -32,6 +34,8 @@ class PeopleLeftSkill
 {
 public:
 	PeopleLeftSkill(std::string name );
+    ~PeopleLeftSkill();
+
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	

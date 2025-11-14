@@ -9,8 +9,8 @@
   <datamodel>
     <data id="m_name"         type="string" expr="'TourDurationWarningFlag'"/>
     <data id="m_value"        type="int32"  expr="0"/>
-    <data id="m_result"       type="string" expr="''"/>
-    <data id="SUCCESS_RESULT" type="string" expr="'SUCCESS'"/>
+    <data id="m_result"       type="bool" expr="false"/>
+    <data id="SUCCESS_RESULT" type="bool" expr="true"/>
     <data id="SKILL_SUCCESS"  type="int8"   expr="0"/>
     <data id="SKILL_FAILURE"  type="int8"   expr="1"/>
   </datamodel>
@@ -32,7 +32,7 @@
   <state id="queryFlag">
     <ros_service_handle_response name="/BlackboardComponent/GetInt" target="evaluate">
       <assign location="m_value"  expr="_res.value"/>
-      <assign location="m_result" expr="_res.result"/>
+      <assign location="m_result" expr="_res.is_ok"/>
     </ros_service_handle_response>
   </state>
 

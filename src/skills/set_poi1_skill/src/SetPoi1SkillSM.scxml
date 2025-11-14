@@ -1,6 +1,8 @@
 <scxml version="1.0" xmlns="http://www.w3.org/2005/07/scxml" datamodel="ecmascript" name="SetPoi1SkillAction" initial="idle">
     <datamodel>
-        <data id="poi_number" expr="1"/>
+        <data id="m_result" expr="false"/>
+        <!-- <data id="m_value"       type="int8"   expr="1"/> -->
+        <data id="m_field_name" expr="&apos;PoiDone1&apos;"/>
         <data id="SKILL_SUCCESS" expr="0"/>
         <data id="SKILL_FAILURE" expr="1"/>
         <data id="SKILL_RUNNING" expr="2"/>
@@ -10,32 +12,67 @@
     <!-- SetPoiSkill is a client for SetPoi from the SchedulerComponent -->
     <state id="idle">
         <transition target="setPoi" event="CMD_TICK">
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_RUNNING"/>
+                <param name="is_ok" expr="true"/>
+            </send>
             <send event="SchedulerComponent.SetPoi.Call">
-                <param name="poi_number" expr="poi_number"/>
+                <param name="poi_number" expr="1"/>
             </send>
         </transition>
-        <transition target="halted" event="CMD_HALT"/>
+        <transition target="idle" event="CMD_HALT">
+            <send event="HALT_RESPONSE">
+                <param name="is_ok" expr="true"/>
+            </send>
+        </transition>
     </state>
     <state id="setPoi">
-        <transition cond="_event.data.is_ok" target="idle" event="SchedulerComponent.SetPoi.Return">
+        <transition target="checkResponse" event="SchedulerComponent.SetPoi.Return">
+            <assign location="m_result" expr="_event.data.is_ok"/>
+        </transition>
+        <transition target="setPoi" event="CMD_TICK">
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_RUNNING"/>
+                <param name="is_ok" expr="true"/>
+            </send>
+        </transition>
+        <transition target="wait_for_halt" event="CMD_HALT"/>
+    </state>
+    <state id="wait_for_halt">
+        <transition target="idle" event="SchedulerComponent.SetPoi.Return">
+            <send event="HALT_RESPONSE">
+                <param name="is_ok" expr="true"/>
+            </send>
+        </transition>
+    </state>
+    <state id="checkResponse">
+        <transition cond="m_result" target="sendSuccess"/>
+        <transition target="sendFailure"/>
+    </state>
+    <state id="sendSuccess">
+        <transition target="idle" event="CMD_TICK">
             <send event="TICK_RESPONSE">
                 <param name="status" expr="SKILL_SUCCESS"/>
                 <param name="is_ok" expr="true"/>
             </send>
         </transition>
-        <transition cond="(_event.data.is_ok) == false" target="idle" event="SchedulerComponent.SetPoi.Return">
+        <transition target="idle" event="CMD_HALT">
+            <send event="HALT_RESPONSE">
+                <param name="is_ok" expr="true"/>
+            </send>
+        </transition>
+    </state>
+    <state id="sendFailure">
+        <transition target="idle" event="CMD_TICK">
             <send event="TICK_RESPONSE">
                 <param name="status" expr="SKILL_FAILURE"/>
                 <param name="is_ok" expr="true"/>
             </send>
         </transition>
-        <transition target="halted" event="CMD_HALT"/>
-    </state>
-    <state id="halted">
-        <onentry>
-            <assign location="poi_number" expr="1"/>
-            <send event="HALT_RESPONSE"/>
-        </onentry>
-        <transition target="idle"/>
+        <transition target="idle" event="CMD_HALT">
+            <send event="HALT_RESPONSE">
+                <param name="is_ok" expr="true"/>
+            </send>
+        </transition>
     </state>
 </scxml>

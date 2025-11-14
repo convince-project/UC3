@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ NetworkStatusChangedSkill::NetworkStatusChangedSkill(std::string name ) :
     
 }
 
+NetworkStatusChangedSkill::~NetworkStatusChangedSkill()
+{
+    //std::cout << "DEBUG: Invoked destructor of NetworkStatusChangedSkill" << std::endl;
+    m_threadSpin->join();
+}
+
 void NetworkStatusChangedSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: NetworkStatusChangedSkill::spin successfully ended" << std::endl;
 }
 
 bool NetworkStatusChangedSkill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool NetworkStatusChangedSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "NetworkStatusChangedSkill::start");
-	std::cout << "NetworkStatusChangedSkill::start";
+	std::cout << "DEBUG: NetworkStatusChangedSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickCondition>(m_name + "Skill/tick",
@@ -63,6 +73,7 @@ bool NetworkStatusChangedSkill::start(int argc, char*argv[])
                                                                            	this,
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
+  m_tickService->configure_introspection(m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
   
   
   
@@ -89,7 +100,7 @@ bool NetworkStatusChangedSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -112,11 +123,10 @@ void NetworkStatusChangedSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;    
-        case Status::undefined: 
+          break;
+      case Status::undefined:
           response->status = SKILL_FAILURE;
-          RCLCPP_ERROR(m_node->get_logger(), "NetworkStatusChangedSkill::tick - Status is undefined, returning failure.");
-          break;        
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "NetworkStatusChangedSkill::tickDone");
   response->is_ok = true;
