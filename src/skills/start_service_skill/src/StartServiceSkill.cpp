@@ -73,12 +73,14 @@ bool StartServiceSkill::start(int argc, char*argv[])
                                                                            	this,
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
+  m_tickService->configure_introspection(m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
   
 	m_haltService = m_node->create_service<bt_interfaces_dummy::srv::HaltAction>(m_name + "Skill/halt",
                                                                             	std::bind(&StartServiceSkill::halt,
                                                                             	this,
                                                                             	std::placeholders::_1,
                                                                             	std::placeholders::_2));
+  m_haltService->configure_introspection(m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
   
   
   
@@ -86,6 +88,7 @@ bool StartServiceSkill::start(int argc, char*argv[])
       std::shared_ptr<rclcpp::Node> nodeStartService = rclcpp::Node::make_shared(m_name + "SkillNodeStartService");
       std::shared_ptr<rclcpp::Client<manage_service_interfaces::srv::StartService>> clientStartService = nodeStartService->create_client<manage_service_interfaces::srv::StartService>("/ManagePeopleDetectorComponent/StartService");
       auto request = std::make_shared<manage_service_interfaces::srv::StartService::Request>();
+      clientStartService->configure_introspection(nodeStartService->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
       auto eventParams = event.data().toMap();
       
       bool wait_succeded{true};
@@ -110,20 +113,19 @@ bool StartServiceSkill::start(int argc, char*argv[])
           if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
           {
               auto response = result.get();
-              if( response->is_ok == true) {
-                  QVariantMap data;
-                  data.insert("is_ok", true);
-                  m_stateMachine.submitEvent("ManagePeopleDetectorComponent.StartService.Return", data);
-                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "ManagePeopleDetectorComponent.StartService.Return");
-                  return;
-              }
+              QVariantMap data;
+              data.insert("call_succeeded", true);
+              m_stateMachine.submitEvent("ManagePeopleDetectorComponent.StartService.Return", data);
+              RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "ManagePeopleDetectorComponent.StartService.Return");
+              return;
+              
           }
           else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'StartService'.");
           }
       }
       QVariantMap data;
-      data.insert("is_ok", false);
+      data.insert("call_succeeded", false);
       m_stateMachine.submitEvent("ManagePeopleDetectorComponent.StartService.Return", data);
       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "ManagePeopleDetectorComponent.StartService.Return");
   });

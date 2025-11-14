@@ -73,12 +73,14 @@ bool SetNavigationPositionSkill::start(int argc, char*argv[])
                                                                            	this,
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
+  m_tickService->configure_introspection(m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
   
 	m_haltService = m_node->create_service<bt_interfaces_dummy::srv::HaltAction>(m_name + "Skill/halt",
                                                                             	std::bind(&SetNavigationPositionSkill::halt,
                                                                             	this,
                                                                             	std::placeholders::_1,
                                                                             	std::placeholders::_2));
+  m_haltService->configure_introspection(m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
   
   
   
@@ -86,6 +88,7 @@ bool SetNavigationPositionSkill::start(int argc, char*argv[])
       std::shared_ptr<rclcpp::Node> nodeIsDancing = rclcpp::Node::make_shared(m_name + "SkillNodeIsDancing");
       std::shared_ptr<rclcpp::Client<execute_dance_interfaces::srv::IsDancing>> clientIsDancing = nodeIsDancing->create_client<execute_dance_interfaces::srv::IsDancing>("/ExecuteDanceComponent/IsDancing");
       auto request = std::make_shared<execute_dance_interfaces::srv::IsDancing::Request>();
+      clientIsDancing->configure_introspection(nodeIsDancing->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
       auto eventParams = event.data().toMap();
       
       bool wait_succeded{true};
@@ -110,21 +113,20 @@ bool SetNavigationPositionSkill::start(int argc, char*argv[])
           if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
           {
               auto response = result.get();
-              if( response->is_ok == true) {
-                  QVariantMap data;
-                  data.insert("is_ok", true);
-                  data.insert("is_dancing", response->is_dancing);
-                  m_stateMachine.submitEvent("ExecuteDanceComponent.IsDancing.Return", data);
-                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "ExecuteDanceComponent.IsDancing.Return");
-                  return;
-              }
+              QVariantMap data;
+              data.insert("call_succeeded", true);
+              data.insert("is_dancing", response->is_dancing);
+              m_stateMachine.submitEvent("ExecuteDanceComponent.IsDancing.Return", data);
+              RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "ExecuteDanceComponent.IsDancing.Return");
+              return;
+              
           }
           else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'IsDancing'.");
           }
       }
       QVariantMap data;
-      data.insert("is_ok", false);
+      data.insert("call_succeeded", false);
       m_stateMachine.submitEvent("ExecuteDanceComponent.IsDancing.Return", data);
       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "ExecuteDanceComponent.IsDancing.Return");
   });
@@ -132,6 +134,7 @@ bool SetNavigationPositionSkill::start(int argc, char*argv[])
       std::shared_ptr<rclcpp::Node> nodeExecuteDance = rclcpp::Node::make_shared(m_name + "SkillNodeExecuteDance");
       std::shared_ptr<rclcpp::Client<execute_dance_interfaces::srv::ExecuteDance>> clientExecuteDance = nodeExecuteDance->create_client<execute_dance_interfaces::srv::ExecuteDance>("/ExecuteDanceComponent/ExecuteDance");
       auto request = std::make_shared<execute_dance_interfaces::srv::ExecuteDance::Request>();
+      clientExecuteDance->configure_introspection(nodeExecuteDance->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
       auto eventParams = event.data().toMap();
       
       request->dance_name = convert<decltype(request->dance_name)>(eventParams["dance_name"].toString().toStdString());
@@ -157,21 +160,20 @@ bool SetNavigationPositionSkill::start(int argc, char*argv[])
           if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
           {
               auto response = result.get();
-              if( response->is_ok == true) {
-                  QVariantMap data;
-                  data.insert("is_ok", true);
-                  data.insert("is_ok", response->is_ok);
-                  m_stateMachine.submitEvent("ExecuteDanceComponent.ExecuteDance.Return", data);
-                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "ExecuteDanceComponent.ExecuteDance.Return");
-                  return;
-              }
+              QVariantMap data;
+              data.insert("call_succeeded", true);
+              data.insert("is_ok", response->is_ok.c_str());
+              m_stateMachine.submitEvent("ExecuteDanceComponent.ExecuteDance.Return", data);
+              RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "ExecuteDanceComponent.ExecuteDance.Return");
+              return;
+              
           }
           else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'ExecuteDance'.");
           }
       }
       QVariantMap data;
-      data.insert("is_ok", false);
+      data.insert("call_succeeded", false);
       m_stateMachine.submitEvent("ExecuteDanceComponent.ExecuteDance.Return", data);
       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "ExecuteDanceComponent.ExecuteDance.Return");
   });

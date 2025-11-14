@@ -73,6 +73,7 @@ bool ArePeoplePresentSkill::start(int argc, char*argv[])
                                                                            	this,
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
+  m_tickService->configure_introspection(m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
   
   
   
@@ -81,6 +82,7 @@ bool ArePeoplePresentSkill::start(int argc, char*argv[])
       std::shared_ptr<rclcpp::Node> nodeIsAllowedToContinue = rclcpp::Node::make_shared(m_name + "SkillNodeIsAllowedToContinue");
       std::shared_ptr<rclcpp::Client<turn_back_manager_interfaces::srv::IsAllowedToContinue>> clientIsAllowedToContinue = nodeIsAllowedToContinue->create_client<turn_back_manager_interfaces::srv::IsAllowedToContinue>("/TurnBackManagerComponent/IsAllowedToContinue");
       auto request = std::make_shared<turn_back_manager_interfaces::srv::IsAllowedToContinue::Request>();
+      clientIsAllowedToContinue->configure_introspection(nodeIsAllowedToContinue->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
       auto eventParams = event.data().toMap();
       
       bool wait_succeded{true};
@@ -105,22 +107,21 @@ bool ArePeoplePresentSkill::start(int argc, char*argv[])
           if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
           {
               auto response = result.get();
-              if( response->is_ok == true) {
-                  QVariantMap data;
-                  data.insert("is_ok", true);
-                  data.insert("is_allowed", response->is_allowed);
-                  data.insert("result", response->result);
-                  m_stateMachine.submitEvent("TurnBackManagerComponent.IsAllowedToContinue.Return", data);
-                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TurnBackManagerComponent.IsAllowedToContinue.Return");
-                  return;
-              }
+              QVariantMap data;
+              data.insert("call_succeeded", true);
+              data.insert("is_allowed", response->is_allowed);
+              data.insert("result", response->result);
+              m_stateMachine.submitEvent("TurnBackManagerComponent.IsAllowedToContinue.Return", data);
+              RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TurnBackManagerComponent.IsAllowedToContinue.Return");
+              return;
+              
           }
           else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'IsAllowedToContinue'.");
           }
       }
       QVariantMap data;
-      data.insert("is_ok", false);
+      data.insert("call_succeeded", false);
       m_stateMachine.submitEvent("TurnBackManagerComponent.IsAllowedToContinue.Return", data);
       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TurnBackManagerComponent.IsAllowedToContinue.Return");
   });

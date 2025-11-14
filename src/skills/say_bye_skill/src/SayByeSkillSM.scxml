@@ -4,8 +4,8 @@
         <data id="m_command" expr="&apos;sayBye&apos;"/>
         <data id="m_param" expr="&apos;&apos;"/>
         <data id="m_is_speaking" expr="false"/>
-        <data id="m_result" expr="&apos;&apos;"/>
-        <data id="SUCCESS_RESULT" expr="&apos;SUCCESS&apos;"/>
+        <data id="m_result" expr="false"/>
+        <data id="SUCCESS_RESULT" expr="true"/>
         <data id="SKILL_SUCCESS" expr="0"/>
         <data id="SKILL_FAILURE" expr="1"/>
         <data id="SKILL_RUNNING" expr="2"/>
@@ -21,7 +21,9 @@
         <transition target="halted" event="CMD_HALT"/>
     </state>
     <state id="setCmd">
-        <transition target="evaluateSetCmd" event="SchedulerComponent.SetCommand.Return"/>
+        <transition target="evaluateSetCmd" event="SchedulerComponent.SetCommand.Return">
+            <assign location="m_result" expr="_event.data.is_ok"/>
+        </transition>
     </state>
     <state id="evaluateSetCmd">
         <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
@@ -33,6 +35,7 @@
         </onentry>
         <transition target="evaluateGetText" event="SchedulerComponent.GetCurrentAction.Return">
             <assign location="m_param" expr="_event.data.param"/>
+            <assign location="m_result" expr="_event.data.is_ok"/>
         </transition>
     </state>
     <state id="evaluateGetText">
@@ -49,7 +52,9 @@
                 <param name="text" expr="m_param"/>
             </send>
         </onentry>
-        <transition target="evaluateSpeak" event="TextToSpeechComponent.Speak.Return"/>
+        <transition target="evaluateSpeak" event="TextToSpeechComponent.Speak.Return">
+            <assign location="m_result" expr="_event.data.is_ok"/>
+        </transition>
     </state>
     <state id="evaluateSpeak">
         <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
@@ -64,6 +69,7 @@
     <state id="checkSpeak">
         <transition target="evaluateCheck" event="TextToSpeechComponent.IsSpeaking.Return">
             <assign location="m_is_speaking" expr="_event.data.is_speaking"/>
+            <assign location="m_result" expr="_event.data.is_ok"/>
         </transition>
     </state>
     <state id="evaluateCheck">

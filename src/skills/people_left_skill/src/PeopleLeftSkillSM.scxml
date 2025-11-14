@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="PeopleLeftSkillAction" datamodel="ecmascript" initial="idle">
     <datamodel>
-        <data id="m_result" expr="&apos;&apos;"/>
-        <data id="SUCCESS_RESULT" expr="&apos;SUCCESS&apos;"/>
+        <data id="m_result" expr="false"/>
+        <data id="SUCCESS_RESULT" expr="true"/>
         <data id="SKILL_SUCCESS" expr="0"/>
         <data id="SKILL_FAILURE" expr="1"/>
     </datamodel>
@@ -15,7 +15,9 @@
         <transition target="halted" event="CMD_HALT"/>
     </state>
     <state id="resetTour">
-        <transition target="evaluateReset" event="SchedulerComponent.Reset.Return"/>
+        <transition target="evaluateReset" event="SchedulerComponent.Reset.Return">
+            <assign location="m_result" expr="_event.data.is_ok"/>
+        </transition>
     </state>
     <state id="evaluateReset">
         <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
@@ -25,7 +27,9 @@
         <onentry>
             <send event="TurnBackManagerComponent.ResetCounters.Call"/>
         </onentry>
-        <transition target="evaluateCounters" event="TurnBackManagerComponent.ResetCounters.Return"/>
+        <transition target="evaluateCounters" event="TurnBackManagerComponent.ResetCounters.Return">
+            <assign location="m_result" expr="_event.data.is_ok"/>
+        </transition>
     </state>
     <state id="evaluateCounters">
         <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
@@ -35,7 +39,9 @@
         <onentry>
             <send event="TimeComponent.StopTourTimer.Call"/>
         </onentry>
-        <transition target="evaluateTimer" event="TimeComponent.StopTourTimer.Return"/>
+        <transition target="evaluateTimer" event="TimeComponent.StopTourTimer.Return">
+            <assign location="m_result" expr="_event.data.is_ok"/>
+        </transition>
     </state>
     <state id="evaluateTimer">
         <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
@@ -45,7 +51,9 @@
         <onentry>
             <send event="TimeComponent.StopPoiTimer.Call"/>
         </onentry>
-        <transition target="evaluateTimerPoi" event="TimeComponent.StopPoiTimer.Return"/>
+        <transition target="evaluateTimerPoi" event="TimeComponent.StopPoiTimer.Return">
+            <assign location="m_result" expr="_event.data.is_ok"/>
+        </transition>
     </state>
     <state id="evaluateTimerPoi">
         <transition cond="m_result != SUCCESS_RESULT" target="failure"/>

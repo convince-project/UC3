@@ -13,6 +13,7 @@
 #include <bt_interfaces_dummy/srv/tick_action.hpp>
 #include <bt_interfaces_dummy/srv/halt_action.hpp>
 
+#include <rcl/service_introspection.h>
 
 #define SERVICE_TIMEOUT 8
 #define SKILL_SUCCESS 0
