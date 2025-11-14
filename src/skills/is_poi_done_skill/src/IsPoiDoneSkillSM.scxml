@@ -1,0 +1,72 @@
+<scxml 
+  initial="idle" 
+  version="1.0" 
+  name="IsPoiDoneSkillCondition"
+  datamodel="ecmascript"
+  xmlns="http://www.w3.org/2005/07/scxml">
+
+  <datamodel>
+    <data id="m_result"/>
+    <data id="m_value"/>
+    <data id="m_field_name" expr='"PoiDone"'/>
+  </datamodel>
+
+  <state id="idle">
+    <onentry>
+      <log expr="'State idle'"/>
+    </onentry>
+
+      <transition event="CMD_TICK" target="getCurrentPoi" />
+  </state>
+
+  <state id="getCurrentPoi">
+    <onentry>
+        <send event="BlackboardComponent.GetInt.Call">
+          <param name="field_name" expr="m_field_name"/>
+        </send>
+      <log expr="'State getCurrentPoi'"/>
+    </onentry>
+    <transition event="BlackboardComponent.GetInt.Return" target="getCurrentPoiResult"> 
+        <assign expr="_event.data.result" location="m_result"/>
+        <assign expr="_event.data.value" location="m_value"/>
+    </transition>
+  </state>
+
+  <state id="getCurrentPoiResult">
+    <onentry>
+      <log expr="'State getCurrentPoiResult'"/>
+    </onentry>
+    <transition cond="m_result == 'SUCCESS'" target="checkPoi" />
+    <transition target="sendFailure" />
+  </state>
+
+  <state id="checkPoi">
+    <onentry>
+      <log expr="'State checkPoi'"/>
+    </onentry>
+    <transition cond="m_value == 1" target="sendSuccess" /> 
+    <transition target="sendFailure" /> 
+  </state> 
+
+  <state id="sendFailure">
+    <onentry>
+      <send event="TICK_RESPONSE">
+        <param name="result" expr='"FAILURE"'/>
+      </send>
+      <log expr="'State sendFailure'"/>
+    </onentry>
+    <transition target="idle" />
+  </state>
+
+  <state id="sendSuccess">
+      <onentry>
+        <send event="TICK_RESPONSE">
+          <param name="result" expr='"SUCCESS"'/>
+        </send>
+      <log expr="'State sendSuccess'"/>
+      </onentry>
+      <transition target="idle" />
+  </state>
+
+
+</scxml>
