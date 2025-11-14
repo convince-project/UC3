@@ -32,6 +32,7 @@
   <state id="queryFlag">
     <ros_service_handle_response name="/BlackboardComponent/GetInt" target="evaluate">
       <assign location="m_value"  expr="_res.value"/>
+      <assign location="m_result" expr="_res.is_ok"/>
     </ros_service_handle_response>
   </state>
 
