@@ -2,7 +2,7 @@
 <scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="NotifyChargedSkillAction" datamodel="ecmascript" initial="idle">
     <datamodel>
         <data id="m_result" expr="false"/>
-        <data id="SUCCESS_RESULT" expr="&apos;SUCCESS&apos;"/>
+        <data id="SUCCESS_RESULT" expr="true"/>
         <data id="SKILL_SUCCESS" expr="0"/>
         <data id="SKILL_FAILURE" expr="1"/>
     </datamodel>

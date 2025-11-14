@@ -73,12 +73,14 @@ bool GoToChargingStationSkill::start(int argc, char*argv[])
                                                                            	this,
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
+  m_tickService->configure_introspection(m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
   
 	m_haltService = m_node->create_service<bt_interfaces_dummy::srv::HaltAction>(m_name + "Skill/halt",
                                                                             	std::bind(&GoToChargingStationSkill::halt,
                                                                             	this,
                                                                             	std::placeholders::_1,
                                                                             	std::placeholders::_2));
+  m_haltService->configure_introspection(m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
   
   m_actionClient = rclcpp_action::create_client<navigation_interfaces::action::GoToPoi>(m_node, "/NavigationComponent/GoToPoi");
   m_send_goal_options.goal_response_callback = std::bind(&GoToChargingStationSkill::goal_response_callback, this, std::placeholders::_1);
@@ -216,7 +218,7 @@ void GoToChargingStationSkill::send_goal(navigation_interfaces::action::GoToPoi:
       RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while waiting for the service 'GoToPoi'.");
       wait_succeded = false;
       QVariantMap data;
-      data.insert("is_ok", false);
+      data.insert("call_succeeded", false);
       m_stateMachine.submitEvent("NavigationComponent.GoToPoi.GoalResponse", data);
       break;
     }
@@ -225,7 +227,7 @@ void GoToChargingStationSkill::send_goal(navigation_interfaces::action::GoToPoi:
       RCLCPP_INFO(m_node->get_logger(), "Sending goal");
       m_actionClient->async_send_goal(goal_msg, m_send_goal_options);
       QVariantMap data;
-      data.insert("is_ok", true);
+      data.insert("call_succeeded", true);
       m_stateMachine.submitEvent("NavigationComponent.GoToPoi.GoalResponse", data);
     }
   }
@@ -246,23 +248,23 @@ void GoToChargingStationSkill::result_callback(const  rclcpp_action::ClientGoalH
       break;
   }
   //std::cout << "Result received: " << result.result->is_ok << std::endl;
-  RCLCPP_INFO(m_node->get_logger(), "Result received: %d ", result.result->is_ok);
+  // RCLCPP_INFO(m_node->get_logger(), "Result received: %d ", result.result->is_ok);
   QVariantMap data;
-  data.insert("is_ok", result.result->is_ok);
+  // data.insert("is_ok", result.result->is_ok);
   m_stateMachine.submitEvent("NavigationComponent.GoToPoi.ResultResponse", data);
   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NavigationComponent.GoToPoi.ResultResponse");
 }
 void GoToChargingStationSkill::goal_response_callback(const rclcpp_action::ClientGoalHandle<navigation_interfaces::action::GoToPoi>::SharedPtr & goal_handle)
 {
-  std::cout << "Provaa" << std::endl;
+  // std::cout << "Provaa" << std::endl;
   QVariantMap data;
   if (!goal_handle) {
-    data.insert("is_ok", false);
+    data.insert("call_succeeded", false);
     m_stateMachine.submitEvent("NavigationComponent.GoToPoi.GoalResponse", data);
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NavigationComponent.GoToPoi.GoalResponse Failure");
     RCLCPP_ERROR(m_node->get_logger(), "Goal was rejected by server");
   } else {
-    data.insert("is_ok", true);
+    data.insert("call_succeeded", true);
     m_stateMachine.submitEvent("NavigationComponent.GoToPoi.GoalResponse", data);
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NavigationComponent.GoToPoi.GoalResponse Success");
     RCLCPP_INFO(m_node->get_logger(), "Goal accepted by server, waiting for result");
