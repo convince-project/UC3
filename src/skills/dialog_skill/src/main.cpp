@@ -1,10 +1,15 @@
 #include <QCoreApplication>
 #include <QScxmlStateMachine>
 #include <QDebug>
+
+
 #include <iostream>
+#include "DialogSkill.h"
+
 #include <thread>
 #include <chrono>
-#include "DialogSkill.h"
+
+
 
 int main(int argc, char *argv[])
 {
@@ -14,7 +19,7 @@ int main(int argc, char *argv[])
 
   int ret=app.exec();
   
-  std::cout << "DialogSkill successfully closed" << std::endl;
   return ret;
+  
 }
 
