@@ -305,14 +305,15 @@
 
   
   <TreeNodesModel>
-    <ROS2Action>
+    <Action ID="ROS2Action">
       <input_port name="interface" type="std::string" />
       <input_port name="isMonitored" type="std::string" />
     </Action>
-    <ROS2Condition>
+    <Condition ID="ROS2Condition">
       <input_port name="interface" type="std::string" />
       <input_port name="isMonitored" type="std::string" />
     </Condition>
+
   </TreeNodesModel>
 
 </root>
