@@ -67,7 +67,7 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
         std::string prompt_start_file = "Format_commands_welcome_prompt.txt";
         local = "/DialogComponent/chatBotClient/rpc:o";
         // remote = "/poi_chat/LLM_nws/rpc:i";
-        remote = "/welcome_chat/LLM_nws/rpc:i";
+        remote = "/poi_madama_chat/LLM_nws/rpc:i";
 
         if (okCheck)
         {

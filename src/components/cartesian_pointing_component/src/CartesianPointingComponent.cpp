@@ -370,8 +370,7 @@ bool CartesianPointingComponent::start(int argc, char *argv[])
         {"h0v0",   0,  0}, {"h0v20",   0, 20}, {"h0v35",   0, 35},
         {"h30v0", 30,  0}, {"h30v20", 30, 20}, {"h30v35", 30, 35},
         {"h60v0", 60,  0}, {"h60v20", 60, 20}, {"h60v35", 60, 35},
-        {"h90v0", 90,  0}, {"h90v20", 90, 20}, {"h90v35", 90, 35},
-        {"h30v70", 30, 70}, {"h60v70", 60, 70}, {"h90v70", 90, 70}
+        {"h90v0", 90,  0}, {"h90v20", 90, 20}, {"h90v35", 90, 35}
     };
 
     RCLCPP_DEBUG(m_node->get_logger(), "CartesianPointingComponent READY");
@@ -701,7 +700,7 @@ void CartesianPointingComponent::pointTask(const std::shared_ptr<cartesian_point
             map_x = obj.x;
             map_y = obj.y;
             map_z = obj.z;
-            map_frame = obj.map_id;
+            map_frame = "map";
             found = true;
             RCLCPP_INFO(m_node->get_logger(), "Target '%s' as OBJECT in map '%s': x=%.3f y=%.3f z=%.3f",
                         request->target_name.c_str(), map_frame.c_str(), map_x, map_y, map_z);
