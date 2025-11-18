@@ -87,6 +87,7 @@ void ManagePeopleDetectorComponent::spin()
 void ManagePeopleDetectorComponent::StartPeopleDetector([[maybe_unused]] const std::shared_ptr<manage_service_interfaces::srv::StartService::Request> request,
              std::shared_ptr<manage_service_interfaces::srv::StartService::Response>      response) 
 {
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "ManagePeopleDetectorComponent::StartPeopleDetector");
     auto state = get_state(std::chrono::seconds(5));
     if (state == std::nullopt) {
         response->is_ok = false;
@@ -136,6 +137,7 @@ void ManagePeopleDetectorComponent::StartPeopleDetector([[maybe_unused]] const s
 void ManagePeopleDetectorComponent::StopPeopleDetector([[maybe_unused]] const std::shared_ptr<manage_service_interfaces::srv::StopService::Request> request,
              std::shared_ptr<manage_service_interfaces::srv::StopService::Response>      response) 
 {
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "ManagePeopleDetectorComponent::StopPeopleDetector");
     auto state = get_state(std::chrono::seconds(5));
     if (state == std::nullopt) {
         response->is_ok = false;
