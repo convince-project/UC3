@@ -964,7 +964,7 @@
                 "m_isBlocking": false,
                 "m_param": "Nel profilo ondulato del cornicione si alternano quattro aquile con la croce di Savoia nel petto e la pianta di fritillaria, emblema di Madama Reale: si tratta di una pianta della famiglia dei gigli con grandi fiori arancioni. Lo zoccolo e le sovrapporte in stucco furono eseguiti nel millenovecentoventisette con calchi in gesso tratti dalle decorazioni della Reggia di Venaria Reale.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": "point::POI1"
               },
               {
                 "m_isBlocking": false,
@@ -1003,7 +1003,7 @@
                 "m_isBlocking": false,
                 "m_param": "Alcuni di loro si vedono nel grande dipinto che raffigura il castello di Rivoli. Guardali qui, in questo grande quadro, in basso a destra, con le loro braghe rosse, la camicia bianca e il tricorno nero in testa scortano la carrozza del re.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": "point::POI2"
               },
               {
                 "m_isBlocking": false,
@@ -1029,7 +1029,7 @@
                 "m_isBlocking": false,
                 "m_param": "Alcuni di loro si vedono nel grande dipinto che raffigura il castello di Rivoli. Guardali qui, in questo grande quadro, in basso a destra, con le loro braghe rosse, la camicia bianca e il tricorno nero in testa scortano la carrozza del re.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": "point::POI2"
               },
               {
                 "m_isBlocking": false,
@@ -1152,7 +1152,7 @@
                 "m_isBlocking": false,
                 "m_param": "Anche qui devi guardare verso l’alto! Nel Settecento la volta della Camera da Parata fu coperta da una nuova pittura. Una piccola porzione della decorazione originaria è visibile poco sopra la porta di ingresso a destra, dove un saggio di scoprimento, riconoscibile da un tratteggio bianco, ha riportato in luce un frammento dell’intervento tardo seicentesco, forse da riferire all’opera di Bartolomeo Guidobono.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": "point::POI3"
               },
               {
                 "m_isBlocking": false,
