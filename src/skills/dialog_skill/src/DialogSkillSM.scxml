@@ -490,9 +490,7 @@
     <onentry>
     </onentry>
 
-    <transition event="DialogComponent.SetLanguage.Return" target="stopResult">
-      <assign expr="_event.data.result" location="m_result"/>
-    </transition>
+    <transition target="stopResult" />
   </state>
 
   <!-- STATE END -->
