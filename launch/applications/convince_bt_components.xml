@@ -9,6 +9,13 @@
     </module>
 
     <module>
+        <name>ros2</name>
+        <parameters>run monitoring_clock_component monitoring_clock_component</parameters>
+        <workdir>/home/user1/UC3</workdir>
+        <node>bt</node>
+    </module>
+
+    <module>
         <name>ros2_speech_to_text_component</name>
         <parameters>run speech_to_text_component speech_to_text_component</parameters>
         <workdir>/home/user1/UC3</workdir>
@@ -77,9 +84,9 @@
 
     <module>
         <name>ros2_check_network_component</name>
-        <parameters>run check_network_component check_network_component</parameters>
-        <workdir />
-        <node>bt</node>
+        <parameters>run check_network_component check_network_component --address_name 192.168.101.10</parameters>
+        <workdir/>
+        <node>bt-base</node>
     </module>
 
 
