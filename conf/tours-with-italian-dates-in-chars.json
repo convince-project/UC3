@@ -262,7 +262,7 @@
                 "m_isBlocking": false,
                 "m_param": "In the undulating profile of the cornice, four eagles alternate with the Savoy cross on their chests and the fritillary plant, emblem of Madama Reale: it is a plant of the lily family with large orange flowers. The base and the stucco overdoors were executed in 1927 with plaster casts taken from the decorations of the Royal Palace of Venaria.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": "point::POI1"
               },
               {
                 "m_isBlocking": false,
@@ -301,7 +301,7 @@
                 "m_isBlocking": false,
                 "m_param": "Some of them can be seen in the large painting depicting the castle of Rivoli. Look at them here, in this large painting, at the bottom right, with their red breeches, white shirts, and black tricorn hats escorting the king's carriage.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": "point::POI2"
               },
               {
                 "m_isBlocking": false,
@@ -327,7 +327,7 @@
                 "m_isBlocking": false,
                 "m_param": "Some of them can be seen in the large painting depicting the castle of Rivoli. Look at them here, in this large painting, at the bottom right, with their red breeches, white shirts, and black tricorn hats escorting the king's carriage.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": "point::POI2"
               },
               {
                 "m_isBlocking": false,
@@ -341,7 +341,7 @@
                 "m_isBlocking": false,
                 "m_param": "To fully appreciate this room, you need to look up at the ceiling! The vault is dedicated to the allegory of Spring, which appears in the center on clouds pushed by zephyr heads. The perforated false ceiling is supported by a perspective loggia with columns and openings from which parrots, birds of prey, waterfowl, and domestic birds look out.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": "point::POI3"
               },
               {
                 "m_isBlocking": false,
@@ -353,7 +353,7 @@
                 "m_isBlocking": false,
                 "m_param": "Above the cornice to the east appears the artist's signature and the date of completion of the work, December 16, 1714. The false architecture is probably due to the intervention of a quadraturist, a painter specialized in the realization of architectural perspectives.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": "point::POI3"
               },
               {
                 "m_isBlocking": false,
@@ -450,7 +450,7 @@
                 "m_isBlocking": false,
                 "m_param": "You also need to look up here! In the 18th century, the vault of the Parade Room was covered with a new painting. A small portion of the original decoration is visible just above the entrance door to the right, where a discovery sample, recognizable by a white hatch, has brought to light a fragment of the late 17th-century intervention, perhaps attributable to the work of Bartolomeo Guidobono.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": "point::POI4"
               },
               {
                 "m_isBlocking": false,
@@ -539,7 +539,7 @@
                 "m_isBlocking": false,
                 "m_param": "The iconographic program of the decoration is a celebration of time in all its forms. In the four corners above, you see the personifications of the seasons also alluding to the four ages of man, from the infancy of Bacchus-Autumn to the old age of Winter warming himself by the fire; inside frames appear human activities related to agriculture, while in the center of the vault, a series of cherubs engage in amusements and games, thus alluding to the recreational function of the room.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": "point::POI5"
               },
               {
                 "m_isBlocking": false,
@@ -553,7 +553,7 @@
                 "m_isBlocking": false,
                 "m_param": "Excellent! Thank you very much for your interest! The name of the room derives from the allegories of the Seasons, each placed in one of the four corners within golden frames.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": "point::POI5"
               },
               {
                 "m_isBlocking": false,
@@ -610,7 +610,7 @@
                 "m_isBlocking": false,
                 "m_param": "The canopy bed was placed between the two large mirrors: the upholstery, coordinated with the coverings of doors, bed, and curtains, in winter was of blue velvet, in accordance with the color of the ribbons of the garlands of painted flowers on the ceiling, while in summer it was replaced with silver-ground gold brocade with silk flowers of various colors.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": "point::POI6"
               },
               {
                 "m_isBlocking": false,
