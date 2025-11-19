@@ -70,10 +70,10 @@ def abstract_message(message):
                 # fallback: if conversion fails, mark as not unplagged
                 stddev = float('inf')
 
-            predicates['is_unplagged'] = (stddev < 10)
+            predicates['is_unplagged'] = (stddev < 15)
+            
 
-
-    print("predicates", predicates)
+    #print("predicates", predicates)
     #print("message", message)
 
     return predicates
