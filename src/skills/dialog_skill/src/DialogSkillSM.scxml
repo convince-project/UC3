@@ -116,6 +116,8 @@
   <state id="evaluateContext">
     <onentry>
 
+
+
       <log label="State evaluateContext" expr="m_result"/>
       <log label="Interaction" expr="m_interaction"/>
       <log label="Language" expr="m_language"/>
@@ -124,19 +126,13 @@
       <log label="Is tour ended" expr="m_is_poi_ended"/>
       <log label="Dance" expr="m_dance"/>
 
+
+
     </onentry>
 
-    <!-- If the visitor asked to start/continue/end the tour, we send a success response and end the conversation -->
-    <transition cond="m_is_poi_ended == true" target="resetToInitialState">
-      <send event="DialogComponent.SetLanguage.Call">
-          <param name="new_language" expr='"it-IT"'/>
-        </send>
-    </transition>
+
     <!-- Else, continue the pipeline -->
-    <transition cond="m_is_poi_ended == false" target="setLanguage">
-        <send event="DialogComponent.SetLanguage.Call">
-          <param name="new_language" expr="m_language"/>
-        </send>
+    <transition cond="m_is_poi_ended == false" target="evaluateDuplicate">
     </transition>
 
   </state>
@@ -161,9 +157,7 @@
         <param name="result" expr='"RUNNING"'/>
       </send>
     </transition>
-    <transition event="DialogComponent.SetLanguage.Return" target="setLanguageResult">
-      <assign expr="_event.data.result" location="m_result"/>
-    </transition>
+    <transition target="resetToInitialStateResult"/>
   </state>
 
   <!-- STATE END -->
@@ -494,9 +488,6 @@
 
   <state id="stop">
     <onentry>
-        <send event="DialogComponent.SetLanguage.Call">
-          <param name="new_language" expr='"it-IT"'/>
-        </send>
     </onentry>
 
     <transition event="DialogComponent.SetLanguage.Return" target="stopResult">
