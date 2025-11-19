@@ -1,7 +1,7 @@
 """
 H((alarm => P battery_level < 30%) AND - ( -alarm S[5 : ] battery_level  < 30%))"""
 
-PROPERTY = r"historically(({alarm} -> once{low_battery}) and not( not {alarm} since[5:] {low_battery}))"
+PROPERTY = r"historically(({alarm} -> once{low_battery}) and not( not {alarm} since[60:] {low_battery}))"
 
 # predicates used in the property (initialization for time 0)
 
@@ -45,7 +45,3 @@ def abstract_message(message):
     
 
     return predicates
-
-# property to verify
-# Ogni volta che si attiva l’allarme (alarm), in passato la batteria è stata almeno una volta sotto il 30% (low_battery).
-# Inoltre, non deve accadere che, dopo l’attivazione dell’allarme, per almeno 5 unità di tempo non si sia verificato che la batteria era sotto il 30%."""
