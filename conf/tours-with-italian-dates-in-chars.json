@@ -1,12 +1,12 @@
 {
   "TOUR_MADAMA_3": {
     "m_activeTourPoIs": [
-       "madama_start",
-       "sala_delle_guardie",
        "sala_guidobono",
        "sala_delle_feste",
        "sala_4_stagioni",
-       "camera_di_madama_reale"
+       "camera_di_madama_reale",
+       "madama_start",
+       "sala_delle_guardie"
     ],
     "m_availablePoIs": {
       "en-US": {
@@ -1043,13 +1043,13 @@
                 "m_isBlocking": false,
                 "m_param": "Per apprezzare al meglio questa sala devi alzare la testa verso il soffitto! La volta è dedicata all’allegoria della Primavera che appare al centro su nubi sospinte da testine di zefiri. Il finto soffitto traforato è sostenuto da un loggiato in prospettiva con colonne e aperture da cui si affacciano pappagalli, rapaci, uccelli acquatici e domestici.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": "point::POI3"
               },
               {
                 "m_isBlocking": false,
                 "m_param": "L’affresco risale all’epoca della campagna decorativa condotta tra il millesettecentootto e il millesettecentoquattordici. Maria Giovanna Battista affidò l’esecuzione a Domenico Guidobono, mostrando così di prediligere il gusto per il naturalismo e l’illusionismo spaziale tipico della pittura barocca genovese, più informale ed esuberante rispetto alla decorazione aulica e classicheggiante favorita dal figlio Vittorio Amedeo II per Palazzo Reale.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": "point::POI3"
               },
               {
                 "m_isBlocking": false,
@@ -1152,7 +1152,7 @@
                 "m_isBlocking": false,
                 "m_param": "Anche qui devi guardare verso l’alto! Nel Settecento la volta della Camera da Parata fu coperta da una nuova pittura. Una piccola porzione della decorazione originaria è visibile poco sopra la porta di ingresso a destra, dove un saggio di scoprimento, riconoscibile da un tratteggio bianco, ha riportato in luce un frammento dell’intervento tardo seicentesco, forse da riferire all’opera di Bartolomeo Guidobono.",
                 "m_type": "speak",
-                "m_dance": "point::POI3"
+                "m_dance": "point::POI4"
               },
               {
                 "m_isBlocking": false,
@@ -1241,7 +1241,7 @@
                 "m_isBlocking": false,
                 "m_param": "Il programma iconografico della decorazione è una celebrazione del tempo in tutte le sue forme. Nei quattro angoli in alto vedi le personificazioni delle stagioni alludono anche alle quattro età dell’uomo, dall’infanzia di Bacco-Autunno alla vecchiaia dell’Inverno che si riscalda davanti al fuoco; all’interno di cornici appaiono le attività dell’uomo legate all’agricoltura, mentre al centro della volta una serie di puttini si intrattengono in svaghi e giochi, alludendo così alla funzione ricreativa della sala.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": "point::POI5"
               },
               {
                 "m_isBlocking": false,
@@ -1255,7 +1255,7 @@
                 "m_isBlocking": false,
                 "m_param": "Benissimo! Molte grazie per il tuo interesse! Il nome della sala deriva dalle allegorie delle Stagioni, ognuna collocata in uno dei quattro angoli all’interno di cartelle dorate.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": "point::POI5"
               },
               {
                 "m_isBlocking": false,
@@ -1312,7 +1312,7 @@
                 "m_isBlocking": false,
                 "m_param": "Il letto con baldacchino era collocato tra le due grandi specchiere: la tappezzeria, coordinata con i rivestimenti di porte, letto e tendaggi, d’inverno era di velluto blu, in accordo con il colore dei nastri delle ghirlande di fiori dipinti sul soffitto, mentre d’estate si sostituiva con tele di broccato d’oro a fondo d’argento con fiori di seta di vari colori.",
                 "m_type": "speak",
-                "m_dance": "gesture"
+                "m_dance": "point::POI6"
               },
               {
                 "m_isBlocking": false,
