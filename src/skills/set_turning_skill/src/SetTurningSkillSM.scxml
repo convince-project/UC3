@@ -3,7 +3,7 @@
     <datamodel>
         <data id="FIELD_NAME" expr="&apos;turnBackState&apos;"/>
         <data id="VALUE_STR" expr="&apos;turning&apos;"/>
-        <data id="result" expr="&apos;&apos;"/>
+        <data id="result" expr="false"/>
         <data id="SKILL_SUCCESS" expr="0"/>
         <data id="SKILL_FAILURE" expr="1"/>
         <data id="SKILL_RUNNING" expr="2"/>
@@ -19,19 +19,21 @@
     </state>
     <state id="setString">
         <transition target="reply" event="BlackboardComponent.SetString.Return">
-            <assign location="result" expr="_event.data.result"/>
+            <assign location="result" expr="true"/>
         </transition>
         <transition target="halted" event="CMD_HALT"/>
     </state>
     <state id="reply">
         <onentry>
-            <if cond="result==&apos;SKILL_SUCCESS&apos;">
+            <if cond="result">
                 <send event="TICK_RESPONSE">
                     <param name="status" expr="SKILL_SUCCESS"/>
+                    <param name="is_ok" expr="true"/>
                 </send>
                 <else/>
                 <send event="TICK_RESPONSE">
                     <param name="status" expr="SKILL_FAILURE"/>
+                    <param name="is_ok" expr="true"/>
                 </send>
             </if>
         </onentry>
@@ -39,8 +41,10 @@
     </state>
     <state id="halted">
         <onentry>
-            <assign location="result" expr="&apos;&apos;"/>
-            <send event="HALT_RESPONSE"/>
+            <assign location="result" expr="false"/>
+            <send event="HALT_RESPONSE">
+                <param name="is_ok" expr="true"/>
+            </send>
         </onentry>
         <transition target="idle"/>
     </state>

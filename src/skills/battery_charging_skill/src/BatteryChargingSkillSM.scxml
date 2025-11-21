@@ -9,8 +9,8 @@
     <!-- BatteryChargingSkill is a subscriber for the /battery_level topic from the BatteryComponent-->
     <state id="idle">
         <transition target="checkStatus" event="CMD_TICK"/>
-        <transition target="idle" event="RobotComponent.readBatteryStatus.Sub">
-            <assign location="battery_status" expr="_event.power_supply_status.battery_status"/>
+        <transition target="idle" event="BatteryComponent.battery_level.Sub">
+            <assign location="battery_status" expr="_event.data.power_supply_status"/>
         </transition>
     </state>
     <state id="checkStatus">
@@ -28,7 +28,7 @@
                 </send>
             </if>
         </onentry>
-        <transition target="checkStatus" event="CMD_TICK"/>
+        <!-- <ros_service_handle_request name="/BatteryChargingSkill/tick" target="checkStatus"/> -->
         <transition target="idle"/>
     </state>
 </scxml>

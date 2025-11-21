@@ -13,6 +13,7 @@
 #include <bt_interfaces_dummy/srv/tick_condition.hpp>
 
 
+#include <rcl/service_introspection.h>
 
 #define SERVICE_TIMEOUT 8
 #define SKILL_SUCCESS 0
@@ -29,6 +30,8 @@ class IsPoiDone1Skill
 {
 public:
 	IsPoiDone1Skill(std::string name );
+    ~IsPoiDone1Skill();
+
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	

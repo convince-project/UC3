@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ ResetCountersSkill::ResetCountersSkill(std::string name ) :
     
 }
 
+ResetCountersSkill::~ResetCountersSkill()
+{
+    //std::cout << "DEBUG: Invoked destructor of ResetCountersSkill" << std::endl;
+    m_threadSpin->join();
+}
+
 void ResetCountersSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: ResetCountersSkill::spin successfully ended" << std::endl;
 }
 
 bool ResetCountersSkill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool ResetCountersSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "ResetCountersSkill::start");
-	std::cout << "ResetCountersSkill::start";
+	std::cout << "DEBUG: ResetCountersSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
@@ -63,12 +73,14 @@ bool ResetCountersSkill::start(int argc, char*argv[])
                                                                            	this,
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
+  m_tickService->configure_introspection(m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
   
 	m_haltService = m_node->create_service<bt_interfaces_dummy::srv::HaltAction>(m_name + "Skill/halt",
                                                                             	std::bind(&ResetCountersSkill::halt,
                                                                             	this,
                                                                             	std::placeholders::_1,
                                                                             	std::placeholders::_2));
+  m_haltService->configure_introspection(m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
   
   
   
@@ -76,6 +88,7 @@ bool ResetCountersSkill::start(int argc, char*argv[])
       std::shared_ptr<rclcpp::Node> nodeResetCounters = rclcpp::Node::make_shared(m_name + "SkillNodeResetCounters");
       std::shared_ptr<rclcpp::Client<turn_back_manager_interfaces::srv::ResetCounters>> clientResetCounters = nodeResetCounters->create_client<turn_back_manager_interfaces::srv::ResetCounters>("/TurnBackManagerComponent/ResetCounters");
       auto request = std::make_shared<turn_back_manager_interfaces::srv::ResetCounters::Request>();
+      clientResetCounters->configure_introspection(nodeResetCounters->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
       auto eventParams = event.data().toMap();
       
       bool wait_succeded{true};
@@ -100,20 +113,20 @@ bool ResetCountersSkill::start(int argc, char*argv[])
           if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
           {
               auto response = result.get();
-              if( response->is_ok == true) {
-                  QVariantMap data;
-                  data.insert("is_ok", true);
-                  m_stateMachine.submitEvent("TurnBackManagerComponent.ResetCounters.Return", data);
-                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TurnBackManagerComponent.ResetCounters.Return");
-                  return;
-              }
+              QVariantMap data;
+              data.insert("call_succeeded", true);
+              data.insert("is_ok", response->is_ok);
+              m_stateMachine.submitEvent("TurnBackManagerComponent.ResetCounters.Return", data);
+              RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TurnBackManagerComponent.ResetCounters.Return");
+              return;
+              
           }
           else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'ResetCounters'.");
           }
       }
       QVariantMap data;
-      data.insert("is_ok", false);
+      data.insert("call_succeeded", false);
       m_stateMachine.submitEvent("TurnBackManagerComponent.ResetCounters.Return", data);
       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TurnBackManagerComponent.ResetCounters.Return");
   });
@@ -147,7 +160,7 @@ bool ResetCountersSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -172,10 +185,10 @@ void ResetCountersSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfa
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;  
+          break;
       case Status::undefined:
           response->status = SKILL_FAILURE;
-          break;          
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "ResetCountersSkill::tickDone");
   response->is_ok = true;

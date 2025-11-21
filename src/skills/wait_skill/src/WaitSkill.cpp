@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ WaitSkill::WaitSkill(std::string name ) :
     
 }
 
+WaitSkill::~WaitSkill()
+{
+    //std::cout << "DEBUG: Invoked destructor of WaitSkill" << std::endl;
+    m_threadSpin->join();
+}
+
 void WaitSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: WaitSkill::spin successfully ended" << std::endl;
 }
 
 bool WaitSkill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool WaitSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "WaitSkill::start");
-	std::cout << "WaitSkill::start";
+	std::cout << "DEBUG: WaitSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
@@ -63,38 +73,32 @@ bool WaitSkill::start(int argc, char*argv[])
                                                                            	this,
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
+  m_tickService->configure_introspection(m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
   
 	m_haltService = m_node->create_service<bt_interfaces_dummy::srv::HaltAction>(m_name + "Skill/halt",
                                                                             	std::bind(&WaitSkill::halt,
                                                                             	this,
                                                                             	std::placeholders::_1,
                                                                             	std::placeholders::_2));
+  m_haltService->configure_introspection(m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
   
   
   
   
   m_stateMachine.connectToEvent("TICK_RESPONSE", [this]([[maybe_unused]]const QScxmlEvent & event){
     RCLCPP_INFO(m_node->get_logger(), "WaitSkill::tickReturn %s", event.data().toMap()["status"].toString().toStdString().c_str());
-    std::string result = event.data().toMap()["status"].toString().toStdString().c_str();
+    std::string result = event.data().toMap()["status"].toString().toStdString();
     if (result == std::to_string(SKILL_SUCCESS) )
     {
       m_tickResult.store(Status::success);
-      RCLCPP_INFO(m_node->get_logger(), "WaitSkill::tickReturn SUCCESS");
     }
     else if (result == std::to_string(SKILL_RUNNING) )
     {
       m_tickResult.store(Status::running);
-      RCLCPP_INFO(m_node->get_logger(), "WaitSkill::tickReturn RUNNING");
     }
     else if (result == std::to_string(SKILL_FAILURE) )
     { 
       m_tickResult.store(Status::failure);
-      RCLCPP_INFO(m_node->get_logger(), "WaitSkill::tickReturn FAILURE");
-    }
-    else
-    {
-      m_tickResult.store(Status::failure);
-      RCLCPP_INFO(m_node->get_logger(), "WaitSkill::tickReturn UNKNOWN RESULT");
     }
   });
     
@@ -110,7 +114,7 @@ bool WaitSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -135,10 +139,10 @@ void WaitSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;  
+          break;
       case Status::undefined:
           response->status = SKILL_FAILURE;
-          break;          
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "WaitSkill::tickDone");
   response->is_ok = true;
