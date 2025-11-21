@@ -350,5 +350,11 @@
          <node>bt</node>
     </module>
 
+    <module>
+        <name>ros2_say_skip_questions_skill</name>
+        <parameters>run say_skip_questions_skill say_skip_questions_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
 
 </application>

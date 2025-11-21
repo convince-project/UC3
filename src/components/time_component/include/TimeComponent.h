@@ -82,7 +82,7 @@ private:
     bool m_printMuseumClosing{false};
     bool m_stoppedTimerTaskTour{false};
     bool m_stoppedTimerTaskPoi{false};
-    int m_warningTime{2};
+    int m_warningTime{20};
     int m_maxTime{4};
     bool m_timerTaskTour{false};
     bool m_timerTaskPoi{false};

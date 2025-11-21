@@ -61,6 +61,13 @@
                 "m_type": "speak"
               }
             ],
+            "saySkipQuestions": [
+              {
+                "m_isBlocking": false,
+                "m_param": "We are running out of time, so let's skip the questions and continue with the tour.",
+                "m_type": "speak"
+              }
+            ],
             "goalNotAvailableError": [
               {
                 "m_isBlocking": true,
@@ -760,6 +767,13 @@
               {
                 "m_isBlocking": false,
                 "m_param": "Mi scuso, non posso continuare il tour, non ci sono persone presenti.",
+                "m_type": "speak"
+              }
+            ],
+            "saySkipQuestions": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Dato che siamo in ritardo, per assicurarci di completare il tour in tempo, vi chiedo gentilmente di saltare le domande e di seguirmi.",
                 "m_type": "speak"
               }
             ],
@@ -1471,6 +1485,13 @@
                 "m_param": "Je suis désolé, je ne peux pas continuer la tournée, il n'y a plus personne autour de moi.",
                 "m_type": "speak"
               }
+            ],
+            "saySkipQuestions": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Parce que nous sommes en retard, pour assurer que nous terminions la visite à temps, je vous demande de bien vouloir sauter les questions et de me suivre.",
+                "m_type": "speak"
+              }
             ]
           },
           "m_name": "___generic___"
@@ -2021,6 +2042,13 @@
                 "m_param": "Lo siento, no puedo continuar la visita, no hay gente.",
                 "m_type": "speak"
               }
+            ],
+            "saySkipQuestions": [
+              {
+                "m_isBlocking": false,
+                "m_param": "¡Lo siento, pero hemos llegado al límite de preguntas permitidas! Podemos continuar con el recorrido.",
+                "m_type": "speak"
+              }
             ]
           },
           "m_name": "___generic___"
@@ -2564,6 +2592,13 @@
               {
                 "m_isBlocking": false,
                 "m_param": "Es tut mir leid, ich kann die Tour nicht fortsetzen, es sind keine Leute mehr da",
+                "m_type": "speak"
+              }
+            ],
+            "saySkipQuestions": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Wir haben nicht mehr viel Zeit, also lass uns die Fragen überspringen und mit der Tour fortfahren.",
                 "m_type": "speak"
               }
             ]            
@@ -3114,6 +3149,13 @@
               {
                 "m_isBlocking": false,
                 "m_param": "Gomen'nasai, mō hito ga inainode tsuā o tsudzukeru koto wa dekimasen.",
+                "m_type": "speak"
+              }
+            ],
+            "saySkipQuestions": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Mō shitsumon ga arimasen ne. Tsuā o tsudzukemasu ka?",
                 "m_type": "speak"
               }
             ]
