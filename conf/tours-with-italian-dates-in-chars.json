@@ -52,6 +52,15 @@
                 "m_dance": "gesture"
               }
             ],
+            "saySkipQuestions":
+            [
+              {
+                "m_isBlocking": false,
+                "m_param": "Because we are running late, to ensure we complete the tour on time, I kindly ask you to skip the questions and follow me.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
             "goalNotAvailableError": [
               {
                 "m_isBlocking": true,
@@ -750,6 +759,14 @@
               {
                 "m_isBlocking": false,
                 "m_param": "Mi scuso, non posso continuare il tour, non ci sono persone presenti.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "saySkipQuestions": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Siccome siamo in ritardo con il programma, per riuscire a finire in tempo il tour salterò le domande.",
                 "m_type": "speak",
                 "m_dance": "gesture"
               }
@@ -1455,6 +1472,14 @@
                 "m_type": "speak",
                 "m_dance": "gesture"
               }
+            ],
+            "saySkipQuestions": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Parce que nous sommes en retard, pour assurer que nous terminions la visite à temps, je vous demande de bien vouloir sauter les questions et de me suivre.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
             ]
           },
           "m_name": "___generic___"
@@ -2052,6 +2077,14 @@
                 "m_type": "speak",
                 "m_dance": "gesture"
               }
+            ],
+            "saySkipQuestions" : [
+              {
+                "m_isBlocking": false,
+                "m_param": "¡Lo siento, pero hemos llegado al límite de preguntas permitidas! Podemos continuar con el recorrido.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
             ]
           },
           "m_name": "___generic___"
@@ -2640,6 +2673,14 @@
               {
                 "m_isBlocking": false,
                 "m_param": "Es tut mir leid, ich kann die Tour nicht fortsetzen, es sind keine Leute mehr da",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "saySkipQuestions": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Um die Tour fortzusetzen, werde ich einige Ihrer Fragen überspringen.",
                 "m_type": "speak",
                 "m_dance": "gesture"
               }
@@ -3237,6 +3278,14 @@
               {
                 "m_isBlocking": false,
                 "m_param": "Gomen'nasai, mō hito ga inainode tsuā o tsudzukeru koto wa dekimasen.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "saySkipQuestions": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Mō shitsumon ga nakunatta yōdesu ne. Tsuaa o tsudzukemasu ka?",
                 "m_type": "speak",
                 "m_dance": "gesture"
               }
