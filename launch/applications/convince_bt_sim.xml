@@ -3,7 +3,7 @@
 
     <!-- APPLICATIONS -->
     <application>
-        <name>convince_external_modules</name>
+        <name>convince_external_modules_sim</name>
         <prefix></prefix>
     </application>
 
@@ -26,6 +26,7 @@
         <name>yarprobotinterface</name>
         <parameters>--config robotinterface.xml</parameters>
         <workdir>/home/user1/UC3/src/components/fake_battery_component</workdir>
+        <node>bt</node>
     </module>
 
     <!-- MODULES -->
