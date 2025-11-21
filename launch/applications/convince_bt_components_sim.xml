@@ -122,7 +122,7 @@
 
     <module>
         <name>ros2_scheduler_component</name>
-        <parameters>run scheduler_component scheduler_component conf/tours.json TOUR_MADAMA_3</parameters>
+        <parameters>run scheduler_component scheduler_component conf/tours-with-italian-dates-in-chars.json TOUR_MADAMA_3</parameters>
         <workdir>/home/user1/UC3</workdir>
         <node>bt</node>
     </module>
