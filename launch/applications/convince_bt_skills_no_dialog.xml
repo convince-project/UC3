@@ -336,5 +336,11 @@
          <node>bt</node>
     </module>
 
-
+    <module>
+        <name>ros2_say_skip_questions_skill</name>
+        <parameters>run dummy_condition dummy_condition --skill_name SaySkipQuestions --default_status SUCCESS</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+    
 </application>
