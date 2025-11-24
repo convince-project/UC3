@@ -67,7 +67,6 @@ Once you have all the dockers you can run the simulation named `convince_bt_sim.
 - `console-llm` is the yarprun server inside `elandini84/r1_talk:ub24.04_vcpkg_gccpp_v2.33`
 - `laptop` is the yarprun server inside your host machine with yarp installed
 
-```
 
 <!-- 
 <div align="center">
