@@ -12,7 +12,7 @@
 #include <chrono>         // std::chrono::seconds
 
 #include <ROS2Condition.h>
-
+#define VERBOSE_LOGGING
 ROS2Condition::ROS2Condition(const std::string name, const BT::NodeConfiguration& config) :
         ConditionNode(name, config)
 {
@@ -89,7 +89,19 @@ BT::NodeStatus ROS2Condition::tick()
 {
     auto message = bt_interfaces_dummy::msg::ConditionResponse();
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Node %s sending tick to skill", ConditionNode::name().c_str());
+    auto time_start = std::chrono::high_resolution_clock::now();
     auto status = sendTickToSkill();
+    auto time_end = std::chrono::high_resolution_clock::now();
+    auto time_duration = std::chrono::duration_cast<std::chrono::milliseconds>(time_end - time_start);
+    #ifdef VERBOSE_LOGGING
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Node %s tick to skill took %ld milliseconds", ConditionNode::name().c_str(), time_duration.count());
+    m_tick_count++;
+    if (m_tick_count > 4)
+    {
+        m_average_time = (duration.count() + (m_tick_count - 1-4) * m_average_time) / (m_tick_count-4);
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Node %s average tick time %f, number of ticks %d", ConditionNode::name().c_str(), m_average_time, m_tick_count);
+    }
+    #endif
     switch (status) {
         case message.SKILL_SUCCESS:
             return BT::NodeStatus::SUCCESS;
