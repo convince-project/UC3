@@ -57,6 +57,18 @@ to compile the docker with ros2 iron:
 ```
 cd UC3/docker/; docker build -t ste93/convince:tour_sim_ubuntu_22.04_qt_6.8.3_iron_devel  -f Dockerfile.bt_iron --build-arg base_img=ste93/r1images:tourCore2_ubuntu22.04_iron_stable_qt_6.8.3 .
 ```
+
+## simulation with docker
+to run the simulation with the docker image with ros2 iron you need:
+`ste93/convince:tour_ubuntu_24.04_qt_6.8.3_jazzy_verification_devel` and `elandini84/r1_talk:ub24.04_vcpkg_gccpp_v2.33` dockers on your system. Moreover you need yarp to execute the modules for the access to microphone and speakers.
+
+Once you have all the dockers you can run the simulation named `convince_bt_sim.xml` keeping in mind that:
+- `console` and `bt` are the yarprun server inside `ste93/convince:tour_ubuntu_24.04_qt_6.8.3_jazzy_verification_devel`
+- `console-llm` is the yarprun server inside `elandini84/r1_talk:ub24.04_vcpkg_gccpp_v2.33`
+- `laptop` is the yarprun server inside your host machine with yarp installed
+
+```
+
 <!-- 
 <div align="center">
   Journal, vol. X, no. y, pp. abc-def, Month Year
