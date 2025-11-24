@@ -60,7 +60,7 @@ cd UC3/docker/; docker build -t ste93/convince:tour_sim_ubuntu_22.04_qt_6.8.3_ir
 
 ## simulation with docker
 to run the simulation with the docker image with ros2 iron you need:
-`ste93/convince:tour_ubuntu_24.04_qt_6.8.3_jazzy_verification_devel` and `elandini84/r1_talk:ub24.04_vcpkg_gccpp_v2.33` dockers on your system. Moreover you need yarp to execute the modules for the access to microphone and speakers.
+`ste93/convince:tour_ubuntu_24.04_qt_6.8.3_sim_stable_new_robot_yarp_3.12.1` and `elandini84/r1_talk:ub24.04_vcpkg_gccpp_v2.33` dockers on your system. Moreover you need yarp to execute the modules for the access to microphone and speakers.
 
 Once you have all the dockers you can run the simulation named `convince_bt_sim.xml` keeping in mind that:
 - `console` and `bt` are the yarprun server inside `ste93/convince:tour_ubuntu_24.04_qt_6.8.3_jazzy_verification_devel`
