@@ -46,7 +46,9 @@ private:
 	IsAllowedToMoveSkillCondition m_stateMachine;
 	std::atomic<Status> m_tickResult{Status::undefined};
 	rclcpp::Service<bt_interfaces_dummy::srv::TickCondition>::SharedPtr m_tickService;
-	
+	std::shared_ptr<rclcpp::Node> nodeIsAllowedToMove;
+    std::shared_ptr<rclcpp::Client<allowed_to_move_interfaces::srv::IsAllowedToMove>> clientIsAllowedToMove;
+
 	
 	
 	
