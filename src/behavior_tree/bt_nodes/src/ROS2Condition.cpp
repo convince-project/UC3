@@ -92,9 +92,9 @@ BT::NodeStatus ROS2Condition::tick()
     auto time_start = std::chrono::high_resolution_clock::now();
     auto status = sendTickToSkill();
     auto time_end = std::chrono::high_resolution_clock::now();
-    auto time_duration = std::chrono::duration_cast<std::chrono::milliseconds>(time_end - time_start);
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(time_end - time_start);
     #ifdef VERBOSE_LOGGING
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Node %s tick to skill took %ld milliseconds", ConditionNode::name().c_str(), time_duration.count());
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Node %s tick to skill took %ld milliseconds", ConditionNode::name().c_str(), duration.count());
     m_tick_count++;
     if (m_tick_count > 4)
     {

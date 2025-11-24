@@ -37,6 +37,8 @@ private:
     rclcpp::Client<bt_interfaces_dummy::srv::HaltAction>::SharedPtr m_clientHalt;
     std::shared_ptr<rclcpp::Node> m_node;
     std::string m_name;
+    int m_tick_count{0};
+    double m_average_time{0.0};
     std::string m_suffixMonitor;
 };
 
