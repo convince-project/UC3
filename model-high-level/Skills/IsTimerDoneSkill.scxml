@@ -10,6 +10,10 @@
     <data id="m_is_active" type="boolean" expr="false"/>
   </datamodel>
 
+  <ros_service_client service_name="/TimerCheckForPeopleComponent/IsTimerActive" type="timer_check_for_people_interfaces/IsTimerActive"/>
+  <!-- Condition skill: tick server only -->
+  <ros_service_server service_name="/IsTimerDoneSkill/tick" type="bt_interfaces_dummy/TickCondition"/>
+
   <state id="idle">
     <transition event="CMD_TICK" target="getStatus"/>
   </state>
