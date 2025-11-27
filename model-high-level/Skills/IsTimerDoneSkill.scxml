@@ -6,7 +6,7 @@
        initial="idle">
 
   <datamodel>
-    <data id="m_result"    type="string"  expr="''"/>
+    <data id="m_is_ok"    type="boolean"  expr="false"/>
     <data id="m_is_active" type="boolean" expr="false"/>
   </datamodel>
 
@@ -19,14 +19,14 @@
       <send event="TimerCheckForPeopleComponent.IsTimerActive.Call"/>
     </onentry>
     <transition event="TimerCheckForPeopleComponent.IsTimerActive.Return" target="decide">
-      <assign location="m_result"    expr="_event.data.result"/>
+      <assign location="m_is_ok"    expr="_event.data.is_ok"/>
       <assign location="m_is_active" expr="_event.data.is_active"/>
     </transition>
   </state>
 
   <state id="decide">
     <onentry>
-      <if cond="m_result != 'SUCCESS' || m_is_active">
+      <if cond="!m_is_ok || m_is_active">
         <send event="TICK_RESPONSE">
           <param name="result" expr="'FAILURE'"/>
         </send>
