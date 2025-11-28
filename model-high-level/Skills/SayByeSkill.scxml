@@ -10,8 +10,8 @@
     <data id="m_command"      type="string"  expr="'sayBye'"/>
     <data id="m_param"        type="string"  expr="''"/>
     <data id="m_is_speaking"  type="bool" expr="false"/>
-    <data id="m_result"       type="string"  expr="''"/>
-    <data id="SUCCESS_RESULT" type="string"  expr="'SUCCESS'"/>
+    <data id="m_result"       type="bool"  expr="false"/>
+    <data id="SUCCESS_RESULT" type="string"  expr="true"/>
     <data id="SKILL_SUCCESS"  type="int8"    expr="0"/>
     <data id="SKILL_FAILURE"  type="int8"    expr="1"/>
     <data id="SKILL_RUNNING"  type="int8"    expr="2"/>
@@ -38,7 +38,7 @@
 
   <state id="setCmd">
     <ros_service_handle_response name="/SchedulerComponent/SetCommand" target="evaluateSetCmd">
-      <assign location="m_result" expr="_res.result"/>
+      <assign location="m_result" expr="_res.is_ok"/>
     </ros_service_handle_response>
   </state>
 
@@ -53,7 +53,7 @@
     </onentry>
     <ros_service_handle_response name="/SchedulerComponent/GetCurrentAction" target="evaluateGetText">
       <assign location="m_param"  expr="_res.param"/>
-      <assign location="m_result" expr="_res.result"/>
+      <assign location="m_result" expr="_res.is_ok"/>
     </ros_service_handle_response>
   </state>
 
@@ -73,7 +73,7 @@
       </ros_service_send_request>
     </onentry>
     <ros_service_handle_response name="/TextToSpeechComponent/Speak" target="evaluateSpeak">
-      <assign location="m_result" expr="_res.result"/>
+      <assign location="m_result" expr="_res.is_ok"/>
     </ros_service_handle_response>
   </state>
 
@@ -92,7 +92,7 @@
   <state id="checkSpeak">
     <ros_service_handle_response name="/TextToSpeechComponent/IsSpeaking" target="evaluateCheck">
       <assign location="m_is_speaking" expr="_res.is_speaking"/>
-      <assign location="m_result"      expr="_res.result"/>
+      <assign location="m_result" expr="_res.is_ok"/>
     </ros_service_handle_response>
   </state>
 

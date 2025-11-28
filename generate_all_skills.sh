@@ -4,8 +4,8 @@
 SKILLS_DIR="/home/user1/UC3/model-high-level/Skills"
 MODEL_FILE="/home/user1/UC3/parser-and-code-generator/specifications/full-model.xml"
 INTERFACE_FILE="/home/user1/UC3/parser-and-code-generator/specifications/interfaces.xml"
-TEMPLATE_PATH="/home/user1/UC3/template_skill"
-OUTPUT_BASE="/home/user1/UC3/temp-test/src/skills"
+TEMPLATE_PATH="/home/user1/model2code/template_skill"
+OUTPUT_BASE="/home/user1/UC3/src/skills"
 
 # Ensure the output base directory exists
 mkdir -p "$OUTPUT_BASE"
