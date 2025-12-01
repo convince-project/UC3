@@ -7,6 +7,12 @@ INTERFACE_FILE="/home/user1/UC3/parser-and-code-generator/specifications/interfa
 TEMPLATE_PATH="/home/user1/model2code/template_skill"
 OUTPUT_BASE="/home/user1/UC3/src/skills"
 
+
+# list of skills to exclude
+SKILLS_TO_EXCLUDE=(
+    "DialogSkill.scxml"
+)
+
 # Ensure the output base directory exists
 mkdir -p "$OUTPUT_BASE"
 
@@ -14,7 +20,12 @@ mkdir -p "$OUTPUT_BASE"
 for scxml_file in "$SKILLS_DIR"/*.scxml; do
     # Skip if not a file
     [ -f "$scxml_file" ] || continue
-    
+    # skip if in exclude list
+    filename=$(basename "$scxml_file")
+    if [[ " ${SKILLS_TO_EXCLUDE[@]} " =~ " ${filename} " ]]; then
+        echo "Skipping excluded skill: $filename"
+        continue
+    fi
     # Get the base name without extension
     filename=$(basename "$scxml_file")
     skill_name="${filename%.scxml}"
