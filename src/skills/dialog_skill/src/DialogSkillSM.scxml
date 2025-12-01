@@ -127,23 +127,20 @@
     </onentry>
 
     <!-- If the visitor asked to start/continue/end the tour, we send a success response and end the conversation -->
-    <transition cond="m_is_poi_ended == true" target="resetToInitialState">
-      <send event="DialogComponent.SetLanguage.Call">
-          <param name="new_language" expr='"it-IT"'/>
-        </send>
-    </transition>
+    <transition cond="m_is_poi_ended == true" target="sendSuccess" />
     <!-- Else, continue the pipeline -->
-    <transition cond="m_is_poi_ended == false" target="setLanguage">
+    <!-- <transition cond="m_is_poi_ended == false" target="setLanguage">
         <send event="DialogComponent.SetLanguage.Call">
           <param name="new_language" expr="m_language"/>
         </send>
-    </transition>
+    </transition> -->
+
+    <transition cond="m_is_poi_ended == false" target="evaluateDuplicate" />
 
   </state>
 
-  <!-- STATE END -->
 
-  <state id="setLanguage">
+  <!-- <state id="setLanguage">
     <onentry>
 
         <log label="State setLanguage" expr="m_result"/>
@@ -166,21 +163,21 @@
     </transition>
   </state>
 
-  <!-- STATE END -->
+
 
   <state id="setLanguageResult">
-    <!-- <transition cond="m_result == 'SUCCESS'" target="checkDuplicate" >
+    <transition cond="m_result == 'SUCCESS'" target="checkDuplicate" >
         <send event="DialogComponent.CheckDuplicate.Call">
           <param name="interaction" expr="m_interaction"/>
           <param name="is_beginning_of_conversation" expr="m_is_beginning_of_conversation == 'true'"/>
           <param name="context" expr="m_context"/>
         </send>
-    </transition> -->
+    </transition>
     <transition cond="m_result == 'SUCCESS'" target="evaluateDuplicate" />
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
-  </state>
+  </state> -->
 
-  <!-- STATE END -->
+
 
   <state id="checkDuplicate">
     <onentry>
@@ -493,15 +490,24 @@
   <!-- STATE END -->
 
   <state id="stop">
-    <onentry>
+    <!-- <onentry>
         <send event="DialogComponent.SetLanguage.Call">
           <param name="new_language" expr='"it-IT"'/>
         </send>
-    </onentry>
-
+    </onentry> -->
+<!-- 
     <transition event="DialogComponent.SetLanguage.Return" target="stopResult">
       <assign expr="_event.data.result" location="m_result"/>
+    </transition> -->
+
+    <transition event="CMD_TICK" target="stop">
+      <send event="TICK_RESPONSE">
+        <param name="result" expr='"RUNNING"'/>
+      </send>
     </transition>
+
+    <transition target="stopResult" />
+
   </state>
 
   <!-- STATE END -->
@@ -525,7 +531,7 @@
       <transition target="idle" />
   </state>
 
-  <state id="resetToInitialState">
+  <!-- <state id="resetToInitialState">
     <onentry>
         <log label="State resetToInitialState" expr="m_result"/>
         <log label="Is reply finished" expr="m_is_reply_finished"/>
@@ -555,7 +561,7 @@
 
     <transition cond="m_result == 'SUCCESS'" target="sendSuccess" />
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
-  </state>
+  </state> -->
 
 
   <state id="sendSuccess">

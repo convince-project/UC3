@@ -738,6 +738,31 @@ void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::
         return;
     }
 
+    auto setSpeechToTextLanguageClientNode = rclcpp::Node::make_shared("DialogComponentSetSpeechToTextLanguageNode");
+    auto setSpeechToTextLanguageClient = setSpeechToTextLanguageClientNode->create_client<text_to_speech_interfaces::srv::SetLanguage>("/SpeechToTextComponent/SetLanguage");
+    auto request4 = std::make_shared<text_to_speech_interfaces::srv::SetLanguage::Request>();
+    request4->new_language = newLang;
+    while (!setSpeechToTextLanguageClient->wait_for_service(std::chrono::milliseconds(100)))
+    {
+        if (!rclcpp::ok())
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setVoiceClient'. Exiting.");
+            response->is_ok = false;
+            return;
+        }
+    }
+    auto result4 = setSpeechToTextLanguageClient->async_send_request(request4);
+    if (rclcpp::spin_until_future_complete(setSpeechToTextLanguageClientNode, result4) == rclcpp::FutureReturnCode::SUCCESS)
+    {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Set Speech to Text Language succeeded");
+    }
+    else
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service set_speech_to_text_language");
+        response->is_ok = false;
+        return;
+    }
+
 }
 
 bool DialogComponent::WaitForSpeakStart()
