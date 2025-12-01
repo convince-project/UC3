@@ -42,7 +42,13 @@
     <BehaviorTree ID="CheckArtworkAndExplain">
         <Sequence>
             <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="NarratePoi"/>
-            <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="Dialog"/>
+            <IfThenElse name="">
+                <Inverter name="">
+                    <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsWarningDuration"/>
+                </Inverter>
+                <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="Dialog"/>
+                <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="SaySkipQuestions"/>
+            </IfThenElse>
             <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SetCurrentPoiDone"/>
             <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="ResetCounters"/>
             <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SetNavigationPosition"/>
@@ -179,9 +185,6 @@
                     <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="CheckIfFirstPoi"/>
                     <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="StartTourTimer"/>
                 </ReactiveSequence>
-                <Inverter>
-                    <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsWarningDuration"/>
-                </Inverter>
             </Fallback>
         </Sequence>
     </BehaviorTree>

@@ -309,7 +309,7 @@ void TimeComponent::timerTaskTour()
             writeInBB(MAX_BB_STRING, 1);
             publisher("Tour maximum time exceeded!");
         }
-        else if(l_secondsPassed == l_warningTime*60)
+        else if(l_secondsPassed >= l_warningTime*60)
         {
             std::cout << "Time warning" << std::endl;
             writeInBB(WARNING_BB_STRING, 1);
