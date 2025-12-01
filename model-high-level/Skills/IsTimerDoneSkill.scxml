@@ -1,66 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<scxml
-  xmlns="http://www.w3.org/2005/07/scxml"
-  version="1.0"
-  name="IsPoiDone2Skill"
-  datamodel="ecmascript"
-  initial="idle">
+<scxml xmlns="http://www.w3.org/2005/07/scxml"
+       version="1.0"
+       name="IsTimerDoneSkill"
+       datamodel="ecmascript"
+       initial="idle">
 
   <datamodel>
-    <data id="key"            type="int32"  expr="2"/>
-    <data id="value"          type="int32"  expr="0"/>
-    <data id="m_result"       type="string" expr="''"/>
-    <data id="SUCCESS_RESULT" type="string" expr="'SUCCESS'"/>
-    <data id="SKILL_SUCCESS"  type="int8"   expr="0"/>
-    <data id="SKILL_FAILURE"  type="int8"   expr="1"/>
+    <data id="m_is_ok"    type="boolean"  expr="false"/>
+    <data id="m_is_active" type="boolean" expr="false"/>
   </datamodel>
 
-  <ros_service_server service_name="/IsPoiDone2Skill/tick" type="bt_interfaces_dummy/TickCondition"/>
-  <ros_service_client service_name="/BlackboardComponent/GetInt" type="blackboard_interfaces/GetIntBlackboard"/>
+  <ros_service_client service_name="/TimerCheckForPeopleComponent/IsTimerActive" type="timer_check_for_people_interfaces/IsTimerActive"/>
+  <!-- Condition skill: tick server only -->
+  <ros_service_server service_name="/IsTimerDoneSkill/tick" type="bt_interfaces_dummy/TickCondition"/>
 
   <state id="idle">
-    <ros_service_handle_request name="/IsPoiDone2Skill/tick" target="checkInt">
-      <ros_service_send_request name="/BlackboardComponent/GetInt">
-        <field name="field_name" expr="key"/>
-      </ros_service_send_request>
-    </ros_service_handle_request>
+    <transition event="CMD_TICK" target="getStatus"/>
   </state>
 
-  <state id="checkInt">
-    <ros_service_handle_response name="/BlackboardComponent/GetInt" target="evaluate">
-      <assign location="value"    expr="_res.value"/>
-      <assign location="m_result" expr="_res.result"/>
-    </ros_service_handle_response>
-  </state>
-
-  <state id="evaluate">
-    <transition cond="m_result != SUCCESS_RESULT" target="failure"/>
-    <transition target="decide"/>
+  <state id="getStatus">
+    <onentry>
+      <send event="TimerCheckForPeopleComponent.IsTimerActive.Call"/>
+    </onentry>
+    <transition event="TimerCheckForPeopleComponent.IsTimerActive.Return" target="decide">
+      <assign location="m_is_ok"    expr="_event.data.is_ok"/>
+      <assign location="m_is_active" expr="_event.data.is_active"/>
+    </transition>
   </state>
 
   <state id="decide">
     <onentry>
-      <if cond="value == 1">
-        <ros_service_send_response name="/IsPoiDone2Skill/tick">
-          <field name="status" expr="SKILL_SUCCESS"/>
-          <field name="is_ok" expr="true"/>
-        </ros_service_send_response>
+      <if cond="!m_is_ok || m_is_active">
+        <send event="TICK_RESPONSE">
+          <param name="result" expr="'FAILURE'"/>
+        </send>
       <else/>
-        <ros_service_send_response name="/IsPoiDone2Skill/tick">
-          <field name="status" expr="SKILL_FAILURE"/>
-          <field name="is_ok" expr="true"/>
-        </ros_service_send_response>
+        <send event="TICK_RESPONSE">
+          <param name="result" expr="'SUCCESS'"/>
+        </send>
       </if>
-    </onentry>
-    <transition target="idle"/>
-  </state>
-
-  <state id="failure">
-    <onentry>
-      <ros_service_send_response name="/IsPoiDone2Skill/tick">
-        <field name="status" expr="SKILL_FAILURE"/>
-        <field name="is_ok" expr="true"/>
-      </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
   </state>
