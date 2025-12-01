@@ -128,15 +128,15 @@ def launch_nodes_from_json(context, *args, **kwargs):
     nodes = []
     for i, poi in enumerate(active_pois, start=0):
         nodes.append(Node(
-            package='is_poi_done_skill',
-            executable=f'is_poi_done_skill_{i}',
-            name=f'is_poi_done_skill_{i}', 
+            package=f'is_poi_done{i}_skill',
+            executable=f'is_poi_done{i}_skill',
+            name=f'is_poi_done{i}_skill', 
             arguments=[str(i)] 
         ))
         nodes.append(Node(
-            package='set_poi_skill',
-            executable=f'set_poi_skill_{i}',
-            name=f'set_poi_skill_{i}',
+            package=f'set_poi{i}_skill',
+            executable=f'set_poi{i}_skill',
+            name=f'set_poi{i}_skill',
             arguments=[str(i)] 
         ))
 
