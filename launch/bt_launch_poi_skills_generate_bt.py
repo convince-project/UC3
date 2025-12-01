@@ -129,13 +129,13 @@ def launch_nodes_from_json(context, *args, **kwargs):
     for i, poi in enumerate(active_pois, start=0):
         nodes.append(Node(
             package='is_poi_done_skill',
-            executable='is_poi_done_skill',
+            executable=f'is_poi_done_skill_{i}',
             name=f'is_poi_done_skill_{i}', 
             arguments=[str(i)] 
         ))
         nodes.append(Node(
             package='set_poi_skill',
-            executable='set_poi_skill',
+            executable=f'set_poi_skill_{i}',
             name=f'set_poi_skill_{i}',
             arguments=[str(i)] 
         ))
