@@ -46,6 +46,7 @@
     </state>
     <state id="check">
         <transition target="evaluateCheck" event="NarrateComponent.IsDone.Return">
+            <assign location="m_result" expr="_event.data.is_ok"/>
             <assign location="m_is_done" expr="_event.data.is_done"/>
         </transition>
     </state>

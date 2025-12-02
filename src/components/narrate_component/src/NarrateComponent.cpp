@@ -297,7 +297,8 @@ void NarrateComponent::_speakTask() {
     bool danceStarted = false;
     m_inSoundPort.useCallback(m_verbalOutputBatchReader);
     bool connectionError = false;
-    do{
+    do{ 
+        RCLCPP_INFO_STREAM(m_node->get_logger(), "Waiting for speaking to end...");
         connectionError = !_waitForPlayerStatus(false);
         if (connectionError)
         {
@@ -314,6 +315,7 @@ void NarrateComponent::_speakTask() {
             yarp::sig::Sound& toSend = m_outSoundPort.prepare();
             toSend = sound;
             m_outSoundPort.write();
+            RCLCPP_INFO_STREAM(m_node->get_logger(), "Waiting for speaking to start...");
             connectionError = !_waitForPlayerStatus(true);
             if (connectionError)
             {
@@ -330,6 +332,7 @@ void NarrateComponent::_speakTask() {
         yarp::os::Time::delay(0.01);
     } while(!m_stopped && (!m_soundQueue.isEmpty() || m_toSend > 0));
 
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "Waiting for speaking to end 2...");
     connectionError = connectionError || !_waitForPlayerStatus(false);
     if(danceStarted)
     {

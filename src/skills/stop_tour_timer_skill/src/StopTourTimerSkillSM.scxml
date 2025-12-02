@@ -20,7 +20,7 @@
         </transition>
     </state>
     <state id="afterStop">
-        <transition cond="result == &apos;SKILL_SUCCESS&apos;" target="successReply"/>
+        <transition cond="result" target="successReply"/>
         <transition target="failReply"/>
     </state>
     <state id="successReply">

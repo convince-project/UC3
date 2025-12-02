@@ -127,6 +127,7 @@ def launch_nodes_from_json(context, *args, **kwargs):
     # Create nodes for each active POI
     nodes = []
     for i, poi in enumerate(active_pois, start=0):
+        print(f'starting is_poi_done{i}_skill')
         nodes.append(Node(
             package=f'is_poi_done{i}_skill',
             executable=f'is_poi_done{i}_skill',

@@ -1,6 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <scxml version="1.0" xmlns="http://www.w3.org/2005/07/scxml" datamodel="ecmascript" name="GoToPoiActionSkillAction" initial="idle">
     <datamodel>
-        <data id="poi_number" expr="0"/>
+        <data id="poi_name" expr="&apos;&apos;"/>
         <data id="status" expr="0"/>
         <data id="result" expr="true"/>
         <data id="SKILL_SUCCESS" expr="0"/>
@@ -15,39 +16,15 @@
             <send event="SchedulerComponent.GetCurrentPoi.Call"/>
         </transition>
         <transition target="idle" event="CMD_HALT">
-            <send event="HALT_RESPONSE">
-                <param name="is_ok" expr="true"/>
-            </send>
+            <send event="HALT_RESPONSE"/>
         </transition>
     </state>
     <state id="getPoi">
         <transition target="goalResponse" event="SchedulerComponent.GetCurrentPoi.Return">
-            <assign location="poi_number" expr="_event.data.poi_number"/>
-            <if cond="poi_number == 0">
-                <send event="NavigationComponent.GoToPoi.SendGoal">
-                    <param name="poi_name" expr="&apos;Poi0&apos;"/>
-                </send>
-                <elseif cond="poi_number == 1"/>
-                <send event="NavigationComponent.GoToPoi.SendGoal">
-                    <param name="poi_name" expr="&apos;Poi1&apos;"/>
-                </send>
-                <elseif cond="poi_number == 2"/>
-                <send event="NavigationComponent.GoToPoi.SendGoal">
-                    <param name="poi_name" expr="&apos;Poi2&apos;"/>
-                </send>
-                <elseif cond="poi_number == 3"/>
-                <send event="NavigationComponent.GoToPoi.SendGoal">
-                    <param name="poi_name" expr="&apos;Poi3&apos;"/>
-                </send>
-                <elseif cond="poi_number == 4"/>
-                <send event="NavigationComponent.GoToPoi.SendGoal">
-                    <param name="poi_name" expr="&apos;Poi4&apos;"/>
-                </send>
-                <elseif cond="poi_number == 5"/>
-                <send event="NavigationComponent.GoToPoi.SendGoal">
-                    <param name="poi_name" expr="&apos;Poi5&apos;"/>
-                </send>
-            </if>
+            <assign location="poi_name" expr="_event.data.poi_name"/>
+            <send event="NavigationComponent.GoToPoi.SendGoal">
+                <param name="poi_name" expr="poi_name"/>
+            </send>
             <send event="TICK_RESPONSE">
                 <param name="is_ok" expr="true"/>
                 <param name="status" expr="SKILL_RUNNING"/>
@@ -72,6 +49,7 @@
             </send>
         </transition>
         <transition target="idle" event="CMD_HALT">
+            <!-- <ros_action_cancel_goal name="go_to_poi_action"/> -->
             <send event="HALT_RESPONSE">
                 <param name="is_ok" expr="true"/>
             </send>
@@ -90,7 +68,9 @@
         <transition target="goal_done" event="NavigationComponent.GoToPoi.ResultResponse">
             <assign location="result" expr="_event.data.is_ok"/>
         </transition>
+        <!-- <ros_action_handle_failure_result name="go_to_poi_action" target="send_failure"/> -->
         <transition target="idle" event="CMD_HALT">
+            <!-- <ros_action_cancel_goal name="go_to_poi_action"/> -->
             <send event="HALT_RESPONSE">
                 <param name="is_ok" expr="true"/>
             </send>

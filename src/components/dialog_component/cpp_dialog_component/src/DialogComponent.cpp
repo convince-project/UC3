@@ -567,6 +567,7 @@ bool DialogComponent::CommandManager(const std::string &command, std::shared_ptr
         yInfo() << "[DialogComponent::CommandManager] Next Poi Detected" << __LINE__;
         m_verbalOutputBatchReader.setDialogPhaseActive(false);
         SetFaceExpression("happy");
+        
 
         response->is_ok = true;
         response->is_poi_ended = true;
