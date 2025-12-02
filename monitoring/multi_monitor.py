@@ -21,7 +21,7 @@ class MultiMonitor(Node):
             'prop1': 'historically({high_battery} -> historically( not {alarm}))',
             'prop2': 'historically(({alarm} -> once{low_battery}) and not( not {alarm} since[5:] {low_battery}))',
             'prop3': '(once[5:]{t} -> once[:5]{battery_published})',
-            'prop4': 'historically(({poi1_selected} -> once( not {poi1_completed})) and not( not {poi1_selected} since [50:] not {poi1_completed}))',
+            'prop4': 'historically( not( not {startReached} since [600:] {tourFinished}))',
             'prop5': '(once[7:]{t} -> once[:7]{people_following_published})',
             'prop6': '(once[5:]{t} -> once[:3]{camera_published})',
             'prop7': '(not {critical_battery})',
@@ -31,7 +31,9 @@ class MultiMonitor(Node):
             'prop11': '({well_localized})',
             'prop12': '( {is_recording} -> (not {is_unplagged}) )',
             'prop13': '(once[5:]{t} -> once[:3]{connected_to_network})',
-            'prop14': '(once[5:]{t} -> once[:3]{connected_to_web})'
+            'prop14': '(once[5:]{t} -> once[:3]{connected_to_web})',
+            'prop15': 'historically( not( not {arrivedAtCS} since [600:] {alarm}))'
+            
         }
 
         # List of topics to monitor
@@ -55,7 +57,8 @@ class MultiMonitor(Node):
             '/monitor_prop11/monitor_verdict',
             '/monitor_prop12/monitor_verdict',
             '/monitor_prop13/monitor_verdict',
-            '/monitor_prop14/monitor_verdict'            
+            '/monitor_prop14/monitor_verdict' ,
+            '/monitor_prop15/monitor_verdict'           
         ]
 
         # Current status of each topic

@@ -1,8 +1,8 @@
-path: /home/user1/UC3/monitoring/monitor_prop4_ws/src  # this is the path to the ros workspace you'd like the monitor package in
+path: /home/user1/UC3/monitoring/monitor_prop15_ws/src  # this is the path to the ros workspace you'd like the monitor package in
 
 monitors: # here we list the monitors we are going to generate
   - monitor:
-      id: monitor_prop4
+      id: monitor_prop15
       log: ./log.txt # file where the monitor will log the observed events
       silent: False # we let the monitor to print info during its execution
       oracle: # the oracle running and ready to check the specification (localhost in this case)
@@ -15,4 +15,7 @@ monitors: # here we list the monitors we are going to generate
           action: log
         - name: /NavigationComponent/CheckNearToPoi/_service_event #reset
           type: scheduler_interfaces.srv.Reset_Event
+          action: log
+        - name: /monitoring_clock
+          type: builtin_interfaces.msg.Time
           action: log

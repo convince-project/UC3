@@ -41,12 +41,9 @@ def abstract_message(message):
         predicates['alarm'] = True
 
     if "topic" in message and "CheckNearToPoi" in message['topic']:
-        # DA VERIFICAREEEEEEEEE 
         if "response" in message:
             for resp in message["response"]:
-                if resp.get("poi_number") == 0:
-                    predicates['arrivedAtCS'] = True
-                else
-                    predicates['arrivedAtCS'] = False
+                if resp.get("poi_name") == 'POI0':
+                    predicates['arrivedAtCS'] = resp.get("is_near", False)
 
     return predicates
