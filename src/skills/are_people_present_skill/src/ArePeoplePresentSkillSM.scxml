@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="ArePeoplePresentSkillCondition" datamodel="ecmascript" initial="idle">
     <datamodel>
-        <data id="m_result" expr="&apos;&apos;"/>
+        <data id="m_result" expr="false"/>
         <data id="m_is_allowed" expr="false"/>
         <data id="SKILL_SUCCESS" expr="0"/>
         <data id="SKILL_FAILURE" expr="1"/>
@@ -21,13 +21,15 @@
     </state>
     <state id="decide">
         <onentry>
-            <if cond="m_result==&apos;SKILL_SUCCESS&apos; &amp;&amp; m_is_allowed">
+            <if cond="m_result &amp;&amp; m_is_allowed">
                 <send event="TICK_RESPONSE">
                     <param name="status" expr="SKILL_SUCCESS"/>
+                    <param name="is_ok" expr="true"/>
                 </send>
                 <else/>
                 <send event="TICK_RESPONSE">
                     <param name="status" expr="SKILL_FAILURE"/>
+                    <param name="is_ok" expr="true"/>
                 </send>
             </if>
         </onentry>

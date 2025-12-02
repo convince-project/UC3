@@ -13,6 +13,7 @@
 #include <bt_interfaces_dummy/srv/tick_action.hpp>
 #include <bt_interfaces_dummy/srv/halt_action.hpp>
 
+#include <rcl/service_introspection.h>
 
 #define SERVICE_TIMEOUT 8
 #define SKILL_SUCCESS 0
@@ -30,6 +31,8 @@ class SetPoi2Skill
 {
 public:
 	SetPoi2Skill(std::string name );
+    ~SetPoi2Skill();
+
 	bool start(int argc, char * argv[]);
 	static void spin(std::shared_ptr<rclcpp::Node> node);
 	

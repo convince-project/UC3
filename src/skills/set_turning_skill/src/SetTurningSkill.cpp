@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ SetTurningSkill::SetTurningSkill(std::string name ) :
     
 }
 
+SetTurningSkill::~SetTurningSkill()
+{
+    //std::cout << "DEBUG: Invoked destructor of SetTurningSkill" << std::endl;
+    m_threadSpin->join();
+}
+
 void SetTurningSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: SetTurningSkill::spin successfully ended" << std::endl;
 }
 
 bool SetTurningSkill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool SetTurningSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "SetTurningSkill::start");
-	std::cout << "SetTurningSkill::start";
+	std::cout << "DEBUG: SetTurningSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
@@ -63,12 +73,14 @@ bool SetTurningSkill::start(int argc, char*argv[])
                                                                            	this,
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
+  m_tickService->configure_introspection(m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
   
 	m_haltService = m_node->create_service<bt_interfaces_dummy::srv::HaltAction>(m_name + "Skill/halt",
                                                                             	std::bind(&SetTurningSkill::halt,
                                                                             	this,
                                                                             	std::placeholders::_1,
                                                                             	std::placeholders::_2));
+  m_haltService->configure_introspection(m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
   
   
   
@@ -76,6 +88,7 @@ bool SetTurningSkill::start(int argc, char*argv[])
       std::shared_ptr<rclcpp::Node> nodeSetString = rclcpp::Node::make_shared(m_name + "SkillNodeSetString");
       std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::SetStringBlackboard>> clientSetString = nodeSetString->create_client<blackboard_interfaces::srv::SetStringBlackboard>("/BlackboardComponent/SetString");
       auto request = std::make_shared<blackboard_interfaces::srv::SetStringBlackboard::Request>();
+      clientSetString->configure_introspection(nodeSetString->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
       auto eventParams = event.data().toMap();
       
       request->value = convert<decltype(request->value)>(eventParams["value"].toString().toStdString());
@@ -102,20 +115,19 @@ bool SetTurningSkill::start(int argc, char*argv[])
           if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
           {
               auto response = result.get();
-              if( response->is_ok == true) {
-                  QVariantMap data;
-                  data.insert("is_ok", true);
-                  m_stateMachine.submitEvent("BlackboardComponent.SetString.Return", data);
-                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.SetString.Return");
-                  return;
-              }
+              QVariantMap data;
+              data.insert("call_succeeded", true);
+              m_stateMachine.submitEvent("BlackboardComponent.SetString.Return", data);
+              RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.SetString.Return");
+              return;
+              
           }
           else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'SetString'.");
           }
       }
       QVariantMap data;
-      data.insert("is_ok", false);
+      data.insert("call_succeeded", false);
       m_stateMachine.submitEvent("BlackboardComponent.SetString.Return", data);
       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.SetString.Return");
   });
@@ -149,7 +161,7 @@ bool SetTurningSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -174,10 +186,10 @@ void SetTurningSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfaces
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;  
+          break;
       case Status::undefined:
           response->status = SKILL_FAILURE;
-          break;          
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "SetTurningSkill::tickDone");
   response->is_ok = true;

@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ StopAndTurnBackSkill::StopAndTurnBackSkill(std::string name ) :
     
 }
 
+StopAndTurnBackSkill::~StopAndTurnBackSkill()
+{
+    //std::cout << "DEBUG: Invoked destructor of StopAndTurnBackSkill" << std::endl;
+    m_threadSpin->join();
+}
+
 void StopAndTurnBackSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: StopAndTurnBackSkill::spin successfully ended" << std::endl;
 }
 
 bool StopAndTurnBackSkill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool StopAndTurnBackSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "StopAndTurnBackSkill::start");
-	std::cout << "StopAndTurnBackSkill::start";
+	std::cout << "DEBUG: StopAndTurnBackSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
@@ -63,12 +73,14 @@ bool StopAndTurnBackSkill::start(int argc, char*argv[])
                                                                            	this,
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
+  m_tickService->configure_introspection(m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
   
 	m_haltService = m_node->create_service<bt_interfaces_dummy::srv::HaltAction>(m_name + "Skill/halt",
                                                                             	std::bind(&StopAndTurnBackSkill::halt,
                                                                             	this,
                                                                             	std::placeholders::_1,
                                                                             	std::placeholders::_2));
+  m_haltService->configure_introspection(m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
   
   
   
@@ -76,6 +88,7 @@ bool StopAndTurnBackSkill::start(int argc, char*argv[])
       std::shared_ptr<rclcpp::Node> nodeTurnBack = rclcpp::Node::make_shared(m_name + "SkillNodeTurnBack");
       std::shared_ptr<rclcpp::Client<navigation_interfaces::srv::TurnBack>> clientTurnBack = nodeTurnBack->create_client<navigation_interfaces::srv::TurnBack>("/NavigationComponent/TurnBack");
       auto request = std::make_shared<navigation_interfaces::srv::TurnBack::Request>();
+      clientTurnBack->configure_introspection(nodeTurnBack->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
       auto eventParams = event.data().toMap();
       
       bool wait_succeded{true};
@@ -100,20 +113,20 @@ bool StopAndTurnBackSkill::start(int argc, char*argv[])
           if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
           {
               auto response = result.get();
-              if( response->is_ok == true) {
-                  QVariantMap data;
-                  data.insert("is_ok", true);
-                  m_stateMachine.submitEvent("NavigationComponent.TurnBack.Return", data);
-                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NavigationComponent.TurnBack.Return");
-                  return;
-              }
+              QVariantMap data;
+              data.insert("call_succeeded", true);
+              data.insert("is_ok", response->is_ok);
+              m_stateMachine.submitEvent("NavigationComponent.TurnBack.Return", data);
+              RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NavigationComponent.TurnBack.Return");
+              return;
+              
           }
           else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'TurnBack'.");
           }
       }
       QVariantMap data;
-      data.insert("is_ok", false);
+      data.insert("call_succeeded", false);
       m_stateMachine.submitEvent("NavigationComponent.TurnBack.Return", data);
       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NavigationComponent.TurnBack.Return");
   });
@@ -121,6 +134,7 @@ bool StopAndTurnBackSkill::start(int argc, char*argv[])
       std::shared_ptr<rclcpp::Node> nodeStopNavigation = rclcpp::Node::make_shared(m_name + "SkillNodeStopNavigation");
       std::shared_ptr<rclcpp::Client<navigation_interfaces::srv::StopNavigation>> clientStopNavigation = nodeStopNavigation->create_client<navigation_interfaces::srv::StopNavigation>("/NavigationComponent/StopNavigation");
       auto request = std::make_shared<navigation_interfaces::srv::StopNavigation::Request>();
+      clientStopNavigation->configure_introspection(nodeStopNavigation->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
       auto eventParams = event.data().toMap();
       
       bool wait_succeded{true};
@@ -145,20 +159,19 @@ bool StopAndTurnBackSkill::start(int argc, char*argv[])
           if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
           {
               auto response = result.get();
-              if( response->is_ok == true) {
-                  QVariantMap data;
-                  data.insert("is_ok", true);
-                  m_stateMachine.submitEvent("NavigationComponent.StopNavigation.Return", data);
-                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NavigationComponent.StopNavigation.Return");
-                  return;
-              }
+              QVariantMap data;
+              data.insert("call_succeeded", true);
+              m_stateMachine.submitEvent("NavigationComponent.StopNavigation.Return", data);
+              RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NavigationComponent.StopNavigation.Return");
+              return;
+              
           }
           else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'StopNavigation'.");
           }
       }
       QVariantMap data;
-      data.insert("is_ok", false);
+      data.insert("call_succeeded", false);
       m_stateMachine.submitEvent("NavigationComponent.StopNavigation.Return", data);
       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NavigationComponent.StopNavigation.Return");
   });
@@ -166,6 +179,7 @@ bool StopAndTurnBackSkill::start(int argc, char*argv[])
       std::shared_ptr<rclcpp::Node> nodeGetNavigationStatus = rclcpp::Node::make_shared(m_name + "SkillNodeGetNavigationStatus");
       std::shared_ptr<rclcpp::Client<navigation_interfaces::srv::GetNavigationStatus>> clientGetNavigationStatus = nodeGetNavigationStatus->create_client<navigation_interfaces::srv::GetNavigationStatus>("/NavigationComponent/GetNavigationStatus");
       auto request = std::make_shared<navigation_interfaces::srv::GetNavigationStatus::Request>();
+      clientGetNavigationStatus->configure_introspection(nodeGetNavigationStatus->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
       auto eventParams = event.data().toMap();
       
       bool wait_succeded{true};
@@ -190,21 +204,20 @@ bool StopAndTurnBackSkill::start(int argc, char*argv[])
           if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
           {
               auto response = result.get();
-              if( response->is_ok == true) {
-                  QVariantMap data;
-                  data.insert("is_ok", true);
-                  data.insert("status", response->status.status);
-                  m_stateMachine.submitEvent("NavigationComponent.GetNavigationStatus.Return", data);
-                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NavigationComponent.GetNavigationStatus.Return");
-                  return;
-              }
+              QVariantMap data;
+              data.insert("call_succeeded", true);
+              data.insert("status.status", response->status.status);
+              m_stateMachine.submitEvent("NavigationComponent.GetNavigationStatus.Return", data);
+              RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NavigationComponent.GetNavigationStatus.Return");
+              return;
+              
           }
           else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'GetNavigationStatus'.");
           }
       }
       QVariantMap data;
-      data.insert("is_ok", false);
+      data.insert("call_succeeded", false);
       m_stateMachine.submitEvent("NavigationComponent.GetNavigationStatus.Return", data);
       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NavigationComponent.GetNavigationStatus.Return");
   });
@@ -212,6 +225,7 @@ bool StopAndTurnBackSkill::start(int argc, char*argv[])
       std::shared_ptr<rclcpp::Node> nodeSetInt = rclcpp::Node::make_shared(m_name + "SkillNodeSetInt");
       std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::SetIntBlackboard>> clientSetInt = nodeSetInt->create_client<blackboard_interfaces::srv::SetIntBlackboard>("/BlackboardComponent/SetInt");
       auto request = std::make_shared<blackboard_interfaces::srv::SetIntBlackboard::Request>();
+      clientSetInt->configure_introspection(nodeSetInt->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
       auto eventParams = event.data().toMap();
       
       request->value = convert<decltype(request->value)>(eventParams["value"].toString().toStdString());
@@ -238,20 +252,20 @@ bool StopAndTurnBackSkill::start(int argc, char*argv[])
           if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
           {
               auto response = result.get();
-              if( response->is_ok == true) {
-                  QVariantMap data;
-                  data.insert("is_ok", true);
-                  m_stateMachine.submitEvent("BlackboardComponent.SetInt.Return", data);
-                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.SetInt.Return");
-                  return;
-              }
+              QVariantMap data;
+              data.insert("call_succeeded", true);
+              data.insert("is_ok", response->is_ok);
+              m_stateMachine.submitEvent("BlackboardComponent.SetInt.Return", data);
+              RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.SetInt.Return");
+              return;
+              
           }
           else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'SetInt'.");
           }
       }
       QVariantMap data;
-      data.insert("is_ok", false);
+      data.insert("call_succeeded", false);
       m_stateMachine.submitEvent("BlackboardComponent.SetInt.Return", data);
       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.SetInt.Return");
   });
@@ -285,7 +299,7 @@ bool StopAndTurnBackSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -310,10 +324,10 @@ void StopAndTurnBackSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_inter
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;  
+          break;
       case Status::undefined:
           response->status = SKILL_FAILURE;
-          break;          
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "StopAndTurnBackSkill::tickDone");
   response->is_ok = true;

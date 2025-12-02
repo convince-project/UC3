@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ IsCheckingForPeopleSkill::IsCheckingForPeopleSkill(std::string name ) :
     
 }
 
+IsCheckingForPeopleSkill::~IsCheckingForPeopleSkill()
+{
+    //std::cout << "DEBUG: Invoked destructor of IsCheckingForPeopleSkill" << std::endl;
+    m_threadSpin->join();
+}
+
 void IsCheckingForPeopleSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: IsCheckingForPeopleSkill::spin successfully ended" << std::endl;
 }
 
 bool IsCheckingForPeopleSkill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool IsCheckingForPeopleSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "IsCheckingForPeopleSkill::start");
-	std::cout << "IsCheckingForPeopleSkill::start";
+	std::cout << "DEBUG: IsCheckingForPeopleSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickCondition>(m_name + "Skill/tick",
@@ -63,6 +73,7 @@ bool IsCheckingForPeopleSkill::start(int argc, char*argv[])
                                                                            	this,
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
+  m_tickService->configure_introspection(m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
   
   
   
@@ -71,6 +82,7 @@ bool IsCheckingForPeopleSkill::start(int argc, char*argv[])
       std::shared_ptr<rclcpp::Node> nodeGetInt = rclcpp::Node::make_shared(m_name + "SkillNodeGetInt");
       std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::GetIntBlackboard>> clientGetInt = nodeGetInt->create_client<blackboard_interfaces::srv::GetIntBlackboard>("/BlackboardComponent/GetInt");
       auto request = std::make_shared<blackboard_interfaces::srv::GetIntBlackboard::Request>();
+      clientGetInt->configure_introspection(nodeGetInt->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
       auto eventParams = event.data().toMap();
       
       request->field_name = convert<decltype(request->field_name)>(eventParams["field_name"].toString().toStdString());
@@ -96,21 +108,21 @@ bool IsCheckingForPeopleSkill::start(int argc, char*argv[])
           if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
           {
               auto response = result.get();
-              if( response->is_ok == true) {
-                  QVariantMap data;
-                  data.insert("is_ok", true);
-                  data.insert("value", response->value);
-                  m_stateMachine.submitEvent("BlackboardComponent.GetInt.Return", data);
-                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.GetInt.Return");
-                  return;
-              }
+              QVariantMap data;
+              data.insert("call_succeeded", true);
+              data.insert("is_ok", response->is_ok);
+              data.insert("value", response->value);
+              m_stateMachine.submitEvent("BlackboardComponent.GetInt.Return", data);
+              RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.GetInt.Return");
+              return;
+              
           }
           else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'GetInt'.");
           }
       }
       QVariantMap data;
-      data.insert("is_ok", false);
+      data.insert("call_succeeded", false);
       m_stateMachine.submitEvent("BlackboardComponent.GetInt.Return", data);
       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BlackboardComponent.GetInt.Return");
   });
@@ -136,7 +148,7 @@ bool IsCheckingForPeopleSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -159,8 +171,8 @@ void IsCheckingForPeopleSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_i
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;            
-      case Status::undefined:   
+          break;
+      case Status::undefined:
           response->status = SKILL_FAILURE;
           break;
   }

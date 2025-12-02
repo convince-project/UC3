@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ StopTourTimerSkill::StopTourTimerSkill(std::string name ) :
     
 }
 
+StopTourTimerSkill::~StopTourTimerSkill()
+{
+    //std::cout << "DEBUG: Invoked destructor of StopTourTimerSkill" << std::endl;
+    m_threadSpin->join();
+}
+
 void StopTourTimerSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: StopTourTimerSkill::spin successfully ended" << std::endl;
 }
 
 bool StopTourTimerSkill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool StopTourTimerSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "StopTourTimerSkill::start");
-	std::cout << "StopTourTimerSkill::start";
+	std::cout << "DEBUG: StopTourTimerSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickAction>(m_name + "Skill/tick",
@@ -63,12 +73,14 @@ bool StopTourTimerSkill::start(int argc, char*argv[])
                                                                            	this,
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
+  m_tickService->configure_introspection(m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
   
 	m_haltService = m_node->create_service<bt_interfaces_dummy::srv::HaltAction>(m_name + "Skill/halt",
                                                                             	std::bind(&StopTourTimerSkill::halt,
                                                                             	this,
                                                                             	std::placeholders::_1,
                                                                             	std::placeholders::_2));
+  m_haltService->configure_introspection(m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
   
   
   
@@ -76,6 +88,7 @@ bool StopTourTimerSkill::start(int argc, char*argv[])
       std::shared_ptr<rclcpp::Node> nodeStopTourTimer = rclcpp::Node::make_shared(m_name + "SkillNodeStopTourTimer");
       std::shared_ptr<rclcpp::Client<time_interfaces::srv::StopTourTimer>> clientStopTourTimer = nodeStopTourTimer->create_client<time_interfaces::srv::StopTourTimer>("/TimeComponent/StopTourTimer");
       auto request = std::make_shared<time_interfaces::srv::StopTourTimer::Request>();
+      clientStopTourTimer->configure_introspection(nodeStopTourTimer->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
       auto eventParams = event.data().toMap();
       
       bool wait_succeded{true};
@@ -100,20 +113,20 @@ bool StopTourTimerSkill::start(int argc, char*argv[])
           if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
           {
               auto response = result.get();
-              if( response->is_ok == true) {
-                  QVariantMap data;
-                  data.insert("is_ok", true);
-                  m_stateMachine.submitEvent("TimeComponent.StopTourTimer.Return", data);
-                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TimeComponent.StopTourTimer.Return");
-                  return;
-              }
+              QVariantMap data;
+              data.insert("call_succeeded", true);
+              data.insert("is_ok", response->is_ok);
+              m_stateMachine.submitEvent("TimeComponent.StopTourTimer.Return", data);
+              RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TimeComponent.StopTourTimer.Return");
+              return;
+              
           }
           else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'StopTourTimer'.");
           }
       }
       QVariantMap data;
-      data.insert("is_ok", false);
+      data.insert("call_succeeded", false);
       m_stateMachine.submitEvent("TimeComponent.StopTourTimer.Return", data);
       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TimeComponent.StopTourTimer.Return");
   });
@@ -147,7 +160,7 @@ bool StopTourTimerSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -172,10 +185,10 @@ void StopTourTimerSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_interfa
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;  
+          break;
       case Status::undefined:
           response->status = SKILL_FAILURE;
-          break;          
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "StopTourTimerSkill::tickDone");
   response->is_ok = true;

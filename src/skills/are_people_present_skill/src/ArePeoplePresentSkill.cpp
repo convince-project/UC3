@@ -2,6 +2,8 @@
 #include <future>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
+
 #include <QTime>
 #include <iostream>
 #include <QStateMachine>
@@ -40,10 +42,18 @@ ArePeoplePresentSkill::ArePeoplePresentSkill(std::string name ) :
     
 }
 
+ArePeoplePresentSkill::~ArePeoplePresentSkill()
+{
+    //std::cout << "DEBUG: Invoked destructor of ArePeoplePresentSkill" << std::endl;
+    m_threadSpin->join();
+}
+
 void ArePeoplePresentSkill::spin(std::shared_ptr<rclcpp::Node> node)
 {
-	rclcpp::spin(node);
-	rclcpp::shutdown();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    QCoreApplication::quit();
+    //std::cout << "DEBUG: ArePeoplePresentSkill::spin successfully ended" << std::endl;
 }
 
 bool ArePeoplePresentSkill::start(int argc, char*argv[])
@@ -55,7 +65,7 @@ bool ArePeoplePresentSkill::start(int argc, char*argv[])
 
 	m_node = rclcpp::Node::make_shared(m_name + "Skill");
 	RCLCPP_DEBUG_STREAM(m_node->get_logger(), "ArePeoplePresentSkill::start");
-	std::cout << "ArePeoplePresentSkill::start";
+	std::cout << "DEBUG: ArePeoplePresentSkill::start" << std::endl;
 
   
 	m_tickService = m_node->create_service<bt_interfaces_dummy::srv::TickCondition>(m_name + "Skill/tick",
@@ -63,6 +73,7 @@ bool ArePeoplePresentSkill::start(int argc, char*argv[])
                                                                            	this,
                                                                            	std::placeholders::_1,
                                                                            	std::placeholders::_2));
+  m_tickService->configure_introspection(m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
   
   
   
@@ -71,6 +82,7 @@ bool ArePeoplePresentSkill::start(int argc, char*argv[])
       std::shared_ptr<rclcpp::Node> nodeIsAllowedToContinue = rclcpp::Node::make_shared(m_name + "SkillNodeIsAllowedToContinue");
       std::shared_ptr<rclcpp::Client<turn_back_manager_interfaces::srv::IsAllowedToContinue>> clientIsAllowedToContinue = nodeIsAllowedToContinue->create_client<turn_back_manager_interfaces::srv::IsAllowedToContinue>("/TurnBackManagerComponent/IsAllowedToContinue");
       auto request = std::make_shared<turn_back_manager_interfaces::srv::IsAllowedToContinue::Request>();
+      clientIsAllowedToContinue->configure_introspection(nodeIsAllowedToContinue->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
       auto eventParams = event.data().toMap();
       
       bool wait_succeded{true};
@@ -95,22 +107,21 @@ bool ArePeoplePresentSkill::start(int argc, char*argv[])
           if (futureResult == rclcpp::FutureReturnCode::SUCCESS) 
           {
               auto response = result.get();
-              if( response->is_ok == true) {
-                  QVariantMap data;
-                  data.insert("is_ok", true);
-                  data.insert("result", response->result);
-                  data.insert("is_allowed", response->is_allowed);
-                  m_stateMachine.submitEvent("TurnBackManagerComponent.IsAllowedToContinue.Return", data);
-                  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TurnBackManagerComponent.IsAllowedToContinue.Return");
-                  return;
-              }
+              QVariantMap data;
+              data.insert("call_succeeded", true);
+              data.insert("is_allowed", response->is_allowed);
+              data.insert("result", response->result);
+              m_stateMachine.submitEvent("TurnBackManagerComponent.IsAllowedToContinue.Return", data);
+              RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TurnBackManagerComponent.IsAllowedToContinue.Return");
+              return;
+              
           }
           else if(futureResult == rclcpp::FutureReturnCode::TIMEOUT){
               RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while future complete for the service 'IsAllowedToContinue'.");
           }
       }
       QVariantMap data;
-      data.insert("is_ok", false);
+      data.insert("call_succeeded", false);
       m_stateMachine.submitEvent("TurnBackManagerComponent.IsAllowedToContinue.Return", data);
       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "TurnBackManagerComponent.IsAllowedToContinue.Return");
   });
@@ -136,7 +147,7 @@ bool ArePeoplePresentSkill::start(int argc, char*argv[])
 
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
-
+       
 	return true;
 }
 
@@ -159,10 +170,10 @@ void ArePeoplePresentSkill::tick( [[maybe_unused]] const std::shared_ptr<bt_inte
           break;
       case Status::success:
           response->status = SKILL_SUCCESS;
-          break;  
+          break;
       case Status::undefined:
           response->status = SKILL_FAILURE;
-          break;          
+          break;
   }
   RCLCPP_INFO(m_node->get_logger(), "ArePeoplePresentSkill::tickDone");
   response->is_ok = true;

@@ -1,35 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="HardwareFaultSkillCondition" datamodel="ecmascript" initial="idle">
     <datamodel>
-        <!-- valore restituito dal componente di monitoraggio -->
+        <!-- Value returned by the hardware monitoring component -->
         <data id="m_has_fault" expr="false"/>
-        <!-- costanti di ritorno BT -->
+        <!-- Behavior Tree return constants -->
         <data id="SKILL_SUCCESS" expr="0"/>
-        <!-- nessun fault -->
+        <!-- No fault detected -->
         <data id="SKILL_FAILURE" expr="1"/>
-        <!-- presente un fault -->
+        <!-- Fault detected -->
     </datamodel>
-    <!-- TickCondition server -->
-    <!-- client verso il componente di monitoraggio HW -->
-    <!-- ===========  Stati  =========== -->
+    <!-- TickCondition server - provides the skill interface to the behavior tree -->
+    <!-- Client to the hardware monitoring component -->
+    <!-- =========== States =========== -->
     <state id="idle">
-        <!-- su tick chiedo lo stato al componente -->
+        <!-- On tick request, query the hardware monitoring component -->
         <transition target="query" event="CMD_TICK">
             <send event="HardwareMonitorComponent.HasFaults.Call"/>
         </transition>
     </state>
     <state id="query">
-        <!-- ricevo la risposta e passo al decision making -->
+        <!-- Receive response and proceed to decision making -->
         <transition target="decide" event="HardwareMonitorComponent.HasFaults.Return">
             <assign location="m_has_fault" expr="_event.data.has_fault"/>
+            <log expr="&apos;Hardware fault status: &apos; + m_has_fault"/>
         </transition>
+        <!-- Handle service errors (e.g., component not available) -->
+        <ros_service_handle_error name="/HardwareMonitorComponent/HasFaults" target="service_error"/>
+        <!-- Timeout protection - fail after 5 seconds if no response -->
+        <transition target="timeout_error" after="5s"/>
+    </state>
+    <state id="timeout_error">
+        <onentry>
+            <!-- Return failure due to timeout -->
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_FAILURE"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
     </state>
     <state id="decide">
+        <!-- Decision logic based on fault status -->
         <transition cond="m_has_fault == false" target="success"/>
         <transition cond="m_has_fault == true" target="failure"/>
     </state>
     <state id="success">
         <onentry>
+            <!-- No hardware faults detected - return success -->
             <send event="TICK_RESPONSE">
                 <param name="status" expr="SKILL_SUCCESS"/>
             </send>
@@ -38,6 +54,16 @@
     </state>
     <state id="failure">
         <onentry>
+            <!-- Hardware fault detected - return failure -->
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_FAILURE"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="service_error">
+        <onentry>
+            <!-- Service communication error - treat as failure for safety -->
             <send event="TICK_RESPONSE">
                 <param name="status" expr="SKILL_FAILURE"/>
             </send>
