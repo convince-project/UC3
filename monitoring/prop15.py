@@ -44,6 +44,7 @@ def abstract_message(message):
         if "response" in message:
             for resp in message["response"]:
                 if resp.get("poi_name") == 'charging_station':
+                    print("inside charging station")
                     predicates['arrivedAtCS'] = resp.get("is_near", False)
 
     return predicates

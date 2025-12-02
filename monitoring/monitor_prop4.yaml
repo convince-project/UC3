@@ -17,5 +17,5 @@ monitors: # here we list the monitors we are going to generate
           type: builtin_interfaces.msg.Time
           action: log
         - name: /NavigationComponent/CheckNearToPoi/_service_event #reset
-          type: scheduler_interfaces.srv.Reset_Event
+          type: navigation_interfaces.srv.CheckNearToPoi_Event
           action: log

@@ -11,10 +11,10 @@ monitors: # here we list the monitors we are going to generate
         action: nothing # the oracle will not change the message
       topics: # the list of topics this monitor is going to intercept
         - name: /NotifyUserComponent/StartAlarm/_service_event
-          type: scheduler_interfaces.srv.GetCurrentPoi_Event
+          type: notify_user_interfaces.srv.StartAlarm_Event
           action: log
         - name: /NavigationComponent/CheckNearToPoi/_service_event #reset
-          type: scheduler_interfaces.srv.Reset_Event
+          type: navigation_interfaces.srv.CheckNearToPoi_Event
           action: log
         - name: /monitoring_clock
           type: builtin_interfaces.msg.Time
