@@ -86,14 +86,12 @@ void TimeComponent::StartTourTimer([[maybe_unused]]const std::shared_ptr<time_in
              std::shared_ptr<time_interfaces::srv::StartTourTimer::Response>      response) 
 {
     RCLCPP_INFO_STREAM(m_node->get_logger(), "TimeComponent::StartTourTimer ");
-    m_timerMutexTour.lock();
     if(m_timerTaskTour == true)
     {
         RCLCPP_INFO_STREAM(m_node->get_logger(), "Timer task already running");
         response->is_ok = true;
         return;
     }
-    m_timerMutexTour.unlock();
     m_saidDurationWarning = false;
     m_threadTimerTour = std::thread([this]() { timerTaskTour(); });
     response->is_ok = true;
@@ -215,14 +213,12 @@ void TimeComponent::StartPoiTimer([[maybe_unused]]const std::shared_ptr<time_int
              std::shared_ptr<time_interfaces::srv::StartPoiTimer::Response>      response) 
 {
     RCLCPP_INFO_STREAM(m_node->get_logger(), "TimeComponent::StartPoiTimer ");
-    m_timerMutexPoi.lock();
     if(m_timerTaskPoi == true)
     {
         RCLCPP_INFO_STREAM(m_node->get_logger(), "Poi Timer task already running");
         response->is_ok = true;
         return;
     }
-    m_timerMutexPoi.unlock();
     m_threadTimerPoi = std::thread([this]() { timerTaskPoi(); });
     response->is_ok = true;
 }
