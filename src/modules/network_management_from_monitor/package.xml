@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>network_management_from_monitor</name>
+  <version>0.0.1</version>
+  <description>Node that calls Start/StopService based on monitor_verdict</description>
+
+  <maintainer email="you@example.com">Your Name</maintainer>
+  <license>Apache-2.0</license>
+
+
+  <depend>rclcpp</depend>
+  <depend>std_msgs</depend>
+  <depend>manage_service_interfaces</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+
+</package>

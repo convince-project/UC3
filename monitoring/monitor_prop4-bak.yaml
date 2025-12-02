@@ -13,6 +13,12 @@ monitors: # here we list the monitors we are going to generate
         - name: /SchedulerComponent/GetCurrentPoi/_service_event
           type: scheduler_interfaces.srv.GetCurrentPoi_Event
           action: log
+        - name: /BlackboardComponent/GetInt/_service_event
+          type: blackboard_interfaces.srv.GetIntBlackboard_Event
+          action: log
+        - name: /monitoring_clock
+          type: builtin_interfaces.msg.Time
+          action: log
         - name: /SchedulerComponent/Reset/_service_event #reset
           type: scheduler_interfaces.srv.Reset_Event
           action: log

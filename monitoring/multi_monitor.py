@@ -15,7 +15,8 @@ class MultiMonitor(Node):
     def __init__(self):
         super().__init__('multi_monitor')
 
-        # Tabella di recap delle proprietà
+        # PROPERTIES RECAP TABLE
+        # ------  Put here your real properties ------
         self.property_formulas = {
             'prop1': 'historically({high_battery} -> historically( not {alarm}))',
             'prop2': 'historically(({alarm} -> once{low_battery}) and not( not {alarm} since[5:] {low_battery}))',
@@ -33,7 +34,8 @@ class MultiMonitor(Node):
             'prop14': '(once[5:]{t} -> once[:3]{connected_to_web})'
         }
 
-        # Elenco dei topic da monitorare (modifica i nomi come servono)
+        # List of topics to monitor
+        # ------ Put here your real topics to monitor ------
         self.topics = [
 
             '/monitor_prop1/monitor_verdict',
@@ -56,41 +58,40 @@ class MultiMonitor(Node):
             '/monitor_prop14/monitor_verdict'            
         ]
 
-        # Stato attuale di ogni topic
+        # Current status of each topic
         self.status = {t: "unknown" for t in self.topics}
 
-        # Timestamp dell'ultimo messaggio ricevuto per ogni topic
+        # Timestamp of the last message received for each topic
         self.last_message_time = {t: 0.0 for t in self.topics}
 
-        # Lock per accesso thread-safe (rclpy callbacks vs GUI thread)
+        # Lock for a thread-safe access (rclpy callbacks vs GUI thread)
         self.lock = threading.Lock()
 
-        # Timeout in secondi dopo il quale un topic è considerato "unknown"
+        # Seconds after which a topic is considered "unknown" (grey)
         self.timeout_seconds = 3.0
 
-        # Crea una sottoscrizione per ogni topic
+        # Create a subscription for each topic
         for topic in self.topics:
             self.create_subscription(String, topic,
                                      lambda msg, t=topic: self.callback(msg, t),
                                      10)
 
-        # Timer per stampare lo stato ogni secondo
+        # Timer to print the state ad each second
         self.timer = self.create_timer(1.0, self.print_status)
         
-        # Flag per alternare tra tabella e stati
         self.show_table = True
 
     def callback(self, msg, topic_name):
         data = msg.data.strip().lower()
         if data not in ["currently_true", "currently_false"]:
-            self.get_logger().warn(f"Topic {topic_name}: valore inatteso '{msg.data}'")
+            self.get_logger().warn(f"Topic {topic_name}: unexpected value '{msg.data}'")
             return
         with self.lock:
             self.status[topic_name] = data
             self.last_message_time[topic_name] = time.time()
 
     def check_timeouts(self):
-        """Controlla se alcuni topic non stanno più pubblicando"""
+        """Check if some topics are not publishing"""
         current_time = time.time()
         with self.lock:
             for topic in self.topics:
@@ -98,56 +99,54 @@ class MultiMonitor(Node):
                 # Se è passato più tempo del timeout e il topic non è già unknown
                 if time_since_last_msg > self.timeout_seconds and self.status[topic] != "unknown":
                     if self.last_message_time[topic] > 0:  # Solo se aveva ricevuto almeno un messaggio
-                        self.get_logger().warn(f"Topic {topic}: timeout - nessun messaggio da {time_since_last_msg:.1f}s")
+                        self.get_logger().warn(f"Topic {topic}: timeout - no message from {time_since_last_msg:.1f}s")
                         self.status[topic] = "unknown"
 
     def print_property_table(self):
         print("\n" + "="*100)
-        print("TABELLA RECAP PROPRIETÀ MONITORATE")
+        print("RECAP TABLE OF MONITORED PROPERTIES")
         print("="*100)
         for prop, formula in self.property_formulas.items():
             print(f"{prop:12s} --> {formula}")
         print("="*100 + "\n")
 
     def print_status(self):
-        # Prima controlla i timeout
+        # Check the timeouts
         self.check_timeouts()
         
         if self.show_table:
-            # Stampa la tabella delle proprietà
+            # Print the table
             self.print_property_table()
         else:
-            # Stampa lo stato dei topic
+            # Print topic status
             all_true = all(v == "currently_true" for v in self.status.values())
             has_false = any(v == "currently_false" for v in self.status.values())
             has_unknown = any(v == "unknown" for v in self.status.values())
             
             print("\n=== STATUS CHECK ===")
             current_time = time.time()
-            # Copia sicura dello stato per stampa
+            
             with self.lock:
                 status_copy = dict(self.status)
                 last_copy = dict(self.last_message_time)
 
             for topic, val in status_copy.items():
-                # Mostra anche da quanto tempo non arriva un messaggio
                 if last_copy[topic] > 0:
                     time_since_last = current_time - last_copy[topic]
                     time_info = f"({time_since_last:.1f}s ago)"
                 else:
-                    time_info = "(mai ricevuto)"
+                    time_info = "(never received)"
                 print(f"{topic:40s}: {val:15s} {time_info}")
             
             if all_true:
-                print("✅  Tutti TRUE")
+                print("✅  All TRUE")
             elif has_false:
-                print("❌  ERRORE: almeno un topic è currently_false")
+                print("❌  ERROR: at least one topic is currently_false")
             elif has_unknown:
-                print("⚠️   WARNING: almeno un topic non pubblica (unknown)")
+                print("⚠️   WARNING: at least one topic is not publishing (unknown)")
             
             print("====================\n")
         
-        # Alterna per il prossimo ciclo
         self.show_table = not self.show_table
 
 
@@ -189,11 +188,11 @@ def main(args=None):
 
     # If tkinter is not available, fallback to headless behavior
     if tk is None:
-        print("Tkinter non disponibile: avvio in modalità testuale")
+        print("Tkinter not available: starting the gui in a terminal way")
         try:
             rclpy.spin(node)
         except KeyboardInterrupt:
-            print("\n🛑 Interruzione ricevuta, chiusura in corso...")
+            print("\n🛑 Keyboard interrupt, closing the GUI ...")
         finally:
             try:
                 node.destroy_node()
@@ -203,7 +202,7 @@ def main(args=None):
                 rclpy.shutdown()
             except:
                 pass
-            print("✅ Monitor chiuso correttamente")
+            print("✅ Monitor closed")
         return
 
     # GUI is available: run ROS spin in background thread and GUI in main thread
@@ -292,12 +291,17 @@ def main(args=None):
                 # color block
                 color_label = tk.Label(cell, bg='grey', width=10, height=5, relief='ridge')
                 color_label.pack(expand=True, fill='both', padx=4, pady=4)
+                # Put name and time labels inside the same 'cell' so they stay directly under the rectangle
+                name_label = tk.Label(cell, text=name, wraplength=self.square_size+20, justify='center')
+                name_label.pack(fill='x')
                 # topic property number / short id
-                text = tk.Label(self.frame, text=name, wraplength=self.square_size+20, justify='center')
-                text.grid(row=r*2+1, column=c)
+                # text = tk.Label(self.frame, text=name, wraplength=self.square_size+20, justify='center')
+                # text.grid(row=r*2+1, column=c)
                 # last update label
-                time_label = tk.Label(self.frame, text='(mai ricevuto)', font=('Segoe UI', 8), fg='#555555')
-                time_label.grid(row=r*2+2, column=c)
+                # time_label = tk.Label(self.frame, text='(never received)', font=('Segoe UI', 8), fg='#555555')
+                # time_label.grid(row=r*2+2, column=c)
+                time_label = tk.Label(cell, text='(never received)', font=('Segoe UI', 8), fg='#555555')
+                time_label.pack(fill='x', pady=(2,4))
                 self.topic_widgets[topic] = (color_label, time_label)
 
             # allow grid to expand
@@ -329,7 +333,7 @@ def main(args=None):
                     dt = current_time - last
                     time_label.config(text=f"{dt:.1f}s ago")
                 else:
-                    time_label.config(text='(mai ricevuto)')
+                    time_label.config(text='(never received)')
             self.root.after(self.refresh_ms, self.update_ui)
 
         def on_close(self):
@@ -362,7 +366,7 @@ def main(args=None):
     try:
         gui.run()
     except KeyboardInterrupt:
-        print("\n🛑 Interruzione ricevuta, chiusura in corso...")
+        print("\n🛑 Keyboard interrupt, closing the GUI ...")
     finally:
         # Ensure shutdown
         try:
@@ -375,7 +379,7 @@ def main(args=None):
             pass
         # give spin thread a moment
         spin_thread.join(timeout=1.0)
-        print("✅ Monitor chiuso correttamente")
+        print("✅ Monitor correctly closed")
 
 
 if __name__ == '__main__':

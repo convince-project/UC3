@@ -2,7 +2,7 @@
 
 '''   H(POI_1_selected => P -POI_1_completed) AND - (-POI_1_selected S[2 : ] -POI_1_completed)
 '''
-PROPERTY = r"historically( not( not {startReached} since [600:] {tourFinished}))"
+PROPERTY = r"historically(({poi1_selected} -> once( not {poi1_completed})) and not( not {poi1_selected} since [3600:] not {poi1_completed}))"
 
 # predicates used in the property (initialization for time 0)
 
@@ -12,9 +12,9 @@ PROPERTY = r"historically( not( not {startReached} since [600:] {tourFinished}))
 
 predicates = dict(
 
-    tourFinished = False,
+    poi1_selected = False,
 
-    startReached = False,
+    poi1_completed = False,
 
     time = 0,
 
@@ -40,12 +40,26 @@ def abstract_message(message):
     if "topic" in message and "GetCurrentPoi" in message['topic']:
         if "response" in message:
             for resp in message["response"]:
-                if resp.get("poi_number") == 0:
-                    predicates['startReached'] = True
-                else
-                    predicates['startReached'] = False
+                if resp.get("poi_number") == 1:
+                    predicates['poi1_selected'] = True
+                    
+    if "topic" in message and "GetInt" in message['topic']:
+        if "response" in message:
+            for resp in message["response"]:
+                field_name = resp.get("field_name")
+                if field_name == "PoiDone1":
+                    if resp.get("value") == 1:
+                        predicates['poi1_completed'] = True
+                        # print("predicates", predicates)
+                    else:
+                        predicates['poi1_completed'] = False
 
     if "topic" in message and "Reset" in message['topic']:
-        predicates['tourFinished'] = True
+        predicates['poi1_selected'] = False
+        predicates['poi1_completed'] = False
+    # predicates['service'] = True if 'service' in message else False
+
+    # predicates['low_percentage'] = True if 'percentage' in message and message['percentage'] < 30 else False
+
 
     return predicates
