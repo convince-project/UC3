@@ -43,7 +43,7 @@ def abstract_message(message):
     if "topic" in message and "CheckNearToPoi" in message['topic']:
         if "response" in message:
             for resp in message["response"]:
-                if resp.get("poi_name") == 'POI0':
+                if resp.get("poi_name") == 'charging_station':
                     predicates['arrivedAtCS'] = resp.get("is_near", False)
 
     return predicates

@@ -41,7 +41,7 @@ def abstract_message(message):
     if "topic" in message and "CheckNearToPoi" in message['topic']:
         if "response" in message:
             for resp in message["response"]:
-                if resp.get("poi_name") == 'POI0':
+                if resp.get("poi_name") == 'madama_start':
                     predicates['startReached'] = resp.get("is_near", False)
 
     if "topic" in message and "Reset" in message['topic']:
