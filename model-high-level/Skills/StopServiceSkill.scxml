@@ -6,15 +6,15 @@
        initial="idle">
 
   <datamodel>
-    <data id="result" expr="''"/>
-    <data id="SKILL_SUCCESS" expr="0"/>
-    <data id="SKILL_FAILURE" expr="1"/>
+    <data id="result" type="bool" expr="false"/>
+    <data id="SKILL_SUCCESS" type="int8" expr="0"/>
+    <data id="SKILL_FAILURE" type="int8" expr="1"/>
   </datamodel>
 
   <ros_service_server service_name="/StopServiceSkill/tick"  type="bt_interfaces_dummy/TickAction"/>
   <ros_service_server service_name="/StopServiceSkill/halt"  type="bt_interfaces_dummy/HaltAction"/>
 
-  <ros_service_client service_name="/ManagePeopleDetectorComponent/StopService" type="manage_people_detector_interfaces/StopService"/>
+  <ros_service_client service_name="/ManagePeopleDetectorComponent/StopService" type="manage_service_interfaces/StopService"/>
 
   <state id="idle">
     <ros_service_handle_request name="/StopServiceSkill/tick" target="callStop">

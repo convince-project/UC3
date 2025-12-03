@@ -307,7 +307,7 @@ void TextToSpeechComponent::BatchGeneration(const std::shared_ptr<GoalHandleBatc
             RCLCPP_ERROR(m_node->get_logger(), "Unable to synthesize text");
             return;
         }
-        m_batchAudioPort.write();
+        m_batchAudioPort.writeStrict();
         feedback->texts_left = goal->texts.size() - i - 1;
         goal_handle->publish_feedback(feedback);
         RCLCPP_INFO(m_node->get_logger(), "Published feedback for index %zu", i);
