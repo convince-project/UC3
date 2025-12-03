@@ -32,8 +32,8 @@
         <SequenceStar>
             <SubTree ID="BatteryManagement" />
             <SubTree ID="MuseumHours" />
-            <SubTree ID="TourDuration" />
             <SubTree ID="PoiScheduler" />
+            <SubTree ID="TourDuration" />
             <SubTree ID="GoToPoi" />
             <SubTree ID="CheckArtworkAndExplain" />
         </SequenceStar>
@@ -42,6 +42,7 @@
     <BehaviorTree ID="CheckArtworkAndExplain">
         <SequenceStar>
             <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="NarratePoi" />
+            <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SetNavigationPosition" />
             <IfThenElse name="">
                 <Inverter name="">
                     <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsWarningDuration" />
