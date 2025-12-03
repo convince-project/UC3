@@ -997,7 +997,7 @@
               },
               {
                 "m_isBlocking": false,
-                "m_param": "Hai qualche domanda? Posso parlarti della funzione di questa stanza, della sua decorazione. Oppure puoi farmi qualche domanda sul palazzo, il progetto Convince o su di me. Altrimenti possiamo proseguire con il tour.",
+                "m_param": "Hai qualche domanda? Posso parlarti della funzione di questa stanza, della sua decorazione. Oppure puoi farmi qualche domanda sul palazzo, il progetto Convìns o su di me. Altrimenti possiamo proseguire con il tour.",
                 "m_type": "speak"
               },
               {
@@ -1036,7 +1036,7 @@
               },
               {
                 "m_isBlocking": false,
-                "m_param": "Nel profilo ondulato del cornicione si alternano quattro aquile con la croce di Savoia nel petto e la pianta di fritillaria, emblema di Madama Reale: si tratta di una pianta della famiglia dei gigli con grandi fiori arancioni. Lo zoccolo e le sovrapporte in stucco furono eseguiti nel 1927 con calchi in gesso tratti dalle decorazioni della Reggia di Venaria Reale.",
+                "m_param": "Nel profilo ondulato del cornicione si alternano quattro aquile con la croce di Savoia nel petto e la pianta di fritillaria, emblema di Madama Reale: si tratta di una pianta della famiglia dei gigli con grandi fiori arancioni. Lo zoccolo e le sovrapporte in stucco furono eseguiti nel 1927 con calchi in gesso tratti dalle decorazioni della Reggia di Venarìa Reale.",
                 "m_type": "speak"
               },
               {
@@ -1070,12 +1070,12 @@
               },
               {
                 "m_isBlocking": false,
-                "m_param": "Alcuni di loro si vedono nel grande dipinto che raffigura il castello di Rivoli. Guardali qui, in questo grande quadro, in basso a destra, con le loro braghe rosse, la camicia bianca e il tricorno nero in testa scortano la carrozza del re.",
+                "m_param": "Alcuni di loro si vedono nel grande dipinto che raffigura il castello di Rìvoli. Guardali qui, in questo grande quadro, in basso a destra, con le loro braghe rosse, la camicia bianca e il tricorno nero in testa scortano la carrozza del re.",
                 "m_type": "speak"
               },
               {
                 "m_isBlocking": false,
-                "m_param": "Hai qualche domanda? Posso parlarti della decorazione di questa stanza. Oppure puoi farmi qualche domanda sul palazzo, il progetto Convince o su di me. Altrimenti possiamo proseguire con il tour.",
+                "m_param": "Vuoi degli approfondimenti sulla decorazione di questa stanza? Altrimenti ci spostiamo nella Sala delle Feste.",
                 "m_type": "speak"
               },
               {
@@ -1097,7 +1097,7 @@
               },
               {
                 "m_isBlocking": false,
-                "m_param": "Alcuni di loro si vedono nel grande dipinto che raffigura il castello di Rivoli. Guardali qui, in questo grande quadro, in basso a destra, con le loro braghe rosse, la camicia bianca e il tricorno nero in testa scortano la carrozza del re.",
+                "m_param": "Alcuni di loro si vedono nel grande dipinto che raffigura il castello di Rìvoli. Guardali qui, in questo grande quadro, in basso a destra, con le loro braghe rosse, la camicia bianca e il tricorno nero in testa scortano la carrozza del re.",
                 "m_type": "speak"
               },
               {
@@ -1173,7 +1173,7 @@
               },
               {
                 "m_isBlocking": false,
-                "m_param": "Hai qualche domanda? Posso parlarti della decorazione di questa stanza. Oppure puoi farmi qualche domanda sul palazzo, il progetto Convince o su di me. Altrimenti possiamo proseguire con il tour.",
+                "m_param": "Vuoi saperne di più sulla decorazione di questa stanza? Oppure qualcosa sul palazzo? Se no possiamo andare a vedere la prossima sala.",
                 "m_type": "speak"
               },
               {
@@ -1271,7 +1271,7 @@
               },
               {
                 "m_isBlocking": false,
-                "m_param": "Hai qualche domanda? Posso parlarti della decorazione di questa stanza. Oppure puoi farmi qualche domanda sul palazzo, il progetto Convince o su di me. Altrimenti possiamo proseguire con il tour.",
+                "m_param": "Hai domande? Posso parlarti della decorazione di questa magnifica sala.. Altrimenti ci dirigiamo verso l'ultima stanza del tour.",
                 "m_type": "speak"
               },
               {
@@ -1354,12 +1354,12 @@
               },
               {
                 "m_isBlocking": false,
-                "m_param": "In questa sala la duchessa poteva consumare il pasto. Qui si svolgeva la cerimonia del risveglio e della vestizione della duchessa, che in questa sala riceveva in udienza privata principi e principesse straniere, secondo un’usanza nata alla corte di Luigi XIV e diffusa tra i sovrani europei dell’epoca.",
+                "m_param": "In questa sala la duchessa poteva consumare il pasto. Qui si svolgeva la cerimonia del risveglio e della vestizione della duchessa, che in questa sala riceveva in udienza privata prìncipi e principesse straniere, secondo un’usanza nata alla corte di Luigi XIV e diffusa tra i sovrani europei dell’epoca.",
                 "m_type": "speak"
               },
               {
                 "m_isBlocking": false,
-                "m_param": "Hai qualche domanda? Posso parlarti della decorazione di questa stanza. Oppure puoi farmi qualche domanda sul palazzo, il progetto Convince o su di me. Altrimenti possiamo concludere qui il tour.",
+                "m_param": "Ci sono domande? Posso dirti qualcosa di più su questa stanza. Altrimenti possiamo concludere qui il tour.",
                 "m_type": "speak"
               },
               {
@@ -1381,7 +1381,7 @@
               },
               {
                 "m_isBlocking": false,
-                "m_param": "In questa sala la duchessa poteva consumare il pasto. Qui si svolgeva la cerimonia del risveglio e della vestizione della duchessa, che in questa sala riceveva in udienza privata principi e principesse straniere, secondo un’usanza nata alla corte di Luigi XIV e diffusa tra i sovrani europei dell’epoca.",
+                "m_param": "In questa sala la duchessa poteva consumare il pasto. Qui si svolgeva la cerimonia del risveglio e della vestizione della duchessa, che in questa sala riceveva in udienza privata prìncipi e principesse straniere, secondo un’usanza nata alla corte di Luigi XIV e diffusa tra i sovrani europei dell’epoca.",
                 "m_type": "speak"
               },
               {
