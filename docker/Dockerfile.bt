@@ -32,51 +32,8 @@ USER user1
 
 WORKDIR ${robotology_install_folder}
 
-#add fakeNavigation device
-
-# git remote add ste93 https://github.com/ste93/yarp && \
-# git fetch ste93 && \
-# git checkout ste93/test/yarpmanager/default_app && \
-RUN cd yarp && \
-    cd build && \
-    cmake .. \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DYARP_COMPILE_libYARP_math=ON \
-    -DYARP_COMPILE_GUIS=ON \
-    -DYARP_COMPILE_DEVICE_PLUGINS=ON \
-    -DENABLE_yarpcar_mjpeg=ON \
-    -DENABLE_yarpcar_segmentationimage=ON \
-    -DENABLE_yarpcar_portmonitor=ON \
-    -DENABLE_yarpmod_portaudio=ON \
-    -DENABLE_yarpmod_portaudioPlayer=ON \
-    -DENABLE_yarpmod_portaudioRecorder=ON \
-    -DENABLE_yarpmod_fakeAnalogSensor=ON \
-    -DENABLE_yarpmod_fakeBattery=ON  \
-    -DENABLE_yarpmod_fakeDepthCamera=ON \
-    -DENABLE_yarpmod_fakeIMU=ON  \
-    -DENABLE_yarpmod_fakeLaser=ON  \
-    -DENABLE_yarpmod_fakeLocalizer=ON \
-    -DENABLE_yarpmod_fakeMicrophone=ON  \
-    -DENABLE_yarpmod_fakeMotionControl=ON  \
-    -DENABLE_yarpmod_fakeNavigation=ON  \
-    -DENABLE_yarpmod_fakeSpeaker=ON  \
-    -DENABLE_yarpmod_fakebot=ON \
-    -DENABLE_yarpmod_laserFromDepth=ON \
-    -DENABLE_yarpmod_laserFromExternalPort=ON \
-    -DENABLE_yarpmod_laserFromDepth=ON \
-    -DENABLE_yarpmod_laserFromPointCloud=ON \
-    -DENABLE_yarpmod_laserFromRosTopic=ON \
-    -DENABLE_yarppm_soundfilter_resample=ON \
-    -DENABLE_yarppm_bottle_compression_zlib=ON \
-    -DENABLE_yarppm_depthimage_compression_zlib=ON \
-    -DENABLE_yarppm_image_compression_ffmpeg=ON \
-    -DENABLE_yarppm_depthimage_to_mono=ON \
-    -DENABLE_yarppm_depthimage_to_rgb=ON && \
-    make -j11
-
-
-RUN cd yarp-devices-ros2/ros2_interfaces_ws && /bin/bash -c "source /opt/ros/jazzy/setup.bash; colcon build"
-RUN cd yarp-devices-ros2 && cd build && /bin/bash -c "source /opt/ros/jazzy/setup.bash; source ${robotology_install_folder}/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash; cmake .. -DYARP_ROS2_USE_SYSTEM_map2d_nws_ros2_msgs=ON -DYARP_ROS2_USE_SYSTEM_yarp_control_msgs=ON; make -j11"
+# RUN cd yarp-devices-ros2/ros2_interfaces_ws && /bin/bash -c "source /opt/ros/jazzy/setup.bash; colcon build"
+# RUN cd yarp-devices-ros2 && cd build && /bin/bash -c "source /opt/ros/jazzy/setup.bash; source ${robotology_install_folder}/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash; cmake .. -DYARP_ROS2_USE_SYSTEM_map2d_nws_ros2_msgs=ON -DYARP_ROS2_USE_SYSTEM_yarp_control_msgs=ON; make -j11"
     
 WORKDIR /home/user1 
 
