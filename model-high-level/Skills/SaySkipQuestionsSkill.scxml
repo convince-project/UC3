@@ -10,7 +10,8 @@
     <data id="m_command"     type="string"  expr="'saySkipQuestions'"/>
     <data id="m_param"       type="string"  expr="''"/>
     <data id="m_is_speaking" type="bool" expr="false"/>
-    <data id="m_is_ok"      type="bool"  expr="false"/>
+    <data id="m_is_ok"       type="bool"  expr="false"/>
+    <data id="m_is_done"     type="bool"  expr="false"/>
     <data id="SKILL_SUCCESS" type="int8"    expr="0"/>
     <data id="SKILL_FAILURE" type="int8"    expr="1"/>
     <data id="SKILL_RUNNING" type="int8"    expr="2"/>
@@ -26,7 +27,7 @@
   <ros_service_client service_name="/NarrateComponent/Stop" type="narrate_interfaces/Stop"/>
 
   <state id="idle">
-    <ros_service_handle_request name="/SaySkipQuestionsSkill/tick" target="startNarration">
+    <ros_service_handle_request name="/SaySkipQuestionsSkill/tick" target="startNarration"/>
     <ros_service_handle_request name="/SaySkipQuestionsSkill/halt" target="stopNarration"/>
   </state>
 
