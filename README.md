@@ -135,6 +135,12 @@ pages={abc-def},
 doi={DOI}
 }
 ``` -->
+## Monitoring
+
+The complete guide to compile and launch the monitors can be found at this link:
+[Monitoring guide](https://www.notion.so/Guida-Monitoring-2a4819abc67e800d822ddcaf7a486fb7?source=copy_link)
+
+
 
 ## Maintainer
 
