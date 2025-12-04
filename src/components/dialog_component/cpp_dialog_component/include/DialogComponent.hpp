@@ -243,6 +243,9 @@ private:
     std::shared_ptr<rclcpp::Node> executeDanceClientNode;
     std::shared_ptr<rclcpp::Client<execute_dance_interfaces::srv::ExecuteDance>> danceClient;
 
+    std::shared_ptr<rclcpp::Node> resetDanceClientNode;
+    std::shared_ptr<rclcpp::Client<execute_dance_interfaces::srv::ResetDance>> resetDanceClient;
+
     std::shared_ptr<rclcpp::Node> executePointingClientNode;
     std::shared_ptr<rclcpp::Client<cartesian_pointing_interfaces::srv::PointAt>> pointingClient;
 

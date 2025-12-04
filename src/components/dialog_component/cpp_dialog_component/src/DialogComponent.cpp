@@ -384,6 +384,9 @@ bool DialogComponent::start(int argc, char *argv[])
     executeDanceClientNode = rclcpp::Node::make_shared("ExecuteDanceComponentExecuteDanceNode");
     danceClient = executeDanceClientNode->create_client<execute_dance_interfaces::srv::ExecuteDance>("/ExecuteDanceComponent/ExecuteDance");
 
+    resetDanceClientNode = rclcpp::Node::make_shared("ExecuteDanceComponentResetDanceNode");
+    resetDanceClient = resetDanceClientNode->create_client<execute_dance_interfaces::srv::ResetDance>("/ExecuteDanceComponent/ResetDance");
+
     executePointingClientNode = rclcpp::Node::make_shared("CartesianPointingComponentPointTaskNode");
     pointingClient = executePointingClientNode->create_client<cartesian_pointing_interfaces::srv::PointAt>("/CartesianPointingComponent/PointAt");
 
@@ -1179,16 +1182,16 @@ void DialogComponent::ResetDance()
     
     auto dance_request = std::make_shared<execute_dance_interfaces::srv::ResetDance::Request>();
     // Wait for service
-    while (!danceClient->wait_for_service(std::chrono::milliseconds(100)))
+    while (!resetDanceClient->wait_for_service(std::chrono::milliseconds(100)))
     {
         if (!rclcpp::ok())
         {
             RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'ExecuteDance'. Exiting.");
         }
     }
-    auto dance_result = danceClient->async_send_request(dance_request);
+    auto dance_result = resetDanceClient->async_send_request(dance_request);
 
-    if (rclcpp::spin_until_future_complete(executeDanceClientNode, dance_result) == rclcpp::FutureReturnCode::SUCCESS)
+    if (rclcpp::spin_until_future_complete(resetDanceClientNode, dance_result) == rclcpp::FutureReturnCode::SUCCESS)
     {
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Reset Dance succeeded");
     }

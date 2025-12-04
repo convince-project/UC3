@@ -53,10 +53,10 @@ private:
 	std::atomic<bool> m_haltResult{false};
 	rclcpp::Service<bt_interfaces_dummy::srv::HaltAction>::SharedPtr m_haltService;
 	
-	std::shared_ptr<rclcpp::Node> nodeGetCurrentPoi;
-	std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::GetCurrentPoi>> clientGetCurrentPoi;
-	std::shared_ptr<rclcpp::Node> nodeSetInt;
-	std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::SetIntBlackboard>> clientSetInt;
+	
+	
+	
+	
 
 };
 
