@@ -49,17 +49,23 @@ class PlannerComponent(Node):
         self._pois_explained = []
         self._time_for_occupancies = None
         self._btWriter = BTWriter(bt_file_path)
-        
+
+        self.client = self.create_client(GetIntBlackboard, 'BlackboardComponent/GetInt')
+        num_retries = 0
+        while not self.client.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('Service /BlackboardComponent/GetInt not available, waiting again...')
+            num_retries = num_retries + 1
+            if num_retries > 10:
+                self.get_logger().error('Service /BlackboardComponent/GetInt not available, exiting...')
+                sys.exit(1)
+
         self._detections_retriever = DetectionsRetriever(self, detections_topic)
 
 
-    def retrieve_blackboard_value(self, key):
-        client = self.create_client(GetIntBlackboard, 'get_int_blackboard')
-        while not client.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info('Service not available, waiting again...')
+    def retrieve_blackboard_value(self,git  key):
         request = GetIntBlackboard.Request()
         request.key = key
-        future = client.call_async(request)
+        future = self.client.call_async(request)
         rclpy.spin_until_future_complete(self, future)
         if future.result() is not None:
             return future.result().value

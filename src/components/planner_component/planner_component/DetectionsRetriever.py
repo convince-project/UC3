@@ -3,6 +3,7 @@
 
 from threading import Lock
 from static_devices_msgs.msg import DetectionsArray, SingleDetection
+from matplotlib import pyplot as plt
 
 class Detection:
     def __init__(self, person_id, positionx, positiony, timestamp, vx, vy):
@@ -29,6 +30,23 @@ class DetectionsRetriever:
         self._subscriber = None
 
         self.start_with_node(node)
+        # plt.ion()
+        # # set background image
+        # self.fig_size = [-21.2,36.4, -53.4, 9.2 ]
+        # self.fig, self.ax = plt.subplots()
+        # self.img = plt.imread("/home/ste/ws/birmingham/congestion-aware-planning/data/maps/madama3.jpg")
+        # self.ax.imshow(self.img, cmap='gray', vmin=0, vmax=255, extent=self.fig_size)
+    
+        # # create a graph to be updated dynamically with the detections
+        # # self.scatter = self.ax.scatter([], [])
+        # self.ax.set_xlim(-10, 10)
+        # self.ax.set_ylim(-10, 10)
+        # self.ax.set_title('Detections')
+        # self.ax.set_xlabel('X Position')
+        # self.ax.set_ylabel('Y Position')
+
+        
+
 
     def _callback(self, msg):
         detections_local = {}
@@ -45,7 +63,7 @@ class DetectionsRetriever:
             )
             existing = self._detections.get(detection.id, [])
             # keep newest first, limit to queue_size
-            combined = [detection_obj] + existing[:self._queue_size-1] if existing else [detection_obj]
+            combined = [detection_obj] + existing[:5] if existing else [detection_obj]
             detections_local[detection.id] = sorted(combined, key=lambda x: x.timestamp, reverse=True)
             
             current_occupancies_local.append(Detection(
@@ -56,7 +74,15 @@ class DetectionsRetriever:
                 vx=detection.vx,
                 vy=detection.vy
             ))
-
+        # print(f"DetectionsRetriever: received {len(msg.detections)} detections.")
+        # print(detections_local)
+        # plt.cla()
+        # self.ax.imshow(self.img, cmap='gray', vmin=0, vmax=255, extent=self.fig_size)
+        # for det_id in detections_local:
+        #     for det in detections_local[det_id]:
+        #         plt.plot(det.positionx, det.positiony, 'o', label=f'ID {det.person_id}')
+        # plt.draw()
+        # plt.pause(0.01)
         with self._lock:
             self._detections = detections_local
             self._current_occupancies = current_occupancies_local
