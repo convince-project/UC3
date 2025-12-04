@@ -6,7 +6,7 @@ MONITORING_DIR="$USER_HOME/UC3/monitoring"
 ORACLE_PY="$USER_HOME/ROSMonitoring/oracle/TLOracle/oracle.py"
 PY_ENV="$USER_HOME/monitoring-python-env/bin/python"
 POIS=($(seq 1 5))
-WS_PATTERN="$MONITORING_DIR/monitor_propPOI%s_ws/src"
+WS_PATTERN="$MONITORING_DIR/monitor_prop10POI%s_ws/src"
 PROPERTY_PREFIX="prop10POI"
 BASE_PORT=8050
 
