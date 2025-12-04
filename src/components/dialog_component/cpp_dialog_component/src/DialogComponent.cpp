@@ -362,6 +362,34 @@ bool DialogComponent::start(int argc, char *argv[])
 
     m_node = rclcpp::Node::make_shared("DialogComponentNode");
 
+
+    nodeGetCurrentPoi = rclcpp::Node::make_shared("DialogComponentNodeGetCurrentPoi");
+    clientGetCurrentPoi = nodeGetCurrentPoi->create_client<scheduler_interfaces::srv::GetCurrentPoi>("/SchedulerComponent/GetCurrentPoi");
+
+    setLangClientNode = rclcpp::Node::make_shared("DialogComponentSetLangNode");
+    setLangClient = setLangClientNode->create_client<scheduler_interfaces::srv::SetLanguage>("/SchedulerComponent/SetLanguage");
+
+    setLangClientNode2 = rclcpp::Node::make_shared("DialogComponentSetLangNode2");
+    setLangClient2 = setLangClientNode2->create_client<text_to_speech_interfaces::srv::SetLanguage>("/TextToSpeechComponent/SetLanguage");
+
+    setVoiceClientNode = rclcpp::Node::make_shared("DialogComponentSetVoiceNode");
+    setVoiceClient = setVoiceClientNode->create_client<text_to_speech_interfaces::srv::SetVoice>("/TextToSpeechComponent/SetVoice");
+
+    setSpeechToTextLanguageClientNode = rclcpp::Node::make_shared("DialogComponentSetSpeechToTextLanguageNode");
+    setSpeechToTextLanguageClient = setSpeechToTextLanguageClientNode->create_client<text_to_speech_interfaces::srv::SetLanguage>("/SpeechToTextComponent/SetLanguage");
+
+    isSpeakingClientNode = rclcpp::Node::make_shared("DialogComponentIsSpeakingNode");
+    isSpeakingClient = isSpeakingClientNode->create_client<text_to_speech_interfaces::srv::IsSpeaking>("/TextToSpeechComponent/IsSpeaking");
+
+    executeDanceClientNode = rclcpp::Node::make_shared("ExecuteDanceComponentExecuteDanceNode");
+    danceClient = executeDanceClientNode->create_client<execute_dance_interfaces::srv::ExecuteDance>("/ExecuteDanceComponent/ExecuteDance");
+
+    executePointingClientNode = rclcpp::Node::make_shared("CartesianPointingComponentPointTaskNode");
+    pointingClient = executePointingClientNode->create_client<cartesian_pointing_interfaces::srv::PointAt>("/CartesianPointingComponent/PointAt");
+
+    isMotionDoneClientNode = rclcpp::Node::make_shared("DialogComponentMotionDoneNode");
+    isMotionDoneClient = isMotionDoneClientNode->create_client<cartesian_pointing_interfaces::srv::IsMotionDone>("/CartesianPointingComponent/IsMotionDone");
+
     m_manageContextService = m_node->create_service<dialog_interfaces::srv::ManageContext>("/DialogComponent/ManageContext",
                                                                                            std::bind(&DialogComponent::ManageContext,
                                                                                                      this,
@@ -595,8 +623,7 @@ bool DialogComponent::CommandManager(const std::string &command, std::shared_ptr
 
 bool DialogComponent::UpdatePoILLMPrompt()
 {
-    std::shared_ptr<rclcpp::Node> nodeGetCurrentPoi = rclcpp::Node::make_shared("DialogComponentNodeGetCurrentPoi");
-    std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::GetCurrentPoi>> clientGetCurrentPoi = nodeGetCurrentPoi->create_client<scheduler_interfaces::srv::GetCurrentPoi>("/SchedulerComponent/GetCurrentPoi");
+    
     auto requestGetCurrentPoi = std::make_shared<scheduler_interfaces::srv::GetCurrentPoi::Request>();
     while (!clientGetCurrentPoi->wait_for_service(std::chrono::milliseconds(100)))
     {
@@ -662,8 +689,6 @@ void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::
 
     yInfo() << "[DialogComponent::SetLanguage] Set Language Detected: " << newLang << __LINE__;
     // Calls the set language service of the scheduler component
-    auto setLangClientNode = rclcpp::Node::make_shared("DialogComponentSetLangNode");
-    auto setLangClient = setLangClientNode->create_client<scheduler_interfaces::srv::SetLanguage>("/SchedulerComponent/SetLanguage");
     auto schedulerSetLangRequest = std::make_shared<scheduler_interfaces::srv::SetLanguage::Request>();
     schedulerSetLangRequest->language = newLang;
     while (!setLangClient->wait_for_service(std::chrono::milliseconds(100)))
@@ -689,8 +714,6 @@ void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::
     }
 
     // Calls the set language service of the text to speech component
-    auto setLangClientNode2 = rclcpp::Node::make_shared("DialogComponentSetLangNode2");
-    auto setLangClient2 = setLangClientNode2->create_client<text_to_speech_interfaces::srv::SetLanguage>("/TextToSpeechComponent/SetLanguage");
     auto request2 = std::make_shared<text_to_speech_interfaces::srv::SetLanguage::Request>();
     request2->new_language = newLang;
     while (!setLangClient2->wait_for_service(std::chrono::milliseconds(100)))
@@ -714,8 +737,7 @@ void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::
         return;
     }
 
-    auto setVoiceClientNode = rclcpp::Node::make_shared("DialogComponentSetVoiceNode");
-    auto setVoiceClient = setVoiceClientNode->create_client<text_to_speech_interfaces::srv::SetVoice>("/TextToSpeechComponent/SetVoice");
+    
     auto request3 = std::make_shared<text_to_speech_interfaces::srv::SetVoice::Request>();
     request3->new_voice = m_voicesMap[newLang];
     while (!setVoiceClient->wait_for_service(std::chrono::milliseconds(100)))
@@ -739,8 +761,7 @@ void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::
         return;
     }
 
-    auto setSpeechToTextLanguageClientNode = rclcpp::Node::make_shared("DialogComponentSetSpeechToTextLanguageNode");
-    auto setSpeechToTextLanguageClient = setSpeechToTextLanguageClientNode->create_client<text_to_speech_interfaces::srv::SetLanguage>("/SpeechToTextComponent/SetLanguage");
+    
     auto request4 = std::make_shared<text_to_speech_interfaces::srv::SetLanguage::Request>();
     request4->new_language = newLang;
     while (!setSpeechToTextLanguageClient->wait_for_service(std::chrono::milliseconds(100)))
@@ -768,8 +789,7 @@ void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::
 
 bool DialogComponent::WaitForSpeakStart()
 {
-    auto isSpeakingClientNode = rclcpp::Node::make_shared("DialogComponentIsSpeakingNode");
-    auto isSpeakingClient = isSpeakingClientNode->create_client<text_to_speech_interfaces::srv::IsSpeaking>("/TextToSpeechComponent/IsSpeaking");
+    
     auto isSpeakingRequest = std::make_shared<text_to_speech_interfaces::srv::IsSpeaking::Request>();
     while (!isSpeakingClient->wait_for_service(std::chrono::milliseconds(100)))
     {
@@ -811,8 +831,6 @@ bool DialogComponent::WaitForSpeakStart()
 void DialogComponent::WaitForSpeakEnd()
 {
 
-    auto isSpeakingClientNode = rclcpp::Node::make_shared("DialogComponentIsSpeakingNode");
-    auto isSpeakingClient = isSpeakingClientNode->create_client<text_to_speech_interfaces::srv::IsSpeaking>("/TextToSpeechComponent/IsSpeaking");
     auto isSpeakingRequest = std::make_shared<text_to_speech_interfaces::srv::IsSpeaking::Request>();
     while (!isSpeakingClient->wait_for_service(std::chrono::milliseconds(100)))
     {
@@ -1125,9 +1143,7 @@ void DialogComponent::ExecuteDance(std::string danceName, float estimatedSpeechT
 
     // ---------------------------------Execute Dance Component Service ExecuteDance------------------------------
     yInfo() << "[DialogComponent::ExecuteDance] Starting Execute Dance Service";
-    auto executeDanceClientNode = rclcpp::Node::make_shared("ExecuteDanceComponentExecuteDanceNode");
-
-    auto danceClient = executeDanceClientNode->create_client<execute_dance_interfaces::srv::ExecuteDance>("/ExecuteDanceComponent/ExecuteDance");
+    
     auto dance_request = std::make_shared<execute_dance_interfaces::srv::ExecuteDance::Request>();
     dance_request->dance_name = danceName;
     if (estimatedSpeechTime > 0.0)
@@ -1160,9 +1176,7 @@ void DialogComponent::ResetDance()
 {
     // ---------------------------------Execute Dance Component Service resetDance------------------------------
     yInfo() << "[DialogComponent::ResetDance] Starting Reset Dance Service";
-    auto executeDanceClientNode = rclcpp::Node::make_shared("ExecuteDanceComponentResetDanceNode");
-
-    auto danceClient = executeDanceClientNode->create_client<execute_dance_interfaces::srv::ResetDance>("/ExecuteDanceComponent/ResetDance");
+    
     auto dance_request = std::make_shared<execute_dance_interfaces::srv::ResetDance::Request>();
     // Wait for service
     while (!danceClient->wait_for_service(std::chrono::milliseconds(100)))
@@ -1191,9 +1205,7 @@ void DialogComponent::ExecutePointing(std::string pointingTarget)
 
     // ---------------------------------Text to Speech Service SPEAK------------------------------
     yInfo() << "[DialogComponent::ExecutePointing] Starting Cartesian Pointing Service";
-    auto executePointingClientNode = rclcpp::Node::make_shared("CartesianPointingComponentPointTaskNode");
-
-    auto pointingClient = executePointingClientNode->create_client<cartesian_pointing_interfaces::srv::PointAt>("/CartesianPointingComponent/PointAt");
+    
     auto pointing_request = std::make_shared<cartesian_pointing_interfaces::srv::PointAt::Request>();
     pointing_request->target_name = pointingTarget;
     // Wait for service
@@ -1507,8 +1519,7 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
 // Speak action fragment of code end
 
 void DialogComponent::WaitForPointingEnd() {
-    auto isMotionDoneClientNode = rclcpp::Node::make_shared("DialogComponentMotionDoneNode");
-    auto isMotionDoneClient = isMotionDoneClientNode->create_client<cartesian_pointing_interfaces::srv::IsMotionDone>("/CartesianPointingComponent/IsMotionDone");
+    
     auto isMotionDoneRequest = std::make_shared<cartesian_pointing_interfaces::srv::IsMotionDone::Request>();
     while (!isMotionDoneClient->wait_for_service(std::chrono::milliseconds(100)))
     {

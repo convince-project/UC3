@@ -85,6 +85,30 @@ private:
 	std::shared_ptr<rclcpp::Node> nodeSynthesizeText;
 	std::shared_ptr<rclcpp_action::Client<text_to_speech_interfaces::action::BatchGeneration>> clientSynthesizeText;
 
+	std::shared_ptr<rclcpp::Node> nodeManageContext;
+    std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::ManageContext>> clientManageContext;
+
+	std::shared_ptr<rclcpp::Node> nodeSetLanguage;
+    std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::SetLanguage>> clientSetLanguage;
+
+	std::shared_ptr<rclcpp::Node> nodeCheckDuplicate;
+    std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::RememberInteractions>> clientCheckDuplicate;
+
+	std::shared_ptr<rclcpp::Node> nodeShortenReply;
+    std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::ShortenReply>> clientShortenReply;
+
+	std::shared_ptr<rclcpp::Node> nodeInterpretCommand;
+    std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::InterpretCommand>> clientInterpretCommand;
+
+	std::shared_ptr<rclcpp::Node> nodeAnswer;
+    std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::Answer>> clientAnswer;
+
+	std::shared_ptr<rclcpp::Node> setCommandClientNode;
+    std::shared_ptr<rclcpp::Client<text_to_speech_interfaces::srv::SetMicrophone>> setMicrophoneClient;
+        
+
+        
+
 	// Members
 	std::shared_ptr<rclcpp::executors::SingleThreadedExecutor> m_executor;
 	QThread* m_thread = nullptr;
@@ -99,6 +123,8 @@ private:
 	std::vector<std::pair<std::string, std::string>> m_replies;
 
 	std::string m_LlmGeneratedDance;
+
+
 
 };
 

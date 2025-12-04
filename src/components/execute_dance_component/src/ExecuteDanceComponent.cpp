@@ -24,6 +24,12 @@ bool ExecuteDanceComponent::start(int argc, char *argv[])
     yarp::os::Network::connect(yAPClientPortName, "/yarpActionsPlayer/rpc");
 
     m_node = rclcpp::Node::make_shared("ExecuteDanceComponentNode");
+
+    getBestDanceClientNode = rclcpp::Node::make_shared("ExecuteDanceComponentGetBestDanceNode");
+    getBestDanceClient = getBestDanceClientNode->create_client<dance_interfaces::srv::GetBestDance>("/DanceComponent/GetBestDance");
+
+
+
     m_executeDanceService = m_node->create_service<execute_dance_interfaces::srv::ExecuteDance>("/ExecuteDanceComponent/ExecuteDance",
                                                                                                 std::bind(&ExecuteDanceComponent::ExecuteDance,
                                                                                                           this,
@@ -97,9 +103,7 @@ void ExecuteDanceComponent::ExecuteDance(const std::shared_ptr<execute_dance_int
     if (speechTime > 0.0f)
     {
         // call the GetBestDance service
-        auto getBestDanceClientNode = rclcpp::Node::make_shared("ExecuteDanceComponentGetBestDanceNode");
-        std::shared_ptr<rclcpp::Client<dance_interfaces::srv::GetBestDance>> getBestDanceClient =
-            getBestDanceClientNode->create_client<dance_interfaces::srv::GetBestDance>("/DanceComponent/GetBestDance");
+        
         auto getBestDanceRequest = std::make_shared<dance_interfaces::srv::GetBestDance::Request>();
         while (!getBestDanceClient->wait_for_service(std::chrono::milliseconds(100)))
         {

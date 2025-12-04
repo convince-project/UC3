@@ -59,4 +59,7 @@ private:
     bool m_timerTask{false};
 
     std::string m_lastExecutedDanceCategory{""};
+
+    std::shared_ptr<rclcpp::Node> getBestDanceClientNode;
+    std::shared_ptr<rclcpp::Client<dance_interfaces::srv::GetBestDance>> getBestDanceClient;
 };

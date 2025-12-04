@@ -342,6 +342,10 @@ void NarrateComponent::_speakTask() {
     m_inSoundPort.disableCallback();
     m_speakTask = false;
     m_errorOccurred = connectionError;
+
+    // Go back to navigation pose after speaking
+    _executeDance("navigation_position",0.0);
+
     RCLCPP_INFO_STREAM(m_node->get_logger(), "Speak Task ended. Error occurred: " << m_errorOccurred);
 }
 

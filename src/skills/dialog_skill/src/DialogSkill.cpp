@@ -90,6 +90,10 @@ bool DialogSkill::start(int argc, char *argv[])
                                                                                            std::placeholders::_1,
                                                                                            std::placeholders::_2));
 
+
+    nodeManageContext = rclcpp::Node::make_shared(m_name + "SkillManageContext");
+    clientManageContext = nodeManageContext->create_client<dialog_interfaces::srv::ManageContext>("/DialogComponent/ManageContext");
+
     nodeWaitForInteraction = rclcpp::Node::make_shared(m_name + "SkillNodeWaitForInteraction");
     this->clientWaitForInteraction =
         rclcpp_action::create_client<dialog_interfaces::action::WaitForInteraction>(this->nodeWaitForInteraction, "/DialogComponent/WaitForInteractionAction");
@@ -101,6 +105,25 @@ bool DialogSkill::start(int argc, char *argv[])
     nodeSynthesizeText = rclcpp::Node::make_shared(m_name + "SkillNodeSynthesizeText");
     this->clientSynthesizeText =
         rclcpp_action::create_client<text_to_speech_interfaces::action::BatchGeneration>(this->nodeSynthesizeText, "/TextToSpeechComponent/BatchGenerationAction");
+
+    nodeSetLanguage = rclcpp::Node::make_shared(m_name + "SkillSetLanguage");
+    clientSetLanguage = nodeSetLanguage->create_client<dialog_interfaces::srv::SetLanguage>("/DialogComponent/SetLanguage");
+
+    nodeCheckDuplicate = rclcpp::Node::make_shared(m_name + "SkillCheckDuplicate");
+    clientCheckDuplicate = nodeCheckDuplicate->create_client<dialog_interfaces::srv::RememberInteractions>("/DialogComponent/RememberInteractions");
+        
+
+    nodeShortenReply = rclcpp::Node::make_shared(m_name + "SkillShortenReply");
+    clientShortenReply = nodeShortenReply->create_client<dialog_interfaces::srv::ShortenReply>("/DialogComponent/ShortenReply");
+
+    nodeInterpretCommand = rclcpp::Node::make_shared(m_name + "SkillInterpretCommand");
+    clientInterpretCommand = nodeInterpretCommand->create_client<dialog_interfaces::srv::InterpretCommand>("/DialogComponent/InterpretCommand");
+
+    nodeAnswer = rclcpp::Node::make_shared(m_name + "SkillAnswer");
+    clientAnswer = nodeAnswer->create_client<dialog_interfaces::srv::Answer>("/DialogComponent/Answer");
+    
+    setCommandClientNode = rclcpp::Node::make_shared("DialogComponentSetCommandNode");
+    setMicrophoneClient = setCommandClientNode->create_client<text_to_speech_interfaces::srv::SetMicrophone>("/TextToSpeechComponent/SetMicrophone");
 
     m_executor = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
     m_executor->add_node(nodeWaitForInteraction);
@@ -195,8 +218,7 @@ bool DialogSkill::start(int argc, char *argv[])
 
     m_stateMachine.connectToEvent("DialogComponent.ManageContext.Call", [this]([[maybe_unused]] const QScxmlEvent &event)
                                   {
-        std::shared_ptr<rclcpp::Node> nodeManageContext = rclcpp::Node::make_shared(m_name + "SkillManageContext");
-        std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::ManageContext>> clientManageContext = nodeManageContext->create_client<dialog_interfaces::srv::ManageContext>("/DialogComponent/ManageContext");
+        
         auto request = std::make_shared<dialog_interfaces::srv::ManageContext::Request>();
         bool wait_succeded{true};
         while (!clientManageContext->wait_for_service(std::chrono::milliseconds(100))) {
@@ -236,8 +258,6 @@ bool DialogSkill::start(int argc, char *argv[])
 
     m_stateMachine.connectToEvent("DialogComponent.SetLanguage.Call", [this]([[maybe_unused]] const QScxmlEvent &event)
                                   {
-        std::shared_ptr<rclcpp::Node> nodeSetLanguage = rclcpp::Node::make_shared(m_name + "SkillSetLanguage");
-        std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::SetLanguage>> clientSetLanguage = nodeSetLanguage->create_client<dialog_interfaces::srv::SetLanguage>("/DialogComponent/SetLanguage");
         auto request = std::make_shared<dialog_interfaces::srv::SetLanguage::Request>();
         auto eventParams = event.data().toMap();
         request->language = convert<decltype(request->language)>(eventParams["new_language"].toString().toStdString());
@@ -276,8 +296,6 @@ bool DialogSkill::start(int argc, char *argv[])
 
     m_stateMachine.connectToEvent("DialogComponent.CheckDuplicate.Call", [this]([[maybe_unused]] const QScxmlEvent &event)
                                   {
-        std::shared_ptr<rclcpp::Node> nodeCheckDuplicate = rclcpp::Node::make_shared(m_name + "SkillCheckDuplicate");
-        std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::RememberInteractions>> clientCheckDuplicate = nodeCheckDuplicate->create_client<dialog_interfaces::srv::RememberInteractions>("/DialogComponent/RememberInteractions");
         auto request = std::make_shared<dialog_interfaces::srv::RememberInteractions::Request>();
         auto eventParams = event.data().toMap();
         request->interaction = convert<decltype(request->interaction)>(eventParams["interaction"].toString().toStdString());
@@ -319,8 +337,7 @@ bool DialogSkill::start(int argc, char *argv[])
 
     m_stateMachine.connectToEvent("DialogComponent.ShortenReply.Call", [this]([[maybe_unused]] const QScxmlEvent &event)
                                   {
-        std::shared_ptr<rclcpp::Node> nodeShortenReply = rclcpp::Node::make_shared(m_name + "SkillShortenReply");
-        std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::ShortenReply>> clientShortenReply = nodeShortenReply->create_client<dialog_interfaces::srv::ShortenReply>("/DialogComponent/ShortenReply");
+        
         auto request = std::make_shared<dialog_interfaces::srv::ShortenReply::Request>();
         auto eventParams = event.data().toMap();
         request->duplicate_index = convert<decltype(request->duplicate_index)>(eventParams["index"].toString().toStdString());
@@ -375,8 +392,6 @@ bool DialogSkill::start(int argc, char *argv[])
     m_stateMachine.connectToEvent("DialogComponent.InterpretCommand.Call", [this]([[maybe_unused]] const QScxmlEvent &event)
                                   {
         std::cout << "DialogComponent::InterpretCommand.Call 0" << std::endl;
-        std::shared_ptr<rclcpp::Node> nodeInterpretCommand = rclcpp::Node::make_shared(m_name + "SkillInterpretCommand");
-        std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::InterpretCommand>> clientInterpretCommand = nodeInterpretCommand->create_client<dialog_interfaces::srv::InterpretCommand>("/DialogComponent/InterpretCommand");
         auto request = std::make_shared<dialog_interfaces::srv::InterpretCommand::Request>();
         auto eventParams = event.data().toMap();
         request->context = convert<decltype(request->context)>(eventParams["context"].toString().toStdString());
@@ -429,8 +444,6 @@ bool DialogSkill::start(int argc, char *argv[])
 
     m_stateMachine.connectToEvent("DialogComponent.Answer.Call", [this]([[maybe_unused]] const QScxmlEvent &event)
                                   {
-        std::shared_ptr<rclcpp::Node> nodeAnswer = rclcpp::Node::make_shared(m_name + "SkillAnswer");
-        std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::Answer>> clientAnswer = nodeAnswer->create_client<dialog_interfaces::srv::Answer>("/DialogComponent/Answer");
         auto request = std::make_shared<dialog_interfaces::srv::Answer::Request>();
         auto eventParams = event.data().toMap();
         request->interaction = convert<decltype(request->interaction)>(eventParams["interaction"].toString().toStdString());
@@ -762,9 +775,7 @@ void DialogSkill::halt([[maybe_unused]] const std::shared_ptr<bt_interfaces_dumm
 void DialogSkill::EnableMicrophone()
 {
     // --------------------------Start Mic service call ----------------------
-    auto setCommandClientNode = rclcpp::Node::make_shared("DialogComponentSetCommandNode");
-
-    auto setMicrophoneClient = setCommandClientNode->create_client<text_to_speech_interfaces::srv::SetMicrophone>("/TextToSpeechComponent/SetMicrophone");
+    
     auto request = std::make_shared<text_to_speech_interfaces::srv::SetMicrophone::Request>();
     request->enabled = true;
     // Check for the presence of the service. Wait for it if not available

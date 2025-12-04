@@ -190,11 +190,6 @@ bool SetCurrentPoiDoneSkill::start(int argc, char*argv[])
     m_haltResult.store(true);
   });
 
-  
-  
-  
-  
-
 	m_stateMachine.start();
 	m_threadSpin = std::make_shared<std::thread>(spin, m_node);
 

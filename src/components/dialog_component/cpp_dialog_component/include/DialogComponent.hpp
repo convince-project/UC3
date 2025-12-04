@@ -119,10 +119,9 @@ protected:
     void ExecuteDance(std::string danceName, float estimatedSpeechTime); // ROS2 service client to ExecuteDanceComponent to execute the dance with the given name
     void ResetDance(); // ROS2 service client to ResetDanceComponent to reset the dance with the given name
     void ExecutePointing(std::string pointingTarget); // ROS2 service client to CartesianPointingComponent to point at the given target
-    
     void SetFaceExpression(std::string expressionName); // ROS2 service client to FaceExpressionComponent to set the face expression with the given name
 
-    private:
+private:
     // ChatGPT
     // Defines the LLM that manages the context of the conversation
     yarp::dev::PolyDriver m_poiChatPoly;
@@ -222,6 +221,33 @@ protected:
 
     std::string m_faceexpression_rpc_port_name;
     yarp::os::RpcClient m_faceexpression_rpc_port;
+
+    std::shared_ptr<rclcpp::Node> nodeGetCurrentPoi;
+    std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::GetCurrentPoi>> clientGetCurrentPoi;
+
+    std::shared_ptr<rclcpp::Node> setLangClientNode;
+    std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::SetLanguage>> setLangClient;
+
+    std::shared_ptr<rclcpp::Node> setLangClientNode2;
+    std::shared_ptr<rclcpp::Client<text_to_speech_interfaces::srv::SetLanguage>> setLangClient2;
+
+    std::shared_ptr<rclcpp::Node> setVoiceClientNode;
+    std::shared_ptr<rclcpp::Client<text_to_speech_interfaces::srv::SetVoice>> setVoiceClient;
+
+    std::shared_ptr<rclcpp::Node> setSpeechToTextLanguageClientNode;
+    std::shared_ptr<rclcpp::Client<text_to_speech_interfaces::srv::SetLanguage>> setSpeechToTextLanguageClient;
+
+    std::shared_ptr<rclcpp::Node> isSpeakingClientNode;
+    std::shared_ptr<rclcpp::Client<text_to_speech_interfaces::srv::IsSpeaking>> isSpeakingClient;
+
+    std::shared_ptr<rclcpp::Node> executeDanceClientNode;
+    std::shared_ptr<rclcpp::Client<execute_dance_interfaces::srv::ExecuteDance>> danceClient;
+
+    std::shared_ptr<rclcpp::Node> executePointingClientNode;
+    std::shared_ptr<rclcpp::Client<cartesian_pointing_interfaces::srv::PointAt>> pointingClient;
+
+    std::shared_ptr<rclcpp::Node> isMotionDoneClientNode;
+    std::shared_ptr<rclcpp::Client<cartesian_pointing_interfaces::srv::IsMotionDone>> isMotionDoneClient;
 
 };
 
