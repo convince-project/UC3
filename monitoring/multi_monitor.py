@@ -49,11 +49,11 @@ class MultiMonitor(Node):
             '/monitor_prop7/monitor_verdict',
             '/monitor_prop8/monitor_verdict',
             '/monitor_prop9/monitor_verdict',
-            '/monitor_propPOI1/monitor_verdict',
-            '/monitor_propPOI2/monitor_verdict',
-            '/monitor_propPOI3/monitor_verdict',
-            '/monitor_propPOI4/monitor_verdict',
-            '/monitor_propPOI5/monitor_verdict',
+            '/monitor_prop10POI1/monitor_verdict',
+            '/monitor_prop10POI2/monitor_verdict',
+            '/monitor_prop10POI3/monitor_verdict',
+            '/monitor_prop10POI4/monitor_verdict',
+            '/monitor_prop10POI5/monitor_verdict',
             '/monitor_prop11/monitor_verdict',
             '/monitor_prop12/monitor_verdict',
             '/monitor_prop13/monitor_verdict',
@@ -275,7 +275,7 @@ def main(args=None):
                 # '/monitor_propPOI1/monitor_verdict' -> 'POI1'
                 topic_clean = topic.strip('/')
                 name = None
-                m = re.search(r'prop(?:erty)?(?:_)?(poi\d+|POI\d+|[A-Za-z0-9]+)', topic_clean, re.IGNORECASE)
+                m = re.search(r'prop(?:erty)?(?:_)?(poi\d+|10POI\d+|[A-Za-z0-9]+)', topic_clean, re.IGNORECASE)
                 if m:
                     # group could be like '1', 'POI1', 'POI2', '10POI' etc.
                     grp = m.group(1)
