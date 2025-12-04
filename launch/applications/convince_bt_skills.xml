@@ -318,11 +318,99 @@
 
     <module>
         <name>ros2</name>
-        <parameters>launch bt_launch_poi_skills_generate_bt.py json_file:=/home/user1/UC3/conf/tours.json tour_name:=TOUR_MADAMA_3 bt_file:=../src/behavior_tree/BT/bt_poi_complex.xml</parameters>
-        <workdir>/home/user1/UC3/launch/</workdir>
+        <parameters>run is_poi_done0_skill is_poi_done0_skill</parameters>
+        <workdir />
         <node>bt</node>
     </module>
-        
+
+    <module>
+        <name>ros2</name>
+        <parameters>run is_poi_done1_skill is_poi_done1_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run is_poi_done2_skill is_poi_done2_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    
+    <module>
+        <name>ros2</name>
+        <parameters>run is_poi_done3_skill is_poi_done3_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+
+    <module>
+        <name>ros2</name>
+        <parameters>run is_poi_done4_skill is_poi_done4_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+
+    <module>
+        <name>ros2</name>
+        <parameters>run is_poi_done5_skill is_poi_done5_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+
+    <module>
+        <name>ros2</name>
+        <parameters>run set_poi0_skill set_poi0_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run set_poi1_skill set_poi1_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run set_poi2_skill set_poi2_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run set_poi3_skill set_poi3_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run set_poi4_skill set_poi4_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run set_poi5_skill set_poi5_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+         <name>ros2</name>
+         <parameters>run dummy_condition dummy_condition --skill_name SaySkipQuestions --default_status SUCCESS</parameters>
+         <workdir />
+         <node>bt</node>
+    </module>
+
     <module>
          <name>ros2_dummy_condition</name>
          <parameters>run dummy_condition dummy_condition --skill_name VisitorsFollowingRobot --default_status SUCCESS</parameters>
@@ -330,6 +418,12 @@
          <node>bt</node>
     </module>
 
+    <module>
+         <name>ros2_dummy_condition</name>
+         <parameters>run dummy_condition dummy_condition --skill_name AlwaysSuccess --default_status SUCCESS</parameters>
+         <workdir />
+         <node>bt</node>
+    </module>
 
     <module>
         <name>ros2_say_skip_questions_skill</name>
