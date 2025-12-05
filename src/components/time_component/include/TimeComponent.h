@@ -87,4 +87,7 @@ private:
     bool m_timerTaskTour{false};
     bool m_timerTaskPoi{false};
     bool m_saidDurationWarning{false};
+
+    std::shared_ptr<rclcpp::Node> setIntClientNode;
+    std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::SetIntBlackboard>> setIntClient; 
 };

@@ -30,6 +30,11 @@ bool TimeComponent::start(int argc, char*argv[])
         rclcpp::init(/*argc*/ argc, /*argv*/ argv);
     }
     m_node = rclcpp::Node::make_shared("TimeComponentNode");
+
+    setIntClientNode = rclcpp::Node::make_shared("BlackboardComponentSetIntNode");
+    setIntClient = setIntClientNode->create_client<blackboard_interfaces::srv::SetIntBlackboard>("/BlackboardComponent/SetInt"); 
+
+
     m_startTourTimerService = m_node->create_service<time_interfaces::srv::StartTourTimer>("/TimeComponent/StartTourTimer",  
                                                                                 std::bind(&TimeComponent::StartTourTimer,
                                                                                 this,
@@ -255,11 +260,13 @@ void TimeComponent::timerTaskPoi()
     bool l_stopped = m_stoppedTimerTaskPoi;
     m_timerMutexPoi.unlock();
     int l_secondsPassed = 0;
+    int l_millisecondsPassed = 0;
     writeInBB(POI_DURATION_BB_STRING, 0);
     publisher("POI started!");
     while(!l_stopped){
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        l_secondsPassed++;
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        l_millisecondsPassed++;
+        l_secondsPassed = l_millisecondsPassed / 1000;
         m_timerMutexPoi.lock();
         l_stopped = m_stoppedTimerTaskPoi;
         m_timerMutexPoi.unlock();
@@ -274,7 +281,9 @@ void TimeComponent::timerTaskPoi()
     m_timerTaskPoi = false;
     m_stoppedTimerTaskPoi = false;
     m_timerMutexPoi.unlock();
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "POI Timer stopped after");
     writeInBB(POI_DURATION_BB_STRING, 0);
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "After write to BB");
     publisher("POI ended!");
     RCLCPP_INFO_STREAM(m_node->get_logger(), "End Poi Timer ");
 }
@@ -293,12 +302,14 @@ void TimeComponent::timerTaskTour()
     int l_warningTime = m_warningTime;
     m_mutexSetTime.unlock();
     int l_secondsPassed = 0;
+    int l_millisecondsPassed = 0;
     writeInBB(WARNING_BB_STRING, 0);
     writeInBB(TOUR_DURATION_BB_STRING, 0);
     publisher("Tour started!");
     while(!l_stopped){
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        l_secondsPassed++;
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        l_millisecondsPassed++;
+        l_secondsPassed = l_millisecondsPassed / 1000;
         if(l_secondsPassed == l_maxTime*60)
         {
             std::cout << "Time exceeded" << std::endl;
@@ -447,9 +458,7 @@ int TimeComponent::getTimeInterval(const std::string timeStamp1, const std::stri
 bool TimeComponent::writeInBB(std::string key, int value)
 {
     //calls the SetInt service 
-    auto setIntClientNode = rclcpp::Node::make_shared("BlackboardComponentSetIntNode");
-    std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::SetIntBlackboard>> setIntClient = 
-    setIntClientNode->create_client<blackboard_interfaces::srv::SetIntBlackboard>("/BlackboardComponent/SetInt"); 
+    
     auto setIntRequest = std::make_shared<blackboard_interfaces::srv::SetIntBlackboard::Request>();
     setIntRequest->field_name = key;
     setIntRequest->value = value;
