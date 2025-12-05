@@ -481,10 +481,16 @@ bool TimeComponent::writeInBB(std::string key, int value)
         return false;
     }
     auto setIntResult = setIntClient->async_send_request(setIntRequest);
-    auto futureSetIntResult = rclcpp::spin_until_future_complete(setIntClientNode, setIntResult);
-    auto setIntFutureResult = setIntResult.get();
-    if (setIntFutureResult->is_ok == true) {
-        return true;
+    
+    // Wait for the result without adding the node to an executor
+    if (setIntResult.wait_for(std::chrono::seconds(5)) == std::future_status::ready) {
+        auto setIntFutureResult = setIntResult.get();
+        if (setIntFutureResult->is_ok == true) {
+            return true;
+        }
+    } else {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timeout waiting for SetInt service response");
+        return false;
     }
     return false;
 }
