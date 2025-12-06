@@ -939,7 +939,7 @@
               },
               {
                 "m_isBlocking": false,
-                "m_param": "Hai qualche domanda? Posso parlarti della funzione di questa stanza, della sua decorazione. Oppure puoi farmi qualche domanda sul palazzo, il progetto Convìns o su di me. Altrimenti possiamo proseguire con il tour.",
+                "m_param": "Hai qualche domanda? Posso parlarti della funzione di questa stanza, della sua decorazione. Oppure puoi farmi qualche domanda sul palazzo o su di me. Altrimenti possiamo proseguire con il tour.",
                 "m_type": "speak",
                 "m_dance": "gesture"
               }
@@ -1024,7 +1024,7 @@
               },
               {
                 "m_isBlocking": false,
-                "m_param": "Vuoi degli approfondimenti sulla decorazione di questa stanza? Altrimenti ci spostiamo nella Sala delle Feste.",
+                "m_param": "Vuoi degli approfondimenti sulla decorazione di questa stanza? Altrimenti continuiamo con il giro.",
                 "m_type": "speak",
                 "m_dance": "gesture"
               }
@@ -1133,7 +1133,7 @@
               },
               {
                 "m_isBlocking": false,
-                "m_param": "Vuoi saperne di più sulla decorazione di questa stanza? Oppure qualcosa sul palazzo? Se no possiamo andare a vedere la prossima sala.",
+                "m_param": "Vuoi saperne di più sulla decorazione di questa stanza? Oppure qualcosa sul palazzo? Se no possiamo andare avanti con il tour.",
                 "m_type": "speak",
                 "m_dance": "gesture"
               }
@@ -1386,18 +1386,6 @@
               {
                 "m_isBlocking": false,
                 "m_param": "Completano il programma decorativo le quattro sovrapporte con le allegorie di Autorità, Bontà, Fedeltà e, forse, Carità. La tradizionale impaginazione delle scene in scomparti è movimentata dal gioco degli stucchi colorati che invadono la volta fino ad amalgamarsi e a fondersi con la pittura.",
-                "m_type": "speak",
-                "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": false,
-                "m_param": "Le indagini condotte durante il restauro hanno permesso di comprendere la qualità delle tecniche utilizzate dall’artista. Al di sotto della pellicola pittorica, realizzata quasi interamente con colori a olio, sono stati individuati diversi tipi di intonaco, omogeneo nelle zone all’interno dei medaglioni e con una granulosità maggiore nel resto della superficie.",
-                "m_type": "speak",
-                "m_dance": "gesture"
-              },
-              {
-                "m_isBlocking": false,
-                "m_param": "Questa particolarità rivela l’intenzione di rendere più movimentata la decorazione, forse simulando la presenza di grandi quadri su tela, dall’aspetto più liscio e brillante, incastonati nel soffitto dipinto. I rivestimenti delle pareti in legno intagliato e dorato con foglie, fiori, frutti e conchiglie riprendono per ricchezza le decorazioni della volta.",
                 "m_type": "speak",
                 "m_dance": "gesture"
               },
