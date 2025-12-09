@@ -148,6 +148,7 @@ class PlannerComponent(Node):
             #     pois_list.append(poi_number)
         plan = self.iterate_over_policy(policy, current_state)
         # plan = [2,4,5,7,9]
+        plan = [int(poi) - 1  for poi in plan]
         self._btWriter.recreateBTWithPlan(plan)
         self._btWriter.write()
         try:
