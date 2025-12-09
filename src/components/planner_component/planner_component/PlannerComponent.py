@@ -64,7 +64,7 @@ class PlannerComponent(Node):
 
     def retrieve_blackboard_value(self, key):
         request = GetIntBlackboard.Request()
-        request.key = key
+        request.field_name = key
         future = self.client.call_async(request)
         rclpy.spin_until_future_complete(self, future)
         if future.result() is not None:
@@ -78,6 +78,9 @@ class PlannerComponent(Node):
         pois_done = []
         poidone0 = self.retrieve_blackboard_value('PoiDone0')
         self._visited_vertices = []
+        if self._start_time is None:
+            self._start_time = self.get_clock().now().seconds_nanoseconds()[0]
+
         if poidone0 == None or poidone0 == 0:
             self._start_time = self.get_clock().now().seconds_nanoseconds()[0]
             self._time_for_occupancies = self.get_clock().now().seconds_nanoseconds()[0]
@@ -98,10 +101,10 @@ class PlannerComponent(Node):
                 for i in range(0, len(pois_done)-1):
                     self._visited_vertices.append(self._doors[i])
             self._time_for_occupancies = self.get_clock().now().seconds_nanoseconds()[0]
-            return self.MDP.State(last_vertex, 
-                                            self.get_clock().now().seconds_nanoseconds()[0] - self._start_time,
-                                            set([self._start_vertex] + [vertex for vertex in self._visited_vertices]),
-                                            set(poi_done[0] for poi_done in pois_done))
+            return State(last_vertex, 
+                        self.get_clock().now().seconds_nanoseconds()[0] - self._start_time,
+                        set([self._start_vertex] + [vertex for vertex in self._visited_vertices]),
+                        set(poi_done for poi_done in pois_done))
 
 
 
