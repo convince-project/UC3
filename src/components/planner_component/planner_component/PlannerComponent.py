@@ -62,7 +62,7 @@ class PlannerComponent(Node):
         self._detections_retriever = DetectionsRetriever(self, detections_topic)
 
 
-    def retrieve_blackboard_value(self,git  key):
+    def retrieve_blackboard_value(self, key):
         request = GetIntBlackboard.Request()
         request.key = key
         future = self.client.call_async(request)
