@@ -4,54 +4,61 @@
     <connection>
         <from>/vad/audio:o</from>
         <to>/SpeechToTextComponent/audio:i</to>
+        <protocol>fast_tcp</protocol>
     </connection>
 
     <connection>
         <from>/SpeechToTextComponent/text:o</from>
         <to>/DialogComponent/SpeechToTextClient:i</to>
+        <protocol>fast_tcp</protocol>
     </connection>
 
     <connection>
         <from>/TextToSpeechComponent/batch:o</from>
         <to>/DialogComponent/batch:i</to>
+        <protocol>fast_tcp</protocol>
     </connection>
 
     <connection>
         <from>/DialogComponent/audio:o</from>
         <to>/audioPlayerWrapper/audio:i</to>
-        <protocol>tcp+recv.portmonitor+file.soundfilter_resample+type.dll+channel.0+frequency.16000</protocol>
+        <protocol>fast_tcp+send.portmonitor+file.soundfilter_resample+type.dll+channel.0+frequency.16000</protocol>
     </connection>
 
     <connection>
         <from>/audioPlayerWrapper/status:o</from>
         <to>/TextToSpeechComponent/audioPlayerWrapper/status:i</to>
+        <protocol>fast_tcp</protocol>
     </connection>
 
     <connection>
         <from>/TextToSpeechComponent/batch:o</from>
         <to>/NarrateComponent/sound:i</to>
+        <protocol>fast_tcp</protocol>
     </connection>
 
     <connection>
         <from>/NarrateComponent/sound:o</from>
         <to>/audioPlayerWrapper/audio:i</to>
-        <protocol>tcp+recv.portmonitor+file.soundfilter_resample+type.dll+channel.0+frequency.16000</protocol>
+        <protocol>fast_tcp+send.portmonitor+file.soundfilter_resample+type.dll+channel.0+frequency.16000</protocol>
     </connection>
 
     <connection>
         <from>/audioPlayerWrapper/status:o</from>
         <to>/NarrateComponent/playerStatus:i</to>
+        <protocol>fast_tcp</protocol>
     </connection>
 
     <connection>
         <from>/audioRecorder_nws/audio:o</from>
         <to>/vad/audio:i</to>
-        <protocol>tcp+recv.portmonitor+file.soundfilter_resample+type.dll+channel.0+frequency.16000</protocol>
+        <protocol>fast_tcp+recv.portmonitor+file.soundfilter_resample+type.dll+channel.0+frequency.16000</protocol>
     </connection>
 
     <connection>
         <from>/wake/audio:o</from>
         <to>/vad/audio:i</to>
+        <protocol>fast_tcp</protocol>
     </connection>
 
     <connection>
@@ -99,7 +106,7 @@
   <connection>
     <from>/TextToSpeechComponent/audio:o</from>
     <to>/audioPlayerWrapper/audio:i</to>
-    <protocol>tcp+recv.portmonitor+file.soundfilter_resample+type.dll+channel.0+frequency.16000</protocol>
+    <protocol>fast_tcp+send.portmonitor+file.soundfilter_resample+type.dll+channel.0+frequency.16000</protocol>
   </connection>
 
   <connection>
@@ -111,7 +118,7 @@
   <connection>
     <from>/audioRecorder_nws/audio:o</from>
     <to>/faceExpressionImage/earsAudioData:i</to>
-    <protocol>tcp+recv.portmonitor+file.soundfilter_resample+type.dll+channel.0+frequency.16000</protocol>
+    <protocol>fast_tcp+recv.portmonitor+file.soundfilter_resample+type.dll+channel.0+frequency.16000</protocol>
   </connection>
 
   <connection>
