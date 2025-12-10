@@ -23,10 +23,6 @@
     <!-- this is a mockup, should be replaced with actual service call -->
     <ros_service_handle_request name="/PlanSkill/tick" target="wait_for_result">
         <ros_action_send_goal name="plan_action"/>
-        <ros_service_send_response name="/PlanSkill/tick">
-          <field name="status" expr="SKILL_RUNNING"/>
-          <field name="is_ok" expr="true"/>
-        </ros_service_send_response>
       <!-- <ros_service_send_request name="/PlannerComponent/Plan"/> -->
     </ros_service_handle_request>
     <ros_service_handle_request name="/PlanSkill/halt" target="idle">
@@ -37,12 +33,13 @@
   </state>
 
   <state id="wait_for_result">
-    <ros_service_handle_request name="/PlanSkill/tick" target="wait_for_result">
+    <onentry>
         <ros_service_send_response name="/PlanSkill/tick">
           <field name="status" expr="SKILL_RUNNING"/>
           <field name="is_ok" expr="true"/>
         </ros_service_send_response>
-    </ros_service_handle_request>
+    </onentry>
+    <ros_service_handle_request name="/PlanSkill/tick" target="wait_for_result"/>
     <ros_service_handle_request name="/PlanSkill/halt" target="idle">
         <ros_service_send_response name="/PlanSkill/halt">
             <field name="is_ok" expr="true"/>
