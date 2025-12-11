@@ -43,8 +43,8 @@ class PlannerComponent(Node):
         self._started = False
         self._start_time = None
         self._start_vertex = "vertex1"
-        self._doors = ["vertex12", "vertex13", "vertex14", "vertex15"]
-        self._final_vertex = "vertex11"
+        self._doors = ["vertex13", "vertex14", "vertex15", "vertex16"]
+        self._final_vertex = "vertex12"
         self._visited_vertices = []
         self._pois_explained = []
         self._time_for_occupancies = None
@@ -89,9 +89,9 @@ class PlannerComponent(Node):
                                            set([self._start_vertex]),
                                            set())
         else:
-            for i in range(1, 11):
+            for i in range(1, 12):
                 key = f'PoiDone{i}'
-                vertex_done = self.retrieve_blackboard_value(key)
+                vertex_done = self.retrieve_blackboard_value(key-1)
                 if vertex_done is not None and vertex_done == 1:
                     pois_done.append(int(i/2))
                     self._visited_vertices.append("vertex" + str(i))
