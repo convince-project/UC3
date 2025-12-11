@@ -10,7 +10,7 @@
 #include "rclcpp_action/rclcpp_action.hpp"
 #include "GoToPoiActionSkillSM.h"
 #include <bt_interfaces_dummy/msg/action_response.hpp>
-#include <scheduler_interfaces/srv/get_current_poi_for_navigation.hpp> 
+#include <scheduler_interfaces/srv/get_current_poi.hpp> 
 #include <navigation_interfaces/action/go_to_poi.hpp> 
 
 #include <QThread>
