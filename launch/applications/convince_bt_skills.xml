@@ -360,6 +360,41 @@
         <node>bt</node>
     </module>
 
+    <module>
+        <name>ros2</name>
+        <parameters>run is_poi_done6_skill is_poi_done6_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+
+    <module>
+        <name>ros2</name>
+        <parameters>run is_poi_done7_skill is_poi_done7_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run is_poi_done8_skill is_poi_done8_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run is_poi_done9_skill is_poi_done9_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2</name>
+        <parameters>run is_poi_done10_skill is_poi_done10_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
 
     <module>
         <name>ros2</name>
