@@ -10,7 +10,7 @@
 #include "rclcpp_action/rclcpp_action.hpp"
 #include "IsAtCurrentPoiSkillSM.h"
 #include <bt_interfaces_dummy/msg/condition_response.hpp>
-#include <scheduler_interfaces/srv/get_current_poi_for_navigation.hpp> 
+#include <scheduler_interfaces/srv/get_current_poi.hpp> 
 #include <navigation_interfaces/srv/get_navigation_status.hpp> 
 #include <navigation_interfaces/srv/check_near_to_poi.hpp> 
 
