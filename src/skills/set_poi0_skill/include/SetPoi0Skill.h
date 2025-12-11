@@ -10,7 +10,7 @@
 #include "rclcpp_action/rclcpp_action.hpp"
 #include "SetPoi0SkillSM.h"
 #include <bt_interfaces_dummy/msg/action_response.hpp>
-#include <scheduler_interfaces/srv/set_poi_from_planner.hpp> 
+#include <scheduler_interfaces/srv/set_poii.hpp> 
 
 
 
