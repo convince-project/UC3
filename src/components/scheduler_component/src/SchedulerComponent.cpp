@@ -204,13 +204,14 @@ void SchedulerComponent::SetPoiFromPlanner([[maybe_unused]] const std::shared_pt
         m_alternative_poi = false;
         m_currentPoi = 0;
     } else {
-        m_alternative_poi = (request->poi_number+1 % 2 == 1) ? false : true;
+        RCLCPP_INFO(m_node->get_logger(), "SchedulerComponent::SetPoiFromPlanner received poi number %d",  request->poi_number);
+        m_alternative_poi = ((request->poi_number % 2)== 0) ? true : false;
         RCLCPP_INFO(m_node->get_logger(), "SchedulerComponent::SetPoiFromPlanner alternativa poi %d",  m_alternative_poi);
         m_currentPoi = ((int)trunc((request->poi_number+1)/2)) % m_tourStorage->GetTour().getPoIsList().size();
+        RCLCPP_INFO(m_node->get_logger(), "SchedulerComponent::SetPoiFromPlanner current poi %d",  m_currentPoi);
 
     }
 
-    RCLCPP_INFO(m_node->get_logger(), "SchedulerComponent::SetPoiFromPlanner current poi %d",  m_currentPoi);
     response->is_ok = true;
     std::string text = "Update Poi to: " + std::to_string(m_currentPoi) + " - " + m_tourStorage->GetTour().getPoIsList()[m_currentPoi];
     if(old_poi_number != m_currentPoi)
