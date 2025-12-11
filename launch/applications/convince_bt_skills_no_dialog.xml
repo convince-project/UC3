@@ -322,21 +322,6 @@
         <node>bt</node>
     </module>
 
-    <module>
-        <name>ros2</name>
-        <parameters>launch bt_launch_poi_skills_generate_bt.py json_file:=/home/user1/UC3/conf/tours.json tour_name:=TOUR_MADAMA_3 bt_file:=../src/behavior_tree/BT/bt_poi_complex.xml</parameters>
-        <workdir>/home/user1/UC3/launch/</workdir>
-        <node>bt</node>
-    </module>
-
-
-    <module>
-        <name>ros2_bt_scheduler</name>
-        <parameters>launch launch/bt_scheduler.py</parameters>
-        <workdir>/home/user1/UC3</workdir>
-        <node>bt</node>
-    </module>
-
 
     <module>
         <name>ros2_plan_skill</name>
