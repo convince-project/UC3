@@ -50,7 +50,7 @@ bool SchedulerComponent::start(int argc, char*argv[])
                                                                                 std::placeholders::_1,
                                                                                 std::placeholders::_2));
     m_getCurrentPoiForNavigationService = m_node->create_service<scheduler_interfaces::srv::GetCurrentPoi>("/SchedulerComponent/GetCurrentPoiForNavigation",
-                                                                                std::bind(&SchedulerComponent::GetCurrentPoi,
+                                                                                std::bind(&SchedulerComponent::GetCurrentPoiForNavigation,
                                                                                 this,
                                                                                 std::placeholders::_1,
                                                                                 std::placeholders::_2));
@@ -95,7 +95,7 @@ bool SchedulerComponent::start(int argc, char*argv[])
                                                                                 std::placeholders::_1,
                                                                                 std::placeholders::_2));
     m_setPoiFromPlannerService = m_node->create_service<scheduler_interfaces::srv::SetPoi>("/SchedulerComponent/SetPoiFromPlanner",
-                                                                                std::bind(&SchedulerComponent::SetPoi,
+                                                                                std::bind(&SchedulerComponent::SetPoiFromPlanner,
                                                                                 this,
                                                                                 std::placeholders::_1,
                                                                                 std::placeholders::_2));
@@ -183,9 +183,10 @@ void SchedulerComponent::GetCurrentPoiForNavigation([[maybe_unused]] const std::
 {
     
     response->poi_name = m_tourStorage->GetTour().getPoIsList()[m_currentPoi];
+    RCLCPP_INFO(m_node->get_logger(), "SchedulerComponent::GetCurrentPoiForNavigation alternative poi : %s", m_alternative_poi ? "true" : "false");
     if (m_alternative_poi)
     {
-        response->poi_name = response->poi_name + "_2";
+        response->poi_name = m_tourStorage->GetTour().getPoIsList()[m_currentPoi] + "_2";
     }
     RCLCPP_INFO(m_node->get_logger(), "SchedulerComponent::GetCurrentPoiForNavigation name: %s", response->poi_name.c_str());
     response->poi_number = m_currentPoi;
@@ -198,9 +199,18 @@ void SchedulerComponent::SetPoiFromPlanner([[maybe_unused]] const std::shared_pt
 {
     RCLCPP_INFO(m_node->get_logger(), "SchedulerComponent::SetPoiFromPlanner %d",  request->poi_number);
     int32_t old_poi_number = m_currentPoi;
-    m_alternative_poi = request->poi_number % 2 == 1;
-    
-    m_currentPoi = ((int)trunc(request->poi_number/2)) % m_tourStorage->GetTour().getPoIsList().size();
+    if (request->poi_number  == 0)
+    {
+        m_alternative_poi = false;
+        m_currentPoi = 0;
+    } else {
+        m_alternative_poi = (request->poi_number+1 % 2 == 1) ? false : true;
+        RCLCPP_INFO(m_node->get_logger(), "SchedulerComponent::SetPoiFromPlanner alternativa poi %d",  m_alternative_poi);
+        m_currentPoi = ((int)trunc((request->poi_number+1)/2)) % m_tourStorage->GetTour().getPoIsList().size();
+
+    }
+
+    RCLCPP_INFO(m_node->get_logger(), "SchedulerComponent::SetPoiFromPlanner current poi %d",  m_currentPoi);
     response->is_ok = true;
     std::string text = "Update Poi to: " + std::to_string(m_currentPoi) + " - " + m_tourStorage->GetTour().getPoIsList()[m_currentPoi];
     if(old_poi_number != m_currentPoi)
