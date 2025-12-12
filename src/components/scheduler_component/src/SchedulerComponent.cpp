@@ -188,8 +188,13 @@ void SchedulerComponent::GetCurrentPoiForNavigation([[maybe_unused]] const std::
     {
         response->poi_name = m_tourStorage->GetTour().getPoIsList()[m_currentPoi] + "_2";
     }
+    int poi_number_for_navigation = m_currentPoi * 2;
+    if (!m_alternative_poi)
+    {
+        poi_number_for_navigation -= 1;
+    }
+    response->poi_number = poi_number_for_navigation;
     RCLCPP_INFO(m_node->get_logger(), "SchedulerComponent::GetCurrentPoiForNavigation name: %s", response->poi_name.c_str());
-    response->poi_number = m_currentPoi;
     response->is_ok = true;
 }
 
