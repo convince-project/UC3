@@ -76,6 +76,12 @@
             </send>
         </transition>
     </state>
+
+    <state id="evaluate_result">
+        <transition cond="result == true" target="goal_done"/>
+        <transition cond="result == false" target="send_failure"/>
+    </state>
+
     <state id="goal_done">
         <transition target="idle" event="CMD_TICK">
             <send event="TICK_RESPONSE">
@@ -90,12 +96,16 @@
         </transition>
     </state>
     <state id="send_failure">
-        <onentry>
+        <transition target="idle" event="CMD_TICK">
             <send event="TICK_RESPONSE">
                 <param name="is_ok" expr="true"/>
                 <param name="status" expr="SKILL_FAILURE"/>
             </send>
-        </onentry>
-        <transition target="idle"/>
+        </transition>
+        <transition target="idle" event="CMD_HALT">
+            <send event="HALT_RESPONSE">
+                <param name="is_ok" expr="true"/>
+            </send>
+        </transition>
     </state>
 </scxml>
