@@ -228,16 +228,45 @@ void TimeComponent::StartPoiTimer([[maybe_unused]]const std::shared_ptr<time_int
     response->is_ok = true;
 }
 
+// void TimeComponent::StartPoiTimer(
+//     [[maybe_unused]] const std::shared_ptr<time_interfaces::srv::StartPoiTimer::Request> request,
+//     std::shared_ptr<time_interfaces::srv::StartPoiTimer::Response> response)
+// {
+//     RCLCPP_INFO_STREAM(m_node->get_logger(), "TimeComponent::StartPoiTimer ");
+
+//     {
+//         // Proteggiamo l’accesso agli stati del timer POI
+//         std::lock_guard<std::mutex> lock(m_timerMutexPoi);
+
+//         // Se il timer è già in esecuzione, non ne avviamo un altro
+//         if (m_timerTaskPoi) {
+//             RCLCPP_INFO_STREAM(m_node->get_logger(), "Poi Timer task already running");
+//             response->is_ok = true;
+//             return;
+//         }
+
+//         // Segnamo che il timer sta per partire
+//         m_timerTaskPoi = true;
+//         m_stoppedTimerTaskPoi = false;
+//     }
+
+//     // Creiamo il thread DOPO aver impostato gli stati protetti dal mutex
+//     m_threadTimerPoi = std::thread([this]() { timerTaskPoi(); });
+
+//     response->is_ok = true;
+// }
+
+
 
 void TimeComponent::StopPoiTimer([[maybe_unused]]const std::shared_ptr<time_interfaces::srv::StopPoiTimer::Request> request,
              std::shared_ptr<time_interfaces::srv::StopPoiTimer::Response>      response) 
 {
     m_timerMutexPoi.lock();
     m_stoppedTimerTaskPoi = true;
-    m_timerMutexPoi.unlock();
     RCLCPP_INFO_STREAM(m_node->get_logger(), "TimeComponent::StopPoiTimer ");
     if(m_timerTaskPoi == true)
     {
+        m_timerMutexPoi.unlock();   
         if (m_threadTimerPoi.joinable()) {
             m_threadTimerPoi.join();
             RCLCPP_INFO_STREAM(m_node->get_logger(), "Poi Timer task joined ");
@@ -245,10 +274,36 @@ void TimeComponent::StopPoiTimer([[maybe_unused]]const std::shared_ptr<time_inte
     }
     else
     {   
+        m_timerMutexPoi.unlock();
         RCLCPP_INFO_STREAM(m_node->get_logger(), "Poi Timer task not running ");
     }
+    
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "After unlock ");
     response->is_ok = true;
 }
+
+// void TimeComponent::StopPoiTimer(
+//     [[maybe_unused]] const std::shared_ptr<time_interfaces::srv::StopPoiTimer::Request> request,
+//     std::shared_ptr<time_interfaces::srv::StopPoiTimer::Response> response)
+// {
+//     {
+//         // Richiediamo lo stop del timer, in modo thread-safe
+//         std::lock_guard<std::mutex> lock(m_timerMutexPoi);
+//         m_stoppedTimerTaskPoi = true;
+//     }
+
+//     RCLCPP_INFO_STREAM(m_node->get_logger(), "TimeComponent::StopPoiTimer ");
+
+//     // Non ci basiamo più su m_timerTaskPoi: se il thread è joinable, lo joiniamo
+//     if (m_threadTimerPoi.joinable()) {
+//         m_threadTimerPoi.join();
+//         RCLCPP_INFO_STREAM(m_node->get_logger(), "Poi Timer task joined ");
+//     } else {
+//         RCLCPP_INFO_STREAM(m_node->get_logger(), "Poi Timer task not running or already joined");
+//     }
+
+//     response->is_ok = true;
+// }
 
 
 void TimeComponent::timerTaskPoi()
@@ -270,7 +325,7 @@ void TimeComponent::timerTaskPoi()
         m_timerMutexPoi.lock();
         l_stopped = m_stoppedTimerTaskPoi;
         m_timerMutexPoi.unlock();
-        if(l_secondsPassed % 60 == 0)
+        if(l_millisecondsPassed % 60000 == 0)
         {
             RCLCPP_INFO_STREAM(m_node->get_logger(), "POI Time passed: " << l_secondsPassed / 60 << " minutes");
             writeInBB(POI_DURATION_BB_STRING, l_secondsPassed / 60);
@@ -312,20 +367,20 @@ void TimeComponent::timerTaskTour()
         l_secondsPassed = l_millisecondsPassed / 1000;
         if(l_secondsPassed == l_maxTime*60)
         {
-            std::cout << "Time exceeded" << std::endl;
+            // std::cout << "Time exceeded" << std::endl;
             writeInBB(MAX_BB_STRING, 1);
             publisher("Tour maximum time exceeded!");
         }
         else if(l_secondsPassed >= l_warningTime*60)
         {
-            std::cout << "Time warning" << std::endl;
+            // std::cout << "Time warning" << std::endl;
             writeInBB(WARNING_BB_STRING, 1);
             publisher("Tour warning time exceeded!");
         }
         m_timerMutexTour.lock();
         l_stopped = m_stoppedTimerTaskTour;
         m_timerMutexTour.unlock();
-        if(l_secondsPassed % 60 == 0)
+        if(l_millisecondsPassed % 60000 == 0)
         {
             RCLCPP_INFO_STREAM(m_node->get_logger(), "Time passed: " << l_secondsPassed / 60 << " minutes");
             writeInBB(TOUR_DURATION_BB_STRING, l_secondsPassed / 60);

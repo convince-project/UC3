@@ -62,6 +62,12 @@
     </module>
 
     <module>
+        <name>yarprobotinterface</name>
+        <parameters>--context headSynchronizer --from faceDisplay.ini</parameters>
+        <node>r1-face</node>
+    </module>
+
+    <module>
         <name>yarpActionsPlayer</name>
         <parameters> --filename configuration.ini --execute</parameters>
         <workdir>/home/r1-user/UC3/conf/animations</workdir>
