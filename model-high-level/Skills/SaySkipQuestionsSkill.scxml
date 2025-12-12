@@ -28,7 +28,7 @@
 
   <state id="idle">
     <ros_service_handle_request name="/SaySkipQuestionsSkill/tick" target="startNarration"/>
-    <ros_service_handle_request name="/SaySkipQuestionsSkill/halt" target="stopNarration"/>
+    <ros_service_handle_request name="/SaySkipQuestionsSkill/halt" target="halted"/>
   </state>
 
 
@@ -59,42 +59,10 @@
         <field name="command" expr="m_command"/>
       </ros_service_send_request>
     </onentry>
-    <ros_service_handle_response name="/NarrateComponent/Narrate" cond="_res.is_ok" target="running"/>
+    <ros_service_handle_response name="/NarrateComponent/Narrate" cond="_res.is_ok" target="success"/>
     <ros_service_handle_response name="/NarrateComponent/Narrate" cond="!_res.is_ok" target="fail"/>
   </state>
 
-  <state id="running">
-    <onentry>
-      <ros_service_send_response name="/SaySkipQuestionsSkill/tick">
-        <field name="status" expr="SKILL_RUNNING"/>
-        <field name="is_ok" expr="true"/>
-      </ros_service_send_response>
-    </onentry>
-    <ros_service_handle_request name="/SaySkipQuestionsSkill/tick" target="checkDone">
-      <ros_service_send_request name="/NarrateComponent/IsDone"/>
-    </ros_service_handle_request>
-    <ros_service_handle_request name="/SaySkipQuestionsSkill/halt" target="stopNarration"/>
-  </state>
-
-  <state id="checkDone">
-    <ros_service_handle_response name="/NarrateComponent/IsDone" target="onCheck">
-      <assign location="m_is_done" expr="_res.is_done"/>
-    </ros_service_handle_response>
-    <ros_service_handle_response name="/NarrateComponent/IsDone" cond="!_res.is_ok" target="fail"/>
-  </state>
-
-  <state id="onCheck">
-    <transition cond="m_is_done" target="success"/>
-    <transition cond="!m_is_done" target="running"/>
-  </state>
-
-  <state id="stopNarration">
-    <onentry>
-      <ros_service_send_request name="/NarrateComponent/Stop"/>
-    </onentry>
-    <ros_service_handle_response name="/NarrateComponent/Stop" target="halted"/>
-    <!-- Gestire anche il caso di errore se necessario -->
-  </state>
 
   <state id="halted">
     <onentry>
