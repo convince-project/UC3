@@ -46,9 +46,8 @@ void ReloadTree(const std::shared_ptr<bt_interfaces_dummy::srv::ReloadTree::Requ
                 std::unique_ptr<BT::Tree>& tree, const std::string file_path, bool halt, BehaviorTreeFactory bt_factory, std::unique_ptr<PublisherZMQ>& publisher_zmq)
 {
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Reloading the behavior tree...");
-    publisher_zmq.reset();
     tree = std::make_unique<BT::Tree>( bt_factory.createTreeFromFile( file_path ) );
-    publisher_zmq = std::make_unique<PublisherZMQ>(*tree);
+    publisher_zmq = nullptr;
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Done reloading the behavior tree...");
     response->is_ok = true;
 }
@@ -85,7 +84,7 @@ int main(int argc, char* argv[])
 
 #ifdef ZMQ_FOUND
     // PublisherZMQ publisher_zmq(tree);
-    auto publisher_zmq = std::make_unique<PublisherZMQ>(*tree);
+    std::unique_ptr<PublisherZMQ> publisher_zmq = nullptr;
 #endif
     printTreeRecursively((*tree).rootNode());
     // Create the reload service and pass the tree by reference
@@ -100,7 +99,7 @@ int main(int argc, char* argv[])
 
     rclcpp::Service<bt_interfaces_dummy::srv::TickAction>::SharedPtr m_tickService = 
         m_node->create_service<bt_interfaces_dummy::srv::TickAction>(
-            "/BtExecutableSchedulerSkill/Tick",
+            "/BtExecutableSchedulerSkill/tick",
             [&tree, &m_node]([[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Request> request,
                     std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Response> response)
             {
@@ -124,7 +123,7 @@ int main(int argc, char* argv[])
 
     rclcpp::Service<bt_interfaces_dummy::srv::HaltAction>::SharedPtr m_haltService = 
         m_node->create_service<bt_interfaces_dummy::srv::HaltAction>(
-            "/BtExecutableSchedulerSkill/Halt",
+            "/BtExecutableSchedulerSkill/halt",
             [&tree, &m_node, &halt]([[maybe_unused]] const std::shared_ptr<bt_interfaces_dummy::srv::HaltAction::Request> request,
                     std::shared_ptr<bt_interfaces_dummy::srv::HaltAction::Response> response)
             {
