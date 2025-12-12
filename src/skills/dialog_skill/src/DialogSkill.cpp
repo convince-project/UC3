@@ -177,7 +177,9 @@ bool DialogSkill::start(int argc, char *argv[])
                 [this](rclcpp_action::ClientGoalHandle<dialog_interfaces::action::WaitForInteraction>::SharedPtr,
                         const std::shared_ptr<const dialog_interfaces::action::WaitForInteraction::Feedback> feedback)
             {
-                RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Received feedback: %s", feedback->status.c_str());
+                // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Received feedback: %s", feedback->status.c_str());
+                RCLCPP_INFO_THROTTLE(m_node->get_logger(), *m_node->get_clock(), 10000, "Received feedback");
+
             };
             send_goal_options.result_callback =
                 [this](const rclcpp_action::ClientGoalHandle<dialog_interfaces::action::WaitForInteraction>::WrappedResult &result)

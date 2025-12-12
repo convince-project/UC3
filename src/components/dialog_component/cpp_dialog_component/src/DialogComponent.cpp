@@ -125,7 +125,7 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
         yarp::os::ResourceFinder resource_finder;
         resource_finder.setDefaultContext(prompt_context);
         std::string prompt_file_fullpath = resource_finder.findFile(prompt_poi_file);
-        std::cout << "Prompt file full path: " << prompt_file_fullpath << std::endl;
+        yInfo() << "Prompt file full path: " << prompt_file_fullpath;
         auto stream = std::ifstream(prompt_file_fullpath);
         if (!stream)
         {
@@ -139,7 +139,7 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
         }
         resource_finder.setDefaultContext(prompt_context);
         prompt_file_fullpath = resource_finder.findFile(prompt_start_file);
-        std::cout << "Start Prompt file full path: " << prompt_file_fullpath << std::endl;
+        yInfo() << "Start Prompt file full path: " << prompt_file_fullpath;
         stream = std::ifstream(prompt_file_fullpath);
         if (!stream)
         {
@@ -681,7 +681,7 @@ void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::
 
     std::string newLang = request->language;
 
-    std::cout << "Setting language to " << newLang << std::endl;
+    yInfo() << "Setting language to " << newLang;
 
     if (!m_tourStorage->m_loadedTour.setCurrentLanguage(newLang))
     {
@@ -844,6 +844,7 @@ void DialogComponent::WaitForSpeakEnd()
     }
 
     bool isSpeaking;
+    bool isOk;
     do
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
@@ -854,11 +855,14 @@ void DialogComponent::WaitForSpeakEnd()
         auto isSpeakingResponse = isSpeakingResult.get();
         isSpeaking = isSpeakingResponse->is_speaking;
 
+        // When isOk is false, it means that the textToSpeech component is not getting the status properly, therefore we keep waiting
+        isOk = isSpeakingResponse->is_ok;
+
         int secondsLeft = isSpeakingResponse->seconds_left;
 
         yInfo() << "IsSpeaking " << isSpeaking << " and seconds left: " << secondsLeft << __LINE__;
 
-    } while (isSpeaking);
+    } while (isSpeaking || !isOk);
 }
 
 void DialogComponent::InterpretCommand(const std::shared_ptr<dialog_interfaces::srv::InterpretCommand::Request> request,
@@ -991,9 +995,9 @@ void DialogComponent::InterpretCommand(const std::shared_ptr<dialog_interfaces::
 
             for (const auto &action : tempActions)
             {
-                std::cout << "Action Type: " << action.getType() << " with param: " << action.getParam() << " and blocking: " << action.isBlocking() << " and dance " << action.getDance() << std::endl;
+                yInfo() << "Action Type: " << action.getType() << " with param: " << action.getParam() << " and blocking: " << action.isBlocking() << " and dance " << action.getDance();
 
-                std::cout << "speak id " << ActionTypes::SPEAK << " signal id " << ActionTypes::SIGNAL << std::endl;
+                yInfo() << "speak id " << ActionTypes::SPEAK << " signal id " << ActionTypes::SIGNAL;
                 switch (action.getType())
                 {
                 case ActionTypes::SPEAK:
@@ -1099,7 +1103,7 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitFor
             // Publish feedback
             goal_handle->publish_feedback(feedback);
 
-            RCLCPP_INFO_THROTTLE(m_node->get_logger(), *m_node->get_clock(), 1000, "Publish feedback");
+            RCLCPP_INFO_THROTTLE(m_node->get_logger(), *m_node->get_clock(), 10000, "Publish feedback");
 
             // wait for a while before trying to read again
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -1239,12 +1243,12 @@ void DialogComponent::ShortenReply(const std::shared_ptr<dialog_interfaces::srv:
     yDebug() << "[DialogComponent::ShortenReply] call received with request: " << request->interaction;
     yDebug() << "[DialogComponent::ShortenReply] call received with context: " << request->context;
 
-    std::cout << "DialogComponent::ShortenReply call received" << __LINE__ << std::endl;
+    yInfo() << "DialogComponent::ShortenReply call received" << __LINE__;
     for (auto &reply : m_replies[request->context])
     {
-        std::cout << "Reply at index " << &reply - &m_replies[request->context][0] << ": " << reply << std::endl;
+        yInfo() << "Reply at index " << &reply - &m_replies[request->context][0] << ": " << reply;
     }
-    std::cout << "Request index: " << request->duplicate_index << std::endl;
+    yInfo() << "Request index: " << request->duplicate_index;
 
     std::string previousReply = m_replies[request->context][request->duplicate_index];
 
@@ -1279,7 +1283,7 @@ void DialogComponent::ShortenReply(const std::shared_ptr<dialog_interfaces::srv:
 
     std::string answerText = answer.content;
 
-    std::cout << "The answer is: " << answerText << std::endl;
+    yInfo() << "The answer is: " << answerText;
 
     std::vector<std::string> answers;
     answers.push_back(answerText);
@@ -1324,7 +1328,7 @@ void DialogComponent::Answer(const std::shared_ptr<dialog_interfaces::srv::Answe
 
     m_replies[request->context].push_back(answerText);
 
-    std::cout << "The answer is: " << answerText << std::endl;
+    yInfo() << "The answer is: " << answerText;
 
     std::vector<std::string> answers;
     answers.push_back(answerText);
@@ -1434,20 +1438,22 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
     }
 
     yarp::sig::Sound &sound = m_audioPort.prepare();
-    std::cout << "[DialogComponent::SpeakFromAudio] Preparing to speak" << std::endl;
+    yInfo() << "[DialogComponent::SpeakFromAudio] Preparing to speak";
     sound.clear();
-    std::cout << "[DialogComponent::SpeakFromAudio] Cleared sound buffer" << std::endl;
+    yInfo() << "[DialogComponent::SpeakFromAudio] Cleared sound buffer";
 
     sound = *verbalOutput;
-    std::cout << "[DialogComponent::SpeakFromAudio] Copied sound data" << std::endl;
+    yInfo() << "[DialogComponent::SpeakFromAudio] Copied sound data";
 
     std::string dance = dances[m_predefined_answer_index];
 
     SetFaceExpression("happy");
 
+    yInfo() << "[DialogComponent::SpeakFromAudio] Sending audio to port" << (sound.getSamples() * sound.getChannels() * sound.getBytesPerSample());
+
     m_audioPort.write();
 
-    std::cout << "[DialogComponent::SpeakFromAudio] Audio written to port" << std::endl;
+    yInfo() << "[DialogComponent::SpeakFromAudio] Audio written to port";
 
     if (dance != "none")
     {   
@@ -1455,18 +1461,18 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
         if (WaitForSpeakStart()){
             if (dance.find("point") != std::string::npos)
             {
-                std::cout << "[DialogComponent::SpeakFromAudio] Pointing detected, executing pointing" << std::endl;
+                yInfo() << "[DialogComponent::SpeakFromAudio] Pointing detected, executing pointing";
                 std::string danceTarget = dance.substr(dance.find("::") + 2);
                 ExecutePointing(danceTarget);
             }
             else
             {
 
-                std::cout << "[DialogComponent::SpeakFromAudio] Sending audio to port" << std::endl;
+                yInfo() << "[DialogComponent::SpeakFromAudio] Sending audio to port";
 
                 float estimatedSpeechTime = sound.getDuration();
 
-                std::cout << "[DialogComponent::SpeakFromAudio] Speak request sent with estimated speech time: " << estimatedSpeechTime << std::endl;
+                yInfo() << "[DialogComponent::SpeakFromAudio] Speak request sent with estimated speech time: " << estimatedSpeechTime;
 
                 yInfo() << "[DialogComponent::CommandManager] Dance detected: " << dance;
                 ExecuteDance(dance, estimatedSpeechTime);
@@ -1482,13 +1488,13 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
         yInfo() << "[DialogComponent::CommandManager] No dance detected";
     }
 
-    std::cout << "[DialogComponent::SpeakFromAudio] Waiting for speak end" << std::endl;
+    yInfo() << "[DialogComponent::SpeakFromAudio] Waiting for speak end";
 
     std::chrono::duration wait_ms = 2000ms;
     std::this_thread::sleep_for(wait_ms);
     WaitForSpeakEnd();
 
-    std::cout << "[DialogComponent::SpeakFromAudio] Speak ended" << std::endl;
+    yInfo() << "[DialogComponent::SpeakFromAudio] Speak ended";
 
     // Reset dance
     ResetDance();
