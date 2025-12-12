@@ -156,6 +156,7 @@ class PlannerComponent(Node):
         except Exception as e:
             self.get_logger().error(f'Error while succeeding goal: {e}')
 
+        self.get_logger().info(f"sequence_of_pois: {plan}")
         result = Plan.Result()
         result.is_ok = True
         # result.sequence = feedback_msg.partial_sequence

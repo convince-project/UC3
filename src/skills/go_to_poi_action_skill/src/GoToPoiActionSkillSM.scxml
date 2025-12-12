@@ -4,6 +4,7 @@
         <data id="poi_name" expr="&apos;&apos;"/>
         <data id="status" expr="0"/>
         <data id="result" expr="true"/>
+        <data id="goal_result" expr="true"/>
         <data id="SKILL_SUCCESS" expr="0"/>
         <data id="SKILL_FAILURE" expr="1"/>
         <data id="SKILL_RUNNING" expr="2"/>
@@ -12,6 +13,9 @@
     <!-- GoToPoiActionSkill is a client for GetCurrentPoi from the SchedulerComponent -->
     <!-- GoToPoiActionSkill is a client for GoToPoi action from the Navigation Component -->
     <state id="idle">
+        <onentry>
+            <log expr="'idle'"/>
+        </onentry>
         <transition target="getPoi" event="CMD_TICK">
             <send event="SchedulerComponent.GetCurrentPoiForNavigation.Call"/>
         </transition>
@@ -22,6 +26,9 @@
         </transition>
     </state>
     <state id="getPoi">
+        <onentry>
+            <log expr="'getPoi'"/>
+        </onentry>
         <transition target="goalResponse" event="SchedulerComponent.GetCurrentPoiForNavigation.Return">
             <assign location="poi_number" expr="_event.data.poi_number"/>
             <assign location="poi_name" expr="_event.data.poi_name"/>
@@ -36,6 +43,9 @@
         <transition target="getCurrentPoiResponseHalt" event="CMD_HALT"/>
     </state>
     <state id="getCurrentPoiResponseHalt">
+        <onentry>
+            <log expr="'getCurrentPoiResponseHalt'"/>
+        </onentry>
         <transition target="idle" event="SchedulerComponent.GetCurrentPoiForNavigation.Return">
             <send event="HALT_RESPONSE">
                 <param name="is_ok" expr="true"/>
@@ -43,6 +53,9 @@
         </transition>
     </state>
     <state id="goalResponse">
+        <onentry>
+            <log expr="'goalResponse'"/>
+        </onentry>
         <transition event="NavigationComponent.GoToPoi.GoalResponse" cond="_event.data.call_succeeded" target="wait_result"/>
         <transition event="NavigationComponent.GoToPoi.GoalResponse" cond="_event.data.call_succeeded == false" target="send_failure"/>
         <transition target="goalResponse" event="CMD_TICK">
@@ -58,6 +71,9 @@
         </transition>
     </state>
     <state id="wait_result">
+        <onentry>
+            <log expr="'wait_result'"/>
+        </onentry>
         <transition target="wait_result" event="CMD_TICK">
             <send event="TICK_RESPONSE">
                 <param name="is_ok" expr="true"/>
@@ -68,7 +84,7 @@
             <assign location="status" expr="_event.data.status"/>
         </transition>
         <transition target="evaluate_result" event="NavigationComponent.GoToPoi.ResultResponse">
-            <assign location="result" expr="_event.data.is_ok"/>
+            <assign location="goal_result" expr="_event.data.is_ok"/>
         </transition>
         <transition target="idle" event="CMD_HALT">
             <send event="HALT_RESPONSE">
@@ -77,25 +93,44 @@
         </transition>
     </state>
 
+
+
     <state id="evaluate_result">
-        <transition cond="result == true" target="goal_done"/>
-        <transition cond="result == false" target="send_failure"/>
+        <transition target="goal_done" event="CMD_TICK"/>
+        <transition target="idle" event="CMD_HALT">
+            <send event="HALT_RESPONSE">
+                <param name="is_ok" expr="true"/>
+            </send>
+        </transition>
+
+        <onentry>
+            <log expr="'evaluate_result'"/>
+
+	</onentry>
     </state>
 
     <state id="goal_done">
-        <transition target="idle" event="CMD_TICK">
-            <send event="TICK_RESPONSE">
-                <param name="is_ok" expr="true"/>
-                <param name="status" expr="SKILL_SUCCESS"/>
-            </send>
-        </transition>
-        <transition target="idle" event="CMD_HALT">
-            <send event="HALT_RESPONSE">
-                <param name="is_ok" expr="true"/>
-            </send>
-        </transition>
+        <onentry>
+            <log expr="'goal_done'"/>
+            <if cond="!goal_result">
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_SUCCESS"/>
+                    <param name="is_ok" expr="true"/>
+                </send>
+                <else/>
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_FAILURE"/>
+                    <param name="is_ok" expr="true"/>
+                </send>
+            </if>
+
+        </onentry>
+	<transition target="idle"/>
     </state>
     <state id="send_failure">
+        <onentry>
+            <log expr="'send_failure'"/>
+        </onentry>
         <transition target="idle" event="CMD_TICK">
             <send event="TICK_RESPONSE">
                 <param name="is_ok" expr="true"/>
@@ -109,3 +144,4 @@
         </transition>
     </state>
 </scxml>
+

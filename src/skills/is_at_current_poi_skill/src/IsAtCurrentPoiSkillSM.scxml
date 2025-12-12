@@ -18,11 +18,17 @@
     <!-- Condition skill: tick server only -->
     <!-- Clients -->
     <state id="idle">
+        <onentry>
+            <log expr="'idle'"/>
+        </onentry>
         <transition target="getPoi" event="CMD_TICK">
             <send event="SchedulerComponent.GetCurrentPoiForNavigation.Call"/>
         </transition>
     </state>
     <state id="getPoi">
+        <onentry>
+            <log expr="'getPoi'"/>
+        </onentry>
         <transition target="evaluatePoi" event="SchedulerComponent.GetCurrentPoiForNavigation.Return">
             <assign location="m_poi_number" expr="_event.data.poi_number"/>
             <assign location="m_poi_name" expr="_event.data.poi_name"/>
@@ -30,6 +36,9 @@
         </transition>
     </state>
     <state id="evaluatePoi">
+        <onentry>
+            <log expr="'evaluatePoi'"/>
+        </onentry>
         <!-- GetCurrentPoi failed -->
         <transition cond="!m_poi_result" target="failure"/>
         <!-- GetCurrentPoi succeeded, check navigation status -->
@@ -37,6 +46,7 @@
     </state>
     <state id="getStatus">
         <onentry>
+            <log expr="'getStatus'"/>
             <send event="NavigationComponent.GetNavigationStatus.Call"/>
         </onentry>
         <transition target="evaluateStatus" event="NavigationComponent.GetNavigationStatus.Return">
@@ -45,6 +55,9 @@
         </transition>
     </state>
     <state id="evaluateStatus">
+        <onentry>
+            <log expr="'evaluateStatus'"/>
+        </onentry>
         <!-- GetNavigationStatus failed -->
         <transition cond="!m_nav_result" target="failure"/>
         <!-- Robot is moving, not at POI -->
@@ -54,6 +67,7 @@
     </state>
     <state id="checkNear">
         <onentry>
+            <log expr="'checkNear'"/>
             <send event="NavigationComponent.CheckNearToPoi.Call">
                 <param name="poi_name" expr="m_poi_name"/>
                 <param name="distance" expr="distance"/>
@@ -66,6 +80,7 @@
     </state>
     <state id="finalize">
         <onentry>
+            <log expr="'finalize'"/>
             <if cond="m_is_near">
                 <send event="TICK_RESPONSE">
                     <param name="status" expr="SKILL_SUCCESS"/>
@@ -82,6 +97,7 @@
     </state>
     <state id="failure">
         <onentry>
+            <log expr="'failure'"/>
             <send event="TICK_RESPONSE">
                 <param name="status" expr="SKILL_FAILURE"/>
                 <param name="is_ok" expr="true"/>
@@ -90,3 +106,4 @@
         <transition target="idle"/>
     </state>
 </scxml>
+

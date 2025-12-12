@@ -14,6 +14,13 @@
                 
                 <Sequence>
                     <Inverter>
+                        <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsPoiDone2"/>
+                    </Inverter>
+                    <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SetPoi2"/>
+                </Sequence>
+            
+                <Sequence>
+                    <Inverter>
                         <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsPoiDone3"/>
                     </Inverter>
                     <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SetPoi3"/>
@@ -21,30 +28,23 @@
             
                 <Sequence>
                     <Inverter>
-                        <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsPoiDone4"/>
+                        <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsPoiDone5"/>
                     </Inverter>
-                    <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SetPoi4"/>
+                    <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SetPoi5"/>
                 </Sequence>
             
                 <Sequence>
                     <Inverter>
-                        <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsPoiDone6"/>
+                        <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsPoiDone8"/>
                     </Inverter>
-                    <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SetPoi6"/>
+                    <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SetPoi8"/>
                 </Sequence>
             
                 <Sequence>
                     <Inverter>
-                        <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsPoiDone9"/>
+                        <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsPoiDone10"/>
                     </Inverter>
-                    <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SetPoi9"/>
-                </Sequence>
-            
-                <Sequence>
-                    <Inverter>
-                        <Condition ID="ROS2Condition" interface="ROS2SERVICE" isMonitored="false" name="IsPoiDone11"/>
-                    </Inverter>
-                    <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SetPoi11"/>
+                    <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="SetPoi10"/>
                 </Sequence>
                        
                         <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="ResetTourAndFlags"/>
