@@ -1,4 +1,7 @@
+# ...existing code...
 #!/usr/bin/env python3
+import os
+import datetime
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
@@ -33,13 +36,11 @@ class MultiMonitor(Node):
             'prop13': '(once[5:]{t} -> once[:3]{connected_to_network})',
             'prop14': '(once[5:]{t} -> once[:3]{connected_to_web})',
             'prop15': 'historically( not( not {arrivedAtCS} since [600:] {alarm}))'
-            
         }
 
         # List of topics to monitor
         # ------ Put here your real topics to monitor ------
         self.topics = [
-
             '/monitor_prop1/monitor_verdict',
             '/monitor_prop2/monitor_verdict',
             '/monitor_prop3/monitor_verdict',
@@ -49,16 +50,16 @@ class MultiMonitor(Node):
             '/monitor_prop7/monitor_verdict',
             '/monitor_prop8/monitor_verdict',
             '/monitor_prop9/monitor_verdict',
-            '/monitor_prop10POI1/monitor_verdict',
-            '/monitor_prop10POI2/monitor_verdict',
-            '/monitor_prop10POI3/monitor_verdict',
-            '/monitor_prop10POI4/monitor_verdict',
-            '/monitor_prop10POI5/monitor_verdict',
+            '/monitor_propPOI1/monitor_verdict',
+            '/monitor_propPOI2/monitor_verdict',
+            '/monitor_propPOI3/monitor_verdict',
+            '/monitor_propPOI4/monitor_verdict',
+            '/monitor_propPOI5/monitor_verdict',
             '/monitor_prop11/monitor_verdict',
             '/monitor_prop12/monitor_verdict',
             '/monitor_prop13/monitor_verdict',
-            '/monitor_prop14/monitor_verdict' ,
-            '/monitor_prop15/monitor_verdict'           
+            '/monitor_prop14/monitor_verdict',
+            '/monitor_prop15/monitor_verdict'
         ]
 
         # Current status of each topic
@@ -73,6 +74,18 @@ class MultiMonitor(Node):
         # Seconds after which a topic is considered "unknown" (grey)
         self.timeout_seconds = 3.0
 
+        # Log file path (placed next to this script)
+        try:
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+        except Exception:
+            base_dir = os.getcwd()
+        self.log_file = os.path.join(base_dir, "monitor_state_changes.log")
+        try:
+            with open(self.log_file, "a") as _f:
+                _f.write(f"\n--- Monitor run started at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} ---\n")
+        except Exception:
+            pass
+
         # Create a subscription for each topic
         for topic in self.topics:
             self.create_subscription(String, topic,
@@ -81,8 +94,22 @@ class MultiMonitor(Node):
 
         # Timer to print the state ad each second
         self.timer = self.create_timer(1.0, self.print_status)
-        
+
         self.show_table = True
+
+    def log_status_change(self, topic, old, new):
+        """Append a timestamped line to the log file when a topic changes state."""
+        ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        line = f"{ts} | {topic} | {old} -> {new}\n"
+        try:
+            # write under lock (caller usually holds self.lock)
+            with open(self.log_file, "a") as f:
+                f.write(line)
+        except Exception as e:
+            try:
+                self.get_logger().warn(f"Failed to write monitor log: {e}")
+            except Exception:
+                pass
 
     def callback(self, msg, topic_name):
         data = msg.data.strip().lower()
@@ -90,8 +117,18 @@ class MultiMonitor(Node):
             self.get_logger().warn(f"Topic {topic_name}: unexpected value '{msg.data}'")
             return
         with self.lock:
-            self.status[topic_name] = data
-            self.last_message_time[topic_name] = time.time()
+            prev = self.status.get(topic_name, "unknown")
+            now = time.time()
+            # update timestamp always
+            self.last_message_time[topic_name] = now
+            # if state changed, update and log to file
+            if prev != data:
+                self.status[topic_name] = data
+                # Log the change
+                try:
+                    self.log_status_change(topic_name, prev, data)
+                except Exception:
+                    pass
 
     def check_timeouts(self):
         """Check if some topics are not publishing"""
@@ -103,7 +140,13 @@ class MultiMonitor(Node):
                 if time_since_last_msg > self.timeout_seconds and self.status[topic] != "unknown":
                     if self.last_message_time[topic] > 0:  # Solo se aveva ricevuto almeno un messaggio
                         self.get_logger().warn(f"Topic {topic}: timeout - no message from {time_since_last_msg:.1f}s")
+                        prev = self.status[topic]
                         self.status[topic] = "unknown"
+                        # Log the change to unknown
+                        try:
+                            self.log_status_change(topic, prev, "unknown")
+                        except Exception:
+                            pass
 
     def print_property_table(self):
         print("\n" + "="*100)
@@ -116,7 +159,7 @@ class MultiMonitor(Node):
     def print_status(self):
         # Check the timeouts
         self.check_timeouts()
-        
+
         if self.show_table:
             # Print the table
             self.print_property_table()
@@ -125,10 +168,10 @@ class MultiMonitor(Node):
             all_true = all(v == "currently_true" for v in self.status.values())
             has_false = any(v == "currently_false" for v in self.status.values())
             has_unknown = any(v == "unknown" for v in self.status.values())
-            
+
             print("\n=== STATUS CHECK ===")
             current_time = time.time()
-            
+
             with self.lock:
                 status_copy = dict(self.status)
                 last_copy = dict(self.last_message_time)
@@ -140,16 +183,16 @@ class MultiMonitor(Node):
                 else:
                     time_info = "(never received)"
                 print(f"{topic:40s}: {val:15s} {time_info}")
-            
+
             if all_true:
                 print("✅  All TRUE")
             elif has_false:
                 print("❌  ERROR: at least one topic is currently_false")
             elif has_unknown:
                 print("⚠️   WARNING: at least one topic is not publishing (unknown)")
-            
+
             print("====================\n")
-        
+
         self.show_table = not self.show_table
 
 
@@ -275,7 +318,7 @@ def main(args=None):
                 # '/monitor_propPOI1/monitor_verdict' -> 'POI1'
                 topic_clean = topic.strip('/')
                 name = None
-                m = re.search(r'prop(?:erty)?(?:_)?(poi\d+|10POI\d+|[A-Za-z0-9]+)', topic_clean, re.IGNORECASE)
+                m = re.search(r'prop(?:erty)?(?:_)?(poi\d+|POI\d+|[A-Za-z0-9]+)', topic_clean, re.IGNORECASE)
                 if m:
                     # group could be like '1', 'POI1', 'POI2', '10POI' etc.
                     grp = m.group(1)
@@ -297,12 +340,6 @@ def main(args=None):
                 # Put name and time labels inside the same 'cell' so they stay directly under the rectangle
                 name_label = tk.Label(cell, text=name, wraplength=self.square_size+20, justify='center')
                 name_label.pack(fill='x')
-                # topic property number / short id
-                # text = tk.Label(self.frame, text=name, wraplength=self.square_size+20, justify='center')
-                # text.grid(row=r*2+1, column=c)
-                # last update label
-                # time_label = tk.Label(self.frame, text='(never received)', font=('Segoe UI', 8), fg='#555555')
-                # time_label.grid(row=r*2+2, column=c)
                 time_label = tk.Label(cell, text='(never received)', font=('Segoe UI', 8), fg='#555555')
                 time_label.pack(fill='x', pady=(2,4))
                 self.topic_widgets[topic] = (color_label, time_label)
@@ -387,3 +424,4 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
+# ...existing code...
