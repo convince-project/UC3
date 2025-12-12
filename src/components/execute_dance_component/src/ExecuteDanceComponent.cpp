@@ -202,12 +202,27 @@ bool ExecuteDanceComponent::SendMovementToYAP(const std::string &actionName, flo
 
     cmd.clear();
     res.clear();
+    cmd.addString("reset");
+
+    bool status = m_yAPClientPort.write(cmd, res);
+
+    if (!status)
+    {
+        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP Failed to send reset command to YAP");
+        return false;
+    }
+
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP Reset status: " << res.get(0).toString());
+
+
+    cmd.clear();
+    res.clear();
     cmd.addString("choose_action");
     cmd.addString(actionName);
 
     std::cout << "ExecuteDanceComponent::SendMovementToYAP sending bottle content: " << cmd.toString() << " and action name is " << actionName << std::endl;
 
-    bool status = m_yAPClientPort.write(cmd, res);
+    status = m_yAPClientPort.write(cmd, res);
 
     if (!status)
     {
@@ -249,20 +264,6 @@ bool ExecuteDanceComponent::SendMovementToYAP(const std::string &actionName, flo
     {
         RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP YAP accepted the speed factor: " << speedFactor);
     }
-
-    cmd.clear();
-    res.clear();
-    cmd.addString("reset");
-
-    status = m_yAPClientPort.write(cmd, res);
-
-    if (!status)
-    {
-        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP Failed to send reset command to YAP");
-        return false;
-    }
-
-    RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteDanceComponent::SendMovementToYAP Reset status: " << res.get(0).toString());
 
     cmd.clear();
     res.clear();

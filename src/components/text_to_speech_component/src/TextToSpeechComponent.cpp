@@ -468,9 +468,9 @@ void TextToSpeechComponent::IsSpeaking(const std::shared_ptr<text_to_speech_inte
                 std::lock_guard<std::mutex> lock(m_mutex);
                 player_status = m_audioStatusData;
                 if (player_status != nullptr)
-                    return true;
+                    return false;
                 else
-                    return false;}()
+                    return true;}()
         && elapsed < timeout)
     {
         std::this_thread::sleep_for(wait);
