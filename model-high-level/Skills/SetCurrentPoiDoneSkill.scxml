@@ -22,20 +22,20 @@
     <!-- SetCurrentPoiDoneSkill is a server for halt from the ROS2Action plugin-->
     <ros_service_server service_name="/SetCurrentPoiDoneSkill/halt" type="bt_interfaces_dummy/HaltAction"/>
     <!-- SetCurrentPoiDoneSkill is a client for GetCurrentPoi from the SchedulerComponent -->
-    <ros_service_client service_name="/SchedulerComponent/GetCurrentPoi" type ="scheduler_interfaces/GetCurrentPoi"/>
+    <ros_service_client service_name="/SchedulerComponent/GetCurrentPoiForNavigation" type ="scheduler_interfaces/GetCurrentPoi"/>
     <!-- SetCurrentPoiDoneSkill is a client for SetInt from the BlackboardComponent -->
     <ros_service_client service_name="/BlackboardComponent/SetInt" type ="blackboard_interfaces/SetIntBlackboard"/>
 
     <state id="idle">
         <ros_service_handle_request name="/SetCurrentPoiDoneSkill/tick" target="getCurrentPoi">
-            <ros_service_send_request name="/SchedulerComponent/GetCurrentPoi"/>
+            <ros_service_send_request name="/SchedulerComponent/GetCurrentPoiForNavigation"/>
         </ros_service_handle_request>
         <!-- Decommentare e correggere -->
         <ros_service_handle_request name="/SetCurrentPoiDoneSkill/halt" target="halted"/>
     </state>
 
     <state id="getCurrentPoi">
-        <ros_service_handle_response name="/SchedulerComponent/GetCurrentPoi" cond="_res.is_ok" target="setInt">
+        <ros_service_handle_response name="/SchedulerComponent/GetCurrentPoiForNavigation" cond="_res.is_ok" target="setInt">
             <assign location="poi_number" expr="_res.poi_number"/>
             <!-- <assign location="poi_name" expr="_res.poi_name"/> -->
             <!-- <script>
@@ -78,8 +78,38 @@
                     <field name="value" expr="value"/>
                 </ros_service_send_request>
             </if>
+            <if cond="poi_number == 6">
+                <ros_service_send_request name="/BlackboardComponent/SetInt">
+                    <field name="field_name" expr="'PoiDone6'"/>
+                    <field name="value" expr="value"/>
+                </ros_service_send_request>
+            </if>
+            <if cond="poi_number == 7">
+                <ros_service_send_request name="/BlackboardComponent/SetInt">
+                    <field name="field_name" expr="'PoiDone7'"/>
+                    <field name="value" expr="value"/>
+                </ros_service_send_request>
+            </if>
+            <if cond="poi_number == 8">
+                <ros_service_send_request name="/BlackboardComponent/SetInt">
+                    <field name="field_name" expr="'PoiDone8'"/>
+                    <field name="value" expr="value"/>
+                </ros_service_send_request>
+            </if>
+            <if cond="poi_number == 9">
+                <ros_service_send_request name="/BlackboardComponent/SetInt">
+                    <field name="field_name" expr="'PoiDone9'"/>
+                    <field name="value" expr="value"/>
+                </ros_service_send_request>
+            </if>
+            <if cond="poi_number == 10">
+                <ros_service_send_request name="/BlackboardComponent/SetInt">
+                    <field name="field_name" expr="'PoiDone10'"/>
+                    <field name="value" expr="value"/>
+                </ros_service_send_request>
+            </if>
         </ros_service_handle_response>
-        <ros_service_handle_response name="/SchedulerComponent/GetCurrentPoi" cond="(_res.is_ok) == false" target="idle">
+        <ros_service_handle_response name="/SchedulerComponent/GetCurrentPoiForNavigation" cond="(_res.is_ok) == false" target="idle">
             <ros_service_send_response name="/SetCurrentPoiDoneSkill/tick">
                 <field name="status" expr="SKILL_FAILURE"/>
                 <field name="is_ok" expr="true"/>

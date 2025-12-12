@@ -16,7 +16,7 @@
                 <param name="status" expr="SKILL_RUNNING"/>
                 <param name="is_ok" expr="true"/>
             </send>
-            <send event="SchedulerComponent.SetPoi.Call">
+            <send event="SchedulerComponent.SetPoiFromPlanner.Call">
                 <param name="poi_number" expr="1"/>
             </send>
         </transition>
@@ -27,7 +27,7 @@
         </transition>
     </state>
     <state id="setPoi">
-        <transition target="checkResponse" event="SchedulerComponent.SetPoi.Return">
+        <transition target="checkResponse" event="SchedulerComponent.SetPoiFromPlanner.Return">
             <assign location="m_result" expr="_event.data.is_ok"/>
         </transition>
         <transition target="setPoi" event="CMD_TICK">
@@ -39,7 +39,7 @@
         <transition target="wait_for_halt" event="CMD_HALT"/>
     </state>
     <state id="wait_for_halt">
-        <transition target="idle" event="SchedulerComponent.SetPoi.Return">
+        <transition target="idle" event="SchedulerComponent.SetPoiFromPlanner.Return">
             <send event="HALT_RESPONSE">
                 <param name="is_ok" expr="true"/>
             </send>
