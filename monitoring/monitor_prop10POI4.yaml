@@ -1,8 +1,8 @@
-path: /home/user1/UC3/monitoring/monitor_propPOI4_ws/src
+path: /home/user1/UC3/monitoring/monitor_prop10POI4_ws/src
 
 monitors:
   - monitor:
-      id: monitor_propPOI4
+      id: monitor_prop10POI4
       log: ./log.txt
       silent: False
       oracle:

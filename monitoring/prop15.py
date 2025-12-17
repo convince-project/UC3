@@ -2,9 +2,8 @@
 
 '''   H(POI_1_selected => P -POI_1_completed) AND - (-POI_1_selected S[2 : ] -POI_1_completed)
 '''
-PROPERTY = r"historically( not( not {startReached} since [30:] {tourFinished}))"
+PROPERTY = r"historically( not( not {arrivedAtCS} since [600:] {alarm}))"
 
-# 600 seconds = 10 minutes
 # predicates used in the property (initialization for time 0)
 
 # in here we can add all the predicates we are interested in.. Of course, we also need to define how to translate Json messages to predicates.
@@ -13,9 +12,9 @@ PROPERTY = r"historically( not( not {startReached} since [30:] {tourFinished}))"
 
 predicates = dict(
 
-    tourFinished = False,
+    alarm = False,
 
-    startReached = False,
+    arrivedAtCS = False,
 
     time = 0,
 
@@ -38,13 +37,14 @@ def abstract_message(message):
     # int8 SKILL_SUCCESS=0
     # int8 SKILL_FAILURE=1
     # int8 SKILL_RUNNING=2
+    if "topic" in message and "StartAlarm" in message['topic']:
+        predicates['alarm'] = True
+
     if "topic" in message and "CheckNearToPoi" in message['topic']:
         if "response" in message:
             for resp in message["response"]:
-                if resp.get("poi_name") == 'madama_start':
-                    predicates['startReached'] = resp.get("is_near", False)
-
-    if "topic" in message and "Reset" in message['topic']:
-        predicates['tourFinished'] = True
+                if resp.get("poi_name") == 'charging_station':
+                    print("inside charging station")
+                    predicates['arrivedAtCS'] = resp.get("is_near", False)
 
     return predicates
