@@ -4,6 +4,7 @@
     <module>
         <name>yarprobotinterface</name>
         <parameters>--context speechPipeline --from micAudio.ini --mic_sound_on_stop 0 --mic_start 1 --mic_min_samples 4000 --mic_max_samples 4000</parameters>
+		<workdir>/usr/local/robot/tour-guide-robot/app/speechPipeline/conf/ </workdir>
         <node>laptop</node>
     </module>
 
@@ -57,7 +58,7 @@
 
     <module>
         <name>yarprobotinterface</name>
-        <parameters>--context speechPipeline --from azureSynthesizer.ini</parameters>
+        <parameters>--context google --from googleSynthesizer.ini</parameters>
         <environment></environment>
         <node>console-llm</node>
     </module>
