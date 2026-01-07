@@ -19,6 +19,12 @@ To run the use case on the real robot, the docker involved are:
 
 ## run the simulation with docker
 
+for newer version see [here](sim/README.md)
+
+### OUTDATED!!!!
+
+
+
 first run the docker 
 
 ```
