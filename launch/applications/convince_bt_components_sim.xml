@@ -167,7 +167,7 @@
 
     <module>
         <name>ros2_cpp_dialog_component</name>
-        <parameters>run dialog_component dialog_component</parameters>
+        <parameters>run dialog_component dialog_component --from config.ini</parameters>
         <workdir>/home/user1/UC3/src/components/dialog_component/cpp_dialog_component/config</workdir>
         <node>bt</node>
     </module>

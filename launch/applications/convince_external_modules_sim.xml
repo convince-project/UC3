@@ -32,6 +32,7 @@
     <module>
         <name>yarprobotinterface</name>
         <parameters>--context vadModule --from audioPlayer.ini</parameters>
+		<workdir>/usr/local/robot/tour-guide-robot/app/speechPipeline/conf/ </workdir>
         <node>laptop</node>
     </module>
 
