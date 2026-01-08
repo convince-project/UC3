@@ -127,5 +127,9 @@
     <protocol>fast_tcp</protocol>
   </connection>
 
+  <connection>
+    <from>/faceExpressionImage/image:o</from>
+    <to>/view_expr</to>
+  </connection>
 
 </application>

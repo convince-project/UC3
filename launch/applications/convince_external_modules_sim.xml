@@ -84,4 +84,10 @@
         <node>bt</node>
     </module>
 
+    <module>
+        <name>yarpview</name>
+        <parameters> --name /view_expr </parameters>
+        <node>bt</node>
+    </module>
+
 </application>
