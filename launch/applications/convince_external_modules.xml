@@ -74,4 +74,10 @@
         <node>r1-torso</node>
     </module>
 
+    <module>
+        <name>yarprobotinterface</name>
+        <parameters>--context headSynchronizer --from faceDisplay.ini</parameters>
+        <node>r1-face</node>
+    </module>
+
 </application>
