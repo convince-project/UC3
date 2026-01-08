@@ -23,6 +23,9 @@ To run the MADAMA tour in simulation, you need the following Docker images:
 
 ### Step 1: Navigation Pipeline
 
+> 💡 Before launching the Navigation be sure that all the following repositories are up-to-date: **tour-guide-robot**, **gz-sim-yarp-plugin**, **navigation**, **r1-models**.
+> 
+
 In the first image, start the **yarpserver** and the **yarpmanager**.
 
 Then, launch a **yarprun** named **/console**.
