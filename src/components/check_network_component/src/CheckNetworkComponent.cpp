@@ -192,13 +192,13 @@ bool CheckNetworkComponent::isNetworkConnected(const std::string& host) {
         ping_output_lines.push_back(line);
     }
 
-    if(ping_output_lines.size() >= 3){
-        packets_summary_line = ping_output_lines[3];
+    if(ping_output_lines.size() < 4){
+        RCLCPP_WARN(m_node->get_logger(), "Unexpected ping output: insufficient lines. Network interface may be down.");
+        return false;
+    }
 
-    }
-    if(ping_output_lines.size() >= 4){
-        rtt_summary_line = ping_output_lines[4];
-    }
+    packets_summary_line = ping_output_lines[3];
+    rtt_summary_line = ping_output_lines[4];
 
     std::cout << packets_summary_line << std::endl;
     std::cout << rtt_summary_line << std::endl;
@@ -208,8 +208,13 @@ bool CheckNetworkComponent::isNetworkConnected(const std::string& host) {
     std::smatch match_packets;
     std::smatch match_ttl;
 
-    if(std::regex_search(packets_summary_line, match_packets, rgx_packets))
+    bool match_packets_found = std::regex_search(packets_summary_line, match_packets, rgx_packets);
+    if(match_packets_found)
         RCLCPP_DEBUG(m_node->get_logger(), "match match_packets: %s", match_packets[1].str().c_str());
+    else {
+        RCLCPP_WARN(m_node->get_logger(), "Failed to parse packet loss from ping output");
+        return false;
+    }
 
     double rtt = 0.0;
     bool match_ttl_found = std::regex_search(rtt_summary_line,match_ttl,rgx_ttl);
@@ -218,7 +223,11 @@ bool CheckNetworkComponent::isNetworkConnected(const std::string& host) {
 	rtt = stod(match_ttl[1]);
         RCLCPP_DEBUG(m_node->get_logger(), "match match_ttl: %s", match_ttl[1].str().c_str());
     }
-    RCLCPP_DEBUG(m_node->get_logger(), "found %d match: %s", match_ttl_found, match_ttl[1].str().c_str());
+    else {
+        RCLCPP_WARN(m_node->get_logger(), "Failed to parse RTT from ping output");
+        return false;
+    }
+
     double packet_loss = stod(match_packets[1]);
 
     if(packet_loss < 100.){
