@@ -1,5 +1,7 @@
 # How to launch MADAMA tour in SIM
 
+## Manually
+
 ### 1. Required Images
 
 To run the MADAMA tour in simulation, you need the following Docker images:
@@ -15,7 +17,6 @@ To run the MADAMA tour in simulation, you need the following Docker images:
 3. **Components, skills, and behavior tree:**
     
     *ste93/convince:ubuntu_22.04_qt_6.8.3_sim_stable_new_robot_yarp_3.12.1*
-    
 
 ---
 
@@ -73,3 +74,16 @@ ros2 service call /DialogComponent/SetLanguage dialog_interfaces/srv/SetLanguage
 ros2 service call /AllowedToMoveComponent/SetAllowedToMove allowed_to_move_interfaces/srv/SetAllowedToMove is_allowed_to_move:\ true
 
 ```
+
+## Using docker compose
+
+From this directory run `docker compose -f docker-compose.yml up'.
+
+Launch all the modules in the application **Navigation_ROS2_R1Mk3_SIM** **following the order specified by their IDs**.
+
+Launch all the modules in the application **convince_bt_sim** **in the order specified by the application**, and then connect all the components.
+
+Then [Start the Tour](#step-4-start-the-tour).
+
+> 💡 It is still recommended to read through the manual steps to read other tips.
+> 

@@ -1,0 +1,73 @@
+services:
+  # Step 1: Navigation Pipeline (Gazebo and Navigation Stack)
+  navigation:
+    image: elandini84/r1images:tourSim2_ubuntu24.04_jazzy_devel
+    container_name: madama-navigation
+    network_mode: host
+    stdin_open: true
+    privileged: true
+    tty: true
+    environment:
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ${HOME}/.Xauthority:/root/.Xauthority:rw
+      - ${HOME}/.config/yarp/yarp.conf:/home/user1/.config/yarp/yarp.conf:rw
+    command: >
+      bash -c "
+      yarpserver --write &
+      sleep 2 &&
+      yarprun --server /console &
+      sleep 2 &&
+      yarpmanager --load_application /usr/local/src/robot/tour-guide-robot/build/share/tour-guide-robot/applications/Navigation_ROS2_R1_SIM_R1Mk3.xml
+      "
+
+  # Step 2: Speech Pipeline
+  speech:
+    image: elandini84/r1_talk:ub24.04_vcpkg_gccpp_v2.33
+    container_name: madama-speech
+    network_mode: host
+    stdin_open: true
+    privileged: true
+    tty: true
+    environment:
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ${HOME}/.Xauthority:/root/.Xauthority:rw
+      - ${HOME}/.config/yarp/yarp.conf:/home/yarp-user/.config/yarp/yarp.conf:rw
+    depends_on:
+      - navigation
+    command: >
+      bash -c "
+      sleep 3 &&
+      yarprun --server /console-llm
+      "
+
+  # # Step 3: CONVINCE Pipeline (Components, Skills, Behavior Tree)
+  convince:
+    image: ste93/convince:ubuntu_22.04_qt_6.8.3_sim_stable_new_robot_yarp_3.12.1
+    container_name: madama-convince
+    network_mode: host
+    stdin_open: true
+    privileged: true
+    tty: true
+    environment:
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ${HOME}/.Xauthority:/root/.Xauthority:rw
+      - ${HOME}/.config/yarp/yarp.conf:/home/user1/.config/yarp/yarp.conf:rw
+    depends_on:
+      - navigation
+      - speech
+    command: >
+      bash -c "
+      sleep 4 &&
+      yarprun --server /bt &
+      sleep 2 &&
+      yarpmanager --load_application /home/user1/UC3/launch/applications/convince_bt_sim.xml
+      "
