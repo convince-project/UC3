@@ -208,28 +208,49 @@ bool CheckNetworkComponent::isNetworkConnected(const std::string& host) {
     std::smatch match_packets;
     std::smatch match_ttl;
 
-    if(std::regex_search(packets_summary_line, match_packets, rgx_packets))
+    bool match_packets_found = std::regex_search(packets_summary_line, match_packets, rgx_packets);
+    if (match_packets_found) {
         RCLCPP_DEBUG(m_node->get_logger(), "match match_packets: %s", match_packets[1].str().c_str());
+    } else {
+        RCLCPP_DEBUG(m_node->get_logger(), "no match for packet-loss in line: %s", packets_summary_line.c_str());
+    }
 
     double rtt = 0.0;
-    bool match_ttl_found = std::regex_search(rtt_summary_line,match_ttl,rgx_ttl);
-    if (match_ttl_found){
-
-	rtt = stod(match_ttl[1]);
+    bool match_ttl_found = std::regex_search(rtt_summary_line, match_ttl, rgx_ttl);
+    if (match_ttl_found) {
+        try {
+            rtt = std::stod(match_ttl[1].str());
+        } catch (const std::exception &e) {
+            RCLCPP_WARN(m_node->get_logger(), "Failed to parse rtt value: %s", e.what());
+            rtt = 0.0;
+            match_ttl_found = false;
+        }
         RCLCPP_DEBUG(m_node->get_logger(), "match match_ttl: %s", match_ttl[1].str().c_str());
     }
-    RCLCPP_DEBUG(m_node->get_logger(), "found %d match: %s", match_ttl_found, match_ttl[1].str().c_str());
-    double packet_loss = stod(match_packets[1]);
+    RCLCPP_DEBUG(m_node->get_logger(), "found %d match: %s", match_ttl_found, match_ttl_found ? match_ttl[1].str().c_str() : "");
+
+    // Default to worst case (100% packet loss) if no valid match is found
+    double packet_loss = 100.0;
+    if (match_packets_found && match_packets.size() >= 2 && !match_packets[1].str().empty()) {
+        try {
+            packet_loss = std::stod(match_packets[1].str());
+        } catch (const std::exception &e) {
+            RCLCPP_WARN(m_node->get_logger(), "Failed to parse packet loss value: %s; assuming 100%%", e.what());
+            packet_loss = 100.0;
+        }
+    } else {
+        RCLCPP_DEBUG(m_node->get_logger(), "No packet-loss info found; assuming 100%% packet loss");
+    }
 
     if(packet_loss < 100.){
-	if (!match_ttl_found) {
-	    is_connected = false;
-	} else {
-        if(rtt < threshold)
-            is_connected = true;
-        else
+        if (!match_ttl_found) {
             is_connected = false;
-	}
+        } else {
+            if(rtt < threshold)
+                is_connected = true;
+            else
+                is_connected = false;
+        }
     }
 
     if(is_connected){
