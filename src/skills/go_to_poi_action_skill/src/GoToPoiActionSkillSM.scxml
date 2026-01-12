@@ -25,31 +25,9 @@
         <transition target="goalResponse" event="SchedulerComponent.GetCurrentPoi.Return">
             <assign location="poi_number" expr="_event.data.poi_number"/>
             <assign location="poi_name" expr="_event.data.poi_name"/>
-            <if cond="poi_number == 0">
-                <send event="NavigationComponent.GoToPoi.SendGoal">
-                    <param name="poi_name" expr="&apos;Poi0&apos;"/>
-                </send>
-                <elseif cond="poi_number == 1"/>
-                <send event="NavigationComponent.GoToPoi.SendGoal">
-                    <param name="poi_name" expr="&apos;Poi1&apos;"/>
-                </send>
-                <elseif cond="poi_number == 2"/>
-                <send event="NavigationComponent.GoToPoi.SendGoal">
-                    <param name="poi_name" expr="&apos;Poi2&apos;"/>
-                </send>
-                <elseif cond="poi_number == 3"/>
-                <send event="NavigationComponent.GoToPoi.SendGoal">
-                    <param name="poi_name" expr="&apos;Poi3&apos;"/>
-                </send>
-                <elseif cond="poi_number == 4"/>
-                <send event="NavigationComponent.GoToPoi.SendGoal">
-                    <param name="poi_name" expr="&apos;Poi4&apos;"/>
-                </send>
-                <elseif cond="poi_number == 5"/>
-                <send event="NavigationComponent.GoToPoi.SendGoal">
-                    <param name="poi_name" expr="&apos;Poi5&apos;"/>
-                </send>
-            </if>
+            <send event="NavigationComponent.GoToPoi.SendGoal">
+                <param name="poi_name" expr="poi_name"/>
+            </send>
             <send event="TICK_RESPONSE">
                 <param name="is_ok" expr="true"/>
                 <param name="status" expr="SKILL_RUNNING"/>
