@@ -32,10 +32,8 @@
     </state>
 
     <state id="getCurrentPoi">
-        <ros_service_handle_response name="/SchedulerComponent/GetCurrentPoi" cond="_res.is_ok" target="setInt">
+        <ros_service_handle_response name="/SchedulerComponent/GetCurrentPoi" cond="_res.call_succeeded" target="setInt">
             <assign location="poi_number" expr="_res.poi_number"/>
-            <assign location="poi_name" expr="_res.poi_name"/>
-            <!-- <assign location="poi_name" expr="_res.poi_name"/> -->
             <!-- <script>
                 field_name = field_name_init + poi_number;
             </script> -->
@@ -45,7 +43,7 @@
                 <field name="value" expr="value"/>
             </ros_service_send_request>
         </ros_service_handle_response>
-        <ros_service_handle_response name="/SchedulerComponent/GetCurrentPoi" cond="(_res.is_ok) == false" target="idle">
+        <ros_service_handle_response name="/SchedulerComponent/GetCurrentPoi" cond="(_res.call_succeeded) == false" target="idle">
             <ros_service_send_response name="/SetCurrentPoiDoneSkill/tick">
                 <field name="status" expr="SKILL_FAILURE"/>
                 <field name="is_ok" expr="true"/>
@@ -56,13 +54,13 @@
     </state>
 
     <state id="setInt">
-        <ros_service_handle_response name="/BlackboardComponent/SetInt" cond="_res.is_ok" target="idle">
+        <ros_service_handle_response name="/BlackboardComponent/SetInt" cond="_res.call_succeeded" target="idle">
             <ros_service_send_response name="/SetCurrentPoiDoneSkill/tick">
                 <field name="status" expr="SKILL_SUCCESS"/>
                 <field name="is_ok" expr="true"/>
             </ros_service_send_response>
         </ros_service_handle_response>
-        <ros_service_handle_response name="/BlackboardComponent/SetInt" cond="(_res.is_ok) == false" target="idle">
+        <ros_service_handle_response name="/BlackboardComponent/SetInt" cond="(_res.call_succeeded) == false" target="idle">
             <ros_service_send_response name="/SetCurrentPoiDoneSkill/tick">
                 <field name="status" expr="SKILL_FAILURE"/>
                 <field name="is_ok" expr="true"/>

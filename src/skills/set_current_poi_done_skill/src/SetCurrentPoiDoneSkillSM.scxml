@@ -24,15 +24,14 @@
         <transition target="halted" event="CMD_HALT"/>
     </state>
     <state id="getCurrentPoi">
-        <transition cond="_event.data.is_ok" target="setInt" event="SchedulerComponent.GetCurrentPoi.Return">
+        <transition cond="_event.data.call_succeeded" target="setInt" event="SchedulerComponent.GetCurrentPoi.Return">
             <assign location="poi_number" expr="_event.data.poi_number"/>
-            <assign location="poi_name" expr="_event.data.poi_name"/>
             <send event="BlackboardComponent.SetInt.Call">
                 <param name="field_name" expr="&apos;PoiDone&apos; + poi_number"/>
                 <param name="value" expr="value"/>
             </send>
         </transition>
-        <transition cond="(_event.data.is_ok) == false" target="idle" event="SchedulerComponent.GetCurrentPoi.Return">
+        <transition cond="(_event.data.call_succeeded) == false" target="idle" event="SchedulerComponent.GetCurrentPoi.Return">
             <send event="TICK_RESPONSE">
                 <param name="status" expr="SKILL_FAILURE"/>
                 <param name="is_ok" expr="true"/>
@@ -42,13 +41,13 @@
         <transition target="halted" event="CMD_HALT"/>
     </state>
     <state id="setInt">
-        <transition cond="_event.data.is_ok" target="idle" event="BlackboardComponent.SetInt.Return">
+        <transition cond="_event.data.call_succeeded" target="idle" event="BlackboardComponent.SetInt.Return">
             <send event="TICK_RESPONSE">
                 <param name="status" expr="SKILL_SUCCESS"/>
                 <param name="is_ok" expr="true"/>
             </send>
         </transition>
-        <transition cond="(_event.data.is_ok) == false" target="idle" event="BlackboardComponent.SetInt.Return">
+        <transition cond="(_event.data.call_succeeded) == false" target="idle" event="BlackboardComponent.SetInt.Return">
             <send event="TICK_RESPONSE">
                 <param name="status" expr="SKILL_FAILURE"/>
                 <param name="is_ok" expr="true"/>
