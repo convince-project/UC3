@@ -2,6 +2,7 @@
 
     <datamodel>
         <data id="poi_number" type="int32" expr="0"/>
+        <data id="poi_name"   type="string" expr="" />
         <data id="status" type="int32" expr="0"/>
         <data id="result" type="bool" expr="true"/>
         <data id="SKILL_SUCCESS" type="int8" expr="0" />
@@ -32,6 +33,7 @@
     <state id="getPoi">
         <ros_service_handle_response name="/SchedulerComponent/GetCurrentPoi" target="goalResponse"> 
             <assign location="poi_number" expr="_res.poi_number" />
+            <assign location="poi_name" expr="_res.poi_name" />
             <if cond="poi_number == 0">
                 <ros_action_send_goal name="go_to_poi_action">
                     <field name="poi_name" expr="'Poi0'"/>
