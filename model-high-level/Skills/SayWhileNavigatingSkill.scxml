@@ -72,8 +72,8 @@
         <field name="command" expr="m_command"/>
       </ros_service_send_request>
     </onentry>
-    <ros_service_handle_response name="/NarrateComponent/Narrate" cond="_res.is_ok" target="running"/>
-    <ros_service_handle_response name="/NarrateComponent/Narrate" cond="!_res.is_ok" target="fail"/>
+    <ros_service_handle_response name="/NarrateComponent/Narrate" cond="_res.call_succeeded" target="running"/>
+    <ros_service_handle_response name="/NarrateComponent/Narrate" cond="!_res.call_succeeded" target="fail"/>
   </state>
 
   <state id="running">
@@ -93,7 +93,7 @@
     <ros_service_handle_response name="/NarrateComponent/IsDone" target="onCheck">
       <assign location="m_is_done" expr="_res.is_done"/>
     </ros_service_handle_response>
-    <ros_service_handle_response name="/NarrateComponent/IsDone" cond="!_res.is_ok" target="fail"/>
+    <ros_service_handle_response name="/NarrateComponent/IsDone" cond="!_res.call_succeeded" target="fail"/>
   </state>
 
   <state id="onCheck">
