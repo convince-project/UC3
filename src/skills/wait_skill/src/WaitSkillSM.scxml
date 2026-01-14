@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <scxml version="1.0" xmlns="http://www.w3.org/2005/07/scxml" datamodel="ecmascript" name="WaitSkillAction" initial="idle">
     <datamodel>
         <data id="SKILL_SUCCESS" expr="0"/>
@@ -10,22 +9,32 @@
     <!-- WaitSkill is a server for tick from the ROS2Action plugin-->
     <!-- WaitSkill is a server for halt from the ROS2Action plugin-->
     <state id="idle">
-        <transition target="checkWait" event="CMD_TICK"/>
-        <transition target="halted" event="CMD_HALT"/>
+        <transition target="wait" event="CMD_TICK">
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_RUNNING"/>
+                <param name="is_ok" expr="true"/>
+            </send>
+        </transition>
+        <transition target="idle" event="CMD_HALT">
+            <send event="HALT_RESPONSE">
+                <param name="is_ok" expr="true"/>
+            </send>
+        </transition>
     </state>
-    <state id="checkWait">
-        <onentry>
-                <send event="TICK_RESPONSE">
-                    <param name="status" expr="SKILL_RUNNING"/>
-                    <param name="is_ok" expr="true"/>
-                </send>
-        </onentry>
-        <transition target="idle"/>
-    </state>
-    <state id="halted">
-        <onentry>
-            <send event="HALT_RESPONSE"/>
-        </onentry>
-        <transition target="idle"/>
+    <state id="wait">
+        <!-- <onentry>
+            <assign location="start_time" expr="Date.now()"/>
+        </onentry> -->
+        <transition target="idle" event="CMD_HALT">
+            <send event="HALT_RESPONSE">
+                <param name="is_ok" expr="true"/>
+            </send>
+        </transition>
+        <transition target="wait" event="CMD_TICK">
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_RUNNING"/>
+                <param name="is_ok" expr="true"/>
+            </send>
+        </transition>
     </state>
 </scxml>
