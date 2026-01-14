@@ -81,14 +81,6 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
             {
                 prompt_poi_file = chatBot_config.find("prompt-poi-file").asString();
             }
-            if (chatBot_config.check("prompt-poi-file"))
-            {
-                prompt_poi_file = chatBot_config.find("prompt-poi-file").asString();
-            }
-            if (chatBot_config.check("prompt-context"))
-            {
-                prompt_context = chatBot_config.find("prompt-context").asString();
-            }
 
             if (chatBot_config.check("device"))
             {
@@ -393,6 +385,12 @@ bool DialogComponent::start(int argc, char *argv[])
     isMotionDoneClientNode = rclcpp::Node::make_shared("DialogComponentMotionDoneNode");
     isMotionDoneClient = isMotionDoneClientNode->create_client<cartesian_pointing_interfaces::srv::IsMotionDone>("/CartesianPointingComponent/IsMotionDone");
 
+    schedulerEndTourClientNode = rclcpp::Node::make_shared("DialogComponentSchedulerEndTourNode");
+    schedulerEndTourClient = schedulerEndTourClientNode->create_client<scheduler_interfaces::srv::EndTour>("/SchedulerComponent/EndTour");
+
+    blackBoardResetClientNode = rclcpp::Node::make_shared("DialogComponentBlackBoardResetNode");
+    blackBoardResetClient = blackBoardResetClientNode->create_client<blackboard_interfaces::srv::SetAllIntsWithPrefixBlackboard>("/BlackboardComponent/SetAllIntsWithPrefix");
+
     m_manageContextService = m_node->create_service<dialog_interfaces::srv::ManageContext>("/DialogComponent/ManageContext",
                                                                                            std::bind(&DialogComponent::ManageContext,
                                                                                                      this,
@@ -557,36 +555,22 @@ bool DialogComponent::CommandManager(const std::string &command, std::shared_ptr
     }
 
     // Let's check what to do with the action
-    if (action == "epl1")
+    if (action == "exp_f")
     {
-        // Check the fourth element to get the topic of the request
-        std::string topic = languageActionTopicList->get(3).asString();
-
-        if (topic == "function")
-        {
-            response->context = "explainFunction";
-            response->is_ok = true;
-        }
-        else if (topic == "description" || topic == "descriptions" ||
-                 topic == "decoration" || topic == "decorations")
-        {
-            response->context = "explainDescription";
-            response->is_ok = true;
-        }
-        else
-        {
-            yError() << "[DialogComponent::CommandManager] Unable to assign a known topic: " << topic;
-            return false;
-            response->is_ok = false;
-        }
+        response->context = "explainFunction";
+        response->is_ok = true;
+    }
+    else if (action == "exp_d")
+    {  
+        response->context = "explainDescription";
+        response->is_ok = true;
     }
     else if (action == "museum")
     {
-
         response->is_ok = true;
         response->context = "museum";
     }
-    else if (action == "general" || action == "cmd_unknown")
+    else if (action == "general")
     {
         response->is_ok = true;
         response->context = "general";
@@ -594,19 +578,27 @@ bool DialogComponent::CommandManager(const std::string &command, std::shared_ptr
     else if (action == "next_poi" || action == "start_tour") // means that it has been found // NEXT POI
     {
 
-        m_state = SUCCESS;
         yInfo() << "[DialogComponent::CommandManager] Next Poi Detected" << __LINE__;
         m_verbalOutputBatchReader.setDialogPhaseActive(false);
+        // delete conversation history of all the chatbots
+        m_iPoiChat->deleteConversation();
+        m_iGenericChat->deleteConversation();
+        m_iMuseumChat->deleteConversation();
         SetFaceExpression("happy");
         
-
         response->is_ok = true;
         response->is_poi_ended = true;
+        m_state = SUCCESS;
     }
     else if (action == "end_tour") // END TOUR
     {
         yInfo() << "[DialogComponent::CommandManager] End Tour Detected" << __LINE__;
         m_verbalOutputBatchReader.setDialogPhaseActive(false);
+        ResetTourAndFlags();
+        // delete conversation history of all the chatbots
+        m_iPoiChat->deleteConversation();
+        m_iGenericChat->deleteConversation();
+        m_iMuseumChat->deleteConversation();
         SetFaceExpression("happy");
 
         response->is_ok = true;
@@ -649,12 +641,10 @@ bool DialogComponent::UpdatePoILLMPrompt()
             // Set poi chat prompt
             if (m_currentPoiName == "madama_start")
             {
-                m_iPoiChat->deleteConversation();
                 m_iPoiChat->setPrompt(m_startPrompt);
             }
             else
             {
-                m_iPoiChat->deleteConversation();
                 m_iPoiChat->setPrompt(m_poiPrompt);
             }
         }
@@ -1038,8 +1028,9 @@ rclcpp_action::CancelResponse DialogComponent::handle_cancel(
 {
     RCLCPP_INFO(m_node->get_logger(), "Received request to cancel goal");
 
-    // Let's stop the current interaction and reset the state of the component
+    m_verbalOutputBatchReader.setDialogPhaseActive(false);
 
+    // Let's stop the current interaction and reset the state of the component
     return rclcpp_action::CancelResponse::ACCEPT;
 }
 
@@ -1569,4 +1560,53 @@ void DialogComponent::SetFaceExpression(std::string expressionName) {
         request.fromString("emotion 1"); //happy
  
     m_faceexpression_rpc_port.write(request,reply);
+}
+
+void DialogComponent::ResetTourAndFlags() {
+
+    // Reset the tour in the SchedulerComponent
+    auto requestEndTour = std::make_shared<scheduler_interfaces::srv::EndTour::Request>();
+    while (!schedulerEndTourClient->wait_for_service(std::chrono::milliseconds(100)))
+    {
+        if (!rclcpp::ok())
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'EndTour'. Exiting.");
+        }
+    }
+    auto resultEndTour = schedulerEndTourClient->async_send_request(requestEndTour);
+
+    if (rclcpp::spin_until_future_complete(schedulerEndTourClientNode, resultEndTour) == rclcpp::FutureReturnCode::SUCCESS)
+    {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "End Tour in SchedulerComponent succeeded");
+    }
+    else
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service EndTour in SchedulerComponent");
+        return;
+    }
+
+    // Reset the tour in the BlackBoardComponent
+    auto requestSetAllIntsWithPrefix = std::make_shared<blackboard_interfaces::srv::SetAllIntsWithPrefixBlackboard::Request>();
+    requestSetAllIntsWithPrefix->field_name = "PoiDone";
+    requestSetAllIntsWithPrefix->value = 0;
+
+    while (!blackBoardResetClient->wait_for_service(std::chrono::milliseconds(100)))
+    {
+        if (!rclcpp::ok())
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'SetAllIntsWithPrefix'. Exiting.");
+            return;
+        }
+    }
+    auto resultSetAllIntsWithPrefix = blackBoardResetClient->async_send_request(requestSetAllIntsWithPrefix);
+
+    if (rclcpp::spin_until_future_complete(blackBoardResetClientNode, resultSetAllIntsWithPrefix) == rclcpp::FutureReturnCode::SUCCESS)
+    {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Reset Tour in BlackboardComponent succeeded");
+    }
+    else
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service SetAllIntsWithPrefix in BlackboardComponent");
+        return;
+    }
 }
