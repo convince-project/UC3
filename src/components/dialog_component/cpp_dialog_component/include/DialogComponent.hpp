@@ -51,6 +51,7 @@
 #include <scheduler_interfaces/srv/end_tour.hpp>
 #include <scheduler_interfaces/srv/update_poi.hpp>
 #include <scheduler_interfaces/srv/set_language.hpp>
+#include <scheduler_interfaces/srv/end_tour.hpp>
 
 // ExecuteDance Interfaces
 #include <execute_dance_interfaces/srv/execute_dance.hpp>
@@ -59,6 +60,9 @@
 // CartesianPointing Interfaces
 #include <cartesian_pointing_interfaces/srv/point_at.hpp>
 #include <cartesian_pointing_interfaces/srv/is_motion_done.hpp>
+
+// BlackBoard Interfaces
+#include <blackboard_interfaces/srv/set_all_ints_with_prefix_blackboard.hpp>
 
 #include "nlohmann/json.hpp"
 #include <random>
@@ -120,6 +124,7 @@ protected:
     void ResetDance(); // ROS2 service client to ResetDanceComponent to reset the dance with the given name
     void ExecutePointing(std::string pointingTarget); // ROS2 service client to CartesianPointingComponent to point at the given target
     void SetFaceExpression(std::string expressionName); // ROS2 service client to FaceExpressionComponent to set the face expression with the given name
+    void ResetTourAndFlags(); // Resets the tour in the SchedulerComponent and in the BlackBoardComponent
 
 private:
     // ChatGPT
@@ -251,6 +256,12 @@ private:
 
     std::shared_ptr<rclcpp::Node> isMotionDoneClientNode;
     std::shared_ptr<rclcpp::Client<cartesian_pointing_interfaces::srv::IsMotionDone>> isMotionDoneClient;
+
+    std::shared_ptr<rclcpp::Node> schedulerEndTourClientNode;
+    std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::EndTour>> schedulerEndTourClient;
+
+    std::shared_ptr<rclcpp::Node> blackBoardResetClientNode;
+    std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::SetAllIntsWithPrefixBlackboard>> blackBoardResetClient;
 
 };
 
