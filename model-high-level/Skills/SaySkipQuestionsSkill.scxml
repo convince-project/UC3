@@ -59,8 +59,8 @@
         <field name="command" expr="m_command"/>
       </ros_service_send_request>
     </onentry>
-    <ros_service_handle_response name="/NarrateComponent/Narrate" cond="_res.is_ok" target="success"/>
-    <ros_service_handle_response name="/NarrateComponent/Narrate" cond="!_res.is_ok" target="fail"/>
+    <ros_service_handle_response name="/NarrateComponent/Narrate" cond="_res.call_succeeded" target="success"/>
+    <ros_service_handle_response name="/NarrateComponent/Narrate" cond="!_res.call_succeeded" target="fail"/>
   </state>
 
 
