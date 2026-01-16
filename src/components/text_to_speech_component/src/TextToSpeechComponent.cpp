@@ -380,14 +380,20 @@ void TextToSpeechComponent::Speak(const std::shared_ptr<text_to_speech_interface
     auto wait = 200ms;
     auto startTime = std::chrono::steady_clock::now();
     while (!isSpeaking){
-        std::lock_guard<std::mutex> lock(m_mutex);
-        auto data = m_audioStatusData;
+        yDebug() << "[TextToSpeechComponent::Speak] Waiting for speech to start...";
+        //std::lock_guard<std::mutex> lock(m_mutex);
+        yDebug() << "[TextToSpeechComponent::Speak] Dopo mutex";
+        auto data = m_audioStatusPort.read(false);
+        yDebug() << "[TextToSpeechComponent::Speak] Audio status data: " << (data != nullptr ? data->current_buffer_size : 0);
         if (data != nullptr && data->current_buffer_size > 0) {
+            yDebug() << "[TextToSpeechComponent::Speak] Detected audio data, starting speech...";
             m_startedSpeaking = true;
             isSpeaking = true;
         }
+        yDebug() << "[TextToSpeechComponent::Speak] Before elpased time";
         auto currentTime = std::chrono::steady_clock::now();
         auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(currentTime - startTime).count();
+        yInfo() << "[TextToSpeechComponent::Speak] Elapsed time: " << elapsedTime << " seconds";
         if (elapsedTime > 10) // Timeout after 10 seconds
         {
             RCLCPP_WARN(rclcpp::get_logger("rclcpp"), "Timeout while waiting for speech to start.");
