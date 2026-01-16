@@ -30,7 +30,7 @@
   </state>
 
   <state id="afterStop">
-    <transition cond="result == 'SKILL_SUCCESS'" target="successReply"/>
+    <transition cond="result" target="successReply"/>
     <transition target="failReply"/>
   </state>
 

@@ -207,10 +207,5 @@ void BlackboardComponent::SetAllIntsWithPrefix(const std::shared_ptr<blackboard_
         }
     }
     
-    if (!foundAny) {
-        response->is_ok = false;
-        response->error_msg = "No fields with the given prefix found";
-    } else {
-        response->is_ok = true;
-    }
+    response->is_ok = true;
 }
