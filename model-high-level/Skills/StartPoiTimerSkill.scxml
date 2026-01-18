@@ -55,7 +55,7 @@
       </ros_service_send_request>
     </onentry>
     <ros_service_handle_response name="/BlackboardComponent/SetInt" target="checkResetResult">
-      <assign location="result" expr="_res.call_succeeded"/>
+      <assign location="result" expr="_res.is_ok"/>
     </ros_service_handle_response>
   </state>
 
