@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <scxml
     version="1.0"
     xmlns="..."
@@ -49,23 +48,22 @@
         <ros_service_handle_request name="/AlarmSkill/tick" target="startAlarm"/>
     </state>
 
-    <state id="returnTick"/>
-        <if cond="is_ok">
-            <transition target="idle">
+    <state id="returnTick">
+        <onentry>
+            <if cond="is_ok">
                 <ros_service_send_response name="/AlarmSkill/tick">
                     <field name="status" expr="SKILL_SUCCESS"/>
                     <field name="is_ok" expr="true"/>
                 </ros_service_send_response>
-            </transition>
-        </if>
-        <else>
-            <transition target="idle">
+            <else/>
                 <ros_service_send_response name="/AlarmSkill/tick">
                     <field name="status" expr="SKILL_FAILURE"/>
                     <field name="is_ok" expr="true"/>
                 </ros_service_send_response>
-            </transition>
-        </else>
+            </if>
+        </onentry>
+        <transition target="idle"/>
+
     </state>
 
 
@@ -75,6 +73,5 @@
                 <field name="is_ok" expr="true"/>
             </ros_service_send_response>
         </ros_service_handle_response>
-        <ros_service_handle_request name="/AlarmSkill/halt" target="stopAlarm"/>
     </state>
 </scxml>
