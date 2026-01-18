@@ -19,6 +19,7 @@
         <data id="SKILL_SUCCESS" type="int8" expr="0" />
         <data id="SKILL_FAILURE" type="int8" expr="1" />
         <data id="SKILL_RUNNING" type="int8" expr="2" />
+        <data id="is_ok" type="bool" expr="false"/>
     </datamodel>
 
     <state id="idle">
@@ -32,29 +33,41 @@
     </state>
 
     <state id="startAlarm">
-        <ros_service_handle_response name="/NotifyUserComponent/StartAlarm" cond="_res.call_succeeded" target="idle">
-            <ros_service_send_response name="/AlarmSkill/tick">
-                <field name="status" expr="SKILL_SUCCESS"/>
-                <field name="is_ok" expr="true"/>
-            </ros_service_send_response>
-        </ros_service_handle_response>
-        <!-- <ros_service_handle_response name="/NotifyUserComponent/StartAlarm" cond="!(_res.is_ok)" target="idle"> -->
-        <ros_service_handle_response name="/NotifyUserComponent/StartAlarm" cond="(_res.call_succeeded) == false" target="idle">
-            <ros_service_send_response name="/AlarmSkill/tick">
-                <field name="status" expr="SKILL_FAILURE"/>
-                <field name="is_ok" expr="true"/>
-            </ros_service_send_response>
-        </ros_service_handle_response>
-        <ros_service_handle_request name="/AlarmSkill/halt" target="stopAlarm">
-            <ros_service_send_request name="/NotifyUserComponent/StopAlarm"/>
-        </ros_service_handle_request>
-        <ros_service_handle_request name="/AlarmSkill/tick" target="startAlarm">
+        <onentry>
             <ros_service_send_response name="/AlarmSkill/tick">
                 <field name="status" expr="SKILL_RUNNING"/>
                 <field name="is_ok" expr="true"/>
             </ros_service_send_response>
+        </onentry>
+        <ros_service_handle_response name="/NotifyUserComponent/StartAlarm" target="returnTick">
+            <assign location="is_ok" expr="(_res.is_ok)"/>
+        </ros_service_handle_response>
+        <!-- <ros_service_handle_response name="/NotifyUserComponent/StartAlarm" cond="!(_res.is_ok)" target="idle"> -->
+        <ros_service_handle_request name="/AlarmSkill/halt" target="stopAlarm">
+            <ros_service_send_request name="/NotifyUserComponent/StopAlarm"/>
         </ros_service_handle_request>
+        <ros_service_handle_request name="/AlarmSkill/tick" target="startAlarm"/>
     </state>
+
+    <state id="returnTick"/>
+        <if cond="is_ok">
+            <transition target="idle">
+                <ros_service_send_response name="/AlarmSkill/tick">
+                    <field name="status" expr="SKILL_SUCCESS"/>
+                    <field name="is_ok" expr="true"/>
+                </ros_service_send_response>
+            </transition>
+        </if>
+        <else>
+            <transition target="idle">
+                <ros_service_send_response name="/AlarmSkill/tick">
+                    <field name="status" expr="SKILL_FAILURE"/>
+                    <field name="is_ok" expr="true"/>
+                </ros_service_send_response>
+            </transition>
+        </else>
+    </state>
+
 
     <state id="stopAlarm">
         <ros_service_handle_response name="/NotifyUserComponent/StopAlarm" target="idle">
