@@ -40,7 +40,7 @@ def abstract_message(message):
         print("Maximum absolute covariance value:", max_abs_value)
         
         # Set well_localized based on maximum absolute value
-        predicates['well_localized'] = max_abs_value <= 0.1
+        predicates['well_localized'] = max_abs_value <= 0.01
 
     print("predicates", predicates)
     print("message", message)
