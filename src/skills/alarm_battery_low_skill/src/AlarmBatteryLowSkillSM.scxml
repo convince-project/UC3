@@ -24,8 +24,8 @@
                 <param name="is_ok" expr="true"/>
             </send>
         </onentry>
-        <transition target="returnTick" event="NotifyUserComponent.StartAlarm.Return">
-            <assign location="is_ok" expr="(_event.data.is_ok)"/>
+        <transition target="evaluateReturn" event="NotifyUserComponent.StartAlarm.Return">
+            <assign location="is_ok" expr="_event.data.is_ok"/>
         </transition>
         <!-- <ros_service_handle_response name="/NotifyUserComponent/StartAlarm" cond="!(_res.is_ok)" target="idle"> -->
         <transition target="stopAlarm" event="CMD_HALT">
@@ -33,21 +33,31 @@
         </transition>
         <transition target="startAlarm" event="CMD_TICK"/>
     </state>
-    <state id="returnTick">
-        <onentry>
-            <if cond="is_ok">
-                <send event="TICK_RESPONSE">
-                    <param name="status" expr="SKILL_SUCCESS"/>
-                    <param name="is_ok" expr="true"/>
-                </send>
-                <else/>
-                <send event="TICK_RESPONSE">
-                    <param name="status" expr="SKILL_FAILURE"/>
-                    <param name="is_ok" expr="true"/>
-                </send>
-            </if>
-        </onentry>
-        <transition target="idle"/>
+    <state id="evaluateReturn">
+        <transition target="returnRunning" cond="is_ok"/>
+        <transition target="returnFailure"/>
+    </state>
+    <state id="returnRunning">
+        <transition target="stopAlarm" event="CMD_HALT">
+            <send event="NotifyUserComponent.StopAlarm.Call"/>
+        </transition>
+        <transition target="returnRunning" event="CMD_TICK">
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_RUNNING"/>
+                <param name="is_ok" expr="true"/>
+            </send>
+        </transition>
+    </state>
+    <state id="returnFailure">
+        <transition target="stopAlarm" event="CMD_HALT">
+            <send event="NotifyUserComponent.StopAlarm.Call"/>
+        </transition>
+        <transition target="returnFailure" event="CMD_TICK">
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_FAILURE"/>
+                <param name="is_ok" expr="false"/>
+            </send>
+        </transition>
     </state>
     <state id="stopAlarm">
         <transition target="idle" event="NotifyUserComponent.StopAlarm.Return">
