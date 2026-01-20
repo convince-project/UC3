@@ -149,37 +149,37 @@ void NavigationComponent::GetNavigationStatus([[maybe_unused]] const std::shared
         response->current_goal = target;
         switch (status){
             case yarp::dev::Nav2D::navigation_status_idle:
-                response->status.status = msg.NAVIGATION_STATUS_IDLE;
+                response->status = msg.NAVIGATION_STATUS_IDLE;
                 break;
             case yarp::dev::Nav2D::navigation_status_preparing_before_move:
-                response->status.status = msg.NAVIGATION_STATUS_PREPARING_BEFORE_MOVE;
+                response->status = msg.NAVIGATION_STATUS_PREPARING_BEFORE_MOVE;
                 break;
             case yarp::dev::Nav2D::navigation_status_moving:
-                response->status.status = msg.NAVIGATION_STATUS_MOVING;
+                response->status = msg.NAVIGATION_STATUS_MOVING;
                 break;
             case yarp::dev::Nav2D::navigation_status_waiting_obstacle:
-                response->status.status = msg.NAVIGATION_STATUS_WAITING_OBSTACLE;
+                response->status = msg.NAVIGATION_STATUS_WAITING_OBSTACLE;
                 break;
             case yarp::dev::Nav2D::navigation_status_goal_reached:
-                response->status.status = msg.NAVIGATION_STATUS_GOAL_REACHED;
+                response->status = msg.NAVIGATION_STATUS_GOAL_REACHED;
                 break;
             case yarp::dev::Nav2D::navigation_status_aborted:
-                response->status.status = msg.NAVIGATION_STATUS_ABORTED;
+                response->status = msg.NAVIGATION_STATUS_ABORTED;
                 break;
             case yarp::dev::Nav2D::navigation_status_failing:
-                response->status.status = msg.NAVIGATION_STATUS_FAILING;
+                response->status = msg.NAVIGATION_STATUS_FAILING;
                 break;
             case yarp::dev::Nav2D::navigation_status_paused:
-                response->status.status = msg.NAVIGATION_STATUS_PAUSED;
+                response->status = msg.NAVIGATION_STATUS_PAUSED;
                 break;
             case yarp::dev::Nav2D::navigation_status_thinking:
-                response->status.status = msg.NAVIGATION_STATUS_THINKING;
+                response->status = msg.NAVIGATION_STATUS_THINKING;
                 break;
             case yarp::dev::Nav2D::navigation_status_error:
-                response->status.status = msg.NAVIGATION_STATUS_ERROR;
+                response->status = msg.NAVIGATION_STATUS_ERROR;
                 break;
             default:
-                response->status.status = msg.NAVIGATION_STATUS_ERROR;
+                response->status = msg.NAVIGATION_STATUS_ERROR;
                 break;
         }
     }
@@ -418,7 +418,7 @@ void NavigationComponent::execute(const std::shared_ptr<rclcpp_action::ServerGoa
         }
         else
         {
-            feedback->status.status = convertStatus(status).status;
+            feedback->status = convertStatus(status).status;
         }
         goal_handle->publish_feedback(feedback);
         RCLCPP_INFO(m_node->get_logger(), "Publish feedback, poi= %s", goal->poi_name.c_str());

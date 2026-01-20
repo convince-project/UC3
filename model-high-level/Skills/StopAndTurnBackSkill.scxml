@@ -51,7 +51,7 @@
       <ros_service_send_request name="/NavigationComponent/GetNavigationStatus"/>
     </onentry>
     <ros_service_handle_response name="/NavigationComponent/GetNavigationStatus" target="evalStatus">
-      <assign location="status" expr="_res.status.status"/>
+      <assign location="status" expr="_res.status"/>
     </ros_service_handle_response>
     <ros_service_handle_request name="/StopAndTurnBackSkill/halt" target="callStopNav">
       <ros_service_send_request name="/NavigationComponent/StopNavigation"/>

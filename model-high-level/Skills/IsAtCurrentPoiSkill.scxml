@@ -51,7 +51,7 @@
         <ros_service_send_request name="/NavigationComponent/GetNavigationStatus"/>
     </onentry>
     <ros_service_handle_response name="/NavigationComponent/GetNavigationStatus" target="evaluateStatus">
-        <assign location="m_status"     expr="_res.status.status"/>
+        <assign location="m_status"     expr="_res.status"/>
         <assign location="m_nav_result" expr="_res.is_ok"/>
     </ros_service_handle_response>
   </state>

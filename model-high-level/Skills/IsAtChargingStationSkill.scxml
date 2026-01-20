@@ -33,7 +33,7 @@
 
   <state id="getStatus">
     <ros_service_handle_response name="/NavigationComponent/GetNavigationStatus" target="evaluateStatus">
-      <assign location="m_status" expr="_res.status.status"/>
+      <assign location="m_status" expr="_res.status"/>
       <assign location="is_ok" expr="_res.is_ok"/>
     </ros_service_handle_response>
   </state>
