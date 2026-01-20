@@ -4,9 +4,17 @@
   <BehaviorTree ID="BatteryManagement">
     <ReactiveSequence>
       <ReactiveFallback>
-        <ROS2Condition name="BatteryLevel"
-                       interface="ROS2SERVICE"
-                       isMonitored="false"/>
+        <Parallel failure_threshold="1"
+                  success_threshold="2">
+          <ROS2Condition name="BatteryLevel"
+                         interface="ROS2SERVICE"
+                         isMonitored="false"/>
+          <Inverter>
+            <ROS2Condition name="BatteryCharging"
+                           interface="ROS2SERVICE"
+                           isMonitored="false"/>
+          </Inverter>
+        </Parallel>
         <ReactiveSequence>
           <Inverter>
             <ROS2Condition name="BatteryCharging"
@@ -14,7 +22,7 @@
                            isMonitored="false"/>
           </Inverter>
           <Parallel failure_threshold="1"
-                    success_threshold="1">
+                    success_threshold="2">
             <ROS2Action name="AlarmBatteryLow"
                         interface="ROS2SERVICE"
                         isMonitored="false"/>
