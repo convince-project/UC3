@@ -38,7 +38,7 @@
         </onentry>
         <ros_service_handle_response name="/SchedulerComponent/GetCurrentPoi" target="checkCallSucceeded">
             <assign location="poi_number" expr="_res.poi_number"/>
-            <assign location="is_ok" expr="(_res.is_ok)"/>
+            <assign location="is_ok" expr="_res.is_ok"/>
             <!-- <script>
                 field_name = field_name_init + poi_number;
             </script> -->
@@ -67,7 +67,7 @@
 
     <state id="setInt">
         <ros_service_handle_response name="/BlackboardComponent/SetInt" target="checkSetIntSucceeded">
-            <assign location="is_ok" expr="(_res.is_ok)"/>
+            <assign location="is_ok" expr="_res.is_ok"/>
         </ros_service_handle_response>
         <!-- Aggiungere gestione halt -->
         <ros_service_handle_request name="/SetCurrentPoiDoneSkill/halt" target="halted"/>
@@ -75,7 +75,7 @@
 
     <state id="checkSetIntSucceeded">
         <onentry>
-            <if cond="(is_ok) == true">
+            <if cond="is_ok == true">
                 <ros_service_send_response name="/SetCurrentPoiDoneSkill/tick">
                     <field name="status" expr="SKILL_SUCCESS"/>
                     <field name="is_ok" expr="true"/>

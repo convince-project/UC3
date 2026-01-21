@@ -7,7 +7,7 @@
   initial="idle">
 
   <datamodel>
-    <data id="m_command"      type="string"  expr="'sayWhileNavigating'"/>
+    <data id="m_command"      type="string"  expr="'saySkipQuestions'"/>
     <data id="m_is_done"      type="bool" expr="false"/>
     <data id="m_result"       type="bool"  expr="false"/>
     <data id="SKILL_SUCCESS"  type="int8"    expr="0"/>

@@ -30,7 +30,7 @@
         </onentry>
         <transition target="checkCallSucceeded" event="SchedulerComponent.GetCurrentPoi.Return">
             <assign location="poi_number" expr="_event.data.poi_number"/>
-            <assign location="is_ok" expr="(_event.data.is_ok)"/>
+            <assign location="is_ok" expr="_event.data.is_ok"/>
         </transition>
         <!-- Aggiungere gestione halt -->
         <transition target="halted" event="CMD_HALT"/>
@@ -51,14 +51,14 @@
     </state>
     <state id="setInt">
         <transition target="checkSetIntSucceeded" event="BlackboardComponent.SetInt.Return">
-            <assign location="is_ok" expr="(_event.data.is_ok)"/>
+            <assign location="is_ok" expr="_event.data.is_ok"/>
         </transition>
         <!-- Aggiungere gestione halt -->
         <transition target="halted" event="CMD_HALT"/>
     </state>
     <state id="checkSetIntSucceeded">
         <onentry>
-            <if cond="(is_ok) == true">
+            <if cond="is_ok == true">
                 <send event="TICK_RESPONSE">
                     <param name="status" expr="SKILL_SUCCESS"/>
                     <param name="is_ok" expr="true"/>
