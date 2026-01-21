@@ -19,6 +19,10 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(dance_interfaces REQUIRED)
 
+include(FetchContent)
+FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
+FetchContent_MakeAvailable(json)
+
 add_executable(${PROJECT_NAME} )
 
 # find dependencies
@@ -27,7 +31,7 @@ add_executable(${PROJECT_NAME} )
 # find_package(<dependency> REQUIRED)
 
 ament_target_dependencies(${PROJECT_NAME} dance_interfaces rclcpp )
-target_link_libraries(${PROJECT_NAME} ${YARP_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${YARP_LIBRARIES} nlohmann_json::nlohmann_json)
 
 target_include_directories(${PROJECT_NAME}
   PUBLIC
