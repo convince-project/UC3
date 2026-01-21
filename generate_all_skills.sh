@@ -49,6 +49,11 @@ for scxml_file in "model-high-level/Skills/SayWhileNavigatingSkill.scxml"; do
         --template_path "$TEMPLATE_PATH" \
         --output_path "$OUTPUT_BASE/${output_dir}" \
         --verbose_mode
+
+    if [ $? -ne 0 ]; then
+        echo "Error processing $filename. Exiting."
+        exit 1
+    fi
 done
 
 echo "All skills processed."
