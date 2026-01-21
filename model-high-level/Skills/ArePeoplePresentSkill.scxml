@@ -28,14 +28,18 @@
   </state>
 
   <state id="getStatus">
+    <onentry>
+     <log label="In status getStatus"/>
+    </onentry>
     <ros_service_handle_response name="/TurnBackManagerComponent/IsAllowedToContinue" target="decide">
-      <assign location="m_result"     expr="_res.result"/>
+      <assign location="m_result"     expr="_res.is_ok"/>
       <assign location="m_is_allowed" expr="_res.is_allowed"/>
     </ros_service_handle_response>
   </state>
 
   <state id="decide">
     <onentry>
+       <log label="In status decide"/>
       <if cond="m_result &amp;&amp; m_is_allowed">
         <ros_service_send_response name="/ArePeoplePresentSkill/tick">
           <field name="status" expr="SKILL_SUCCESS"/>

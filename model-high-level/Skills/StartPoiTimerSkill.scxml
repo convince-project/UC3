@@ -20,6 +20,9 @@
   <ros_service_client service_name="/BlackboardComponent/SetInt"        type="blackboard_interfaces/SetIntBlackboard"/>
 
   <state id="idle">
+    <onentry>
+      <log label="idle state"  />
+    </onentry>
     <ros_service_handle_request name="/StartPoiTimerSkill/tick" target="startTimer">
       <ros_service_send_request name="/TimeComponent/StartPoiTimer"/>
     </ros_service_handle_request>
@@ -27,28 +30,38 @@
   </state>
 
   <state id="startTimer">
+    <onentry>
+      <log label="startTimer state"  />
+    </onentry>
     <ros_service_handle_response name="/TimeComponent/StartPoiTimer" target="afterTimer">
       <assign location="result" expr="_res.is_ok"/>
     </ros_service_handle_response>
   </state>
 
   <state id="afterTimer">
-    <transition cond="result" target="resetWarn"/>
+    <onentry>
+      <log label="afterTimer state"  />
+    </onentry>
+    <transition cond="result == true" target="resetWarn"/>
     <transition target="failReply"/>
   </state>
 
   <state id="resetWarn">
     <onentry>
+      <log label="resetWarn state"  />
       <ros_service_send_request name="/BlackboardComponent/SetInt">
         <field name="field_name" expr="FLAG_WARN"/>
         <field name="value"      expr="0"/>
       </ros_service_send_request>
     </onentry>
-    <ros_service_handle_response name="/BlackboardComponent/SetInt" target="resetExc"/>
+    <ros_service_handle_response name="/BlackboardComponent/SetInt" target="resetExc">
+      <assign location="result" expr="_res.is_ok"/>
+    </ros_service_handle_response>
   </state>
 
   <state id="resetExc">
     <onentry>
+      <log label="resetExc state"  />
       <ros_service_send_request name="/BlackboardComponent/SetInt">
         <field name="field_name" expr="FLAG_EXC"/>
         <field name="value"      expr="0"/>
@@ -60,12 +73,16 @@
   </state>
 
   <state id="checkResetResult">
-    <transition cond="result" target="successReply"/>
+    <onentry>
+      <log label="checkResetResult state"  />
+    </onentry>
+    <transition cond="result == true" target="successReply"/>
     <transition target="failReply"/>
   </state>
 
   <state id="successReply">
     <onentry>
+      <log label="successReply state"  />
       <ros_service_send_response name="/StartPoiTimerSkill/tick">
         <field name="status" expr="SKILL_SUCCESS"/>
         <field name="is_ok" expr="true"/>
@@ -76,6 +93,7 @@
 
   <state id="failReply">
     <onentry>
+      <log label="failReply state"  />
       <ros_service_send_response name="/StartPoiTimerSkill/tick">
         <field name="status" expr="SKILL_FAILURE"/>
         <field name="is_ok" expr="true"/>
@@ -86,6 +104,7 @@
 
   <state id="halted">
     <onentry>
+      <log label="halted state"  />
       <ros_service_send_response name="/StartPoiTimerSkill/halt">
             <field name="is_ok" expr="true"/>
           </ros_service_send_response>

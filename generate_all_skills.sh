@@ -17,7 +17,7 @@ SKILLS_TO_EXCLUDE=(
 mkdir -p "$OUTPUT_BASE"
 
 # Process each SCXML file
-for scxml_file in "model-high-level/Skills/SaySkipQuestionsSkill.scxml"; do
+for scxml_file in "model-high-level/Skills/SayWhileNavigatingSkill.scxml"; do
     # Skip if not a file
     [ -f "$scxml_file" ] || continue
     # skip if in exclude list

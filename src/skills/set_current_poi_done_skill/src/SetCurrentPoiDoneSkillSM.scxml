@@ -2,12 +2,13 @@
     <datamodel>
         <data id="poi_number" expr="0"/>
         <!-- <data id="poi_name" type="string" expr=""/> -->
-        <!-- <data id="field_name" type="string" expr='"PoiDone"'/>
-        <data id="field_name_init" type="string" expr='"PoiDone"'/> -->
+        <!-- <data id="field_name" type="string" expr="'PoiDone'"/>
+        <data id="field_name_init" type="string" expr="'PoiDone'"/> -->
         <data id="value" expr="1"/>
         <data id="SKILL_SUCCESS" expr="0"/>
         <data id="SKILL_FAILURE" expr="1"/>
         <data id="SKILL_RUNNING" expr="2"/>
+        <data id="is_ok" expr="false"/>
     </datamodel>
     <!-- SetCurrentPoiDoneSkill is a server for tick from the ROS2Action plugin-->
     <!-- SetCurrentPoiDoneSkill is a server for halt from the ROS2Action plugin-->
@@ -16,51 +17,68 @@
     <state id="idle">
         <transition target="getCurrentPoi" event="CMD_TICK">
             <send event="SchedulerComponent.GetCurrentPoi.Call"/>
-            <send event="TICK_RESPONSE">
-                <param name="result" expr='"RUNNING"'/>
-            </send>
         </transition>
         <!-- Decommentare e correggere -->
-        <transition target="idle" event="CMD_HALT"/>
+        <transition target="halted" event="CMD_HALT"/>
     </state>
     <state id="getCurrentPoi">
-        <transition cond="_event.data.is_ok" target="setInt" event="SchedulerComponent.GetCurrentPoi.Return">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_RUNNING"/>
+                <param name="is_ok" expr="true"/>
+            </send>
+        </onentry>
+        <transition target="checkCallSucceeded" event="SchedulerComponent.GetCurrentPoi.Return">
             <assign location="poi_number" expr="_event.data.poi_number"/>
+            <assign location="is_ok" expr="_event.data.is_ok"/>
+        </transition>
+        <!-- Aggiungere gestione halt -->
+        <transition target="halted" event="CMD_HALT"/>
+    </state>
+    <state id="checkCallSucceeded">
+        <transition cond="is_ok" target="setInt">
             <send event="BlackboardComponent.SetInt.Call">
                 <param name="field_name" expr="&apos;PoiDone&apos; + poi_number"/>
                 <param name="value" expr="value"/>
             </send>
         </transition>
-        <transition cond="(_event.data.is_ok) == false" target="idle" event="SchedulerComponent.GetCurrentPoi.Return">
+        <transition cond="!is_ok" target="idle">
             <send event="TICK_RESPONSE">
                 <param name="status" expr="SKILL_FAILURE"/>
                 <param name="is_ok" expr="true"/>
             </send>
+        </transition>
+    </state>
+    <state id="setInt">
+        <transition target="checkSetIntSucceeded" event="BlackboardComponent.SetInt.Return">
+            <assign location="is_ok" expr="_event.data.is_ok"/>
         </transition>
         <!-- Aggiungere gestione halt -->
         <transition target="halted" event="CMD_HALT"/>
     </state>
-    <state id="setInt">
-        <transition cond="_event.data.is_ok" target="idle" event="BlackboardComponent.SetInt.Return">
-            <send event="TICK_RESPONSE">
-                <param name="status" expr="SKILL_SUCCESS"/>
-                <param name="is_ok" expr="true"/>
-            </send>
-        </transition>
-        <transition cond="!_event.data.is_ok" target="idle" event="BlackboardComponent.SetInt.Return">
-            <send event="TICK_RESPONSE">
-                <param name="status" expr="SKILL_FAILURE"/>
-                <param name="is_ok" expr="true"/>
-            </send>
-        </transition>
-        <!-- Aggiungere gestione halt -->
-        <transition target="halted" event="CMD_HALT"/>
+    <state id="checkSetIntSucceeded">
+        <onentry>
+            <if cond="is_ok == true">
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_SUCCESS"/>
+                    <param name="is_ok" expr="true"/>
+                </send>
+                <else/>
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_FAILURE"/>
+                    <param name="is_ok" expr="true"/>
+                </send>
+            </if>
+        </onentry>
+        <transition target="idle"/>
     </state>
     <state id="halted">
         <onentry>
             <assign location="poi_number" expr="0"/>
             <assign location="value" expr="1"/>
-            <send event="HALT_RESPONSE"/>
+            <send event="HALT_RESPONSE">
+                <param name="is_ok" expr="true"/>
+            </send>
         </onentry>
         <transition target="idle"/>
     </state>

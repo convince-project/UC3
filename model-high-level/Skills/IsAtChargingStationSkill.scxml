@@ -32,36 +32,31 @@
   </state>
 
   <state id="getStatus">
-    <ros_service_handle_response name="/NavigationComponent/GetNavigationStatus" target="decideStatus">
-      <assign location="m_status" expr="_res.status.status"/>
+    <ros_service_handle_response name="/NavigationComponent/GetNavigationStatus" target="evaluateStatus">
+      <assign location="m_status" expr="_res.status"/>
       <assign location="is_ok" expr="_res.is_ok"/>
     </ros_service_handle_response>
   </state>
 
-  <state id="decideStatus">
-    <onentry>
-      <if cond="! is_ok">
-        <ros_service_send_response name="/IsAtChargingStationSkill/tick">
-          <field name="status" expr="SKILL_FAILURE"/>
-          <field name="is_ok" expr="true"/>
-        </ros_service_send_response>
-      <elseif cond="m_status == NAV_STATUS_MOVING"/>
-        <ros_service_send_response name="/IsAtChargingStationSkill/tick">
-          <field name="status" expr="SKILL_FAILURE"/>
-          <field name="is_ok" expr="true"/>
-        </ros_service_send_response>
-      <else/>
-        <ros_service_send_request name="/NavigationComponent/CheckNearToPoi">
-          <field name="poi_name"  expr="charging_station"/>
-          <field name="distance"  expr="distance"/>
-          <field name="angle" expr="360"/>
-        </ros_service_send_request>
-      </if>
-    </onentry>
+
+    <state id="evaluateStatus">
+    <!-- GetNavigationStatus failed -->
+    <transition cond="!is_ok" target="failure"/>
+    <!-- Robot is moving, not at POI -->
+    <transition cond="m_status == NAV_STATUS_MOVING" target="failure"/>
+    <!-- Robot not moving, check proximity -->
     <transition target="checkProximity"/>
   </state>
 
   <state id="checkProximity">
+    <onentry>
+      <log expr="'checkProximity'"/>
+       <ros_service_send_request name="/NavigationComponent/CheckNearToPoi">
+          <field name="poi_name"  expr="charging_station"/>
+          <field name="distance"  expr="distance"/>
+          <field name="angle" expr="360"/>
+        </ros_service_send_request>
+    </onentry>
     <ros_service_handle_response name="/NavigationComponent/CheckNearToPoi" target="finalize">
       <assign location="m_is_near" expr="_res.is_near"/>
     </ros_service_handle_response>
@@ -80,6 +75,16 @@
           <field name="is_ok" expr="true"/>
         </ros_service_send_response>
       </if>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="failure">
+    <onentry>
+      <ros_service_send_response name="/IsAtCurrentPoiSkill/tick">
+        <field name="status" expr="SKILL_FAILURE"/>
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
   </state>

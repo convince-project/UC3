@@ -8,7 +8,7 @@
 
   <datamodel>
     <data id="NAV_STATUS_MOVING" type="int8"    expr="2"/>
-    <data id="distance"          type="float32" expr="0.5"/>
+    <data id="distance"          type="float32" expr="0.2"/>
     <data id="m_poi_number"     type="int32"   expr="0"/>
     <data id="m_poi_result"      type="bool"    expr="false"/>
     <data id="m_nav_result"      type="bool"    expr="false"/>
@@ -51,12 +51,16 @@
         <ros_service_send_request name="/NavigationComponent/GetNavigationStatus"/>
     </onentry>
     <ros_service_handle_response name="/NavigationComponent/GetNavigationStatus" target="evaluateStatus">
-        <assign location="m_status"     expr="_res.status.status"/>
+        <assign location="m_status"     expr="_res.status"/>
         <assign location="m_nav_result" expr="_res.is_ok"/>
     </ros_service_handle_response>
   </state>
 
   <state id="evaluateStatus">
+    <onentry>
+      <log expr="'Entering evaluateStatus state'"/>
+      <log label="IsAtCurrentPoi.m_status" expr="m_status"/>
+    </onentry>
     <!-- GetNavigationStatus failed -->
     <transition cond="!m_nav_result" target="failure"/>
     <!-- Robot is moving, not at POI -->
@@ -67,41 +71,43 @@
 
   <state id="checkNear">
     <onentry>
+    <log expr="'checkNear'"/>
+    <log label="IsAtCurrentPoi.m_poi_number" expr="m_poi_number"/>
     <if cond="m_poi_number == 0">
       <ros_service_send_request name="/NavigationComponent/CheckNearToPoi">
-        <field name="poi_name" expr="'Poi0'"/>
+        <field name="poi_name" expr="'madama_start'"/>
         <field name="distance" expr="distance"/>
-        <field name="angle"    expr="360"/>
+        <field name="angle"    expr="8"/>
       </ros_service_send_request>
     <elseif cond="m_poi_number == 1"/>
       <ros_service_send_request name="/NavigationComponent/CheckNearToPoi">
-        <field name="poi_name" expr="'Poi1'"/>
+        <field name="poi_name" expr="'sala_delle_guardie'"/>
         <field name="distance" expr="distance"/>
-        <field name="angle"    expr="360"/>
+        <field name="angle"    expr="8"/>
       </ros_service_send_request>
     <elseif cond="m_poi_number == 2"/>
       <ros_service_send_request name="/NavigationComponent/CheckNearToPoi">
-        <field name="poi_name" expr="'Poi2'"/>
+        <field name="poi_name" expr="'sala_guidobono'"/>
         <field name="distance" expr="distance"/>
-        <field name="angle"    expr="360"/>
+        <field name="angle"    expr="8"/>
       </ros_service_send_request>
     <elseif cond="m_poi_number == 3"/>
       <ros_service_send_request name="/NavigationComponent/CheckNearToPoi">
-        <field name="poi_name" expr="'Poi3'"/>
+        <field name="poi_name" expr="'sala_delle_feste'"/>
         <field name="distance" expr="distance"/>
         <field name="angle"    expr="360"/>
       </ros_service_send_request>
     <elseif cond="m_poi_number == 4"/>
       <ros_service_send_request name="/NavigationComponent/CheckNearToPoi">
-        <field name="poi_name" expr="'Poi4'"/>
+        <field name="poi_name" expr="'sala_4_stagioni'"/>
         <field name="distance" expr="distance"/>
-        <field name="angle"    expr="360"/>
+        <field name="angle"    expr="8"/>
       </ros_service_send_request>
     <elseif cond="m_poi_number == 5"/>
       <ros_service_send_request name="/NavigationComponent/CheckNearToPoi">
-        <field name="poi_name" expr="'Poi5'"/>
+        <field name="poi_name" expr="'camera_di_madama_reale'"/>
         <field name="distance" expr="distance"/>
-        <field name="angle"    expr="360"/>
+        <field name="angle"    expr="8"/>
       </ros_service_send_request>
     </if>
     </onentry>
@@ -112,6 +118,8 @@
 
   <state id="finalize">
     <onentry>
+    <log expr="'Entering finalize state'"/>
+    <log label="IsAtCurrentPoi.m_is_near" expr="m_is_near"/>
       <if cond="m_is_near">
         <ros_service_send_response name="/IsAtCurrentPoiSkill/tick">
           <field name="status" expr="SKILL_SUCCESS"/>

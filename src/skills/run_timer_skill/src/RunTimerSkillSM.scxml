@@ -4,6 +4,8 @@
         <data id="SKILL_SUCCESS" expr="0"/>
         <data id="SKILL_FAILURE" expr="1"/>
         <data id="SKILL_RUNNING" expr="2"/>
+        <data id="result" expr="false"/>
+        <data id="status" expr="false"/>
     </datamodel>
     <!-- RunTimerSkill is a server for tick from the ROS2Action plugin-->
     <!-- RunTimerSkill is a server for halt from the ROS2Action plugin-->
@@ -20,44 +22,59 @@
         </transition>
     </state>
     <state id="isTimerActive">
-        <transition cond="(_event.data.is_ok) == false " target="idle" event="TimerCheckForPeopleComponent.IsTimerActive.Return">
+        <onentry>
+            <log expr="&apos;Entering isTimerActive state&apos;"/>
+        </onentry>
+        <transition target="evaluateState" event="TimerCheckForPeopleComponent.IsTimerActive.Return">
+            <assign location="result" expr="_event.data.is_ok"/>
+            <assign location="status" expr="_event.data.is_active"/>
+            <log label="result" expr="result"/>
+            <log label="status" expr="status"/>
+        </transition>
+    </state>
+    <state id="evaluateState">
+        <transition cond=" result == false " target="idle">
             <send event="TICK_RESPONSE">
                 <param name="status" expr="SKILL_FAILURE"/>
                 <param name="is_ok" expr="true"/>
             </send>
         </transition>
-        <transition cond="_event.data.is_active " target="idle" event="TimerCheckForPeopleComponent.IsTimerActive.Return">
+        <transition cond="status == true" target="idle">
             <send event="TICK_RESPONSE">
                 <param name="status" expr="SKILL_RUNNING"/>
                 <param name="is_ok" expr="true"/>
             </send>
         </transition>
-        <transition cond="(_event.data.is_active) == false" target="startTimer" event="TimerCheckForPeopleComponent.IsTimerActive.Return">
+        <transition cond="status == false" target="checkTimer">
             <send event="TimerCheckForPeopleComponent.StartTimer.Call"/>
         </transition>
-        <transition target="idle" event="CMD_HALT">
-            <send event="HALT_RESPONSE">
-                <param name="is_ok" expr="true"/>
-            </send>
-        </transition>
+        <transition target="idle" event="CMD_HALT"/>
     </state>
     <state id="startTimer">
-        <transition cond="_event.data.is_ok" target="idle" event="TimerCheckForPeopleComponent.StartTimer.Return">
+        <onentry>
+            <log expr="&apos;Entering startTimer state&apos;"/>
+        </onentry>
+        <transition target="checkTimer" event="TimerCheckForPeopleComponent.StartTimer.Return">
+            <assign location="result" expr="_event.data.is_ok"/>
+            <log label="result" expr="result"/>
+        </transition>
+    </state>
+    <state id="checkTimer">
+        <onentry>
+            <log expr="&apos;Entering checkTimer state&apos;"/>
+        </onentry>
+        <transition cond="result" target="idle">
             <send event="TICK_RESPONSE">
                 <param name="status" expr="SKILL_SUCCESS"/>
                 <param name="is_ok" expr="true"/>
             </send>
         </transition>
-        <transition cond="(_event.data.is_ok) == false" target="idle" event="TimerCheckForPeopleComponent.StartTimer.Return">
+        <transition cond="result == false" target="idle">
             <send event="TICK_RESPONSE">
                 <param name="status" expr="SKILL_FAILURE"/>
                 <param name="is_ok" expr="true"/>
             </send>
         </transition>
-        <transition target="idle" event="CMD_HALT">
-            <send event="HALT_RESPONSE">
-                <param name="is_ok" expr="true"/>
-            </send>
-        </transition>
+        <transition target="idle" event="CMD_HALT"/>
     </state>
 </scxml>

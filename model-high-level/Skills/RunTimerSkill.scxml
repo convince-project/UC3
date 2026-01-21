@@ -10,6 +10,8 @@
         <data id="SKILL_SUCCESS" type="int8" expr="0" />
         <data id="SKILL_FAILURE" type="int8" expr="1" />
         <data id="SKILL_RUNNING" type="int8" expr="2" />
+        <data id="result" type="bool" expr="false" />
+        <data id="status" type="bool" expr="false" />
     </datamodel>
 
     <!-- RunTimerSkill is a server for tick from the ROS2Action plugin-->
@@ -30,50 +32,65 @@
             <field name="is_ok" expr="true"/>
           </ros_service_send_response>
         </ros_service_handle_request>
-
     </state>
 
     <state id="isTimerActive">
-        <ros_service_handle_response name="/TimerCheckForPeopleComponent/IsTimerActive" cond="(_res.is_ok) == false " target="idle">
+        <onentry>
+            <log expr="'Entering isTimerActive state'"/>
+        </onentry>
+        <ros_service_handle_response name="/TimerCheckForPeopleComponent/IsTimerActive" target="evaluateState">
+            <assign location="result" expr="_res.is_ok"/>
+            <assign location="status" expr="_res.is_active"/>
+            <log label="result" expr="result"/>
+            <log label="status" expr="status"/>
+        </ros_service_handle_response>
+    </state>
+
+    <state id="evaluateState">
+        <transition cond=" result == false " target="idle">
             <ros_service_send_response name="/RunTimerSkill/tick">
                 <field name="status" expr="SKILL_FAILURE"/>
                 <field name="is_ok" expr="true"/>
             </ros_service_send_response>
-        </ros_service_handle_response>
-        <ros_service_handle_response name="/TimerCheckForPeopleComponent/IsTimerActive" cond="_res.is_active " target="idle">
+        </transition>
+        <transition cond="status == true" target="idle">
             <ros_service_send_response name="/RunTimerSkill/tick">
                 <field name="status" expr="SKILL_RUNNING"/>
                 <field name="is_ok" expr="true"/>
             </ros_service_send_response>
-        </ros_service_handle_response>
-        <ros_service_handle_response name="/TimerCheckForPeopleComponent/IsTimerActive" cond="(_res.is_active) == false" target="startTimer">
+        </transition>
+        <transition cond="status == false" target="checkTimer">
             <ros_service_send_request name="/TimerCheckForPeopleComponent/StartTimer"/>
-        </ros_service_handle_response>
-        <ros_service_handle_request name="/RunTimerSkill/halt" target="idle">
-            <ros_service_send_response name="/RunTimerSkill/halt">
-            <field name="is_ok" expr="true"/>
-          </ros_service_send_response>
-        </ros_service_handle_request>
-
+        </transition>
+        <transition target="idle" event="CMD_HALT"/>
     </state>
 
     <state id="startTimer">
-        <ros_service_handle_response name="/TimerCheckForPeopleComponent/StartTimer" cond="_res.is_ok" target="idle">
+        <onentry>
+            <log expr="'Entering startTimer state'"/>
+        </onentry>
+        <ros_service_handle_response name="/TimerCheckForPeopleComponent/StartTimer" target="checkTimer">
+            <assign location="result" expr="_res.is_ok"/>
+            <log label="result" expr="result"/>
+        </ros_service_handle_response>
+    </state>
+
+    <state id="checkTimer">
+        <onentry>
+            <log expr="'Entering checkTimer state'"/>
+        </onentry>
+        <transition cond="result" target="idle">
             <ros_service_send_response name="/RunTimerSkill/tick">
                 <field name="status" expr="SKILL_SUCCESS"/>
                 <field name="is_ok" expr="true"/>
             </ros_service_send_response>
-        </ros_service_handle_response>
-        <ros_service_handle_response name="/TimerCheckForPeopleComponent/StartTimer" cond="(_res.is_ok) == false" target="idle">
+        </transition>
+        <transition cond="result == false" target="idle">
             <ros_service_send_response name="/RunTimerSkill/tick">
                 <field name="status" expr="SKILL_FAILURE"/>
                 <field name="is_ok" expr="true"/>
             </ros_service_send_response>
-        </ros_service_handle_response>
-        <ros_service_handle_request name="/RunTimerSkill/halt" target="idle">
-            <ros_service_send_response name="/RunTimerSkill/halt">
-            <field name="is_ok" expr="true"/>
-          </ros_service_send_response>
-        </ros_service_handle_request>
+        </transition>
+        <transition target="idle" event="CMD_HALT"/>
     </state>
 </scxml>
