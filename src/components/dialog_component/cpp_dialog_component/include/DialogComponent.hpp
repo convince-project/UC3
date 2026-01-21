@@ -12,6 +12,7 @@
 #include <thread>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
+#include <rclcpp/service.hpp>
 #include <std_msgs/msg/bool.hpp>
 #include <yarp/os/Network.h>
 #include <yarp/os/LogStream.h>
@@ -162,6 +163,7 @@ private:
     rclcpp::Service<dialog_interfaces::srv::Answer>::SharedPtr m_AnswerService;
     rclcpp::Service<dialog_interfaces::srv::SetLanguage>::SharedPtr m_SetLanguageService;
     rclcpp::Service<dialog_interfaces::srv::InterpretCommand>::SharedPtr m_InterpretCommandService;
+    rclcpp::Service<dialog_interfaces::srv::SetWebStatus>::SharedPtr m_SetWebStatusService;
 
     // ROS2 Action Server for WaitForInteraction
     rclcpp_action::Server<dialog_interfaces::action::WaitForInteraction>::SharedPtr m_WaitForInteractionAction;
@@ -268,6 +270,10 @@ private:
     std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::SetAllIntsWithPrefixBlackboard>> blackBoardResetClient;
 
     bool m_webStatus;
+
+    rclcpp::CallbackGroup::SharedPtr action_cb_group_;
+    rclcpp::CallbackGroup::SharedPtr service_cb_group_;
+    rcl_action_server_options_t action_options;
 
 };
 
