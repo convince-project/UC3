@@ -66,7 +66,8 @@ bool TurnBackManagerComponent::start(int argc, char*argv[])
     RCLCPP_DEBUG(m_node->get_logger(), "TurnBackManagerComponent::start");
     m_subscriptionPeopleDetector = m_node->create_subscription<std_msgs::msg::Bool>(
 		"/PeopleDetectorFilterComponent/filtered_detection", 10, std::bind(&TurnBackManagerComponent::topic_callback_people_detector, this, std::placeholders::_1));
-    std::cout << "TurnBackManagerComponent::start";        
+    std::cout << "TurnBackManagerComponent::start";
+    m_publisher = m_node->create_publisher<std_msgs::msg::String>("TurnBackManagerComponent/IncreaseTurnBacksCounter", 10);       
     return true;
 
 }
@@ -86,7 +87,9 @@ void TurnBackManagerComponent::spin()
 void TurnBackManagerComponent::publisher(std::string text)
 {
     std_msgs::msg::String msg;
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "TurnBackManagerComponent::publisher message BEFORE MESSAGE");
     msg.data = text;
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "TurnBackManagerComponent::publisher message:" << msg.data);
     m_publisher->publish(msg);
 }
 
