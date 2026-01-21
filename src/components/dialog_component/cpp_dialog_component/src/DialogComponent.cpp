@@ -28,6 +28,8 @@ DialogComponent::DialogComponent() : m_random_gen(m_rand_engine()),
     m_last_received_interaction = "";
 
     m_number_of_predefined_answers = 0;
+
+    m_webStatus = true;
 }
 
 bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
@@ -420,6 +422,12 @@ bool DialogComponent::start(int argc, char *argv[])
                                                                                                            this,
                                                                                                            std::placeholders::_1,
                                                                                                            std::placeholders::_2));
+
+    m_SetWebStatusService = m_node->create_service<dialog_interfaces::srv::SetWebStatus>("/DialogComponent/SetWebStatus",
+                                                                                       std::bind(&DialogComponent::SetWebStatus,
+                                                                                                    this,
+                                                                                                    std::placeholders::_1,
+                                                                                                    std::placeholders::_2));
 
     m_WaitForInteractionAction = rclcpp_action::create_server<dialog_interfaces::action::WaitForInteraction>(
         m_node,
@@ -1099,7 +1107,16 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitFor
             // wait for a while before trying to read again
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
-        } while (vocalInteraction == nullptr);
+        } while (vocalInteraction == nullptr && m_webStatus);
+
+        if (!m_webStatus)
+        {
+            yError() << "[DialogComponent::WaitForInteraction] Web status is false, aborting interaction." << __LINE__;
+            result->is_ok = false;
+            goal_handle->abort(result);
+            RCLCPP_INFO(m_node->get_logger(), "Goal aborted due to web status false");
+            return;
+        }
 
         if (vocalInteraction)
         {
@@ -1109,10 +1126,8 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitFor
         }
         else
         {
-            yError() << "[DialogComponent::WaitForInteraction] Failed to read transcribed text";
+            yError() << "[DialogComponent::WaitForInteraction] Failed to read transcribed text, or web status is false." << __LINE__;
         }
-
-        yInfo() << "[DialogComponent::WaitForInteraction] Call received" << __LINE__;
     }
     else
     {
@@ -1609,4 +1624,11 @@ void DialogComponent::ResetTourAndFlags() {
         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service SetAllIntsWithPrefix in BlackboardComponent");
         return;
     }
+}
+
+void DialogComponent::SetWebStatus(const std::shared_ptr<dialog_interfaces::srv::SetWebStatus::Request> request,
+                                 std::shared_ptr<dialog_interfaces::srv::SetWebStatus::Response> response)
+{
+    m_webStatus = request->is_web_reachable;
+    response->is_ok = true;
 }

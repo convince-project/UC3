@@ -8,6 +8,8 @@
 #include "manage_service_interfaces/srv/start_service.hpp"
 #include "manage_service_interfaces/srv/stop_service.hpp"
 
+#include <dialog_interfaces/srv/set_web_status.hpp>
+
 using namespace std::chrono_literals;
 
 static constexpr int SERVICE_TIMEOUT_SEC = 5;
@@ -24,6 +26,11 @@ public:
 
     stop_client_ = this->create_client<manage_service_interfaces::srv::StopService>(
       "/ManagePeopleDetectorComponent/StopService");
+
+
+    // Client per i servizi Set WebStatus della DialogComponent
+    webstatus_client_ = this->create_client<dialog_interfaces::srv::SetWebStatus>(
+      "/DialogComponent/SetWebStatus");
 
     // Subscriber al topic del monitor
     verdict_sub_ = this->create_subscription<std_msgs::msg::Bool>(
@@ -48,6 +55,56 @@ private:
       callStartService();
     } else {
       callStopService();
+    }
+
+    // Aggiorna lo stato web nella DialogComponent solo se è cambiato il verdetto e m_last_web_status_ è stato inizializzato
+    if (m_last_web_status_ && verdict != m_last_web_status_) {
+      callSetWebStatusService(verdict);
+    }
+
+    m_last_web_status_ = verdict;
+  }
+
+  void callSetWebStatusService(bool is_web_reachable)
+  {
+    // Aspetta che il servizio SetWebStatus sia disponibile
+    int retries = 0;
+    while (!webstatus_client_->wait_for_service(1s)) {
+      if (!rclcpp::ok()) {
+        RCLCPP_ERROR(get_logger(),
+                     "Interrupted while waiting for SetWebStatus service. Exiting.");
+        return;
+      }
+      ++retries;
+      if (retries >= SERVICE_TIMEOUT_SEC) {
+        RCLCPP_ERROR(get_logger(),
+                     "Timed out while waiting for SetWebStatus service.");
+        return;
+      }
+      RCLCPP_WARN(get_logger(), "Waiting for SetWebStatus service...");
+    }
+
+    auto request = std::make_shared<dialog_interfaces::srv::SetWebStatus::Request>();
+    request->is_web_reachable = is_web_reachable;
+
+    auto future = webstatus_client_->async_send_request(request);
+
+    auto ret = rclcpp::spin_until_future_complete(
+      this->shared_from_this(),
+      future,
+      std::chrono::seconds(SERVICE_TIMEOUT_SEC));
+
+    if (ret == rclcpp::FutureReturnCode::SUCCESS) {
+      auto response = future.get();
+      if (response->is_ok) {
+        RCLCPP_INFO(get_logger(), "SetWebStatus SUCCESS");
+      } else {
+        RCLCPP_WARN(get_logger(), "SetWebStatus returned is_ok=false");
+      }
+    } else if (ret == rclcpp::FutureReturnCode::TIMEOUT) {
+      RCLCPP_ERROR(get_logger(), "SetWebStatus call TIMEOUT");
+    } else {
+      RCLCPP_ERROR(get_logger(), "SetWebStatus call FAILED");
     }
   }
 
@@ -138,6 +195,8 @@ private:
   rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr verdict_sub_;
   rclcpp::Client<manage_service_interfaces::srv::StartService>::SharedPtr start_client_;
   rclcpp::Client<manage_service_interfaces::srv::StopService>::SharedPtr  stop_client_;
+  rclcpp::Client<dialog_interfaces::srv::SetWebStatus>::SharedPtr webstatus_client_;
+  bool m_last_web_status_;
 };
 
 int main(int argc, char ** argv)

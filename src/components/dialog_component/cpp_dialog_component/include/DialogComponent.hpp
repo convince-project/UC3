@@ -30,6 +30,7 @@
 #include <dialog_interfaces/srv/answer.hpp>
 #include <dialog_interfaces/srv/set_language.hpp>
 #include <dialog_interfaces/srv/interpret_command.hpp>
+#include <dialog_interfaces/srv/set_web_status.hpp>
 
 // Dialog Component Action Interfaces
 #include <dialog_interfaces/action/wait_for_interaction.hpp>
@@ -104,6 +105,9 @@ public:
                           std::shared_ptr<dialog_interfaces::srv::InterpretCommand::Response> response); // Interprets the command and returns the action to be performed
 
     void Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle); // ROS2 action server to speak
+
+    void SetWebStatus(const std::shared_ptr<dialog_interfaces::srv::SetWebStatus::Request> request,
+                      std::shared_ptr<dialog_interfaces::srv::SetWebStatus::Response> response); // Sets the web connectivity status
 
     // void SetMicrophone(const std::shared_ptr<dialog_interfaces::srv::SetMicrophone::Request> request,
     //                    std::shared_ptr<dialog_interfaces::srv::SetMicrophone::Response> response); // Opens/closes the microphone ports
@@ -262,6 +266,8 @@ private:
 
     std::shared_ptr<rclcpp::Node> blackBoardResetClientNode;
     std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::SetAllIntsWithPrefixBlackboard>> blackBoardResetClient;
+
+    bool m_webStatus;
 
 };
 
