@@ -2,9 +2,9 @@
 
 '''   H(POI_1_selected => P -POI_1_completed) AND - (-POI_1_selected S[2 : ] -POI_1_completed)
 '''
-PROPERTY = r"historically( not( not {startReached} since [30:] {tourFinished}))"
+PROPERTY = r"historically( not( not {startReached} since [300:] {tourFinished}))"
 
-# 600 seconds = 10 minutes
+# 300 seconds = 5 minutes
 # predicates used in the property (initialization for time 0)
 
 # in here we can add all the predicates we are interested in.. Of course, we also need to define how to translate Json messages to predicates.

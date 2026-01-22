@@ -2,7 +2,7 @@
 
 '''   H(POI_1_selected => P -POI_1_completed) AND - (-POI_1_selected S[2 : ] -POI_1_completed)
 '''
-PROPERTY = r"historically( not( not {arrivedAtCS} since [600:] {alarm}))"
+PROPERTY = r"historically( not( not {arrivedAtCS} since [300:] {alarm}))"
 
 # predicates used in the property (initialization for time 0)
 
