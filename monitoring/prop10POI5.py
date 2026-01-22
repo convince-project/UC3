@@ -2,7 +2,7 @@
 H(POI_5_selected => F[0:t] POI_5_completed)
 """
 # property definition for POI 5 completion within time t
-PROPERTY = r"historically( ({poi5_completed} -> {poi5_selected}) and ({poi5_selected} -> ( not( ((not {poi5_completed}) and {poi5_selected}) since[36000:] {poi5_sel_start} ))))"
+PROPERTY = r"historically( ({poi5_completed} -> {poi5_selected}) and ({poi5_selected} -> ( not( ((not {poi5_completed}) and {poi5_selected}) since[360:] {poi5_sel_start} ))))"
 
 predicates = dict(
     poi5_selected=False,
