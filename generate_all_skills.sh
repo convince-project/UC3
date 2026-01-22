@@ -42,16 +42,20 @@ for scxml_file in "$SKILLS_DIR"/*.scxml; do
     mkdir -p "$OUTPUT_BASE/${output_dir}"
     
     echo "Processing $filename..."
-    model2code \
+    command="model2code \
         --input_filename "$scxml_file" \
         --model_filename "$MODEL_FILE" \
         --interface_filename "$INTERFACE_FILE" \
         --template_path "$TEMPLATE_PATH" \
-        --output_path "$OUTPUT_BASE/${output_dir}" \
-        --verbose_mode
+        --output_path "$OUTPUT_BASE/${output_dir}
 
-    if [ $? -ne 0 ]; then
-        echo "Error processing $filename. Exiting."
+    echo $command
+    eval $command
+    
+    return_code=$?
+
+    if [ $return_code -ne 0 ]; then
+        echo "Error processing $filename. return code $return_code. Exiting."
         exit 1
     fi
 done
