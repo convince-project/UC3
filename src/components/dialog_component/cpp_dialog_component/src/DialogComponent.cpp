@@ -392,6 +392,9 @@ bool DialogComponent::start(int argc, char *argv[])
     blackBoardResetClientNode = rclcpp::Node::make_shared("DialogComponentBlackBoardResetNode");
     blackBoardResetClient = blackBoardResetClientNode->create_client<blackboard_interfaces::srv::SetAllIntsWithPrefixBlackboard>("/BlackboardComponent/SetAllIntsWithPrefix");
 
+    executeAudioClientNode = rclcpp::Node::make_shared("DialogComponentExecuteAudioNode");
+    executeAudioClient = executeAudioClientNode->create_client<execute_audio_interfaces::srv::ExecuteAudio>("/ExecuteAudioComponent/ExecuteAudio");
+
     action_cb_group_ =
         m_node->create_callback_group(rclcpp::CallbackGroupType::Reentrant);
 
@@ -1689,8 +1692,14 @@ void DialogComponent::OfflineSpeak(const std::shared_ptr<dialog_interfaces::srv:
 
 void DialogComponent::ExecuteAudio(std::string audioName) {
 
+    yInfo() << "[DialogComponent::ExecuteAudio] Sending audio to Yarp Audio Player with name " << audioName;
+
     // Send Execute Audio Request to audio_player_component
     auto requestExecuteAudio = std::make_shared<execute_audio_interfaces::srv::ExecuteAudio::Request>();
+    requestExecuteAudio->audio_name = audioName;
+
+
+
     while (!executeAudioClient->wait_for_service(std::chrono::milliseconds(100)))
     {
         if (!rclcpp::ok())

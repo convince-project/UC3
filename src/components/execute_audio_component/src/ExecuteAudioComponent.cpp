@@ -40,13 +40,45 @@ bool ExecuteAudioComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
         }
     }
 
-    std::ifstream f(m_audioConfigFilePath);
-    m_audioConfig = nlohmann::json::parse(f);
+    std::cout << "reading audio configuration file from " << m_audioConfigFilePath << std::endl;
+
+    std::ifstream file(m_audioConfigFilePath);
+    
+    if (!file.is_open())
+    {
+        yError() << "Failed to open file!";
+        return false;
+    }
+
+    // Read the entire file into a string
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    std::string content = buffer.str();
+
+    if (content.empty())
+    {
+        yError() << "File content is empty!";
+        return false;
+    }
+
+    yInfo() << "Raw file content:\n" << content;
+
+    try
+    {
+        m_audioConfig = nlohmann::json::parse(content);
+    }
+    catch (const nlohmann::json::parse_error &e)
+    {
+        yError() << "JSON parse error:" << e.what();
+        return false;
+    }
+
+    yInfo() << "Audio configuration loaded successfully:\n" << m_audioConfig.dump(4);
 
 
     // YARP AUDIO PLAYER
     std::string localAudioPlayerClientName = "/ExecuteAudioComponentYarpAudioPlayerClient/audio:o";
-    std::string remoteAudioPlayerServerName = "/YarpAudioPlayer/rpc";
+    std::string remoteAudioPlayerServerName = "/yarpAudioPlayer/rpc";
     if (rf.check("YARP-AUDIO-PLAYER"))
     {
         yarp::os::Searchable &component_config = rf.findGroup("YARP-AUDIO-PLAYER");
@@ -65,9 +97,11 @@ bool ExecuteAudioComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
         yError() << "Cannot open yarpAudioPlayer client port";
         return false;
     }
-    // if (!yarp::os::Network::connect(localAudioPlayerClientName, remoteAudioPlayerServerName)) {
-    //     yWarning() << "[ExecuteAudioComponent::configureYarp] Unable to connect to: " << remoteAudioPlayerServerName;
-    // }
+    if (!yarp::os::Network::connect(localAudioPlayerClientName, remoteAudioPlayerServerName)) {
+        yWarning() << "[ExecuteAudioComponent::configureYarp] Unable to connect to: " << remoteAudioPlayerServerName;
+    }
+
+    return true;
 }
 
 bool ExecuteAudioComponent::close()
@@ -119,11 +153,11 @@ bool ExecuteAudioComponent::PlayAudioFile(const std::string &audioName)
 
     if (!status)
     {
-        RCLCPP_ERROR_STREAM(m_node->get_logger(), "ExecuteAudioComponent::SendMovementToYAP Failed to send play command to YAP");
+        RCLCPP_ERROR_STREAM(m_node->get_logger(), "[ExecuteAudioComponent::SendMovementToYAP] Failed to send play command to YAP");
         return false;
     }
 
-    RCLCPP_INFO_STREAM(m_node->get_logger(), "ExecuteAudioComponent::SendMovementToYAP play status: " << res.get(0).toString());
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "[ExecuteAudioComponent::SendMovementToYAP] play status: " << res.get(0).toString());
 
     return true;
 }

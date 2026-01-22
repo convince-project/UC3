@@ -67,7 +67,8 @@
 
   <state id="waitForInteractionResult">
 
-    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
+    <!-- If we receive FAILURE from the return of waitForInteraction, it means we are handling a lost connection, so we return SUCCESS to allow the behavior tree to continue -->
+    <transition cond="m_result == 'FAILURE'" target="sendSuccess" />
 
     <transition cond="m_interaction == ''" target="waitForInteraction">
       <send event="DialogComponent.WaitForInteraction.Call">
@@ -586,7 +587,7 @@
   <state id="sendFailure">
     <transition event="CMD_TICK" target="idle">
       <send event="TICK_RESPONSE">
-        <param name="result" expr='"SUCCESS"'/>
+        <param name="result" expr='"FAILURE"'/>
       </send>
     </transition>
     <!-- <onentry>
