@@ -39,9 +39,6 @@ private:
     rclcpp::Node::SharedPtr m_node;
     rclcpp::Service<execute_dance_interfaces::srv::ExecuteAudio>::SharedPtr m_executeAudioService;
 
-    // yarpActionsPlayers client port name
-    std::string yAPClientPortName;
-
     // yarpActionsPlayers client port
     yarp::os::Port m_yAPClientPort;
 
