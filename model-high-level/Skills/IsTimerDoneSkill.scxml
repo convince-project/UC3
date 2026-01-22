@@ -15,29 +15,31 @@
   <ros_service_server service_name="/IsTimerDoneSkill/tick" type="bt_interfaces_dummy/TickCondition"/>
 
   <state id="idle">
-    <transition event="CMD_TICK" target="getStatus"/>
+    <ros_service_handle_request name="/IsTimerDoneSkill/tick" target="getStatus"/>
   </state>
 
   <state id="getStatus">
     <onentry>
-      <send event="TimerCheckForPeopleComponent.IsTimerActive.Call"/>
+      <ros_service_send_request name="/TimerCheckForPeopleComponent/IsTimerActive"/>
     </onentry>
-    <transition event="TimerCheckForPeopleComponent.IsTimerActive.Return" target="decide">
-      <assign location="m_is_ok"    expr="_event.data.is_ok"/>
-      <assign location="m_is_active" expr="_event.data.is_active"/>
-    </transition>
+    <ros_service_handle_response name="/TimerCheckForPeopleComponent/IsTimerActive" target="decide">
+      <assign location="m_is_ok"    expr="_res.is_ok"/>
+      <assign location="m_is_active" expr="_res.is_active"/>
+    </ros_service_handle_response>
   </state>
 
   <state id="decide">
     <onentry>
       <if cond="!m_is_ok || m_is_active">
-        <send event="TICK_RESPONSE">
-          <param name="result" expr="'FAILURE'"/>
-        </send>
+        <ros_service_send_response name="/IsTimerDoneSkill/tick">
+          <field name="status" expr="1"/> <!-- FAILURE -->
+          <field name="is_ok" expr="true"/>
+        </ros_service_send_response>
       <else/>
-        <send event="TICK_RESPONSE">
-          <param name="result" expr="'SUCCESS'"/>
-        </send>
+        <ros_service_send_response name="/IsTimerDoneSkill/tick">
+          <field name="status" expr="0"/> <!-- SUCCESS -->
+          <field name="is_ok" expr="true"/>
+        </ros_service_send_response>
       </if>
     </onentry>
     <transition target="idle"/>
