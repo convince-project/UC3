@@ -132,4 +132,10 @@
     <to>/view_expr</to>
   </connection>
 
+  <connection>
+    <from>/yarpAudioPlayer/audio:o</from>
+    <to>/audioPlayerWrapper/audio:i</to>
+    <protocol>fast_tcp+send.portmonitor+file.soundfilter_resample+type.dll+channel.0+frequency.16000</protocol>
+  </connection>
+
 </application>

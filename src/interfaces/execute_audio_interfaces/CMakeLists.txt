@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.8)
 set (CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
- 
 project(execute_audio_interfaces)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -16,10 +15,9 @@ find_package(ament_cmake REQUIRED)
 # find_package(<dependency> REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(execute_audio_interfaces
-"srv/ExecuteAddio.srv"
+"srv/ExecuteAudio.srv"
 LIBRARY_NAME execute_audio_interfaces 
 )
-ament_export_dependencies( sensor_msgs)
 
 
 if(BUILD_TESTING)

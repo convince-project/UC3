@@ -448,6 +448,14 @@ bool DialogComponent::start(int argc, char *argv[])
                                                                                                     rclcpp::ServicesQoS(),
                                                                                                 service_cb_group_);
 
+    m_OfflineSpeakService = m_node->create_service<dialog_interfaces::srv::OfflineSpeak>("/DialogComponent/OfflineSpeak",
+                                                                                       std::bind(&DialogComponent::OfflineSpeak,
+                                                                                                    this,
+                                                                                                    std::placeholders::_1,
+                                                                                                    std::placeholders::_2),
+                                                                                                    rclcpp::ServicesQoS(),
+                                                                                                service_cb_group_);
+
     m_WaitForInteractionAction = rclcpp_action::create_server<dialog_interfaces::action::WaitForInteraction>(
         m_node,
         "/DialogComponent/WaitForInteractionAction",
@@ -1129,7 +1137,7 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitFor
             // wait for a while before trying to read again
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
-        } while (vocalInteraction == nullptr && m_webStatus);
+        } while (vocalInteraction == nullptr);
 
         if (!m_webStatus)
         {
@@ -1137,6 +1145,9 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitFor
             result->is_ok = false;
             goal_handle->abort(result);
             RCLCPP_INFO(m_node->get_logger(), "Goal aborted due to web status false");
+
+            ExecuteAudio("generic-no_internet_cant_speak");
+
             return;
         }
 
@@ -1657,114 +1668,52 @@ void DialogComponent::SetWebStatus(const std::shared_ptr<dialog_interfaces::srv:
 }
 
 
-void DialogComponent::OfflineSpeak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
+void DialogComponent::OfflineSpeak(const std::shared_ptr<dialog_interfaces::srv::OfflineSpeak::Request> request,
+                      std::shared_ptr<dialog_interfaces::srv::OfflineSpeak::Response> response)
 {   
 
     RCLCPP_INFO(m_node->get_logger(), "Starting Offline Speak");
-    auto goal = goal_handle->get_goal();
-    auto feedback = std::make_shared<dialog_interfaces::action::Speak::Feedback>();
-    feedback->status = "Speaking";
-    auto result = std::make_shared<dialog_interfaces::action::Speak::Result>();
-
-    std::vector<std::string> dances = goal->dances;
-    std::vector<std::string> texts = goal->texts;
-
-    if (dances.size() != texts.size())
-    {
-        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Dances and texts vectors must have the same size");
-        result->is_ok = false;
-        goal_handle->abort(result);
-        return;
-    }
-
-    std::unique_ptr<yarp::sig::Sound> verbalOutput = nullptr;
-
-    auto start_time = std::chrono::high_resolution_clock::now();
-
-    yarp::sig::Sound &sound = m_audioPort.prepare();
-    yInfo() << "[DialogComponent::SpeakFromAudio] Preparing to speak";
-    sound.clear();
-    yInfo() << "[DialogComponent::SpeakFromAudio] Cleared sound buffer";
-
-    sound = *verbalOutput;
-    yInfo() << "[DialogComponent::SpeakFromAudio] Copied sound data";
-
-    std::string dance = dances[m_predefined_answer_index];
+    
+    std::string audioFileName = request->audio_name;
 
     SetFaceExpression("happy");
 
-    yInfo() << "[DialogComponent::SpeakFromAudio] Sending audio to port" << (sound.getSamples() * sound.getChannels() * sound.getBytesPerSample());
+    ExecuteAudio(audioFileName);
 
-    m_audioPort.write();
+    yInfo() << "[DialogComponent::SpeakFromAudio] Speak ended";
 
-    yInfo() << "[DialogComponent::SpeakFromAudio] Audio written to port";
+    response->is_ok = true;
 
-    if (dance != "none")
-    {   
-        // Wait for a maximum of 10 seconds, if the return is false, we skip the dance
-        if (WaitForSpeakStart()){
-            if (dance.find("point") != std::string::npos)
-            {
-                yInfo() << "[DialogComponent::SpeakFromAudio] Pointing detected, executing pointing";
-                std::string danceTarget = dance.substr(dance.find("::") + 2);
-                ExecutePointing(danceTarget);
-            }
-            else
-            {
+    RCLCPP_INFO(m_node->get_logger(), "OfflineSpeak succeeded");
+}
 
-                yInfo() << "[DialogComponent::SpeakFromAudio] Sending audio to port";
+void DialogComponent::ExecuteAudio(std::string audioName) {
 
-                float estimatedSpeechTime = sound.getDuration();
-
-                yInfo() << "[DialogComponent::SpeakFromAudio] Speak request sent with estimated speech time: " << estimatedSpeechTime;
-
-                yInfo() << "[DialogComponent::CommandManager] Dance detected: " << dance;
-                ExecuteDance(dance, estimatedSpeechTime);
-            }
+    // Send Execute Audio Request to audio_player_component
+    auto requestExecuteAudio = std::make_shared<execute_audio_interfaces::srv::ExecuteAudio::Request>();
+    while (!executeAudioClient->wait_for_service(std::chrono::milliseconds(100)))
+    {
+        if (!rclcpp::ok())
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'ExecuteAudio'. Exiting.");
         }
-        else {
-            yInfo() << "[DialogComponent::CommandManager] Speak did not start in time, skipping dance: " << dance;
-            yInfo() << "[DialogComponent::CommandManager] May the connection between dialog component and audio player be down?";
-        }
+    }
+    auto resultExecuteAudio = executeAudioClient->async_send_request(requestExecuteAudio);
+
+    if (rclcpp::spin_until_future_complete(executeAudioClientNode, resultExecuteAudio) == rclcpp::FutureReturnCode::SUCCESS)
+    {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "End Tour in executeAudioComponent succeeded");
     }
     else
     {
-        yInfo() << "[DialogComponent::CommandManager] No dance detected";
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service ExecuteAudio in executeAudioComponent");
+        return;
     }
 
-    yInfo() << "[DialogComponent::SpeakFromAudio] Waiting for speak end";
+    yInfo() << "[DialogComponent::ExecuteAudio] Waiting for speak end";
 
     std::chrono::duration wait_ms = 2000ms;
     std::this_thread::sleep_for(wait_ms);
     WaitForSpeakEnd();
 
-    yInfo() << "[DialogComponent::SpeakFromAudio] Speak ended";
-
-    // Reset dance
-    ResetDance();
-    if (dance.find("point") != std::string::npos)
-    {
-        // Go back to navigation position after pointing
-        WaitForPointingEnd();
-    }
-
-    m_predefined_answer_index++; // Reset the index of the predefined answer
-
-    result->is_reply_finished = false; // If it is not the last one, we are not finished with the reply
-    if (m_predefined_answer_index >= m_number_of_predefined_answers)
-    {
-        m_predefined_answer_index = 0;
-        m_number_of_predefined_answers = 0;
-        result->is_reply_finished = true;
-        RCLCPP_INFO(m_node->get_logger(), "Reply finished, get back to navigation position");
-        std::string navigation_position = "navigation_position";
-        ExecuteDance(navigation_position, 0); // Go back to navigation position
-        m_verbalOutputBatchReader.setDialogPhaseActive(false);
-        m_verbalOutputBatchReader.resetQueue();
-    }
-
-    result->is_ok = true;
-
-    goal_handle->succeed(result);
-    RCLCPP_INFO(m_node->get_logger(), "Goal succeeded");
 }

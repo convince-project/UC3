@@ -25,6 +25,7 @@ rosidl_generate_interfaces(dialog_interfaces
                             "srv/IsSpeaking.srv"
                             "srv/SetMicrophone.srv"
                             "srv/SetWebStatus.srv"
+                            "srv/OfflineSpeak.srv"
                             "action/Speak.action"
                             "action/WaitForInteraction.action"
                             DEPENDENCIES sensor_msgs

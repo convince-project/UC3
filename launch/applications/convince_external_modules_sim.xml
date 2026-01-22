@@ -85,6 +85,12 @@
     </module>
 
     <module>
+        <name>yarpAudioPlayer</name>
+        <workdir>/home/user1/UC3/conf/audio/</workdir>
+        <node>bt</node>
+    </module>
+
+    <module>
         <name>yarpview</name>
         <parameters> --name /view_expr </parameters>
         <node>bt</node>

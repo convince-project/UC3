@@ -6,17 +6,16 @@
  ******************************************************************************/
 # pragma once
 
-#include <mutex>
-#include <thread>
 #include <rclcpp/rclcpp.hpp>
 #include <yarp/os/Network.h>
 #include <yarp/os/Port.h>
-#include <yarp/os/RpcClient.h>
-#include <yarp/os/RpcServer.h>
-#include <yarp/os/Time.h>
+#include <yarp/os/RFModule.h>
 #include <yarp/os/LogStream.h>
-#include <text_to_speech_interfaces/srv/is_speaking.hpp>
 #include <nlohmann/json.hpp>
+#include <fstream>
+
+// ExecuteAudio Interfaces
+#include <execute_audio_interfaces/srv/execute_audio.hpp>
 
 
 class ExecuteAudioComponent 
@@ -30,14 +29,14 @@ public:
     bool ConfigureYARP(yarp::os::ResourceFinder &rf);
 
     //open a service for all the execute_dance_interfaces
-    void ExecuteAudio(const std::shared_ptr<execute_dance_interfaces::srv::ExecuteAudio::Request> request,
-                      std::shared_ptr<execute_dance_interfaces::srv::ExecuteAudio::Response> response);
+    void ExecuteAudio(const std::shared_ptr<execute_audio_interfaces::srv::ExecuteAudio::Request> request,
+                      std::shared_ptr<execute_audio_interfaces::srv::ExecuteAudio::Response> response);
 private:
     
-    bool SendMovementToYAP(const std::string &actionName, float speedFactor);
+    bool PlayAudioFile(const std::string &audioName);
  
     rclcpp::Node::SharedPtr m_node;
-    rclcpp::Service<execute_dance_interfaces::srv::ExecuteAudio>::SharedPtr m_executeAudioService;
+    rclcpp::Service<execute_audio_interfaces::srv::ExecuteAudio>::SharedPtr m_executeAudioService;
 
     // yarpActionsPlayers client port
     yarp::os::Port m_yAPClientPort;

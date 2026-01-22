@@ -17,7 +17,7 @@ bool ExecuteAudioComponent::start(int argc, char *argv[])
     m_node = rclcpp::Node::make_shared("ExecuteAudioComponentNode");
 
 
-    m_executeAudioService = m_node->create_service<execute_dance_interfaces::srv::ExecuteAudio>("/ExecuteAudioComponent/ExecuteAudio",
+    m_executeAudioService = m_node->create_service<execute_audio_interfaces::srv::ExecuteAudio>("/ExecuteAudioComponent/ExecuteAudio",
                                                                                                 std::bind(&ExecuteAudioComponent::ExecuteAudio,
                                                                                                           this,
                                                                                                           std::placeholders::_1,
@@ -30,7 +30,7 @@ bool ExecuteAudioComponent::start(int argc, char *argv[])
 bool ExecuteAudioComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
 {
     // ---------------------YARP AUDIO CONFIGURATION----------------------------
-    std::string m_audioConfigFilePath = "/home/user1/UC3/conf/audio/configuration.json";
+    std::string m_audioConfigFilePath = "/home/user1/UC3/conf/audio_configuration.json";
     if (rf.check("AUDIO-CONFIGURATION"))
     {
         yarp::os::Searchable &audio_config = rf.findGroup("AUDIO-CONFIGURATION");
@@ -88,10 +88,12 @@ void ExecuteAudioComponent::ExecuteAudio(const std::shared_ptr<execute_audio_int
     // float audioTime = request->audio_time;
     std::string audioName = request->audio_name;
 
+    std::string audioFileName = m_audioConfig[audioName];
+
     bool status;
 
-    std::cout << "AudioDanceComponent::ExecuteAudio sending audio: " << audioName << std::endl;
-    status = PlayAudioFile(audioName);
+    std::cout << "AudioAudioComponent::ExecuteAudio sending audio: " << audioName << std::endl;
+    status = PlayAudioFile(audioFileName);
     if (!status)
     {
         RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "Audio failed to send to YarpAudioPlayer");
@@ -111,7 +113,7 @@ bool ExecuteAudioComponent::PlayAudioFile(const std::string &audioName)
     cmd.clear();
     res.clear();
     cmd.addString("play");
-    cmd.addString(audioName)
+    cmd.addString(audioName);
 
     bool status = m_yAPClientPort.write(cmd, res);
 
