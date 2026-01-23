@@ -1149,6 +1149,12 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitFor
             goal_handle->abort(result);
             RCLCPP_INFO(m_node->get_logger(), "Goal aborted due to web status false");
 
+            m_verbalOutputBatchReader.setDialogPhaseActive(false);
+            // delete conversation history of all the chatbots
+            m_iPoiChat->refreshConversation();
+            m_iGenericChat->refreshConversation();
+            m_iMuseumChat->refreshConversation();
+
             ExecuteAudio("generic-no_internet_cant_speak");
 
             return;
@@ -1697,8 +1703,6 @@ void DialogComponent::ExecuteAudio(std::string audioName) {
     // Send Execute Audio Request to audio_player_component
     auto requestExecuteAudio = std::make_shared<execute_audio_interfaces::srv::ExecuteAudio::Request>();
     requestExecuteAudio->audio_name = audioName;
-
-
 
     while (!executeAudioClient->wait_for_service(std::chrono::milliseconds(100)))
     {

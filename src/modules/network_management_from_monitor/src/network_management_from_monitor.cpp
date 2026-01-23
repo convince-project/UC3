@@ -52,8 +52,8 @@ private:
   {
     std::string verdict_str = msg->data;
     bool verdict = (verdict_str == "currently_true");
-    RCLCPP_INFO(get_logger(),
-                "Received /monitor_prop13/monitor_verdict: %s",
+
+    RCLCPP_INFO_THROTTLE(get_logger(), *get_clock(), 5000, "Received /monitor_prop13/monitor_verdict: %s",
                 verdict ? "true" : "false");
 
     if (m_last_network_status_ && verdict != m_last_network_status_ && verdict==true) {
@@ -71,16 +71,15 @@ private:
 
     std::string verdict_str = msg->data;
     bool verdict = (verdict_str == "currently_true");
-    RCLCPP_INFO(get_logger(),
-                "Received /monitor_prop14/monitor_verdict: %s",
+
+    RCLCPP_INFO_THROTTLE(get_logger(), *get_clock(), 5000, "Received /monitor_prop14/monitor_verdict: %s",
                 verdict ? "true" : "false");
 
     // Update the Dialog component state
-    if (m_last_web_status_ && verdict != m_last_web_status_) {
+    if (verdict != m_last_web_status_) {
       callSetWebStatusService(verdict);
+      m_last_web_status_ = verdict;
     }
-
-    m_last_web_status_ = verdict;
   }
 
   void callSetWebStatusService(bool is_web_reachable)
@@ -167,8 +166,9 @@ private:
   rclcpp::Client<manage_service_interfaces::srv::StartService>::SharedPtr start_client_;
   rclcpp::Client<manage_service_interfaces::srv::StopService>::SharedPtr  stop_client_;
   rclcpp::Client<dialog_interfaces::srv::SetWebStatus>::SharedPtr webstatus_client_;
-  bool m_last_web_status_;
-  bool m_last_network_status_;
+  // assume starting with web and network connections on
+  bool m_last_web_status_{true};
+  bool m_last_network_status_{true};
 };
 
 int main(int argc, char ** argv)
