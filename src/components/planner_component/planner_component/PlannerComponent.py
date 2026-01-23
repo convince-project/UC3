@@ -1,6 +1,6 @@
 import time
 from rclpy.impl import rcutils_logger
-
+import yaml
 import rclpy
 from rclpy.action import ActionServer, GoalResponse, CancelResponse
 from rclpy.node import Node
@@ -25,7 +25,7 @@ class PlannerComponent(Node):
                  wait_time, 
                  explain_time,
                  detections_topic="static_tracks", 
-                 bt_file_path="src/behavior_tree/BT/bt_scheduler.xml"):
+                 bt_file_path="/home/user1/UC3/src/behavior_tree/BT/bt_scheduler.xml"):
         super().__init__('planner_component')
         self._action_server = ActionServer(
             self,
@@ -192,42 +192,56 @@ def main(args=None):
     logger.info("Starting Planner Component...")
     print(sys.argv)
     print("Starting Planner Component...")
-    if "--occupancy_map_path" in sys.argv and len(sys.argv) >= sys.argv.index("--occupancy_map_path") + 1:
-        occupancy_map_path = sys.argv[sys.argv.index("--occupancy_map_path") + 1]
+    if "--load_from_yaml" in sys.argv:
+        load_from_yaml = sys.argv[sys.argv.index("--load_from_yaml") + 1]
+        with open(load_from_yaml, 'r') as file:
+            config = yaml.safe_load(file)
+        occupancy_map_path = config['occupancy_map_path']
+        cliff_map_path = config['cliff_map_path']
+        time_bound_lrtdp = config['time_bound_lrtdp']
+        time_bound_real = config['time_bound_real']
+        convergence_threshold = config['convergence_threshold']
+        wait_time = config['wait_time']
+        explain_time = config['explain_time']
+        bt_file_path = config['bt_file_path']
+        detections_topic = config['detections_topic']
     else:
-        sys.exit("Error: occupancy_map_path argument not provided")
-    if "--cliff_map_path" in sys.argv and len(sys.argv) >= sys.argv.index("--cliff_map_path") + 1:
-        cliff_map_path = sys.argv[sys.argv.index("--cliff_map_path") + 1]
-    else:
-        sys.exit("Error: cliff_map_path argument not provided")
-    if "--time_bound_lrtdp" in sys.argv and len(sys.argv) >= sys.argv.index("--time_bound_lrtdp") + 1:
-        time_bound_lrtdp = float(sys.argv[sys.argv.index("--time_bound_lrtdp") + 1])
-    else:
-        sys.exit("Error: time_bound_lrtdp argument not provided")
-    if "--time_bound_real" in sys.argv and len(sys.argv) >= sys.argv.index("--time_bound_real") + 1:
-        time_bound_real = float(sys.argv[sys.argv.index("--time_bound_real") + 1])
-    else:
-        sys.exit("Error: time_bound_real argument not provided")
-    if "--convergence_threshold" in sys.argv and len(sys.argv) >= sys.argv.index("--convergence_threshold") + 1:
-        convergence_threshold = float(sys.argv[sys.argv.index("--convergence_threshold") + 1])
-    else:
-        sys.exit("Error: convergence_threshold argument not provided")
-    if "--wait_time" in sys.argv and len(sys.argv) >= sys.argv.index("--wait_time") + 1:
-        wait_time = float(sys.argv[sys.argv.index("--wait_time") + 1])
-    else:
-        sys.exit("Error: wait_time argument not provided")
-    if "--explain_time" in sys.argv and len(sys.argv) >= sys.argv.index("--explain_time") + 1:
-        explain_time = float(sys.argv[sys.argv.index("--explain_time") + 1])
-    else:
-        sys.exit("Error: explain_time argument not provided")
-    if "--bt_file_path" in sys.argv and len(sys.argv) >= sys.argv.index("--bt_file_path") + 1:
-        bt_file_path = sys.argv[sys.argv.index("--bt_file_path") + 1]
-    else:
-        sys.exit("Error: bt_file_path argument not provided")
-    if "--detections_topic" in sys.argv and len(sys.argv) >= sys.argv.index("--detections_topic") + 1:
-        detections_topic = sys.argv[sys.argv.index("--detections_topic") + 1]
-    else:
-        sys.exit("Error: detections_topic argument not provided")
+        if "--occupancy_map_path" in sys.argv and len(sys.argv) >= sys.argv.index("--occupancy_map_path") + 1:
+            occupancy_map_path = sys.argv[sys.argv.index("--occupancy_map_path") + 1]
+        else:
+            sys.exit("Error: occupancy_map_path argument not provided")
+        if "--cliff_map_path" in sys.argv and len(sys.argv) >= sys.argv.index("--cliff_map_path") + 1:
+            cliff_map_path = sys.argv[sys.argv.index("--cliff_map_path") + 1]
+        else:
+            sys.exit("Error: cliff_map_path argument not provided")
+        if "--time_bound_lrtdp" in sys.argv and len(sys.argv) >= sys.argv.index("--time_bound_lrtdp") + 1:
+            time_bound_lrtdp = float(sys.argv[sys.argv.index("--time_bound_lrtdp") + 1])
+        else:
+            sys.exit("Error: time_bound_lrtdp argument not provided")
+        if "--time_bound_real" in sys.argv and len(sys.argv) >= sys.argv.index("--time_bound_real") + 1:
+            time_bound_real = float(sys.argv[sys.argv.index("--time_bound_real") + 1])
+        else:
+            sys.exit("Error: time_bound_real argument not provided")
+        if "--convergence_threshold" in sys.argv and len(sys.argv) >= sys.argv.index("--convergence_threshold") + 1:
+            convergence_threshold = float(sys.argv[sys.argv.index("--convergence_threshold") + 1])
+        else:
+            sys.exit("Error: convergence_threshold argument not provided")
+        if "--wait_time" in sys.argv and len(sys.argv) >= sys.argv.index("--wait_time") + 1:
+            wait_time = float(sys.argv[sys.argv.index("--wait_time") + 1])
+        else:
+            sys.exit("Error: wait_time argument not provided")
+        if "--explain_time" in sys.argv and len(sys.argv) >= sys.argv.index("--explain_time") + 1:
+            explain_time = float(sys.argv[sys.argv.index("--explain_time") + 1])
+        else:
+            sys.exit("Error: explain_time argument not provided")
+        if "--bt_file_path" in sys.argv and len(sys.argv) >= sys.argv.index("--bt_file_path") + 1:
+            bt_file_path = sys.argv[sys.argv.index("--bt_file_path") + 1]
+        else:
+            sys.exit("Error: bt_file_path argument not provided")
+        if "--detections_topic" in sys.argv and len(sys.argv) >= sys.argv.index("--detections_topic") + 1:
+            detections_topic = sys.argv[sys.argv.index("--detections_topic") + 1]
+        else:
+            sys.exit("Error: detections_topic argument not provided")
     print("Starting Planner Component...")
     print("arguments parsed successfully.")
     print("occupancy_map_path:", occupancy_map_path)

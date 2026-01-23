@@ -194,7 +194,7 @@
 
     <module>
         <name>ros2_planner_component</name>
-        <parameters>run planner_component planner_component  --occupancy_map_path /home/user1/congestion-coverage-plan/data/occupancy_maps_madama_doors_16_experiments/occupancy_map_madama_doors_16_experiments_5_levels.yaml --cliff_map_path /home/user1/congestion-coverage-plan/MoDs/madama/map_november_reduced_v3_fixed_low_decimals.csv --time_bound_lrtdp 500 --time_bound_real 50 --convergence_threshold 0.1 --wait_time 20 --explain_time 20 --bt_file_path src/behavior_tree/BT/bt_scheduler.xml --detections_topic static_tracks
+        <parameters>run planner_component planner_component  --load_from_yaml /home/user1/UC3/src/components/planner_component/resource/configuration.yaml
             
         </parameters>
         <workdir>/home/user1/UC3</workdir>
