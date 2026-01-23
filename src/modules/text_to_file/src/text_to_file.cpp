@@ -71,7 +71,7 @@ bool process_text_to_speech(const std::string &text, const std::string &out_wav,
     while (std::chrono::steady_clock::now() - start < timeout) {
         sound = inport.read(false);
         if (sound != nullptr && sound->getSamples() > 0) {
-            RCLCPP_INFO(node->get_logger(), "Received sound: samples=%d channels=%d", sound->getSamples(), sound->getChannels());
+            RCLCPP_INFO(node->get_logger(), "Received sound: samples=%ld channels=%ld", sound->getSamples(), sound->getChannels());
             break;
         }
         std::this_thread::sleep_for(200ms);
@@ -141,19 +141,28 @@ int main(int argc, char **argv)
     for (auto& [key, value] : it_it.items()) {
         if (value.contains("m_availableActions")) {
             for (auto& [action_name, actions] : value["m_availableActions"].items()) {
-                std::string concatenated_text;
+                int i=1;
                 for (auto& action : actions) {
+                    std::string concatenated_text;
                     if (action.contains("m_param")) {
                         concatenated_text += action["m_param"].get<std::string>() + " ";
                     }
-                }
-                if (!concatenated_text.empty()) {
-                    std::string out_wav = "/home/user1/UC3/conf/audio/male/" + key + "_" + action_name + ".wav";
-                    RCLCPP_INFO(node->get_logger(), "Processing text: %s -> %s", concatenated_text.c_str(), out_wav.c_str());
-                    if (!process_text_to_speech(concatenated_text, out_wav, node, action_client)) {
-                        RCLCPP_ERROR(node->get_logger(), "Failed to process text: %s", concatenated_text.c_str());
+                    if (!concatenated_text.empty()) {
+                        std::string out_wav;
+                        if (actions.size() > 1) {
+                            out_wav = "/home/user1/UC3/conf/audio/female/" + key + "_" + action_name + std::to_string(i) + ".wav";
+                        }
+                        else {
+                            out_wav = "/home/user1/UC3/conf/audio/female/" + key + "_" + action_name + ".wav";
+                        }
+                        RCLCPP_INFO(node->get_logger(), "Processing text: %s -> %s", concatenated_text.c_str(), out_wav.c_str());
+                        if (!process_text_to_speech(concatenated_text, out_wav, node, action_client)) {
+                            RCLCPP_ERROR(node->get_logger(), "Failed to process text: %s", concatenated_text.c_str());
+                        }
                     }
+                    i++;
                 }
+                
             }
         }
     }
