@@ -125,4 +125,7 @@ private:
     yarp::os::BufferedPort<yarp::sig::Sound> m_inSoundPort; // Port to receive the synthesized sound
     yarp::os::BufferedPort<yarp::sig::Sound> m_outSoundPort; // Port to send the sound to the player
     yarp::os::BufferedPort<yarp::sig::AudioPlayerStatus> m_playerStatusInPort;
+    std::shared_ptr<rclcpp::Node> ttsBatchGenerationClientNode;
+    std::shared_ptr<rclcpp_action::Client<text_to_speech_interfaces::action::BatchGeneration>> ttsBatchGenerationClient;
+ 
 }; // class NarrateComponent

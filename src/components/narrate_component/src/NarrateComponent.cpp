@@ -88,6 +88,8 @@ bool NarrateComponent::start(int argc, char*argv[])
                                                                                 std::placeholders::_2));
 
     RCLCPP_DEBUG(m_node->get_logger(), "NarrateComponent::start");
+    ttsBatchGenerationClientNode = rclcpp::Node::make_shared("TTSBatchGenerationClient");
+    //ttsBatchGenerationClient = rclcpp_action::create_client<text_to_speech_interfaces::action::BatchGeneration>(ttsBatchGenerationClientNode);
     return true;
 
 }
@@ -159,7 +161,7 @@ bool NarrateComponent::_sendForBatchSynthesis(const StringSafeVector& texts)
 {
     if (!m_clientSynthesizeTexts)
     {
-        m_clientSynthesizeTexts = rclcpp_action::create_client<ActionSynthesizeTexts>(m_node, "/TextToSpeechComponent/BatchGenerationAction");
+        m_clientSynthesizeTexts = rclcpp_action::create_client<ActionSynthesizeTexts>(ttsBatchGenerationClientNode, "/TextToSpeechComponent/BatchGenerationAction");
     }
 
     if (!m_clientSynthesizeTexts->wait_for_action_server(std::chrono::seconds(5)))
@@ -542,7 +544,7 @@ void NarrateComponent::Stop([[maybe_unused]] const std::shared_ptr<narrate_inter
         auto future_cancel = m_clientSynthesizeTexts->async_cancel_goal(m_goalHandleSynthesizeTexts);
         RCLCPP_INFO(m_node->get_logger(), "before spin_until_future_complete");
 
-        if (rclcpp::spin_until_future_complete(m_node, future_cancel) !=
+        if (rclcpp::spin_until_future_complete(ttsBatchGenerationClientNode, future_cancel) !=
             rclcpp::FutureReturnCode::SUCCESS)
         {
             RCLCPP_ERROR(m_node->get_logger(), "Failed to cancel goal");
