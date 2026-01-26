@@ -622,7 +622,7 @@ bool DialogComponent::CommandManager(const std::string &command, std::shared_ptr
         yInfo() << "[DialogComponent::CommandManager] Next Poi Detected" << __LINE__;
         m_verbalOutputBatchReader.setDialogPhaseActive(false);
         // delete conversation history of all the chatbots
-        m_iPoiChat->refreshConversation();
+        m_iPoiChat->deleteConversation();
         m_iGenericChat->refreshConversation();
         m_iMuseumChat->refreshConversation();
         SetFaceExpression("happy");
@@ -637,7 +637,7 @@ bool DialogComponent::CommandManager(const std::string &command, std::shared_ptr
         m_verbalOutputBatchReader.setDialogPhaseActive(false);
         ResetTourAndFlags();
         // delete conversation history of all the chatbots
-        m_iPoiChat->refreshConversation();
+        m_iPoiChat->deleteConversation();
         m_iGenericChat->refreshConversation();
         m_iMuseumChat->refreshConversation();
         SetFaceExpression("happy");
