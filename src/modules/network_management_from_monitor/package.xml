@@ -11,6 +11,7 @@
   <depend>rclcpp</depend>
   <depend>std_msgs</depend>
   <depend>manage_service_interfaces</depend>
+  <depend>dialog_interfaces</depend>
 
   <export>
     <build_type>ament_cmake</build_type>
