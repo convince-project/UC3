@@ -522,22 +522,44 @@ void NarrateComponent::_result_callback(const rclcpp_action::ClientGoalHandle<Ac
 }
 
 void NarrateComponent::Stop([[maybe_unused]] const std::shared_ptr<narrate_interfaces::srv::Stop::Request> request,
-             std::shared_ptr<narrate_interfaces::srv::Stop::Response>      response)
+             std::shared_ptr<narrate_interfaces::srv::Stop::Response> response)
 {
     RCLCPP_INFO_STREAM(m_node->get_logger(), "NarrateComponent::Stop ");
     m_stopped = true;
+
     if (m_goalHandleSynthesizeTexts) {
+        RCLCPP_INFO(m_node->get_logger(), "Inside the first if");
+
+        // Verifica se il goal handle è attivo
+        auto status = m_goalHandleSynthesizeTexts->get_status();
+        if (status != rclcpp_action::GoalStatus::STATUS_ACCEPTED &&
+            status != rclcpp_action::GoalStatus::STATUS_EXECUTING) {
+            RCLCPP_WARN(m_node->get_logger(), "Goal handle is not active. Cannot cancel.");
+            response->is_ok = false;
+            return;
+        }
+
         auto future_cancel = m_clientSynthesizeTexts->async_cancel_goal(m_goalHandleSynthesizeTexts);
+        RCLCPP_INFO(m_node->get_logger(), "before spin_until_future_complete");
+
         if (rclcpp::spin_until_future_complete(m_node, future_cancel) !=
             rclcpp::FutureReturnCode::SUCCESS)
         {
             RCLCPP_ERROR(m_node->get_logger(), "Failed to cancel goal");
+            response->is_ok = false;
+            return;
         } else {
             RCLCPP_INFO(m_node->get_logger(), "Goal successfully canceled");
         }
+    } else {
+        RCLCPP_WARN(m_node->get_logger(), "No active goal to cancel.");
     }
+
     if (m_threadNarration.joinable()) {
+        RCLCPP_INFO(m_node->get_logger(), "Joining thread");
         m_threadNarration.join();
     }
+
     response->is_ok = true;
 }
+
