@@ -36,6 +36,16 @@
         <workdir />
         <node>bt</node>
     </module>
+
+
+    <module>
+        <name>ros2</name>
+        <parameters>run is_timer_done_skill is_timer_done_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
+
     <module>
         <name>ros2_start_poi_timer_skill</name>
         <parameters>run start_poi_timer_skill start_poi_timer_skill</parameters>
