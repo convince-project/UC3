@@ -13,18 +13,23 @@ project(dialog_component)
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
+
+find_package(YARP REQUIRED COMPONENTS dev os sig REQUIRED)
+include(FetchContent)
+
+FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
+
+FetchContent_MakeAvailable(json)
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(dialog_interfaces REQUIRED)
-find_package(nlohmann_json REQUIRED)
 find_package(text_to_speech_interfaces REQUIRED)
 find_package(scheduler_interfaces REQUIRED)
 find_package(execute_dance_interfaces REQUIRED)
 find_package(cartesian_pointing_interfaces REQUIRED)
 find_package(blackboard_interfaces REQUIRED)
 #find_package(YCM REQUIRED)
-find_package(YARP REQUIRED COMPONENTS dev os sig REQUIRED)
 
 #add_executable(${PROJECT_NAME})
 
@@ -68,13 +73,15 @@ ament_target_dependencies(${PROJECT_NAME}
 "rclcpp"
 "rclcpp_action"
 "dialog_interfaces"
-"nlohmann_json"
 "text_to_speech_interfaces"
 "scheduler_interfaces"
 "execute_dance_interfaces"
 "cartesian_pointing_interfaces"
 "blackboard_interfaces"
 )
+
+target_link_libraries(${PROJECT_NAME} ${YARP_LIBRARIES} nlohmann_json::nlohmann_json)
+
 
 install(TARGETS ${PROJECT_NAME}
         DESTINATION lib/${PROJECT_NAME})

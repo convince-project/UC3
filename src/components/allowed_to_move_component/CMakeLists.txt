@@ -22,7 +22,12 @@ find_package(allowed_to_move_interfaces REQUIRED)
 add_executable(${PROJECT_NAME} )
 
 include(FetchContent)
+ 
+ 
+FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
 
+FetchContent_MakeAvailable(json)
+ 
 
 # find dependencies
 # uncomment the following section in order to fill in
