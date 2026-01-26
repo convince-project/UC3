@@ -180,6 +180,11 @@
       <ROS2Condition name="VisitorsFollowingRobot"
                      interface="ROS2SERVICE"
                      isMonitored="false"/>
+      <Inverter>
+        <ROS2Condition name="IsTimerDone"
+                       interface="ROS2SERVICE"
+                       isMonitored="false"/>
+      </Inverter>
       <ReactiveSequence>
         <ReactiveFallback>
           <ROS2Condition name="IsCheckingForPeople"
