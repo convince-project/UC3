@@ -28,6 +28,8 @@ DialogComponent::DialogComponent() : m_random_gen(m_rand_engine()),
     m_last_received_interaction = "";
 
     m_number_of_predefined_answers = 0;
+
+    m_webStatus = true;
 }
 
 bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
@@ -354,7 +356,6 @@ bool DialogComponent::start(int argc, char *argv[])
 
     m_node = rclcpp::Node::make_shared("DialogComponentNode");
 
-
     nodeGetCurrentPoi = rclcpp::Node::make_shared("DialogComponentNodeGetCurrentPoi");
     clientGetCurrentPoi = nodeGetCurrentPoi->create_client<scheduler_interfaces::srv::GetCurrentPoi>("/SchedulerComponent/GetCurrentPoi");
 
@@ -391,49 +392,90 @@ bool DialogComponent::start(int argc, char *argv[])
     blackBoardResetClientNode = rclcpp::Node::make_shared("DialogComponentBlackBoardResetNode");
     blackBoardResetClient = blackBoardResetClientNode->create_client<blackboard_interfaces::srv::SetAllIntsWithPrefixBlackboard>("/BlackboardComponent/SetAllIntsWithPrefix");
 
+    executeAudioClientNode = rclcpp::Node::make_shared("DialogComponentExecuteAudioNode");
+    executeAudioClient = executeAudioClientNode->create_client<execute_audio_interfaces::srv::ExecuteAudio>("/ExecuteAudioComponent/ExecuteAudio");
+
+    action_cb_group_ =
+        m_node->create_callback_group(rclcpp::CallbackGroupType::Reentrant);
+
+    service_cb_group_ =
+        m_node->create_callback_group(rclcpp::CallbackGroupType::Reentrant);
+
+    action_options = rcl_action_server_get_default_options();
+
     m_manageContextService = m_node->create_service<dialog_interfaces::srv::ManageContext>("/DialogComponent/ManageContext",
                                                                                            std::bind(&DialogComponent::ManageContext,
                                                                                                      this,
                                                                                                      std::placeholders::_1,
-                                                                                                     std::placeholders::_2));
+                                                                                                     std::placeholders::_2),
+                                                                                                     rclcpp::ServicesQoS(),
+                                                                                                   service_cb_group_);
 
     m_ShortenReplyService = m_node->create_service<dialog_interfaces::srv::ShortenReply>("/DialogComponent/ShortenReply",
                                                                                          std::bind(&DialogComponent::ShortenReply,
                                                                                                    this,
                                                                                                    std::placeholders::_1,
-                                                                                                   std::placeholders::_2));
+                                                                                                   std::placeholders::_2),
+                                                                                                   rclcpp::ServicesQoS(),
+                                                                                                   service_cb_group_);
 
     m_AnswerService = m_node->create_service<dialog_interfaces::srv::Answer>("/DialogComponent/Answer",
                                                                              std::bind(&DialogComponent::Answer,
                                                                                        this,
                                                                                        std::placeholders::_1,
-                                                                                       std::placeholders::_2));
+                                                                                       std::placeholders::_2),
+                                                                                       rclcpp::ServicesQoS(),
+                                                                                    service_cb_group_);
 
     m_SetLanguageService = m_node->create_service<dialog_interfaces::srv::SetLanguage>("/DialogComponent/SetLanguage",
                                                                                        std::bind(&DialogComponent::SetLanguage,
                                                                                                  this,
                                                                                                  std::placeholders::_1,
-                                                                                                 std::placeholders::_2));
+                                                                                                 std::placeholders::_2),
+                                                                                                 rclcpp::ServicesQoS(),
+                                                                                                service_cb_group_);
 
     m_InterpretCommandService = m_node->create_service<dialog_interfaces::srv::InterpretCommand>("/DialogComponent/InterpretCommand",
                                                                                                  std::bind(&DialogComponent::InterpretCommand,
                                                                                                            this,
                                                                                                            std::placeholders::_1,
-                                                                                                           std::placeholders::_2));
+                                                                                                           std::placeholders::_2),
+                                                                                                           rclcpp::ServicesQoS(),
+                                                                                                        service_cb_group_);
+
+    m_SetWebStatusService = m_node->create_service<dialog_interfaces::srv::SetWebStatus>("/DialogComponent/SetWebStatus",
+                                                                                       std::bind(&DialogComponent::SetWebStatus,
+                                                                                                    this,
+                                                                                                    std::placeholders::_1,
+                                                                                                    std::placeholders::_2),
+                                                                                                    rclcpp::ServicesQoS(),
+                                                                                                service_cb_group_);
+
+    m_OfflineSpeakService = m_node->create_service<dialog_interfaces::srv::OfflineSpeak>("/DialogComponent/OfflineSpeak",
+                                                                                       std::bind(&DialogComponent::OfflineSpeak,
+                                                                                                    this,
+                                                                                                    std::placeholders::_1,
+                                                                                                    std::placeholders::_2),
+                                                                                                    rclcpp::ServicesQoS(),
+                                                                                                service_cb_group_);
 
     m_WaitForInteractionAction = rclcpp_action::create_server<dialog_interfaces::action::WaitForInteraction>(
         m_node,
         "/DialogComponent/WaitForInteractionAction",
         std::bind(&DialogComponent::handle_goal, this, std::placeholders::_1, std::placeholders::_2),
         std::bind(&DialogComponent::handle_cancel, this, std::placeholders::_1),
-        std::bind(&DialogComponent::handle_accepted, this, std::placeholders::_1));
+        std::bind(&DialogComponent::handle_accepted, this, std::placeholders::_1),
+        action_options,
+        action_cb_group_);
 
     m_SpeakAction = rclcpp_action::create_server<dialog_interfaces::action::Speak>(
         m_node,
         "/DialogComponent/SpeakAction",
         std::bind(&DialogComponent::handle_speak_goal, this, std::placeholders::_1, std::placeholders::_2),
         std::bind(&DialogComponent::handle_speak_cancel, this, std::placeholders::_1),
-        std::bind(&DialogComponent::handle_speak_accepted, this, std::placeholders::_1));
+        std::bind(&DialogComponent::handle_speak_accepted, this, std::placeholders::_1),
+        action_options,
+        action_cb_group_);
 
     if (!UpdatePoILLMPrompt())
     {
@@ -450,7 +492,6 @@ bool DialogComponent::close()
 {
     m_state = IDLE;
     m_speechToTextPort.close();
-    // Should I stop speaking somehow?
 
     rclcpp::shutdown();
     return true;
@@ -581,9 +622,9 @@ bool DialogComponent::CommandManager(const std::string &command, std::shared_ptr
         yInfo() << "[DialogComponent::CommandManager] Next Poi Detected" << __LINE__;
         m_verbalOutputBatchReader.setDialogPhaseActive(false);
         // delete conversation history of all the chatbots
-        m_iPoiChat->deleteConversation();
-        m_iGenericChat->deleteConversation();
-        m_iMuseumChat->deleteConversation();
+        m_iPoiChat->refreshConversation();
+        m_iGenericChat->refreshConversation();
+        m_iMuseumChat->refreshConversation();
         SetFaceExpression("happy");
         
         response->is_ok = true;
@@ -596,9 +637,9 @@ bool DialogComponent::CommandManager(const std::string &command, std::shared_ptr
         m_verbalOutputBatchReader.setDialogPhaseActive(false);
         ResetTourAndFlags();
         // delete conversation history of all the chatbots
-        m_iPoiChat->deleteConversation();
-        m_iGenericChat->deleteConversation();
-        m_iMuseumChat->deleteConversation();
+        m_iPoiChat->refreshConversation();
+        m_iGenericChat->refreshConversation();
+        m_iMuseumChat->refreshConversation();
         SetFaceExpression("happy");
 
         response->is_ok = true;
@@ -1101,6 +1142,24 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitFor
 
         } while (vocalInteraction == nullptr);
 
+        if (!m_webStatus)
+        {
+            yError() << "[DialogComponent::WaitForInteraction] Web status is false, aborting interaction." << __LINE__;
+            result->is_ok = false;
+            goal_handle->abort(result);
+            RCLCPP_INFO(m_node->get_logger(), "Goal aborted due to web status false");
+
+            m_verbalOutputBatchReader.setDialogPhaseActive(false);
+            // delete conversation history of all the chatbots
+            m_iPoiChat->refreshConversation();
+            m_iGenericChat->refreshConversation();
+            m_iMuseumChat->refreshConversation();
+
+            ExecuteAudio("generic-no_internet_cant_speak");
+
+            return;
+        }
+
         if (vocalInteraction)
         {
             questionText = vocalInteraction->get(0).asString();
@@ -1109,10 +1168,8 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitFor
         }
         else
         {
-            yError() << "[DialogComponent::WaitForInteraction] Failed to read transcribed text";
+            yError() << "[DialogComponent::WaitForInteraction] Failed to read transcribed text, or web status is false." << __LINE__;
         }
-
-        yInfo() << "[DialogComponent::WaitForInteraction] Call received" << __LINE__;
     }
     else
     {
@@ -1609,4 +1666,67 @@ void DialogComponent::ResetTourAndFlags() {
         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service SetAllIntsWithPrefix in BlackboardComponent");
         return;
     }
+}
+
+void DialogComponent::SetWebStatus(const std::shared_ptr<dialog_interfaces::srv::SetWebStatus::Request> request,
+                                 std::shared_ptr<dialog_interfaces::srv::SetWebStatus::Response> response)
+{   
+    std::cout << "DialogComponent::SetWebStatus call received with status: " << request->is_web_reachable << std::endl;
+    m_webStatus = request->is_web_reachable;
+    response->is_ok = true;
+}
+
+
+void DialogComponent::OfflineSpeak(const std::shared_ptr<dialog_interfaces::srv::OfflineSpeak::Request> request,
+                      std::shared_ptr<dialog_interfaces::srv::OfflineSpeak::Response> response)
+{   
+
+    RCLCPP_INFO(m_node->get_logger(), "Starting Offline Speak");
+    
+    std::string audioFileName = request->audio_name;
+
+    SetFaceExpression("happy");
+
+    ExecuteAudio(audioFileName);
+
+    yInfo() << "[DialogComponent::SpeakFromAudio] Speak ended";
+
+    response->is_ok = true;
+
+    RCLCPP_INFO(m_node->get_logger(), "OfflineSpeak succeeded");
+}
+
+void DialogComponent::ExecuteAudio(std::string audioName) {
+
+    yInfo() << "[DialogComponent::ExecuteAudio] Sending audio to Yarp Audio Player with name " << audioName;
+
+    // Send Execute Audio Request to audio_player_component
+    auto requestExecuteAudio = std::make_shared<execute_audio_interfaces::srv::ExecuteAudio::Request>();
+    requestExecuteAudio->audio_name = audioName;
+
+    while (!executeAudioClient->wait_for_service(std::chrono::milliseconds(100)))
+    {
+        if (!rclcpp::ok())
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'ExecuteAudio'. Exiting.");
+        }
+    }
+    auto resultExecuteAudio = executeAudioClient->async_send_request(requestExecuteAudio);
+
+    if (rclcpp::spin_until_future_complete(executeAudioClientNode, resultExecuteAudio) == rclcpp::FutureReturnCode::SUCCESS)
+    {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "End Tour in executeAudioComponent succeeded");
+    }
+    else
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service ExecuteAudio in executeAudioComponent");
+        return;
+    }
+
+    yInfo() << "[DialogComponent::ExecuteAudio] Waiting for speak end";
+
+    std::chrono::duration wait_ms = 2000ms;
+    std::this_thread::sleep_for(wait_ms);
+    WaitForSpeakEnd();
+
 }

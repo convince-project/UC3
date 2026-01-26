@@ -17,13 +17,16 @@ int main(int argc, char* argv[])
     }
     std::cout << "DialogComponent started successfully in main" << std::endl;
     // blocking call
-    // rclcpp::executors::MultiThreadedExecutor m_executor;
-    // m_executor.add_node(dialogComponent.getNode());
-    // m_executor.spin();
+    rclcpp::executors::MultiThreadedExecutor m_executor;
+    std::cout << "Spinning DialogComponent in main" << std::endl;
+    m_executor.add_node(dialogComponent.getNode());
+    std::cout << "Added DialogComponent node to executor in main" << std::endl;
+    m_executor.spin();
+    std::cout << "DialogComponent spun successfully in main" << std::endl;
     
-    dialogComponent.spin();
-    std::cout << "DialogComponent spinning in main" << std::endl;
+    // dialogComponent.spin();
+    // std::cout << "DialogComponent spinning in main" << std::endl;
 
-    dialogComponent.close();
+    // dialogComponent.close();
     return 0;
 }

@@ -1,0 +1,4 @@
+string audio_name # the name of the file containing the audio content to be played
+---
+bool is_ok
+string error_msg

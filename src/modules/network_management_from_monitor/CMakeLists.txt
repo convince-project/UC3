@@ -10,6 +10,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(manage_service_interfaces REQUIRED)
+find_package(dialog_interfaces REQUIRED)
 
 add_executable(${PROJECT_NAME} )
 
@@ -17,6 +18,7 @@ ament_target_dependencies(${PROJECT_NAME}
   rclcpp
   std_msgs
   manage_service_interfaces
+  dialog_interfaces
 )
 
 target_link_libraries(${PROJECT_NAME})

@@ -12,6 +12,7 @@
 #include <thread>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
+#include <rclcpp/service.hpp>
 #include <std_msgs/msg/bool.hpp>
 #include <yarp/os/Network.h>
 #include <yarp/os/LogStream.h>
@@ -30,6 +31,8 @@
 #include <dialog_interfaces/srv/answer.hpp>
 #include <dialog_interfaces/srv/set_language.hpp>
 #include <dialog_interfaces/srv/interpret_command.hpp>
+#include <dialog_interfaces/srv/set_web_status.hpp>
+#include <dialog_interfaces/srv/offline_speak.hpp>
 
 // Dialog Component Action Interfaces
 #include <dialog_interfaces/action/wait_for_interaction.hpp>
@@ -63,6 +66,9 @@
 
 // BlackBoard Interfaces
 #include <blackboard_interfaces/srv/set_all_ints_with_prefix_blackboard.hpp>
+
+// ExecuteAudio Interfaces
+#include <execute_audio_interfaces/srv/execute_audio.hpp>
 
 #include "nlohmann/json.hpp"
 #include <random>
@@ -105,6 +111,12 @@ public:
 
     void Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle); // ROS2 action server to speak
 
+    void SetWebStatus(const std::shared_ptr<dialog_interfaces::srv::SetWebStatus::Request> request,
+                      std::shared_ptr<dialog_interfaces::srv::SetWebStatus::Response> response); // Sets the web connectivity status
+
+    void OfflineSpeak(const std::shared_ptr<dialog_interfaces::srv::OfflineSpeak::Request> request,
+                      std::shared_ptr<dialog_interfaces::srv::OfflineSpeak::Response> response);
+
     // void SetMicrophone(const std::shared_ptr<dialog_interfaces::srv::SetMicrophone::Request> request,
     //                    std::shared_ptr<dialog_interfaces::srv::SetMicrophone::Response> response); // Opens/closes the microphone ports
 
@@ -125,6 +137,7 @@ protected:
     void ExecutePointing(std::string pointingTarget); // ROS2 service client to CartesianPointingComponent to point at the given target
     void SetFaceExpression(std::string expressionName); // ROS2 service client to FaceExpressionComponent to set the face expression with the given name
     void ResetTourAndFlags(); // Resets the tour in the SchedulerComponent and in the BlackBoardComponent
+    void ExecuteAudio(std::string audioName); // forwards call to execute_audio_component
 
 private:
     // ChatGPT
@@ -158,6 +171,8 @@ private:
     rclcpp::Service<dialog_interfaces::srv::Answer>::SharedPtr m_AnswerService;
     rclcpp::Service<dialog_interfaces::srv::SetLanguage>::SharedPtr m_SetLanguageService;
     rclcpp::Service<dialog_interfaces::srv::InterpretCommand>::SharedPtr m_InterpretCommandService;
+    rclcpp::Service<dialog_interfaces::srv::SetWebStatus>::SharedPtr m_SetWebStatusService;
+    rclcpp::Service<dialog_interfaces::srv::OfflineSpeak>::SharedPtr m_OfflineSpeakService;
 
     // ROS2 Action Server for WaitForInteraction
     rclcpp_action::Server<dialog_interfaces::action::WaitForInteraction>::SharedPtr m_WaitForInteractionAction;
@@ -262,6 +277,15 @@ private:
 
     std::shared_ptr<rclcpp::Node> blackBoardResetClientNode;
     std::shared_ptr<rclcpp::Client<blackboard_interfaces::srv::SetAllIntsWithPrefixBlackboard>> blackBoardResetClient;
+
+    std::shared_ptr<rclcpp::Node> executeAudioClientNode;
+    std::shared_ptr<rclcpp::Client<execute_audio_interfaces::srv::ExecuteAudio>> executeAudioClient;
+
+    bool m_webStatus;
+
+    rclcpp::CallbackGroup::SharedPtr action_cb_group_;
+    rclcpp::CallbackGroup::SharedPtr service_cb_group_;
+    rcl_action_server_options_t action_options;
 
 };
 

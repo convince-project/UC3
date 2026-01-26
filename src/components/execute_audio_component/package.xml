@@ -1,21 +1,14 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>dialog_component</name>
-  <version>0.0.1</version>
+  <name>execute_audio_component</name>
+  <version>0.0.0</version>
   <description>TODO: Package description</description>
-  <maintainer email="simone.micheletti@iit.it">Simone Micheletti</maintainer>
+  <maintainer email="marta.fincato@iit.it">user1</maintainer>
   <license>TODO: License declaration</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
-  <depend>dialog_interfaces</depend>
-  <depend>scheduler_interfaces</depend>
-  <depend>text_to_speech_interfaces</depend>
-  <depend>execute_dance_interfaces</depend>
-  <depend>cartesian_pointing_interfaces</depend>
-  <depend>blackboard_interfaces</depend>
   <depend>execute_audio_interfaces</depend>
-  <depend>rclcpp_action</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

@@ -44,4 +44,9 @@
         <node>bt</node>
     </module>
 
+    <application>
+        <name>convince_monitoring_sim</name>
+        <prefix></prefix>
+    </application>
+
 </application>

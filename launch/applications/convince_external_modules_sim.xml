@@ -4,7 +4,7 @@
     <module>
         <name>yarprobotinterface</name>
         <parameters>--context speechPipeline --from micAudio.ini --mic_sound_on_stop 0 --mic_start 1 --mic_min_samples 4000 --mic_max_samples 4000</parameters>
-		<workdir>/usr/local/robot/tour-guide-robot/app/speechPipeline/conf/ </workdir>
+		<workdir>/usr/local/src/robot/tour-guide-robot/app/speechPipeline/conf/ </workdir>
         <node>laptop</node>
     </module>
 
@@ -32,7 +32,7 @@
     <module>
         <name>yarprobotinterface</name>
         <parameters>--context vadModule --from audioPlayer.ini</parameters>
-		<workdir>/usr/local/robot/tour-guide-robot/app/speechPipeline/conf/ </workdir>
+		<workdir>/usr/local/src/robot/tour-guide-robot/app/speechPipeline/conf/ </workdir>
         <node>laptop</node>
     </module>
 
@@ -81,6 +81,12 @@
         <name>yarpActionsPlayer</name>
         <parameters> --filename configuration_sim.ini --execute</parameters>
         <workdir>/home/user1/UC3/conf/animations/</workdir>
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>yarpAudioPlayer</name>
+        <workdir>/home/user1/UC3/conf/audio/</workdir>
         <node>bt</node>
     </module>
 
