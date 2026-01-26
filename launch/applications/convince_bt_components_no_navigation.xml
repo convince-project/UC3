@@ -97,6 +97,14 @@
         <node>bt</node>
     </module>
 
+
+    <module>
+        <name>ros2_execute_audio_component</name>
+        <parameters>run execute_audio_component execute_audio_component</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
     <module>
         <name>ros2_cartesian_pointing_component</name>
         <parameters>run cartesian_pointing_component cartesian_pointing_component config/locations.ini</parameters>
