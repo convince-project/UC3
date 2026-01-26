@@ -12,12 +12,15 @@ YARP_LOG_COMPONENT(NARRATE_COMPONENT, "convince.narrate_component.NarrateCompone
 
 const std::string NO_DANCE_PREFIX = "no_dance_XX";
 const double DEFAULT_SPEAK_TIMEOUT = 5.0;
+const std::string DEFAULT_AUDIO_FOLDER = "/home/user1/audio_files/";
 
 bool NarrateComponent::configureYARP(yarp::os::ResourceFinder &rf)
 {
     bool okCheck = rf.check("NARRATECOMPONENT");
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NarrateComponent::ConfigureYARP");
     if (okCheck)
     {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Configuring NarrateComponent YARP ports and parameters");
         yarp::os::Searchable &component_config = rf.findGroup("NARRATECOMPONENT");
         if (component_config.check("local-suffix"))
         {
@@ -40,6 +43,15 @@ bool NarrateComponent::configureYARP(yarp::os::ResourceFinder &rf)
         {
             m_speakTimeout = DEFAULT_SPEAK_TIMEOUT;
         }
+        if (component_config.check("audio-folder"))
+        {
+            m_audioFolder = component_config.find("audio-folder").asString();
+            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Audio folder set to: %s", m_audioFolder.c_str());
+        }
+        else
+        {
+            m_audioFolder = DEFAULT_AUDIO_FOLDER;
+        }
     }
     else
     {
@@ -47,6 +59,7 @@ bool NarrateComponent::configureYARP(yarp::os::ResourceFinder &rf)
         m_playerStatusInPort.open("/NarrateComponent/playerStatus:i");
         m_inSoundPort.open("/NarrateComponent/sound:i");
         m_speakTimeout = DEFAULT_SPEAK_TIMEOUT;
+        m_audioFolder = DEFAULT_AUDIO_FOLDER;
     }
 
     // Set the queue for the VerbalOutputBatchReader
@@ -83,6 +96,11 @@ bool NarrateComponent::start(int argc, char*argv[])
                                                                                 std::placeholders::_2));
     m_stopService = m_node->create_service<narrate_interfaces::srv::Stop>("/NarrateComponent/Stop",
                                                                                 std::bind(&NarrateComponent::Stop,
+                                                                                this,
+                                                                                std::placeholders::_1,
+                                                                                std::placeholders::_2));
+    m_setWebStatusService = m_node->create_service<dialog_interfaces::srv::SetWebStatus>("/NarrateComponent/SetWebStatus",
+                                                                                std::bind(&NarrateComponent::SetWebStatus,
                                                                                 this,
                                                                                 std::placeholders::_1,
                                                                                 std::placeholders::_2));
@@ -294,12 +312,42 @@ void NarrateComponent::_executeDance(std::string danceName, float estimatedSpeec
     }
 }
 
+void NarrateComponent::_executeAudio(std::string audioName, float estimatedSpeechTime)
+{
+    yInfo() << "[NarrateComponent::ExecuteAudio] Starting Execute Audio Service";
+    auto executeAudioClientNode = rclcpp::Node::make_shared("NarrateExecuteAudioComponentExecuteAudioNode");
+
+    auto audioClient = executeAudioClientNode->create_client<execute_audio_interfaces::srv::ExecuteAudio>("/ExecuteAudioComponent/ExecuteAudio");
+    auto audio_request = std::make_shared<execute_audio_interfaces::srv::ExecuteAudio::Request>();
+    audio_request->audio_name = audioName;
+    audio_request->audio_time = estimatedSpeechTime;
+    // Wait for service
+    while (!audioClient->wait_for_service(std::chrono::seconds(1)))
+    {
+        if (!rclcpp::ok())
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'ExecuteAudio'. Exiting.");
+        }
+    }
+    auto audio_result = audioClient->async_send_request(audio_request);
+
+    if (rclcpp::spin_until_future_complete(executeAudioClientNode, audio_result) == rclcpp::FutureReturnCode::SUCCESS)
+    {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Execute Audio succeeded");
+    }
+    else
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service execute_audio");
+        return;
+    }
+}
+
 void NarrateComponent::_speakTask() {
     RCLCPP_INFO_STREAM(m_node->get_logger(), "New Speak Thread ");
     bool danceStarted = false;
     m_inSoundPort.useCallback(m_verbalOutputBatchReader);
     bool connectionError = false;
-    do{ 
+    do{
         // RCLCPP_INFO_STREAM(m_node->get_logger(), "Waiting for speaking to end...");
         connectionError = !_waitForPlayerStatus(false);
         if (connectionError)
@@ -308,7 +356,9 @@ void NarrateComponent::_speakTask() {
             break;
         }
         yarp::sig::Sound sound;
-        if (m_soundQueue.pop(sound))
+        sound.clear();
+        bool condition = m_webConnected ? m_soundQueue.pop(sound) : yarp::sig::file::read_wav_file(sound, m_audioNamesBuffer[m_audioNamesBuffer.size() - m_toSend].c_str());
+        if(condition)
         {
             if(danceStarted)
             {
@@ -343,14 +393,51 @@ void NarrateComponent::_speakTask() {
     }
 
     m_inSoundPort.disableCallback();
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "TEST Speak Thread ended. m_webConnected: " << m_webConnected << " m_tempWebStatus: " << m_tempWebStatus);
+    if(m_tempWebStatus && !m_webConnected)
+    {
+        m_webConnected = m_tempWebStatus;
+        RCLCPP_INFO(m_node->get_logger(), "Web connectivity status set to: %s", m_webConnected ? "connected" : "disconnected");
+    }
     m_speakTask = false;
     m_errorOccurred = connectionError;
     RCLCPP_INFO_STREAM(m_node->get_logger(), "Speak Task ended. Error occurred: " << m_errorOccurred);
 }
 
 void NarrateComponent::_narrateTask(const std::shared_ptr<narrate_interfaces::srv::Narrate::Request> request) {
-        // calls the SetCommand service
 	    RCLCPP_INFO_STREAM(m_node->get_logger(), "New Narrate Thread ");
+        // Getting current poi name from scheduler
+        auto getCurrentPoiNode = rclcpp::Node::make_shared("NarrateComponentGetCurrentPoiNode");
+        std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::GetCurrentPoi>> getCurrentPoiClient =
+        getCurrentPoiNode->create_client<scheduler_interfaces::srv::GetCurrentPoi>("/SchedulerComponent/GetCurrentPoi");
+        auto getCurrentPoiRequest = std::make_shared<scheduler_interfaces::srv::GetCurrentPoi::Request>();
+        while (!getCurrentPoiClient->wait_for_service(std::chrono::seconds(1))) {
+            if (!rclcpp::ok()) {
+                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'getCurrentPoiClient'. Exiting.");
+                m_speakTask = false;
+                m_errorOccurred = true;
+                return;
+            }
+        }
+        auto getCurrentPoiResult = getCurrentPoiClient->async_send_request(getCurrentPoiRequest);
+        auto futureGetCurrentPoiResult = rclcpp::spin_until_future_complete(getCurrentPoiNode, getCurrentPoiResult);
+        if (futureGetCurrentPoiResult != rclcpp::FutureReturnCode::SUCCESS) {
+            RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), "Error in GetCurrentPoi service");
+            m_speakTask = false;
+            m_errorOccurred = true;
+            return;
+        }
+        auto getCurrentPoiResponse = getCurrentPoiResult.get();
+        if (getCurrentPoiResponse->is_ok == false) {
+            RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), "Error in GetCurrentPoi service" << getCurrentPoiResponse->error_msg);
+            m_speakTask = false;
+            m_errorOccurred = true;
+            return;
+        }
+        std::string currentPoiName = getCurrentPoiResponse->poi_name;
+        RCLCPP_INFO_STREAM(m_node->get_logger(), "Current POI is: " << currentPoiName);
+        // - //
+        // Setting the command to the Scheduler
         auto setCommandClientNode = rclcpp::Node::make_shared("NarrateComponentSetCommandNode");
         std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::SetCommand>> setCommandClient =
         setCommandClientNode->create_client<scheduler_interfaces::srv::SetCommand>("/SchedulerComponent/SetCommand");
@@ -379,11 +466,45 @@ void NarrateComponent::_narrateTask(const std::shared_ptr<narrate_interfaces::sr
             m_errorOccurred = true;
             return;
         }
+        // - //
+
+        // Getting current language
+        auto getCurrentLanguageClientNode = rclcpp::Node::make_shared("NarrateComponentGetCurrentLanguageNode");
+        std::shared_ptr<rclcpp::Client<scheduler_interfaces::srv::GetCurrentLanguage>> getCurrentLanguageClient =
+        getCurrentLanguageClientNode->create_client<scheduler_interfaces::srv::GetCurrentLanguage>("/SchedulerComponent/GetCurrentLanguage");
+        auto getCurrentLanguageRequest = std::make_shared<scheduler_interfaces::srv::GetCurrentLanguage::Request>();
+        while (!getCurrentLanguageClient->wait_for_service(std::chrono::seconds(1))) {
+            if (!rclcpp::ok()) {
+                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'getCurrentLanguageClient'. Exiting.");
+                m_speakTask = false;
+                m_errorOccurred = true;
+                return;
+            }
+        }
+        auto getCurrentLanguageResult = getCurrentLanguageClient->async_send_request(getCurrentLanguageRequest);
+        auto futureGetCurrentLanguageResult = rclcpp::spin_until_future_complete(getCurrentLanguageClientNode, getCurrentLanguageResult);
+        if (futureGetCurrentLanguageResult != rclcpp::FutureReturnCode::SUCCESS) {
+            RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), "Error in GetCurrentLanguage service");
+            m_speakTask = false;
+            m_errorOccurred = true;
+            return;
+        }
+        auto getCurrentLanguageResponse = getCurrentLanguageResult.get();
+        if (getCurrentLanguageResponse->is_ok == false) {
+            RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), "Error in GetCurrentLanguage service" << getCurrentLanguageResponse->error_msg);
+            m_speakTask = false;
+            m_errorOccurred = true;
+            return;
+        }
+        std::string currentLanguage = getCurrentLanguageResponse->language;
+        RCLCPP_INFO_STREAM(m_node->get_logger(), "Current language is: " << currentLanguage);
+        // - //
         bool doneWithPoi = false;
 
         int actionCounter = 0;
         m_speakBuffer.clear();
         m_danceBuffer.clear();
+        m_audioNamesBuffer.clear();
 
         do {
             //calls the GetCurrentAction service
@@ -421,6 +542,8 @@ void NarrateComponent::_narrateTask(const std::shared_ptr<narrate_interfaces::sr
                 else {
                     m_danceBuffer.push_back(currentAction->dance);
                 }
+                std::string audioName = m_audioFolder + "/" + currentPoiName + "_" + request->command + std::to_string(actionCounter+1) + ".wav";
+                m_audioNamesBuffer.push_back(audioName);
             }
 
             // calls the UpdateAction service
@@ -521,6 +644,23 @@ void NarrateComponent::_result_callback(const rclcpp_action::ClientGoalHandle<Ac
     } else {
         RCLCPP_ERROR(m_node->get_logger(), "Goal failed");
     }
+}
+
+void NarrateComponent::SetWebStatus(const std::shared_ptr<dialog_interfaces::srv::SetWebStatus::Request> request,
+                      std::shared_ptr<dialog_interfaces::srv::SetWebStatus::Response> response)
+{
+    RCLCPP_INFO_STREAM(m_node->get_logger(), "NarrateComponent::SetWebStatus ");
+    m_tempWebStatus = request->is_web_reachable;
+    if(m_speakTask && !m_webConnected && m_tempWebStatus)
+    {
+        RCLCPP_WARN(m_node->get_logger(), "Web connectivity status change is locked until the current narration ends.");
+    }
+    else
+    {
+        m_webConnected = m_tempWebStatus;
+        RCLCPP_INFO(m_node->get_logger(), "Web connectivity status set to: %s", m_webConnected ? "connected" : "disconnected");
+    }
+    response->is_ok = true;
 }
 
 void NarrateComponent::Stop([[maybe_unused]] const std::shared_ptr<narrate_interfaces::srv::Stop::Request> request,

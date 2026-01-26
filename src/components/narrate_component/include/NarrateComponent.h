@@ -16,6 +16,7 @@
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/Port.h>
 #include <yarp/sig/Sound.h>
+#include <yarp/sig/SoundFileWav.h>
 #include <yarp/sig/AudioPlayerStatus.h>
 
 #include <narrate_interfaces/srv/narrate.hpp>
@@ -23,6 +24,8 @@
 #include <narrate_interfaces/srv/stop.hpp>
 #include <scheduler_interfaces/srv/update_action.hpp>
 #include <scheduler_interfaces/srv/get_current_action.hpp>
+#include <scheduler_interfaces/srv/get_current_poi.hpp>
+#include <scheduler_interfaces/srv/get_current_language.hpp>
 #include <scheduler_interfaces/srv/set_command.hpp>
 #include <text_to_speech_interfaces/srv/speak.hpp>
 #include <text_to_speech_interfaces/srv/is_speaking.hpp>
@@ -30,6 +33,8 @@
 #include <execute_dance_interfaces/srv/execute_dance.hpp>
 #include <execute_dance_interfaces/srv/reset_dance.hpp>
 #include <execute_dance_interfaces/srv/is_dancing.hpp>
+#include <execute_audio_interfaces/srv/execute_audio.hpp>
+#include <dialog_interfaces/srv/set_web_status.hpp>
 #include <cartesian_pointing_interfaces/srv/point_at.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
 
@@ -57,12 +62,15 @@ public:
                 std::shared_ptr<narrate_interfaces::srv::IsDone::Response>      response);
     void Stop([[maybe_unused]] const std::shared_ptr<narrate_interfaces::srv::Stop::Request> request,
                 std::shared_ptr<narrate_interfaces::srv::Stop::Response>      response);
+    void SetWebStatus(const std::shared_ptr<dialog_interfaces::srv::SetWebStatus::Request> request,
+                      std::shared_ptr<dialog_interfaces::srv::SetWebStatus::Response> response); // Sets the web connectivity status
 
 private:
     rclcpp::Node::SharedPtr m_node;
     rclcpp::Service<narrate_interfaces::srv::Narrate>::SharedPtr m_narrateService;
     rclcpp::Service<narrate_interfaces::srv::IsDone>::SharedPtr m_isDoneService;
     rclcpp::Service<narrate_interfaces::srv::Stop>::SharedPtr m_stopService;
+    rclcpp::Service<dialog_interfaces::srv::SetWebStatus>::SharedPtr m_setWebStatusService;
     std::shared_ptr<rclcpp_action::Client<ActionSynthesizeTexts>> m_clientSynthesizeTexts;
     rclcpp_action::ClientGoalHandle<ActionSynthesizeTexts>::SharedPtr m_goalHandleSynthesizeTexts;
 
@@ -102,6 +110,7 @@ private:
     void _narrateTask(const std::shared_ptr<narrate_interfaces::srv::Narrate::Request> request);
     void _executePointing(std::string pointingTarget);
     void _executeDance(std::string danceName, float estimatedSpeechTime);
+    void _executeAudio(std::string audioName, float estimatedSpeechTime);
     void _resetDance();
     // void NarrateTask(const std::shared_ptr<narrate_interfaces::srv::Narrate::Request> request);
     // rclcpp::Client<text_to_speech_interfaces::srv::Speak>::SharedPtr m_speakClient;
@@ -110,6 +119,7 @@ private:
     size_t m_toSend;
     StringSafeVector m_speakBuffer;
     StringSafeVector m_danceBuffer;
+    StringSafeVector m_audioNamesBuffer;
     int32_t m_currentPoi;
     bool m_doneWithPoi{false};
     bool m_isSpeaking{false};
@@ -117,6 +127,9 @@ private:
     bool m_stopped{false};
     bool m_failed{false};
     bool m_errorOccurred{false};
+    bool m_webConnected{true};
+    bool m_tempWebStatus{true};
+    std::string m_audioFolder;
 
     std::thread m_threadNarration;
     SoundSafeQueue m_soundQueue;
