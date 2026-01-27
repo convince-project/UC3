@@ -106,6 +106,11 @@ RUN /bin/bash -c "echo 'updated on 202602041529' && \
     git clone https://github.com/convince-project/UC3.git -b  feat/bt_with_planner && \
     source /opt/ros/jazzy/setup.bash && \
     cd /home/user1/UC3/ && \
+    cd /home/user1/UC3/launch/symbolic_links/ && \
+    python3 create_symlinks.py ../applications/convince_bt_components.xml && \
+    python3 create_symlinks.py ../applications/convince_bt_skills.xml && \
+    python3 create_symlinks.py ../applications/convince_bt_skills_pois.xml && \
+    python3 create_symlinks.py ../applications/convince_bt.xml && \
     colcon build --base-paths src/* --packages-ignore face_expressions_wrapper"
 
 RUN /bin/bash -c "cd ~; git clone --branch fix/UC3 https://github.com/convince-project/congestion-coverage-plan.git;\
@@ -135,7 +140,7 @@ ENV LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/src/robot/yarp/build/lib/
 
 ENV LD_LIBRARY_PATH=/usr/local/Qt-6.8.3/lib/:$LD_LIBRARY_PATH 
 
-ENV CYCLONEDDS_URI=/home/user1/UC3/docker/cyclone_dds_settings.xml
+# ENV CYCLONEDDS_URI=/home/user1/UC3/docker/cyclone_dds_settings.xml
 
 ENV YARP_DATA_DIRS=${YARP_DATA_DIRS}:/home/user1/UC3/launch
 
@@ -143,5 +148,10 @@ ENV TZ=Europe/Rome
 
 ENV LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/home/user1/Groot/build/
 
+ENV  PYTHONPATH=${PYTHONPATH}:/home/user1/congestion-coverage-plan/src
+
+ENV  PYTHONPATH=${PYTHONPATH}:/home/user1/congestion-coverage-plan
+
+ENV  PYTHONPATH=${PYTHONPATH}:/home/user1/UC3/src/components/planner_component/venv-congestion-coverage-plan/lib/python3.12/site-packages
 
 ENV PYTHONPATH=${PYTHONPATH}:/home/user1/UC3/src/components/dialog_component/py_interaction_cliserv/sbert/lib/python3.12/site-packages
