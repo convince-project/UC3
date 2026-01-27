@@ -16,7 +16,7 @@
     <!-- SetCurrentPoiDoneSkill is a client for SetInt from the BlackboardComponent -->
     <state id="idle">
         <transition target="getCurrentPoi" event="CMD_TICK">
-            <send event="SchedulerComponent.GetCurrentPoi.Call"/>
+            <send event="SchedulerComponent.GetCurrentPoiForNavigation.Call"/>
         </transition>
         <!-- Decommentare e correggere -->
         <transition target="halted" event="CMD_HALT"/>
@@ -28,7 +28,7 @@
                 <param name="is_ok" expr="true"/>
             </send>
         </onentry>
-        <transition target="checkCallSucceeded" event="SchedulerComponent.GetCurrentPoi.Return">
+        <transition target="checkCallSucceeded" event="SchedulerComponent.GetCurrentPoiForNavigation.Return">
             <assign location="poi_number" expr="_event.data.poi_number"/>
             <assign location="is_ok" expr="_event.data.is_ok"/>
         </transition>

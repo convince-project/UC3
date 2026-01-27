@@ -1,0 +1,51 @@
+<scxml initial="idle" version="1.0" name="IsPoiDone9SkillCondition" datamodel="ecmascript" xmlns="http://www.w3.org/2005/07/scxml">
+    <datamodel>
+        <data id="m_result" expr="false"/>
+        <data id="m_value" expr="0"/>
+        <data id="m_field_name" expr="&apos;PoiDone9&apos;"/>
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <data id="SKILL_FAILURE" expr="1"/>
+    </datamodel>
+    <state id="idle">
+        <transition target="checkInt" event="CMD_TICK">
+            <send event="BlackboardComponent.GetInt.Call">
+                <param name="field_name" expr="m_field_name"/>
+            </send>
+        </transition>
+    </state>
+    <state id="checkInt">
+        <transition target="evaluate" event="BlackboardComponent.GetInt.Return">
+            <assign location="m_value" expr="_event.data.value"/>
+            <assign location="m_result" expr="_event.data.is_ok"/>
+        </transition>
+    </state>
+    <state id="evaluate">
+        <transition cond="m_result" target="decide"/>
+        <transition target="failure"/>
+    </state>
+    <state id="decide">
+        <onentry>
+            <if cond="m_value == 1">
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_SUCCESS"/>
+                    <param name="is_ok" expr="true"/>
+                </send>
+                <else/>
+                <send event="TICK_RESPONSE">
+                    <param name="status" expr="SKILL_FAILURE"/>
+                    <param name="is_ok" expr="true"/>
+                </send>
+            </if>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="failure">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_FAILURE"/>
+                <param name="is_ok" expr="true"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+</scxml>
