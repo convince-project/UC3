@@ -512,38 +512,43 @@ int TimeComponent::getTimeInterval(const std::string timeStamp1, const std::stri
 
 bool TimeComponent::writeInBB(std::string key, int value)
 {
-    // Build request
+    //calls the SetInt service 
+    
     auto setIntRequest = std::make_shared<blackboard_interfaces::srv::SetIntBlackboard::Request>();
     setIntRequest->field_name = key;
     setIntRequest->value = value;
- 
-    // Create a temporary node + client for this blocking call to avoid executor conflicts
-    auto tmp_node = rclcpp::Node::make_shared(std::string("tmp_setint_node_") + std::to_string(std::rand()));
-    auto tmp_client = tmp_node->create_client<blackboard_interfaces::srv::SetIntBlackboard>("/BlackboardComponent/SetInt");
- 
-    // Wait for service
-    bool wait_succeeded{true};
+    bool wait_succeded{true};
     int retries = 0;
-    while (!tmp_client->wait_for_service(std::chrono::seconds(1))) {
+    while (!setIntClient->wait_for_service(std::chrono::seconds(1))) {
         if (!rclcpp::ok()) {
             RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service '/BlackboardComponent/SetInt'. Exiting.");
+            wait_succeded = false;
             return false;
         }
         retries++;
-        if (retries == SERVICE_TIMEOUT) {
+        if(retries == SERVICE_TIMEOUT) {
             RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timed out while waiting for the service '/BlackboardComponent/SetInt'.");
+            wait_succeded = false;
             return false;
         }
     }
- 
-    // Send request and wait for response using spin_until_future_complete on the temporary node
-    auto setIntResult = tmp_client->async_send_request(setIntRequest);
-    auto ret = rclcpp::spin_until_future_complete(tmp_node, setIntResult, std::chrono::seconds(20));
-    if (ret == rclcpp::FutureReturnCode::SUCCESS) {
-        auto setIntFutureResult = setIntResult.get();
-        return (setIntFutureResult->is_ok == true);
+    if (!wait_succeded) {
+        return false;
     }
- 
+    auto setIntResult = setIntClient->async_send_request(setIntRequest);
+    
+    // Spin until we get the result or timeout
+    auto end_time = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+    while (rclcpp::ok() && std::chrono::steady_clock::now() < end_time) {
+        rclcpp::spin_some(setIntClientNode);
+        if (setIntResult.wait_for(std::chrono::milliseconds(10)) == std::future_status::ready) {
+            auto setIntFutureResult = setIntResult.get();
+            if (setIntFutureResult->is_ok == true) {
+                return true;
+            }
+            return false;
+        }
+    }
     RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Timeout waiting for SetInt service response");
     return false;
 }
