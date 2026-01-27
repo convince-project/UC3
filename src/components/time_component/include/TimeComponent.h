@@ -76,6 +76,7 @@ private:
     std::mutex m_timerMutexTour;
     std::mutex m_timerMutexPoi;
     std::mutex m_mutexSetTime;
+    std::mutex m_writeInBBMutex;
     std::string m_configPath;
     std::string m_closingTime;
     std::string m_openingTime;
