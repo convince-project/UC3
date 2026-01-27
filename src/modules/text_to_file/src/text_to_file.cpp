@@ -149,12 +149,7 @@ int main(int argc, char **argv)
                     }
                     if (!concatenated_text.empty()) {
                         std::string out_wav;
-                        if (actions.size() > 1) {
-                            out_wav = "/home/user1/UC3/conf/audio/female/" + key + "_" + action_name + std::to_string(i) + ".wav";
-                        }
-                        else {
-                            out_wav = "/home/user1/UC3/conf/audio/female/" + key + "_" + action_name + ".wav";
-                        }
+                        out_wav = "/home/user1/UC3/conf/audio/male/" + key + "_" + action_name + std::to_string(i) + ".wav";
                         RCLCPP_INFO(node->get_logger(), "Processing text: %s -> %s", concatenated_text.c_str(), out_wav.c_str());
                         if (!process_text_to_speech(concatenated_text, out_wav, node, action_client)) {
                             RCLCPP_ERROR(node->get_logger(), "Failed to process text: %s", concatenated_text.c_str());
