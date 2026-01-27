@@ -538,7 +538,7 @@ bool TimeComponent::writeInBB(std::string key, int value)
  
     // Send request and wait for response using spin_until_future_complete on the temporary node
     auto setIntResult = tmp_client->async_send_request(setIntRequest);
-    auto ret = rclcpp::spin_until_future_complete(tmp_node, setIntResult, std::chrono::seconds(5));
+    auto ret = rclcpp::spin_until_future_complete(tmp_node, setIntResult, std::chrono::seconds(20));
     if (ret == rclcpp::FutureReturnCode::SUCCESS) {
         auto setIntFutureResult = setIntResult.get();
         return (setIntFutureResult->is_ok == true);
