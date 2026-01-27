@@ -512,8 +512,16 @@ int TimeComponent::getTimeInterval(const std::string timeStamp1, const std::stri
 
 bool TimeComponent::writeInBB(std::string key, int value)
 {
+    RCLCPP_INFO(m_node ? m_node->get_logger() : rclcpp::get_logger("TimeComponent"),
+                "writeInBB is starting for key='%s'", key.c_str());
+    std::unique_lock<std::mutex> guard(m_writeInBBMutex, std::try_to_lock);
+    if (!guard.owns_lock()) {
+        RCLCPP_WARN(m_node ? m_node->get_logger() : rclcpp::get_logger("TimeComponent"),
+                    "writeInBB is already running for key='%s' — skipping", key.c_str());
+        return false;
+    }
+
     //calls the SetInt service 
-    
     auto setIntRequest = std::make_shared<blackboard_interfaces::srv::SetIntBlackboard::Request>();
     setIntRequest->field_name = key;
     setIntRequest->value = value;
