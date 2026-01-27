@@ -100,17 +100,17 @@ RUN echo "export PATH=\$PATH:/home/user1/Groot/build" >> ~/.bashrc
 
 ENV PATH=/usr/local/Qt-6.8.3/bin:$PATH
 
-RUN /bin/bash -c "echo 'updated on 202602041529' && \
+RUN /bin/bash -c "echo 'updated on 202601271322' && \
     source /opt/ros/jazzy/setup.bash && \
     cd /home/user1 && \
     git clone https://github.com/convince-project/UC3.git -b  feat/bt_with_planner && \
     source /opt/ros/jazzy/setup.bash && \
-    cd /home/user1/UC3/ && \
     cd /home/user1/UC3/launch/symbolic_links/ && \
     python3 create_symlinks.py ../applications/convince_bt_components.xml && \
     python3 create_symlinks.py ../applications/convince_bt_skills.xml && \
     python3 create_symlinks.py ../applications/convince_bt_skills_pois.xml && \
     python3 create_symlinks.py ../applications/convince_bt.xml && \
+    cd /home/user1/UC3/ && \
     colcon build --base-paths src/* --packages-ignore face_expressions_wrapper"
 
 RUN /bin/bash -c "cd ~; git clone --branch fix/UC3 https://github.com/convince-project/congestion-coverage-plan.git;\
