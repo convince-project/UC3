@@ -181,18 +181,22 @@ void SchedulerComponent::GetCurrentPoi([[maybe_unused]] const std::shared_ptr<sc
 void SchedulerComponent::GetCurrentPoiForNavigation([[maybe_unused]] const std::shared_ptr<scheduler_interfaces::srv::GetCurrentPoi::Request> request,
              std::shared_ptr<scheduler_interfaces::srv::GetCurrentPoi::Response>      response)
 {
-    
-    response->poi_name = m_tourStorage->GetTour().getPoIsList()[m_currentPoi];
+    int poi_number_for_navigation = 0;
     RCLCPP_INFO(m_node->get_logger(), "SchedulerComponent::GetCurrentPoiForNavigation alternative poi : %s", m_alternative_poi ? "true" : "false");
-    if (m_alternative_poi)
+    response->poi_name = m_tourStorage->GetTour().getPoIsList()[m_currentPoi];
+    if (!m_currentPoi == 0) 
     {
-        response->poi_name = m_tourStorage->GetTour().getPoIsList()[m_currentPoi] + "_2";
+        if (m_alternative_poi)
+        {
+            response->poi_name = m_tourStorage->GetTour().getPoIsList()[m_currentPoi] + "_2";
+        }
+        poi_number_for_navigation = m_currentPoi * 2;
+        if (!m_alternative_poi)
+        {
+            poi_number_for_navigation -= 1;
+        }
     }
-    int poi_number_for_navigation = m_currentPoi * 2;
-    if (!m_alternative_poi)
-    {
-        poi_number_for_navigation -= 1;
-    }
+    
     response->poi_number = poi_number_for_navigation;
     RCLCPP_INFO(m_node->get_logger(), "SchedulerComponent::GetCurrentPoiForNavigation name: %s", response->poi_name.c_str());
     response->is_ok = true;
