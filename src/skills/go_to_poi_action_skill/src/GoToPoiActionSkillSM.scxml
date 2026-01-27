@@ -1,7 +1,7 @@
 <scxml version="1.0" xmlns="http://www.w3.org/2005/07/scxml" datamodel="ecmascript" name="GoToPoiActionSkillAction" initial="idle">
     <datamodel>
         <data id="poi_number" expr="0"/>
-        <data id="poi_name" expr=""/>
+        <data id="poi_name" expr="&apos;&apos;"/>
         <data id="status" expr="0"/>
         <data id="result" expr="true"/>
         <data id="SKILL_SUCCESS" expr="0"/>
@@ -13,7 +13,7 @@
     <!-- GoToPoiActionSkill is a client for GoToPoi action from the Navigation Component -->
     <state id="idle">
         <transition target="getPoi" event="CMD_TICK">
-            <send event="SchedulerComponent.GetCurrentPoi.Call"/>
+            <send event="SchedulerComponent.GetCurrentPoiForNavigation.Call"/>
         </transition>
         <transition target="idle" event="CMD_HALT">
             <send event="HALT_RESPONSE">
@@ -22,7 +22,7 @@
         </transition>
     </state>
     <state id="getPoi">
-        <transition target="goalResponse" event="SchedulerComponent.GetCurrentPoi.Return">
+        <transition target="goalResponse" event="SchedulerComponent.GetCurrentPoiForNavigation.Return">
             <assign location="poi_number" expr="_event.data.poi_number"/>
             <assign location="poi_name" expr="_event.data.poi_name"/>
             <send event="NavigationComponent.GoToPoi.SendGoal">
@@ -36,7 +36,7 @@
         <transition target="getCurrentPoiResponseHalt" event="CMD_HALT"/>
     </state>
     <state id="getCurrentPoiResponseHalt">
-        <transition target="idle" event="SchedulerComponent.GetCurrentPoi.Return">
+        <transition target="idle" event="SchedulerComponent.GetCurrentPoiForNavigation.Return">
             <send event="HALT_RESPONSE">
                 <param name="is_ok" expr="true"/>
             </send>
@@ -67,7 +67,7 @@
         <transition target="wait_result" event="NavigationComponent.GoToPoi.FeedbackReturn">
             <assign location="status" expr="_event.data.status"/>
         </transition>
-        <transition target="goal_done" event="NavigationComponent.GoToPoi.ResultResponse">
+        <transition target="evaluate_result" event="NavigationComponent.GoToPoi.ResultResponse">
             <assign location="result" expr="_event.data.is_ok"/>
         </transition>
         <transition target="idle" event="CMD_HALT">
@@ -75,6 +75,10 @@
                 <param name="is_ok" expr="true"/>
             </send>
         </transition>
+    </state>
+    <state id="evaluate_result">
+        <transition cond="result == true" target="goal_done"/>
+        <transition cond="result == false" target="send_failure"/>
     </state>
     <state id="goal_done">
         <transition target="idle" event="CMD_TICK">
@@ -90,12 +94,16 @@
         </transition>
     </state>
     <state id="send_failure">
-        <onentry>
+        <transition target="idle" event="CMD_TICK">
             <send event="TICK_RESPONSE">
                 <param name="is_ok" expr="true"/>
                 <param name="status" expr="SKILL_FAILURE"/>
             </send>
-        </onentry>
-        <transition target="idle"/>
+        </transition>
+        <transition target="idle" event="CMD_HALT">
+            <send event="HALT_RESPONSE">
+                <param name="is_ok" expr="true"/>
+            </send>
+        </transition>
     </state>
 </scxml>
