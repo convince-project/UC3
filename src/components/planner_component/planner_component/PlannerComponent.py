@@ -8,7 +8,7 @@ from congestion_coverage_plan_museum.mdp.MDP import MDP, State
 from congestion_coverage_plan_museum.map_utils.OccupancyMap import OccupancyMap
 from congestion_coverage_plan_museum.cliff_predictor.PredictorCreator import create_generic_cliff_predictor
 from congestion_coverage_plan_museum.bt_utils.BTWriter import BTWriter
-from planner_component.DetectionsRetriever import DetectionsRetriever
+from congestion_coverage_plan_museum.detections_retriever.DetectionsRetriever import DetectionsRetriever
 from congestion_coverage_plan_museum.solver.LrtdpTvmaAlgorithm import LrtdpTvmaAlgorithm
 from planner_interfaces.action import Plan
 from blackboard_interfaces.srv import GetIntBlackboard

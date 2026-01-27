@@ -74,44 +74,14 @@
   <state id="checkNear">
     <onentry>
     <log expr="'checkNear'"/>
+    <log label="IsAtCurrentPoi.m_poi_name" expr="m_poi_name"/>
     <log label="IsAtCurrentPoi.m_poi_number" expr="m_poi_number"/>
-    <if cond="m_poi_number == 0">
       <ros_service_send_request name="/NavigationComponent/CheckNearToPoi">
-        <field name="poi_name" expr="'madama_start'"/>
+
+        <field name="poi_name" expr="m_poi_name"/>
         <field name="distance" expr="distance"/>
-        <field name="angle"    expr="8"/>
+        <field name="angle" expr="8"/>
       </ros_service_send_request>
-    <elseif cond="m_poi_number == 1"/>
-      <ros_service_send_request name="/NavigationComponent/CheckNearToPoi">
-        <field name="poi_name" expr="'sala_delle_guardie'"/>
-        <field name="distance" expr="distance"/>
-        <field name="angle"    expr="8"/>
-      </ros_service_send_request>
-    <elseif cond="m_poi_number == 2"/>
-      <ros_service_send_request name="/NavigationComponent/CheckNearToPoi">
-        <field name="poi_name" expr="'sala_guidobono'"/>
-        <field name="distance" expr="distance"/>
-        <field name="angle"    expr="8"/>
-      </ros_service_send_request>
-    <elseif cond="m_poi_number == 3"/>
-      <ros_service_send_request name="/NavigationComponent/CheckNearToPoi">
-        <field name="poi_name" expr="'sala_delle_feste'"/>
-        <field name="distance" expr="distance"/>
-        <field name="angle"    expr="360"/>
-      </ros_service_send_request>
-    <elseif cond="m_poi_number == 4"/>
-      <ros_service_send_request name="/NavigationComponent/CheckNearToPoi">
-        <field name="poi_name" expr="'sala_4_stagioni'"/>
-        <field name="distance" expr="distance"/>
-        <field name="angle"    expr="8"/>
-      </ros_service_send_request>
-    <elseif cond="m_poi_number == 5"/>
-      <ros_service_send_request name="/NavigationComponent/CheckNearToPoi">
-        <field name="poi_name" expr="'camera_di_madama_reale'"/>
-        <field name="distance" expr="distance"/>
-        <field name="angle"    expr="8"/>
-      </ros_service_send_request>
-    </if>
     </onentry>
     <ros_service_handle_response name="/NavigationComponent/CheckNearToPoi" target="finalize">
       <assign location="m_is_near" expr="_res.is_near"/>
