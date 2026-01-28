@@ -13,7 +13,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
 #include <rclcpp/service.hpp>
-#include <std_msgs/msg/bool.hpp>
+#include <std_msgs/msg/string.hpp>
 #include <yarp/os/Network.h>
 #include <yarp/os/LogStream.h>
 #include <yarp/os/RFModule.h>
@@ -164,6 +164,9 @@ private:
     yarp::os::BufferedPort<yarp::os::Bottle> m_speechToTextPort;
 
     rclcpp::Node::SharedPtr m_node;
+
+    // ROS2 Topic Publisher
+    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr m_interactionPublisher;
 
     /* ROS2 Services Servers provided by this component */
     rclcpp::Service<dialog_interfaces::srv::ManageContext>::SharedPtr m_manageContextService;

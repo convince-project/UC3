@@ -356,6 +356,8 @@ bool DialogComponent::start(int argc, char *argv[])
 
     m_node = rclcpp::Node::make_shared("DialogComponentNode");
 
+    m_interactionPublisher = m_node->create_publisher<std_msgs::msg::String>("/DialogComponent/interaction", 10);
+
     nodeGetCurrentPoi = rclcpp::Node::make_shared("DialogComponentNodeGetCurrentPoi");
     clientGetCurrentPoi = nodeGetCurrentPoi->create_client<scheduler_interfaces::srv::GetCurrentPoi>("/SchedulerComponent/GetCurrentPoi");
 
@@ -1117,11 +1119,17 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitFor
     {
         yInfo() << "[DialogComponent::WaitForInteraction] Trying to read from speechToText Port" << __LINE__;
 
-        yarp::os::Bottle *vocalInteraction = nullptr;
+        std::unique_ptr<yarp::os::Bottle> vocalInteraction{nullptr};
+
+        auto startTime = std::chrono::steady_clock::now();
 
         do
         {
-            vocalInteraction = m_speechToTextPort.read(false); // Read from the port without blocking
+            yarp::os::Bottle* incoming = m_speechToTextPort.read(false); // Read from the port without blocking
+
+            if (incoming) {
+                vocalInteraction = std::make_unique<yarp::os::Bottle>(*incoming);
+            }
 
             if (goal_handle->is_canceling())
             {
@@ -1140,6 +1148,21 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitFor
             // wait for a while before trying to read again
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
+            auto currentTime = std::chrono::steady_clock::now();
+            auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(currentTime - startTime).count();
+            if (elapsedTime > 60) // Timeout after 60 seconds
+            {
+                RCLCPP_WARN(rclcpp::get_logger("rclcpp"), "Timeout while waiting for interaction, setting interaction to continue the tour.");
+                m_verbalOutputBatchReader.setDialogPhaseActive(false);
+                if (vocalInteraction == nullptr) {
+                    vocalInteraction = std::make_unique<yarp::os::Bottle>();
+                    vocalInteraction->clear();
+                    vocalInteraction->addString("continue the tour");
+                    vocalInteraction->addFloat64(1.0);
+                }
+                break;
+            }
+
         } while (vocalInteraction == nullptr);
 
         if (!m_webStatus)
@@ -1151,7 +1174,7 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitFor
 
             m_verbalOutputBatchReader.setDialogPhaseActive(false);
             // delete conversation history of all the chatbots
-            m_iPoiChat->refreshConversation();
+            m_iPoiChat->deleteConversation();
             m_iGenericChat->refreshConversation();
             m_iMuseumChat->refreshConversation();
 
@@ -1163,7 +1186,7 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitFor
         if (vocalInteraction)
         {
             questionText = vocalInteraction->get(0).asString();
-            confidence = vocalInteraction->get(1).asFloat32();
+            confidence = vocalInteraction->get(1).asFloat64();
             yInfo() << "[DialogComponent::WaitForInteraction] Transcribed text:" << questionText << " with confidence:" << confidence;
         }
         else
@@ -1182,6 +1205,10 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitFor
     if (questionText != "") {
         SetFaceExpression("thinking");
     }
+
+    auto msgInteraction  = std_msgs::msg::String();
+    msgInteraction.data = questionText;
+    m_interactionPublisher->publish(msgInteraction);
 
     m_last_received_interaction = questionText;
     result->is_ok = true;
