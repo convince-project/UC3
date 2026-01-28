@@ -1150,13 +1150,16 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitFor
 
             auto currentTime = std::chrono::steady_clock::now();
             auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(currentTime - startTime).count();
-            if (elapsedTime > 20) // Timeout after 20 seconds
+            if (elapsedTime > 60) // Timeout after 60 seconds
             {
                 RCLCPP_WARN(rclcpp::get_logger("rclcpp"), "Timeout while waiting for interaction, setting interaction to continue the tour.");
-                vocalInteraction = std::make_unique<yarp::os::Bottle>();
-                vocalInteraction->clear();
-                vocalInteraction->addString("continue the tour");
-                vocalInteraction->addFloat64(1.0);
+                m_verbalOutputBatchReader.setDialogPhaseActive(false);
+                if (vocalInteraction == nullptr) {
+                    vocalInteraction = std::make_unique<yarp::os::Bottle>();
+                    vocalInteraction->clear();
+                    vocalInteraction->addString("continue the tour");
+                    vocalInteraction->addFloat64(1.0);
+                }
                 break;
             }
 
