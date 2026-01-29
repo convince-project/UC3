@@ -75,6 +75,6 @@ void TimerCheckForPeopleComponent::StartTimer([[maybe_unused]] const std::shared
 void TimerCheckForPeopleComponent::Timer(std::shared_ptr<std::atomic<bool>> timerActive)
 {
     *timerActive = true;
-    std::this_thread::sleep_for(std::chrono::seconds(30));
+    std::this_thread::sleep_for(std::chrono::seconds(10));
     *timerActive = false;
 }
