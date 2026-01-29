@@ -11,4 +11,3 @@ test_sm/install/
 launch/__pycache__/
 bak/
 sbert
-*.wav
