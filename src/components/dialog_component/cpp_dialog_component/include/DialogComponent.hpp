@@ -143,7 +143,6 @@ protected:
     void ResetTourAndFlags(); // Resets the tour in the SchedulerComponent and in the BlackBoardComponent
     void ExecuteAudio(std::string audioName); // forwards call to execute_audio_component
     void DisableMicrophone();
-    void GetCurrentPoi();
 
 private:
     // ChatGPT
