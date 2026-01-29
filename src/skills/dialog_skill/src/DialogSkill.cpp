@@ -94,6 +94,12 @@ bool DialogSkill::start(int argc, char *argv[])
     nodeManageContext = rclcpp::Node::make_shared(m_name + "SkillManageContext");
     clientManageContext = nodeManageContext->create_client<dialog_interfaces::srv::ManageContext>("/DialogComponent/ManageContext");
 
+    cppDialogResetClientNode = rclcpp::Node::make_shared(m_name + "SkillCppResetState");
+    cppDialogResetClient = cppDialogResetClientNode->create_client<dialog_interfaces::srv::ResetState>("/DialogComponent/CppResetState");
+
+    pyDialogResetClientNode = rclcpp::Node::make_shared(m_name + "SkillPyResetState");
+    pyDialogResetClient = pyDialogResetClientNode->create_client<dialog_interfaces::srv::ResetState>("/DialogComponent/PyResetState");
+
     nodeWaitForInteraction = rclcpp::Node::make_shared(m_name + "SkillNodeWaitForInteraction");
     this->clientWaitForInteraction =
         rclcpp_action::create_client<dialog_interfaces::action::WaitForInteraction>(this->nodeWaitForInteraction, "/DialogComponent/WaitForInteractionAction");
@@ -257,6 +263,68 @@ bool DialogSkill::start(int argc, char *argv[])
                 }
             }
         } });
+
+    m_stateMachine.connectToEvent("DialogComponent.ResetState.Call", [this]([[maybe_unused]] const QScxmlEvent &event)
+                                  {
+        
+        auto request = std::make_shared<dialog_interfaces::srv::ResetState::Request>();
+        bool wait_succeded{true};
+        while (!cppDialogResetClient->wait_for_service(std::chrono::milliseconds(100))) {
+            if (!rclcpp::ok()) {
+                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'ResetState'. Exiting.");
+                wait_succeded = false;
+                m_stateMachine.submitEvent("DialogComponent.ResetState.Return");
+            } 
+        }
+        if (wait_succeded) {
+            // send the request                                                                    
+            auto result = cppDialogResetClient->async_send_request(request);
+            auto futureResult = rclcpp::spin_until_future_complete(cppDialogResetClientNode, result);
+            auto response = result.get();
+            if (futureResult == rclcpp::FutureReturnCode::SUCCESS)
+            {
+                if( response->is_ok ==true) {
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.ResetState.Return first half done");
+                } else {
+                    QVariantMap data;
+                    data.insert("result", "FAILURE");
+                    m_stateMachine.submitEvent("DialogComponent.ResetState.Return", data);
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.ResetState.Return first half failed");
+                }
+            }
+        }
+
+        wait_succeded = true;
+        while (!pyDialogResetClient->wait_for_service(std::chrono::milliseconds(100))) {
+            if (!rclcpp::ok()) {
+                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'ResetState'. Exiting.");
+                wait_succeded = false;
+                m_stateMachine.submitEvent("DialogComponent.ResetState.Return");
+            } 
+        }
+        if (wait_succeded) {
+            // send the request                                                                    
+            auto result = pyDialogResetClient->async_send_request(request);
+            auto futureResult = rclcpp::spin_until_future_complete(pyDialogResetClientNode, result);
+            auto response = result.get();
+            if (futureResult == rclcpp::FutureReturnCode::SUCCESS)
+            {
+                if( response->is_ok ==true) {
+                    QVariantMap data;
+                    data.insert("result", "SUCCESS");
+                    m_stateMachine.submitEvent("DialogComponent.ResetState.Return");
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.ResetState.Return second half done");
+                } else {
+                    QVariantMap data;
+                    data.insert("result", "FAILURE");
+                    m_stateMachine.submitEvent("DialogComponent.ResetState.Return", data);
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.ResetState.Return second half failed");
+                }
+            }
+        }
+    
+    
+    });
 
     m_stateMachine.connectToEvent("DialogComponent.SetLanguage.Call", [this]([[maybe_unused]] const QScxmlEvent &event)
                                   {
@@ -737,7 +805,7 @@ void DialogSkill::tick([[maybe_unused]] const std::shared_ptr<bt_interfaces_dumm
         break;
     case Status::success:
         response->status = message.SKILL_SUCCESS;
-        DisableMicrophone();
+        // DisableMicrophone();
         break;
     }
     RCLCPP_INFO(m_node->get_logger(), "DialogSkill::tickDone");
@@ -801,30 +869,30 @@ void DialogSkill::EnableMicrophone()
     }
 }
 
-void DialogSkill::DisableMicrophone()
-{
-    // Setting the microphone off
-    auto setCommandClientNode = rclcpp::Node::make_shared("DialogComponentSetCommandNode");
+// void DialogSkill::DisableMicrophone()
+// {
+//     // Setting the microphone off
+//     auto setCommandClientNode = rclcpp::Node::make_shared("DialogComponentSetCommandNode");
 
-    auto setMicrophoneClient = setCommandClientNode->create_client<text_to_speech_interfaces::srv::SetMicrophone>("/TextToSpeechComponent/SetMicrophone");
-    auto request = std::make_shared<text_to_speech_interfaces::srv::SetMicrophone::Request>();
-    request->enabled = false;
-    // Wait for service
-    while (!setMicrophoneClient->wait_for_service(std::chrono::seconds(1)))
-    {
-        if (!rclcpp::ok())
-        {
-            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setCommandClient'. Exiting.");
-        }
-    }
-    auto result = setMicrophoneClient->async_send_request(request);
-    // Wait for the result.
-    if (rclcpp::spin_until_future_complete(setCommandClientNode, result) == rclcpp::FutureReturnCode::SUCCESS)
-    {
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Mic disabled");
-    }
-    else
-    {
-        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service set_microphone");
-    }
-}
+//     auto setMicrophoneClient = setCommandClientNode->create_client<text_to_speech_interfaces::srv::SetMicrophone>("/TextToSpeechComponent/SetMicrophone");
+//     auto request = std::make_shared<text_to_speech_interfaces::srv::SetMicrophone::Request>();
+//     request->enabled = false;
+//     // Wait for service
+//     while (!setMicrophoneClient->wait_for_service(std::chrono::seconds(1)))
+//     {
+//         if (!rclcpp::ok())
+//         {
+//             RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setCommandClient'. Exiting.");
+//         }
+//     }
+//     auto result = setMicrophoneClient->async_send_request(request);
+//     // Wait for the result.
+//     if (rclcpp::spin_until_future_complete(setCommandClientNode, result) == rclcpp::FutureReturnCode::SUCCESS)
+//     {
+//         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Mic disabled");
+//     }
+//     else
+//     {
+//         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service set_microphone");
+//     }
+// }

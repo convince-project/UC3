@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from dialog_interfaces.srv import RememberInteractions
+from dialog_interfaces.srv import RememberInteractions, ResetState
 import time
 from sentence_transformers import SentenceTransformer
 import numpy as np
@@ -10,6 +10,7 @@ class InteractionService(Node):
     def __init__(self):
         super().__init__('py_dialog_component')
         self.srv = self.create_service(RememberInteractions, '/DialogComponent/RememberInteractions', self.get_previous_similar_interaction)
+        self.reset_srv = self.create_service(ResetState, "/DialogComponent/PyResetState", self.reset_state)
 
         self.saved_interactions = dict()
         self.saved_embeddings = dict()
@@ -88,6 +89,17 @@ class InteractionService(Node):
             self.get_logger().info(f'Duplicate interaction detected: previous "{self.saved_interactions[request.context][duplicate_index]}" and current "{request.interaction}"')
 
         self.get_logger().info("-" * 50)
+
+        return response
+
+        # return the index of a previous interaction that is similar to the current one if found, otherwise -1
+    def reset_state(self, request, response):
+
+        self.saved_interactions = dict()
+        self.saved_embeddings = dict()
+        self.get_logger().info("New conversation started, resetting saved interactions and embeddings")
+
+        response.is_ok = True
 
         return response
 

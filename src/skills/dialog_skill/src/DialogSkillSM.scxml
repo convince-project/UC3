@@ -68,7 +68,7 @@
   <state id="waitForInteractionResult">
 
     <!-- If we receive FAILURE from the return of waitForInteraction, it means we are handling a lost connection, so we return SUCCESS to allow the behavior tree to continue -->
-    <transition cond="m_result == 'FAILURE'" target="sendSuccess" />
+    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
 
     <transition cond="m_interaction == ''" target="waitForInteraction">
       <send event="DialogComponent.WaitForInteraction.Call">
@@ -128,7 +128,9 @@
     </onentry>
 
     <!-- If the visitor asked to start/continue/end the tour, we send a success response and end the conversation -->
-    <transition cond="m_is_poi_ended == true" target="sendSuccess" />
+    <transition cond="m_is_poi_ended == true" target="resetState">
+      <send event="DialogComponent.ResetState.Call" />
+    </transition>
     <!-- Else, continue the pipeline -->
     <!-- <transition cond="m_is_poi_ended == false" target="setLanguage">
         <send event="DialogComponent.SetLanguage.Call">
@@ -136,8 +138,44 @@
         </send>
     </transition> -->
 
-    <transition cond="m_is_poi_ended == false" target="evaluateDuplicate" />
+    <transition cond="m_is_poi_ended == false" target="checkDuplicate" >
+      <send event="DialogComponent.CheckDuplicate.Call">
+        <param name="interaction" expr="m_interaction"/>
+        <param name="is_beginning_of_conversation" expr="m_is_beginning_of_conversation == 'true'"/>
+        <param name="context" expr="m_context"/>
+      </send>
+    </transition>
 
+  </state>
+
+  <state id="resetState">
+    <onentry>
+
+      <log label="State resetState" expr="m_result"/>
+      <log label="Interaction" expr="m_interaction"/>
+      <log label="Language" expr="m_language"/>
+      <log label="Is beginning of conversation" expr="m_is_beginning_of_conversation"/> 
+      <log label="LLM context" expr="m_context"/>
+      <log label="Is tour ended" expr="m_is_poi_ended"/>
+      <log label="Dance" expr="m_dance"/>
+
+    </onentry>
+
+    <transition event="CMD_TICK" target="resetState">
+      <send event="TICK_RESPONSE">
+        <param name="result" expr='"RUNNING"'/>
+      </send>
+    </transition>
+
+    <transition event="DialogComponent.ResetState.Return" target="resetStateResult">
+      <assign expr="_event.data.result" location="m_result"/>
+    </transition>
+
+  </state>
+
+  <state id="resetStateResult">
+    <transition cond="m_result == 'SUCCESS'" target="sendSuccess" />
+    <transition cond="m_result == 'FAILURE'" target="sendFailure" />
   </state>
 
 
@@ -178,8 +216,6 @@
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
   </state> -->
 
-
-
   <state id="checkDuplicate">
     <onentry>
         <log label="State checkDuplicate" expr="m_result"/>
@@ -191,9 +227,6 @@
         <log label="Dance" expr="m_dance"/>
 
         <assign expr="false" location="m_is_beginning_of_conversation"/>
-        <!-- <script>
-          m_is_beginning_of_conversation = 'false';
-        </script> -->
 
     </onentry>
     <transition event="CMD_HALT" target="stop"/>
@@ -233,13 +266,13 @@
     <!-- <transition cond="m_duplicate_index &gt; 0" target="shortenReply"/>
     <transition cond="m_duplicate_index &lt; 0" target="interpret"/> -->
     <!-- undesirable solution, but I couldn't make the integer comparison work -->
-    <!-- <transition cond="m_duplicate_index != '-1'" target="shortenReply">
+    <transition cond="m_duplicate_index != '-1'" target="shortenReply">
         <send event="DialogComponent.ShortenReply.Call">
           <param name="index" expr="m_duplicate_index"/>
           <param name="context" expr="m_context"/>
           <param name="interaction" expr="m_interaction"/>
         </send>
-    </transition> -->
+    </transition>
     <!-- if the context requires a predefined answer, such as for describing something or explaining the function, go in InterpretCommans State -->
     <transition cond="m_context == 'explainFunction' || m_context == 'explainDescription'" target="interpretCommand">
         <send event="DialogComponent.InterpretCommand.Call">
