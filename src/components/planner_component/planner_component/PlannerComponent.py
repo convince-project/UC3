@@ -13,6 +13,7 @@ from congestion_coverage_plan_museum.solver.LrtdpTvmaAlgorithm import LrtdpTvmaA
 from planner_interfaces.action import Plan
 from blackboard_interfaces.srv import GetIntBlackboard
 import sys
+import traceback
 
 class PlannerComponent(Node):
 
@@ -75,30 +76,46 @@ class PlannerComponent(Node):
 
 
     def compute_current_state(self):
+        self.get_logger().info("Computing current state...")
         pois_done = []
         poidone0 = self.retrieve_blackboard_value('PoiDone0')
+        self.get_logger().info(f"PoiDone0 value: {poidone0}")
         self._visited_vertices = []
         if self._start_time is None:
             self._start_time = self.get_clock().now().seconds_nanoseconds()[0]
+            self.get_logger().info(f"Start time initialized: {self._start_time}")
 
-        if poidone0 == None or poidone0 == 0:
+        if poidone0 is None or poidone0 == 0:
+            self.get_logger().info("No POIs done yet. Returning default state.")
             self._start_time = self.get_clock().now().seconds_nanoseconds()[0]
             self._time_for_occupancies = self.get_clock().now().seconds_nanoseconds()[0]
             return State(self._start_vertex, 
-                                           0,
-                                           set([self._start_vertex]),
-                                           set())
+                        0,
+                        set([self._start_vertex]),
+                        set())
         else:
             for i in range(1, 12):
                 key = f'PoiDone{i}'
-                vertex_done = self.retrieve_blackboard_value(key-1)
+                vertex_done = self.retrieve_blackboard_value(key)
+                self.get_logger().info(f"Blackboard value for {key}: {vertex_done}")
                 if vertex_done is not None and vertex_done == 1:
-                    pois_done.append(int(i/2))
+                    pois_done.append(int(i / 2))
                     self._visited_vertices.append("vertex" + str(i))
-            # last_poi = pois_done[-1]
+            
+            self.get_logger().info(f"Visited vertices: {self._visited_vertices}")
+            self.get_logger().info(f"POIs done: {pois_done}")
+
+            if not self._visited_vertices:
+                self.get_logger().error("Visited vertices list is empty. Returning default state.")
+                return State(self._start_vertex, 
+                            self.get_clock().now().seconds_nanoseconds()[0] - self._start_time,
+                            set([self._start_vertex]),
+                            set())
+
             last_vertex = self._visited_vertices[-1]
+            self.get_logger().info(f"Last visited vertex: {last_vertex}")
             if len(pois_done) > 1:
-                for i in range(0, len(pois_done)-1):
+                for i in range(0, len(pois_done) - 1):
                     self._visited_vertices.append(self._doors[i])
             self._time_for_occupancies = self.get_clock().now().seconds_nanoseconds()[0]
             return State(last_vertex, 
@@ -107,16 +124,38 @@ class PlannerComponent(Node):
                         set(poi_done for poi_done in pois_done))
 
 
-
     def execute_callback(self, goal_handle):
         self.get_logger().info('Executing goal...')
-        # get the current status
         predictor = create_generic_cliff_predictor(self._cliff_map_path)
-        print("detections retriever in planner component:", self._detections_retriever)
+        
+        # Debug delle rilevazioni
+        current_detections = self._detections_retriever.get_detections()
+        current_occupancies = self._detections_retriever.get_current_occupancies()
+
+        # Migliorare la stampa delle current detections
+        formatted_detections = {}
+        for person_id, detections in current_detections.items():
+            formatted_detections[person_id] = [
+                {
+                    "person_id": detection.person_id,
+                    "positionx": detection.positionx,
+                    "positiony": detection.positiony,
+                    "timestamp": detection.timestamp,
+                    "vx": detection.vx,
+                    "vy": detection.vy
+                }
+                for detection in detections
+            ]
+        self.get_logger().info(f"Formatted Current Detections: {formatted_detections}")
+        self.get_logger().info(f"Current occupancies: {current_occupancies}")
 
         occupancy_map = OccupancyMap(cliffPredictor=predictor, detections_retriever=self._detections_retriever)
         occupancy_map.load_occupancy_map(self._occupancy_map_path)
+        self.get_logger().info("Occupancy map loaded successfully.")
+
         current_state = self.compute_current_state()
+        self.get_logger().info(f"Current state: {current_state}")
+
         lrtdp = LrtdpTvmaAlgorithm(occupancy_map=occupancy_map,
                             initial_state_name=current_state,
                             convergence_threshold=self._convergence_threshold,
@@ -128,8 +167,28 @@ class PlannerComponent(Node):
                             explain_time=self._explain_time,
                             heuristic_function="madama_experiments",
                             initial_state=current_state)
-        result = lrtdp.solve()
+
+
+        self.get_logger().info("Calling LRTDP solve...")
+        self.get_logger().info(f"Occupancy map: {occupancy_map}")
+        self.get_logger().info(f"Initial state: {current_state}")
+        self.get_logger().info(f"Convergence threshold: {self._convergence_threshold}")
+        self.get_logger().info(f"Time bound real: {self._time_bound_real}")
+        self.get_logger().info(f"Planner time bound: {self._time_bound_lrtdp}")
+        self.get_logger().info(f"Time for occupancies: {self._time_for_occupancies}")
+        self.get_logger().info(f"Start time: {self._start_time}")
+        self.get_logger().info(f"Wait time: {self._wait_time}")
+        self.get_logger().info(f"Explain time: {self._explain_time}")
+
+        try:
+            result = lrtdp.solve()
+            self.get_logger().info(f"LRTDP solve result: {result}")
+        except Exception as e:
+            self.get_logger().error(f"Error during LRTDP solve: {e}")
+            self.get_logger().error(traceback.format_exc())
+            raise
         policy = lrtdp.policy
+        self.get_logger().info(f"After Policy LRTDP...")
         if result is None:
             self.get_logger().error('No plan found.')
             result = Plan.Result()
@@ -139,16 +198,12 @@ class PlannerComponent(Node):
             except Exception as e:
                 self.get_logger().error(f'Error while aborting goal: {e}')
             return result
-        # iterate over the policy to extract the plan
-        if str(current_state) in policy:
-            action = policy[str(current_state)]
-            print(action)
-            # poi_number = action.replace("vertex", "")
-            # if action in range(1, 11):
-            #     pois_list.append(poi_number)
+
+        self.get_logger().info(f"Policy generated: {policy}")
+
         plan = self.iterate_over_policy(policy, current_state)
-        # plan = [2,4,5,7,9]
-        plan = [int(poi) - 1  for poi in plan]
+        self.get_logger().info(f"Generated plan: {plan}")
+        plan = [int(poi) - 1 for poi in plan]
         self._btWriter.recreateBTWithPlan(plan)
         self._btWriter.write()
         try:
@@ -156,32 +211,26 @@ class PlannerComponent(Node):
         except Exception as e:
             self.get_logger().error(f'Error while succeeding goal: {e}')
 
-        self.get_logger().info(f"sequence_of_pois: {plan}")
+        self.get_logger().info(f"Sequence of POIs: {plan}")
         result = Plan.Result()
         result.is_ok = True
-        # result.sequence = feedback_msg.partial_sequence
         return result
 
 
     def iterate_over_policy(self, policy, current_state):
+        self.get_logger().info("Iterating over policy...")
         state = current_state
-        # plan_sequence = []
         sequence_of_pois = []
-        print(policy[str(state)])
-        print("state:", policy[str(state)][1].to_string())
-        print(len(policy))
         while state is not None:
+            self.get_logger().info(f"Current state: {state}")
             action = policy[str(state)][2] # get action
+            self.get_logger().info(f"Action: {action}")
             if action == "explain":
-                sequence_of_pois.append(policy[str(state)][1].get_vertex().replace("vertex", ""))
-            state = policy[str(state)][3] # get action
-            
-            # next_state = self._mdp.get_next_state(state, action)
-        #     if action == "explain":
-        #         sequence_of_pois.append(policy[str(state)][1].get_vertex())
-        #     state = policy[str(state)][1] # get next state
-        #     self.get_logger().info(f"Next state: {state}")
-        self.get_logger().info(f"sequence_of_pois: {sequence_of_pois}")
+                vertex = policy[str(state)][1].get_vertex().replace("vertex", "")
+                sequence_of_pois.append(vertex)
+                self.get_logger().info(f"Added POI: {vertex}")
+            state = policy[str(state)][3] # get next state
+        self.get_logger().info(f"Final sequence of POIs: {sequence_of_pois}")
         return sequence_of_pois
 
 

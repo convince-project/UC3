@@ -1,7 +1,7 @@
 
 occupancy_map_path: /home/user1/UC3/src/components/planner_component/resource/occupancy_maps_madama3_doors_16_experiments/occupancy_map_madama3_doors_16_experiments_5_levels.yaml
 cliff_map_path: /home/user1/UC3/src/components/planner_component/resource/MoDs/map_madama3_september.csv
-time_bound_lrtdp: 500
+time_bound_lrtdp: 1800
 time_bound_real: 50
 convergence_threshold: 0.1
 wait_time: 20
