@@ -1134,15 +1134,17 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitFor
 
         do
         {
-            auto currentTime = std::chrono::steady_clock::now();
-            auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(currentTime - startTime).count();
-
-            if (elapsedTime > 60) // Timeout after 60 seconds
-            {
-                RCLCPP_WARN(rclcpp::get_logger("rclcpp"), "Timeout while waiting for interaction, setting interaction to continue the tour.");
-                DisableMicrophone();
-                timerExceeded = true;
-                break;
+            
+            if (m_currentPoiName != "madama_start") {
+                auto currentTime = std::chrono::steady_clock::now();
+                auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(currentTime - startTime).count();
+                if (elapsedTime > 60) // Timeout after 60 seconds
+                {
+                    RCLCPP_WARN(rclcpp::get_logger("rclcpp"), "Timeout while waiting for interaction, setting interaction to continue the tour.");
+                    DisableMicrophone();
+                    timerExceeded = true;
+                    break;
+                }
             }
             yarp::os::Bottle* incoming = m_speechToTextPort.read(false); // Read from the port without blocking
 
