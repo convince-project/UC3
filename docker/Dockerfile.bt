@@ -52,7 +52,7 @@ cd build && \
 cmake .. && \
 make"
 
-ENV PATH=${PATH}:/home/user1/model2code/build/bin
+ENV PATH=${PATH}:/home/user1/model2code/build
 
 # clone the repo
 
@@ -85,9 +85,9 @@ ENV PYTHONPATH=${PYTHONPATH}:/home/user1/AS2FM
 
 # install SCAN
 USER user1
-# RUN /bin/bash -c "curl https://sh.rustup.rs -sSf | sh -s -- -y"
+RUN /bin/bash -c "curl https://sh.rustup.rs -sSf | sh -s -- -y"
 
-# RUN /bin/bash -c "source /home/user1/.cargo/env && cargo install --git https://github.com/convince-project/scan"
+RUN /bin/bash -c "source /home/user1/.cargo/env && cargo install --git https://github.com/convince-project/scan"
 
 # RUN /bin/bash -c "sudo apt install gobject-introspection libgirepository1.0-dev -y"
 # RUN /bin/bash -c "cd /home/user1/ && \
@@ -100,7 +100,7 @@ RUN echo "export PATH=\$PATH:/home/user1/Groot/build" >> ~/.bashrc
 
 ENV PATH=/usr/local/Qt-6.8.3/bin:$PATH
 
-RUN /bin/bash -c "echo 'updated on 202601271322' && \
+RUN /bin/bash -c "echo 'updated on 202601271357' && \
     source /opt/ros/jazzy/setup.bash && \
     cd /home/user1 && \
     git clone https://github.com/convince-project/UC3.git -b  feat/bt_with_planner && \
@@ -113,7 +113,8 @@ RUN /bin/bash -c "echo 'updated on 202601271322' && \
     cd /home/user1/UC3/ && \
     colcon build --base-paths src/* --packages-ignore face_expressions_wrapper"
 
-RUN /bin/bash -c "cd ~; git clone --branch fix/UC3 https://github.com/convince-project/congestion-coverage-plan.git;\
+RUN /bin/bash -c "echo 'updated on 202630011120' && \
+        cd ~; git clone --branch fix/UC3 https://github.com/convince-project/congestion-coverage-plan.git;\
         cd /home/user1/UC3/src/components/planner_component;\
         python3 -m venv create venv-congestion-coverage-plan;\
         source ./venv-congestion-coverage-plan/bin/activate;\
@@ -126,6 +127,7 @@ RUN /bin/bash -c "cd ~; git clone --branch fix/UC3 https://github.com/convince-p
 RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
     cd /home/user1/UC3/src/components/dialog_component/py_interaction_cliserv/ && \
     python3 -m venv create sbert && \
+    touch sbert/COLCON_IGNORE && \
     source sbert/bin/activate && \
     pip install --upgrade pip && \
     pip install -r requirements.txt"
