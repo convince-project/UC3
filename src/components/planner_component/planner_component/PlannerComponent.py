@@ -14,6 +14,8 @@ from planner_interfaces.action import Plan
 from blackboard_interfaces.srv import GetIntBlackboard
 import sys
 import traceback
+from threading import Thread, Lock
+from rclpy.executors import Executor, SingleThreadedExecutor
 
 class PlannerComponent(Node):
 
@@ -26,7 +28,8 @@ class PlannerComponent(Node):
                  wait_time, 
                  explain_time,
                  detections_topic="static_tracks", 
-                 bt_file_path="/home/user1/UC3/src/behavior_tree/BT/bt_scheduler.xml"):
+                 bt_file_path="/home/user1/UC3/src/behavior_tree/BT/bt_scheduler.xml",
+                 ):
         super().__init__('planner_component')
         self._action_server = ActionServer(
             self,
@@ -50,8 +53,13 @@ class PlannerComponent(Node):
         self._pois_explained = []
         self._time_for_occupancies = None
         self._btWriter = BTWriter(bt_file_path)
-
-        self.client = self.create_client(GetIntBlackboard, 'BlackboardComponent/GetInt')
+        self._mutex = Lock()
+        # create new node to retrieve blackboard values
+        self._blackboard_node = rclpy.create_node('blackboard_retriever_node_from_planner_component')
+        self._blackboard_executor = SingleThreadedExecutor()
+        self._blackboard_executor.add_node(self._blackboard_node)
+        # Create the client on the blackboard node so it can be spun by the blackboard executor
+        self.client = self._blackboard_node.create_client(GetIntBlackboard, 'BlackboardComponent/GetInt')
         num_retries = 0
         while not self.client.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('Service /BlackboardComponent/GetInt not available, waiting again...')
@@ -59,20 +67,23 @@ class PlannerComponent(Node):
             if num_retries > 10:
                 self.get_logger().error('Service /BlackboardComponent/GetInt not available, exiting...')
                 sys.exit(1)
-
         self._detections_retriever = DetectionsRetriever(self, detections_topic)
 
 
     def retrieve_blackboard_value(self, key):
-        request = GetIntBlackboard.Request()
-        request.field_name = key
-        future = self.client.call_async(request)
-        rclpy.spin_until_future_complete(self, future)
-        if future.result() is not None:
-            return future.result().value
-        else:
-            self.get_logger().error('Service call failed %r' % (future.exception(),))
-            return None
+        # here a mutex is requested internally by the rclpy client
+        with self._mutex:
+            request = GetIntBlackboard.Request()
+            request.field_name = key
+            future = self.client.call_async(request)
+            # Use the separate executor to spin until the future is complete
+            while not future.done():
+                self._blackboard_executor.spin_once(timeout_sec=0.1)
+            if future.result() is not None:
+                return future.result().value
+            else:
+                self.get_logger().error('Service call failed %r' % (future.exception(),))
+                return None
 
 
     def compute_current_state(self):
@@ -303,17 +314,20 @@ def main(args=None):
     print("bt_file_path:", bt_file_path)
     print("detections_topic:", detections_topic)
 
-    planner_component = PlannerComponent(occupancy_map_path=occupancy_map_path,
-                                         cliff_map_path=cliff_map_path,
-                                         time_bound_lrtdp=time_bound_lrtdp,
-                                         time_bound_real=time_bound_real,
-                                         convergence_threshold=convergence_threshold,
-                                         wait_time=wait_time,
-                                         explain_time=explain_time,
-                                         bt_file_path=bt_file_path,
-                                         detections_topic=detections_topic
-                                        )
-    rclpy.spin(planner_component)
+    with Executor() as executor: 
+
+        planner_component = PlannerComponent(occupancy_map_path=occupancy_map_path,
+                                            cliff_map_path=cliff_map_path,
+                                            time_bound_lrtdp=time_bound_lrtdp,
+                                            time_bound_real=time_bound_real,
+                                            convergence_threshold=convergence_threshold,
+                                            wait_time=wait_time,
+                                            explain_time=explain_time,
+                                            bt_file_path=bt_file_path,
+                                            detections_topic=detections_topic,
+                                            
+                                            )
+        rclpy.spin(planner_component)
 
 
 if __name__ == '__main__':
