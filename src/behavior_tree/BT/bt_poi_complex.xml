@@ -105,7 +105,7 @@
   </BehaviorTree>
 
   <BehaviorTree ID="GoToPoi">
-    <ReactiveFallback>
+    <Fallback>
       <ROS2Condition name="IsAtCurrentPoi"
                      interface="ROS2SERVICE"
                      isMonitored="false"/>
@@ -126,7 +126,7 @@
           </Parallel>
         </ReactiveSequence>
       </ReactiveSequence>
-    </ReactiveFallback>
+    </Fallback>
   </BehaviorTree>
 
   <BehaviorTree ID="MuseumHours">
