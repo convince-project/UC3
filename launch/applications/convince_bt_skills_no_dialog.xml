@@ -10,7 +10,7 @@
 
     <module>
          <name>ros2_dummy_condition</name>
-         <parameters>run dummy_condition dummy_condition --skill_name NarratePoi --default_status SUCCESS</parameters>
+         <parameters>run dummy_action dummy_action --skill_name NarratePoi --default_status SUCCESS</parameters>
          <workdir />
          <node>bt</node>
     </module>
@@ -18,7 +18,7 @@
 
     <module>
          <name>ros2_dummy_condition</name>
-         <parameters>run dummy_condition dummy_condition --skill_name Dialog --default_status SUCCESS</parameters>
+         <parameters>run dummy_action dummy_action --skill_name Dialog --default_status SUCCESS</parameters>
          <workdir />
          <node>bt</node>
     </module>
@@ -97,8 +97,8 @@
     </module>
 
     <module>
-         <name>ros2_dummy_condition</name>
-         <parameters>run dummy_condition dummy_condition --skill_name SayBye --default_status SUCCESS</parameters>
+         <name>ros2_dummy_action</name>
+         <parameters>run dummy_action dummy_action --skill_name SayBye --default_status SUCCESS</parameters>
          <workdir />
          <node>bt</node>
     </module>
@@ -211,14 +211,14 @@
 
     <module>
          <name>ros2_dummy_condition</name>
-         <parameters>run dummy_condition dummy_condition --skill_name SayFollowMe --default_status SUCCESS</parameters>
+         <parameters>run dummy_action dummy_action --skill_name SayFollowMe --default_status SUCCESS</parameters>
          <workdir />
          <node>bt</node>
     </module>
 
     <module>
          <name>ros2_dummy_condition</name>
-         <parameters>run dummy_condition dummy_condition --skill_name SayWhileNavigating --default_status SUCCESS</parameters>
+         <parameters>run dummy_action dummy_action --skill_name SayWhileNavigating --default_status SUCCESS</parameters>
          <workdir />
          <node>bt</node>
     </module>
@@ -262,7 +262,7 @@
 
     <module>
          <name>ros2_dummy_condition</name>
-         <parameters>run dummy_condition dummy_condition --skill_name SayPeopleLeft --default_status SUCCESS</parameters>
+         <parameters>run dummy_action dummy_action --skill_name SayPeopleLeft --default_status SUCCESS</parameters>
          <workdir />
          <node>bt</node>
     </module>
@@ -312,7 +312,7 @@
 
     <module>
          <name>ros2_dummy_condition</name>
-         <parameters>run dummy_condition dummy_condition --skill_name VisitorsFollowingRobot --default_status SUCCESS</parameters>
+         <parameters>run dummy_condition dummy_condition --skill_name AlwaysSuccess --default_status SUCCESS</parameters>
          <workdir />
          <node>bt</node>
     </module>
@@ -358,7 +358,7 @@
 
     <module>
         <name>ros2_say_skip_questions_skill</name>
-        <parameters>run dummy_condition dummy_condition --skill_name SaySkipQuestions --default_status SUCCESS</parameters>
+        <parameters>run dummy_action dummy_action --skill_name SaySkipQuestions --default_status SUCCESS</parameters>
         <workdir />
         <node>bt</node>
     </module>
