@@ -95,13 +95,13 @@ private:
 	std::atomic<bool> m_haltResult{false};
 	rclcpp::Service<bt_interfaces_dummy::srv::HaltAction>::SharedPtr m_haltService;
 
-	// std::shared_ptr<rclcpp::Node> nodeWaitForInteraction;
+	std::shared_ptr<rclcpp::Node> nodeWaitForInteraction;
 	std::shared_ptr<rclcpp_action::Client<dialog_interfaces::action::WaitForInteraction>> clientWaitForInteraction;
 
-	// std::shared_ptr<rclcpp::Node> nodeSpeak;
+	std::shared_ptr<rclcpp::Node> nodeSpeak;
 	std::shared_ptr<rclcpp_action::Client<dialog_interfaces::action::Speak>> clientSpeak;
 
-	// std::shared_ptr<rclcpp::Node> nodeSynthesizeText;
+	std::shared_ptr<rclcpp::Node> nodeSynthesizeText;
 	std::shared_ptr<rclcpp_action::Client<text_to_speech_interfaces::action::BatchGeneration>> clientSynthesizeText;
 
 	std::shared_ptr<rclcpp::Node> nodeManageContext;
@@ -130,16 +130,6 @@ private:
 
 	std::shared_ptr<rclcpp::Node> pyDialogResetClientNode;
     std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::ResetState>> pyDialogResetClient;
-
-	// Members
-	std::shared_ptr<rclcpp::executors::SingleThreadedExecutor> m_executor;
-	QThread* m_thread = nullptr;
-
-	std::shared_ptr<rclcpp::executors::SingleThreadedExecutor> m_SpeakExecutor;
-	QThread* m_SpeakThread = nullptr;
-
-	std::shared_ptr<rclcpp::executors::SingleThreadedExecutor> m_SynthesizeTextExecutor;
-	QThread* m_SynthesizeTextThread = nullptr;
 	
 	// save the vector of pairs <text,dance> for the synthesis
 	std::vector<std::pair<std::string, std::string>> m_replies;

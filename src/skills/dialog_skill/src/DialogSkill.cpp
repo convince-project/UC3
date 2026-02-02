@@ -265,15 +265,6 @@ bool DialogSkill::start(int argc, char *argv[])
     setCommandClientNode = rclcpp::Node::make_shared("DialogComponentSetCommandNode");
     setMicrophoneClient = setCommandClientNode->create_client<text_to_speech_interfaces::srv::SetMicrophone>("/TextToSpeechComponent/SetMicrophone");
 
-    // m_executor = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
-    // m_executor->add_node(nodeWaitForInteraction);
-
-    // m_SpeakExecutor = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
-    // m_SpeakExecutor->add_node(nodeSpeak);
-
-    // m_SynthesizeTextExecutor = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
-    // m_SynthesizeTextExecutor->add_node(nodeSynthesizeText);
-
     // WaitForInteraction action fragment of code start
 
     m_stateMachine.connectToEvent("DialogComponent.WaitForInteraction.Call", [this]([[maybe_unused]] const QScxmlEvent &event)
@@ -734,10 +725,6 @@ bool DialogSkill::start(int argc, char *argv[])
         clientSynthesizeText->async_send_goal(goal_msg, send_goal_options);
         std::cout << "Goal sent" << std::endl;
 
-        // std::cout << "Spinning SynthesizeTextExecutor" << std::endl;
-        // m_SynthesizeTextExecutor->spin();
-        // std::cout << "SynthesizeTextExecutor spinned" << std::endl;
-
         });
 
     // Speak action fragment of code start
@@ -788,13 +775,6 @@ bool DialogSkill::start(int argc, char *argv[])
         clientSpeak->async_send_goal(goal_msg, send_goal_options);
         std::cout << "Goal sent" << std::endl;
 
-            // std::cout << "Spinning SpeakExecutor" << std::endl;
-            // m_SpeakExecutor->spin();
-            // std::cout << "SpeakExecutor spinned" << std::endl;
-
-        // std::cout << "Starting SpeakThread" << std::endl;
-        // m_SpeakThread->start();
-        // std::cout << "SpeakThread started" << std::endl;
     });
 
     // Speak action fragment of code end
