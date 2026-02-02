@@ -183,7 +183,7 @@
         <name>ros2_py_dialog_component</name>
         <parameters>run py_interaction_cliserv service</parameters>
         <workdir />
-        <node>bt</node>
+        <node>opt</node>
     </module>
 
 
