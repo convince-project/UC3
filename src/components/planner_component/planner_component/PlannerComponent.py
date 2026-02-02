@@ -16,6 +16,7 @@ import sys
 import traceback
 from threading import Thread, Lock
 from rclpy.executors import Executor, SingleThreadedExecutor
+from std_srvs.srv import Trigger
 
 class PlannerComponent(Node):
 
@@ -67,6 +68,9 @@ class PlannerComponent(Node):
             if num_retries > 10:
                 self.get_logger().error('Service /BlackboardComponent/GetInt not available, exiting...')
                 sys.exit(1)
+
+        # add reset server
+        self._reset_server = self.create_service(Trigger, '/PlannerComponent/ResetPlanner', self.reset_callback)
         self._detections_retriever = DetectionsRetriever(self, detections_topic)
 
 
@@ -105,13 +109,17 @@ class PlannerComponent(Node):
                         set([self._start_vertex]),
                         set())
         else:
-            for i in range(1, 12):
+            for i in range(1, 11):
                 key = f'PoiDone{i}'
                 vertex_done = self.retrieve_blackboard_value(key)
                 self.get_logger().info(f"Blackboard value for {key}: {vertex_done}")
                 if vertex_done is not None and vertex_done == 1:
-                    pois_done.append(int(i / 2))
-                    self._visited_vertices.append("vertex" + str(i))
+                    if vertex_done % 2 == 1:
+                        pois_done.append(int((i + 1) / 2))
+                        self._visited_vertices.append("vertex" + str(i))
+                    else:
+                        pois_done.append(int((i) / 2))
+                        self._visited_vertices.append("vertex" + str(i))
             
             self.get_logger().info(f"Visited vertices: {self._visited_vertices}")
             self.get_logger().info(f"POIs done: {pois_done}")
@@ -134,6 +142,15 @@ class PlannerComponent(Node):
                         set([self._start_vertex] + [vertex for vertex in self._visited_vertices]),
                         set(poi_done for poi_done in pois_done))
 
+
+    def reset(self):
+        self.get_logger().info("Resetting Planner Component...")
+        self._started = False
+        self._start_time = None
+        self._visited_vertices = []
+        self._pois_explained = []
+        self._time_for_occupancies = None
+        
 
     def execute_callback(self, goal_handle):
         self.get_logger().info('Executing goal...')

@@ -14,20 +14,40 @@
   <ros_service_client service_name="/SchedulerComponent/Reset" type="scheduler_interfaces/Reset"/>
   <ros_service_client service_name="/BlackboardComponent/SetAllIntsWithPrefix" type="blackboard_interfaces/SetAllIntsWithPrefixBlackboard"/>
 
+  <ros_service_client service_name="/PlannerComponent/ResetPlanner" type="std_srvs/Trigger"/>
+
   <datamodel>
     <data id="m_name"        type="string" expr="'PoiDone'"/>
     <data id="m_value"       type="int32"  expr="0"/>
     <data id="m_result"      type="bool"   expr="false"/>
+    <data id="m_result_planner"      type="bool"   expr="false"/>
     <data id="SKILL_SUCCESS" type="int8"   expr="0"/>
     <data id="SKILL_FAILURE" type="int8"   expr="1"/>
   </datamodel>
 
   <state id="idle">
-    <ros_service_handle_request name="/ResetTourAndFlagsSkill/tick" target="resetTour">
-      <ros_service_send_request name="/SchedulerComponent/Reset"/>
+    <ros_service_handle_request name="/ResetTourAndFlagsSkill/tick" target="resetPlanner">
+      <ros_service_send_request name="/PlannerComponent/ResetPlanner"/>
     </ros_service_handle_request>
     <ros_service_handle_request name="/ResetTourAndFlagsSkill/halt" target="halted"/>
   </state>
+
+  <state id="resetPlanner">
+    
+    <ros_service_handle_response name="/PlannerComponent/ResetPlanner" target="evaluatePlannerReset">
+      <assign location="m_result_planner" expr="_res.success"/>
+    </ros_service_handle_response>
+
+  </state>
+
+  <state id="evaluatePlannerReset">
+    <transition cond="m_result_planner" target="resetTour">
+      <ros_service_send_request name="/SchedulerComponent/Reset"/>
+    </transition>
+    <transition target="failure"/>
+
+  </state>
+
 
   <state id="resetTour">
     <ros_service_handle_response name="/SchedulerComponent/Reset" target="setFlags">
@@ -56,6 +76,7 @@
     </ros_service_handle_response>
   </state>
 
+
   <state id="decide">
     <onentry>
       <if cond="m_result">
@@ -72,6 +93,9 @@
     </onentry>
     <transition target="idle"/>
   </state>
+
+
+
 
   <state id="failure">
     <onentry>
