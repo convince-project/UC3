@@ -100,6 +100,7 @@ private:
      * @return false if the parsing failed
      */
     bool _formatPointAction(const std::string& actionParam, std::string& target);
+    bool _cancelGoal();
 
     void _goal_response_callback(const GoalHandleSynthesizeTexts::SharedPtr & goal_handle);
     void _feedback_callback([[maybe_unused]] GoalHandleSynthesizeTexts::SharedPtr,
@@ -140,5 +141,5 @@ private:
     yarp::os::BufferedPort<yarp::sig::AudioPlayerStatus> m_playerStatusInPort;
     std::shared_ptr<rclcpp::Node> ttsBatchGenerationClientNode;
     std::shared_ptr<rclcpp_action::Client<text_to_speech_interfaces::action::BatchGeneration>> ttsBatchGenerationClient;
- 
+
 }; // class NarrateComponent

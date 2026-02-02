@@ -63,6 +63,7 @@ bool NarrateComponent::configureYARP(yarp::os::ResourceFinder &rf)
     }
 
     // Set the queue for the VerbalOutputBatchReader
+    m_inSoundPort.useCallback(m_verbalOutputBatchReader);
     m_verbalOutputBatchReader.setSoundQueue(&m_soundQueue);
 
     // Set the ports for the SoundConsumerThread
@@ -345,10 +346,10 @@ void NarrateComponent::_executeAudio(std::string audioName, float estimatedSpeec
 void NarrateComponent::_speakTask() {
     RCLCPP_INFO_STREAM(m_node->get_logger(), "New Speak Thread ");
     bool danceStarted = false;
-    m_inSoundPort.useCallback(m_verbalOutputBatchReader);
+    m_verbalOutputBatchReader.useAudio(m_webConnected);
     bool connectionError = false;
-    do{
-        // RCLCPP_INFO_STREAM(m_node->get_logger(), "Waiting for speaking to end...");
+    while(!m_stopped && (!m_soundQueue.isEmpty() || m_toSend > 0))
+    {
         connectionError = !_waitForPlayerStatus(false);
         if (connectionError)
         {
@@ -383,7 +384,7 @@ void NarrateComponent::_speakTask() {
             m_toSend--;
         }
         yarp::os::Time::delay(0.01);
-    } while(!m_stopped && (!m_soundQueue.isEmpty() || m_toSend > 0));
+    }
 
     RCLCPP_INFO_STREAM(m_node->get_logger(), "Waiting for speaking to end 2...");
     connectionError = connectionError || !_waitForPlayerStatus(false);
@@ -392,7 +393,7 @@ void NarrateComponent::_speakTask() {
         _resetDance();
     }
 
-    m_inSoundPort.disableCallback();
+    m_verbalOutputBatchReader.useAudio(false);
     RCLCPP_INFO_STREAM(m_node->get_logger(), "TEST Speak Thread ended. m_webConnected: " << m_webConnected << " m_tempWebStatus: " << m_tempWebStatus);
     if(m_tempWebStatus && !m_webConnected)
     {
@@ -599,7 +600,15 @@ void NarrateComponent::_narrateTask(const std::shared_ptr<narrate_interfaces::sr
         }
         m_soundQueue.flush();
 
-        _sendForBatchSynthesis(m_speakBuffer);
+        if(m_webConnected)
+        {
+            RCLCPP_INFO_STREAM(m_node->get_logger(), "Sending texts for web synthesis");
+            _sendForBatchSynthesis(m_speakBuffer);
+        }
+        else
+        {
+            RCLCPP_INFO_STREAM(m_node->get_logger(), "Web disconnected, using local audio files for narration");
+        }
         _speakTask();
 }
 
@@ -660,7 +669,38 @@ void NarrateComponent::SetWebStatus(const std::shared_ptr<dialog_interfaces::srv
         m_webConnected = m_tempWebStatus;
         RCLCPP_INFO(m_node->get_logger(), "Web connectivity status set to: %s", m_webConnected ? "connected" : "disconnected");
     }
+    if (m_goalHandleSynthesizeTexts && !m_webConnected) {
+        RCLCPP_INFO(m_node->get_logger(), "Canceling active goal");
+        bool cancelResult = _cancelGoal();
+        if(!cancelResult)
+        {
+            RCLCPP_WARN(m_node->get_logger(), "Failed to cancel active goal upon web disconnection");
+        }
+    }
     response->is_ok = true;
+}
+
+bool NarrateComponent::_cancelGoal()
+{
+    auto status = m_goalHandleSynthesizeTexts->get_status();
+    if (status != rclcpp_action::GoalStatus::STATUS_ACCEPTED &&
+        status != rclcpp_action::GoalStatus::STATUS_EXECUTING) {
+        RCLCPP_WARN(m_node->get_logger(), "Goal handle is not active. Cannot cancel.");
+        return false;
+    }
+
+    auto future_cancel = m_clientSynthesizeTexts->async_cancel_goal(m_goalHandleSynthesizeTexts);
+    RCLCPP_INFO(m_node->get_logger(), "before spin_until_future_complete");
+
+    if (rclcpp::spin_until_future_complete(ttsBatchGenerationClientNode, future_cancel) !=
+        rclcpp::FutureReturnCode::SUCCESS)
+    {
+        RCLCPP_ERROR(m_node->get_logger(), "Failed to cancel goal");
+        return false;
+    }
+
+    RCLCPP_INFO(m_node->get_logger(), "Goal successfully canceled");
+    return true;
 }
 
 void NarrateComponent::Stop([[maybe_unused]] const std::shared_ptr<narrate_interfaces::srv::Stop::Request> request,
@@ -668,33 +708,15 @@ void NarrateComponent::Stop([[maybe_unused]] const std::shared_ptr<narrate_inter
 {
     RCLCPP_INFO_STREAM(m_node->get_logger(), "NarrateComponent::Stop ");
     m_stopped = true;
+    bool cancelResult = false;
 
     if (m_goalHandleSynthesizeTexts) {
-        RCLCPP_INFO(m_node->get_logger(), "Inside the first if");
+        RCLCPP_INFO(m_node->get_logger(), "Canceling active goal");
+        cancelResult = _cancelGoal();
 
-        // Verifica se il goal handle è attivo
-        auto status = m_goalHandleSynthesizeTexts->get_status();
-        if (status != rclcpp_action::GoalStatus::STATUS_ACCEPTED &&
-            status != rclcpp_action::GoalStatus::STATUS_EXECUTING) {
-            RCLCPP_WARN(m_node->get_logger(), "Goal handle is not active. Cannot cancel.");
-            response->is_ok = false;
-            return;
-        }
-
-        auto future_cancel = m_clientSynthesizeTexts->async_cancel_goal(m_goalHandleSynthesizeTexts);
-        RCLCPP_INFO(m_node->get_logger(), "before spin_until_future_complete");
-
-        if (rclcpp::spin_until_future_complete(ttsBatchGenerationClientNode, future_cancel) !=
-            rclcpp::FutureReturnCode::SUCCESS)
-        {
-            RCLCPP_ERROR(m_node->get_logger(), "Failed to cancel goal");
-            response->is_ok = false;
-            return;
-        } else {
-            RCLCPP_INFO(m_node->get_logger(), "Goal successfully canceled");
-        }
     } else {
         RCLCPP_WARN(m_node->get_logger(), "No active goal to cancel.");
+        cancelResult = true;
     }
 
     if (m_threadNarration.joinable()) {
@@ -702,6 +724,7 @@ void NarrateComponent::Stop([[maybe_unused]] const std::shared_ptr<narrate_inter
         m_threadNarration.join();
     }
 
-    response->is_ok = true;
+    m_verbalOutputBatchReader.useAudio(false);
+    response->is_ok = cancelResult;
 }
 

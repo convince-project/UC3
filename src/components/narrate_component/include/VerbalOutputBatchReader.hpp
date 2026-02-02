@@ -33,7 +33,9 @@ public:
 
     void onRead(yarp::sig::Sound &msg) override;
     void setSoundQueue(SoundSafeQueue* soundQueue) { m_audioQueue = soundQueue; }
+    void useAudio(bool useAudio) { m_useAudio = useAudio; }
 
 private:
     SoundSafeQueue* m_audioQueue;
+    bool m_useAudio{true};
 };
