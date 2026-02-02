@@ -20,7 +20,6 @@ DialogComponent::DialogComponent() : m_random_gen(m_rand_engine()),
     // m_exit = false
     m_fallback_repeat_counter = 0;
     m_fallback_threshold = 3;
-    m_state = IDLE;
     m_predefined_answer_index = 0;
     m_predefined_answer = "";
 
@@ -397,6 +396,9 @@ bool DialogComponent::start(int argc, char *argv[])
     executeAudioClientNode = rclcpp::Node::make_shared("DialogComponentExecuteAudioNode");
     executeAudioClient = executeAudioClientNode->create_client<execute_audio_interfaces::srv::ExecuteAudio>("/ExecuteAudioComponent/ExecuteAudio");
 
+    setMicrophoneClientNode = rclcpp::Node::make_shared("DialogComponentSetMicrophoneNode");
+    setMicrophoneClient = setMicrophoneClientNode->create_client<text_to_speech_interfaces::srv::SetMicrophone>("/TextToSpeechComponent/SetMicrophone");
+
     action_cb_group_ =
         m_node->create_callback_group(rclcpp::CallbackGroupType::Reentrant);
 
@@ -461,6 +463,14 @@ bool DialogComponent::start(int argc, char *argv[])
                                                                                                     rclcpp::ServicesQoS(),
                                                                                                 service_cb_group_);
 
+    m_ResetStateService = m_node->create_service<dialog_interfaces::srv::ResetState>("/DialogComponent/CppResetState",
+                                                                                       std::bind(&DialogComponent::ResetState,
+                                                                                                    this,
+                                                                                                    std::placeholders::_1,
+                                                                                                    std::placeholders::_2),
+                                                                                                    rclcpp::ServicesQoS(),
+                                                                                                service_cb_group_);
+
     m_WaitForInteractionAction = rclcpp_action::create_server<dialog_interfaces::action::WaitForInteraction>(
         m_node,
         "/DialogComponent/WaitForInteractionAction",
@@ -492,7 +502,7 @@ bool DialogComponent::start(int argc, char *argv[])
 
 bool DialogComponent::close()
 {
-    m_state = IDLE;
+
     m_speechToTextPort.close();
 
     rclcpp::shutdown();
@@ -518,6 +528,15 @@ void DialogComponent::ManageContext(const std::shared_ptr<dialog_interfaces::srv
     yarp::dev::LLM_Message answer;
     /// TODO: This is an awful solution. Remove it as soon as possible
     // END
+
+    if (!m_webStatus)
+    {
+
+        ExecuteAudio("generic-no_internet_cant_speak");
+        response->is_ok=true;
+        response->is_poi_ended = true;
+        return;
+    }
 
     std::chrono::duration wait_ms = 200ms;
     if (!m_iPoiChat->ask(m_last_received_interaction, answer))
@@ -622,31 +641,18 @@ bool DialogComponent::CommandManager(const std::string &command, std::shared_ptr
     {
 
         yInfo() << "[DialogComponent::CommandManager] Next Poi Detected" << __LINE__;
-        m_verbalOutputBatchReader.setDialogPhaseActive(false);
-        // delete conversation history of all the chatbots
-        m_iPoiChat->deleteConversation();
-        m_iGenericChat->refreshConversation();
-        m_iMuseumChat->refreshConversation();
-        SetFaceExpression("happy");
         
         response->is_ok = true;
         response->is_poi_ended = true;
-        m_state = SUCCESS;
     }
     else if (action == "end_tour") // END TOUR
     {
         yInfo() << "[DialogComponent::CommandManager] End Tour Detected" << __LINE__;
-        m_verbalOutputBatchReader.setDialogPhaseActive(false);
         ResetTourAndFlags();
         // delete conversation history of all the chatbots
-        m_iPoiChat->deleteConversation();
-        m_iGenericChat->refreshConversation();
-        m_iMuseumChat->refreshConversation();
-        SetFaceExpression("happy");
 
         response->is_ok = true;
         response->is_poi_ended = true;
-        m_state = SUCCESS;
     }
     else
     {
@@ -1052,6 +1058,7 @@ void DialogComponent::InterpretCommand(const std::shared_ptr<dialog_interfaces::
                 }
                 }
             }
+            m_replies[request->context].push_back(speakAction);
         }
     }
 }
@@ -1103,15 +1110,17 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitFor
         return;
     }
 
-    if (goal->is_beginning_of_conversation)
-    {
-        m_replies.clear();
-        m_last_received_interaction = "";
-        yDebug() << "[DialogComponent::WaitForInteraction] Beginning of conversation detected, clearing replies" << __LINE__;
-    }
+    // if (goal->is_beginning_of_conversation)
+    // {
+        // m_replies.clear();
+        // m_last_received_interaction = "";
+        // yDebug() << "[DialogComponent::WaitForInteraction] Beginning of conversation detected, clearing replies" << __LINE__;
+    // }
 
     std::string questionText = "";
     float confidence = 0.0;
+
+    bool timerExceeded = false;
 
     // added a keyboard interaction to the goal request for debugging purposes
     // when goal->keyboard_interaction is not empty, it means that the interaction is coming from the keyboard
@@ -1125,6 +1134,18 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitFor
 
         do
         {
+            
+            if (m_currentPoiName != "madama_start") {
+                auto currentTime = std::chrono::steady_clock::now();
+                auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(currentTime - startTime).count();
+                if (elapsedTime > 60) // Timeout after 60 seconds
+                {
+                    RCLCPP_WARN(rclcpp::get_logger("rclcpp"), "Timeout while waiting for interaction, setting interaction to continue the tour.");
+                    DisableMicrophone();
+                    timerExceeded = true;
+                    break;
+                }
+            }
             yarp::os::Bottle* incoming = m_speechToTextPort.read(false); // Read from the port without blocking
 
             if (incoming) {
@@ -1148,39 +1169,17 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitFor
             // wait for a while before trying to read again
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
-            auto currentTime = std::chrono::steady_clock::now();
-            auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(currentTime - startTime).count();
-            if (elapsedTime > 60) // Timeout after 60 seconds
-            {
-                RCLCPP_WARN(rclcpp::get_logger("rclcpp"), "Timeout while waiting for interaction, setting interaction to continue the tour.");
-                m_verbalOutputBatchReader.setDialogPhaseActive(false);
-                if (vocalInteraction == nullptr) {
-                    vocalInteraction = std::make_unique<yarp::os::Bottle>();
-                    vocalInteraction->clear();
-                    vocalInteraction->addString("continue the tour");
-                    vocalInteraction->addFloat64(1.0);
-                }
-                break;
-            }
+        } while (vocalInteraction == nullptr && !timerExceeded);
 
-        } while (vocalInteraction == nullptr);
-
-        if (!m_webStatus)
+        if (!m_webStatus || timerExceeded)
         {
-            yError() << "[DialogComponent::WaitForInteraction] Web status is false, aborting interaction." << __LINE__;
-            result->is_ok = false;
-            goal_handle->abort(result);
-            RCLCPP_INFO(m_node->get_logger(), "Goal aborted due to web status false");
-
-            m_verbalOutputBatchReader.setDialogPhaseActive(false);
-            // delete conversation history of all the chatbots
-            m_iPoiChat->deleteConversation();
-            m_iGenericChat->refreshConversation();
-            m_iMuseumChat->refreshConversation();
-
-            ExecuteAudio("generic-no_internet_cant_speak");
-
-            return;
+            yWarning() << "[DialogComponent::WaitForInteraction] Web status is false and/or timer exceeded." << __LINE__;
+            vocalInteraction = std::make_unique<yarp::os::Bottle>();
+            vocalInteraction->clear();
+            vocalInteraction->addString("continue the tour");
+            vocalInteraction->addFloat64(1.0);
+            // goal_handle->abort(result);
+            // RCLCPP_INFO(m_node->get_logger(), "Goal aborted due to web status false");
         }
 
         if (vocalInteraction)
@@ -1454,7 +1453,6 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
     auto result = std::make_shared<dialog_interfaces::action::Speak::Result>();
 
     std::vector<std::string> dances = goal->dances;
-
     std::vector<std::string> texts = goal->texts;
 
     if (dances.size() != texts.size())
@@ -1504,7 +1502,6 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
         RCLCPP_INFO(m_node->get_logger(), "Verbal Output Not received, get back to navigation position");
         std::string navigation_position = "navigation_position";
         ExecuteDance(navigation_position, 0); // Go back to navigation position
-        m_verbalOutputBatchReader.setDialogPhaseActive(false);
         m_verbalOutputBatchReader.resetQueue();
         result->is_ok = true;
         goal_handle->succeed(result);
@@ -1590,7 +1587,6 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
         RCLCPP_INFO(m_node->get_logger(), "Reply finished, get back to navigation position");
         std::string navigation_position = "navigation_position";
         ExecuteDance(navigation_position, 0); // Go back to navigation position
-        m_verbalOutputBatchReader.setDialogPhaseActive(false);
         m_verbalOutputBatchReader.resetQueue();
     }
 
@@ -1757,3 +1753,52 @@ void DialogComponent::ExecuteAudio(std::string audioName) {
     WaitForSpeakEnd();
 
 }
+
+void DialogComponent::DisableMicrophone()
+{
+    // Setting the microphone off
+    auto request = std::make_shared<text_to_speech_interfaces::srv::SetMicrophone::Request>();
+    request->enabled = false;
+    // Wait for service
+    while (!setMicrophoneClient->wait_for_service(std::chrono::seconds(1)))
+    {
+        if (!rclcpp::ok())
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'setMicrophoneClient'. Exiting.");
+        }
+    }
+    auto result = setMicrophoneClient->async_send_request(request);
+    // Wait for the result.
+    if (rclcpp::spin_until_future_complete(setMicrophoneClientNode, result) == rclcpp::FutureReturnCode::SUCCESS)
+    {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Mic disabled");
+    }
+    else
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service set_microphone");
+    }
+}
+
+
+void DialogComponent::ResetState(const std::shared_ptr<dialog_interfaces::srv::ResetState::Request> request,
+                      std::shared_ptr<dialog_interfaces::srv::ResetState::Response> response) {
+
+
+    yInfo() << "[DialogComponent::ResetState] Resetting the state of interactions and llms" << __LINE__;
+
+    // delete conversation history of all the chatbots
+    m_iPoiChat->deleteConversation();
+    m_iGenericChat->refreshConversation();
+    m_iMuseumChat->refreshConversation();
+
+    m_replies.clear();
+    m_last_received_interaction = "";
+    
+    m_verbalOutputBatchReader.setDialogPhaseActive(false);
+    m_verbalOutputBatchReader.resetQueue();
+
+    SetFaceExpression("happy");
+
+    response->is_ok = true;
+}
+

@@ -86,7 +86,7 @@
 
     <module>
         <name>yarpAudioPlayer</name>
-        <workdir>/home/user1/UC3/conf/audio/</workdir>
+        <workdir>/home/user1/UC3/conf/</workdir>
         <node>bt</node>
     </module>
 

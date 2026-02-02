@@ -24,6 +24,7 @@
 #include <dialog_interfaces/srv/answer.hpp>
 #include <dialog_interfaces/srv/set_language.hpp>
 #include <dialog_interfaces/srv/interpret_command.hpp>
+#include <dialog_interfaces/srv/reset_state.hpp>
 
 #include <dialog_interfaces/action/speak.hpp>
 #include <dialog_interfaces/action/wait_for_interaction.hpp>
@@ -62,8 +63,6 @@ public:
 
 private:
 	void EnableMicrophone();
-    void DisableMicrophone();
-
 
 	std::shared_ptr<std::thread> m_threadSpin;
 	std::shared_ptr<rclcpp::Node> m_node;
@@ -105,9 +104,12 @@ private:
 
 	std::shared_ptr<rclcpp::Node> setCommandClientNode;
     std::shared_ptr<rclcpp::Client<text_to_speech_interfaces::srv::SetMicrophone>> setMicrophoneClient;
-        
 
-        
+	std::shared_ptr<rclcpp::Node> cppDialogResetClientNode;
+    std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::ResetState>> cppDialogResetClient;
+
+	std::shared_ptr<rclcpp::Node> pyDialogResetClientNode;
+    std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::ResetState>> pyDialogResetClient;
 
 	// Members
 	std::shared_ptr<rclcpp::executors::SingleThreadedExecutor> m_executor;
@@ -123,7 +125,6 @@ private:
 	std::vector<std::pair<std::string, std::string>> m_replies;
 
 	std::string m_LlmGeneratedDance;
-
 
 
 };

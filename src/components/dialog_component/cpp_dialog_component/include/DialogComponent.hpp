@@ -33,6 +33,7 @@
 #include <dialog_interfaces/srv/interpret_command.hpp>
 #include <dialog_interfaces/srv/set_web_status.hpp>
 #include <dialog_interfaces/srv/offline_speak.hpp>
+#include <dialog_interfaces/srv/reset_state.hpp>
 
 // Dialog Component Action Interfaces
 #include <dialog_interfaces/action/wait_for_interaction.hpp>
@@ -117,8 +118,11 @@ public:
     void OfflineSpeak(const std::shared_ptr<dialog_interfaces::srv::OfflineSpeak::Request> request,
                       std::shared_ptr<dialog_interfaces::srv::OfflineSpeak::Response> response);
 
+    void ResetState(const std::shared_ptr<dialog_interfaces::srv::ResetState::Request> request,
+                      std::shared_ptr<dialog_interfaces::srv::ResetState::Response> response);
+
     // void SetMicrophone(const std::shared_ptr<dialog_interfaces::srv::SetMicrophone::Request> request,
-    //                    std::shared_ptr<dialog_interfaces::srv::SetMicrophone::Response> response); // Opens/closes the microphone ports
+                    //    std::shared_ptr<dialog_interfaces::srv::SetMicrophone::Response> response); // Opens/closes the microphone ports
 
     // void IsSpeaking(const std::shared_ptr<dialog_interfaces::srv::IsSpeaking::Request> request,
     //                 std::shared_ptr<dialog_interfaces::srv::IsSpeaking::Response> response); // Returns true if the DialogComponent is currently sending data to the speaker ports
@@ -138,6 +142,7 @@ protected:
     void SetFaceExpression(std::string expressionName); // ROS2 service client to FaceExpressionComponent to set the face expression with the given name
     void ResetTourAndFlags(); // Resets the tour in the SchedulerComponent and in the BlackBoardComponent
     void ExecuteAudio(std::string audioName); // forwards call to execute_audio_component
+    void DisableMicrophone();
 
 private:
     // ChatGPT
@@ -176,6 +181,7 @@ private:
     rclcpp::Service<dialog_interfaces::srv::InterpretCommand>::SharedPtr m_InterpretCommandService;
     rclcpp::Service<dialog_interfaces::srv::SetWebStatus>::SharedPtr m_SetWebStatusService;
     rclcpp::Service<dialog_interfaces::srv::OfflineSpeak>::SharedPtr m_OfflineSpeakService;
+    rclcpp::Service<dialog_interfaces::srv::ResetState>::SharedPtr m_ResetStateService;
 
     // ROS2 Action Server for WaitForInteraction
     rclcpp_action::Server<dialog_interfaces::action::WaitForInteraction>::SharedPtr m_WaitForInteractionAction;
@@ -214,17 +220,6 @@ private:
     int m_fallback_threshold;
     int m_fallback_repeat_counter;
     std::string m_last_valid_speak;
-
-    /* Internal State Machine*/
-    enum State
-    {
-        IDLE = 0,
-        RUNNING = 1,
-        SUCCESS = 2,
-        FAILURE = 3
-    };
-
-    State m_state;
 
     // save the last received interaction, may be omitted
     std::string m_last_received_interaction;
@@ -283,6 +278,9 @@ private:
 
     std::shared_ptr<rclcpp::Node> executeAudioClientNode;
     std::shared_ptr<rclcpp::Client<execute_audio_interfaces::srv::ExecuteAudio>> executeAudioClient;
+
+    std::shared_ptr<rclcpp::Node> setMicrophoneClientNode;
+    std::shared_ptr<rclcpp::Client<text_to_speech_interfaces::srv::SetMicrophone>> setMicrophoneClient;
 
     bool m_webStatus;
 
