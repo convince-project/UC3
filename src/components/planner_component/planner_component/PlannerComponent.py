@@ -70,7 +70,7 @@ class PlannerComponent(Node):
                 sys.exit(1)
 
         # add reset server
-        self._reset_server = self.create_service(Trigger, '/PlannerComponent/ResetPlanner', self.reset_callback)
+        self._reset_server = self.create_service(Trigger, '/PlannerComponent/ResetPlanner', self.reset)
         self._detections_retriever = DetectionsRetriever(self, detections_topic)
 
 
@@ -109,12 +109,13 @@ class PlannerComponent(Node):
                         set([self._start_vertex]),
                         set())
         else:
+            # search for all the pois done to compute the current state
             for i in range(1, 11):
                 key = f'PoiDone{i}'
                 vertex_done = self.retrieve_blackboard_value(key)
                 self.get_logger().info(f"Blackboard value for {key}: {vertex_done}")
                 if vertex_done is not None and vertex_done == 1:
-                    if vertex_done % 2 == 1:
+                    if i % 2 == 1:
                         pois_done.append(int((i + 1) / 2))
                         self._visited_vertices.append("vertex" + str(i))
                     else:
@@ -125,6 +126,7 @@ class PlannerComponent(Node):
             self.get_logger().info(f"POIs done: {pois_done}")
 
             if not self._visited_vertices:
+                self.reset() # reset the planner if no vertices have been visited, to avoid inconsistencies
                 self.get_logger().error("Visited vertices list is empty. Returning default state.")
                 return State(self._start_vertex, 
                             self.get_clock().now().seconds_nanoseconds()[0] - self._start_time,
