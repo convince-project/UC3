@@ -350,6 +350,11 @@ void NarrateComponent::_speakTask() {
     bool connectionError = false;
     while(!m_stopped && (!m_soundQueue.isEmpty() || m_toSend > 0))
     {
+        if(m_toSend == 0 && !m_soundQueue.isEmpty())
+        {
+            RCLCPP_WARN_STREAM(m_node->get_logger(), "Sound queue is not empty but m_toSend is 0. This should not happen.");
+            break;
+        }
         connectionError = !_waitForPlayerStatus(false);
         if (connectionError)
         {
