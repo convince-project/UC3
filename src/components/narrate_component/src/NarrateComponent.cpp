@@ -12,7 +12,7 @@ YARP_LOG_COMPONENT(NARRATE_COMPONENT, "convince.narrate_component.NarrateCompone
 
 const std::string NO_DANCE_PREFIX = "no_dance_XX";
 const double DEFAULT_SPEAK_TIMEOUT = 5.0;
-const std::string DEFAULT_AUDIO_FOLDER = "/home/user1/audio_files/";
+const std::string DEFAULT_AUDIO_FOLDER = "/home/user1/UC3/conf/audio/male";
 
 bool NarrateComponent::configureYARP(yarp::os::ResourceFinder &rf)
 {
