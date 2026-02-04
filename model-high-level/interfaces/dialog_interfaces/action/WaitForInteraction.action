@@ -3,5 +3,6 @@ bool is_beginning_of_conversation # if True, clear the list of questions to rese
 ---
 bool is_ok
 string interaction
+float32 confidence
 ---
 string status

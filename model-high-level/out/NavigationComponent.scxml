@@ -1,0 +1,130 @@
+<scxml name="NavigationComponent" version="1.0" model_src="" initial="idle" xmlns="http://www.w3.org/2005/07/scxml">
+    <datamodel>
+        <!-- TYPE GOAL_REACHED:int32 -->
+        <data id="GOAL_REACHED" expr="4"/>
+        <!-- TYPE ABORTED:int32 -->
+        <data id="ABORTED" expr="5"/>
+        <!-- TYPE MOVING:int32 -->
+        <data id="MOVING" expr="2"/>
+        <!-- TYPE IDLE:int32 -->
+        <data id="IDLE" expr="0"/>
+        <!-- TYPE goal_name:string -->
+        <data id="goal_name" expr="''"/>
+        <!-- TYPE goal_id:int32 -->
+        <data id="goal_id" expr="0"/>
+        <!-- TYPE is_near:bool -->
+        <data id="is_near" expr="false"/>
+        <!-- TYPE status:int32 -->
+        <data id="status" expr="0"/>
+        <!-- TYPE __RAND__:float64 -->
+        <data id="__RAND__" expr="0.0"/>
+    </datamodel>
+    <state id="idle">
+        <transition event="srv_NavigationComponent__GetNavigationStatus_request" target="HandleGetNavigationStatus">
+            <send event="srv_NavigationComponent__GetNavigationStatus_response" target="srv_handler_NavigationComponent__GetNavigationStatus">
+                <param name="ros_fields__is_ok" expr="true"/>
+                <param name="ros_fields__current_goal" expr="goal_name"/>
+                <param name="ros_fields__status" expr="status"/>
+                <param name="ros_fields__error_msg" expr="''"/>
+            </send>
+        </transition>
+        <transition event="srv_NavigationComponent__StopNavigation_request" target="HandleStopNavigation"/>
+        <transition event="srv_NavigationComponent__CheckNearToPoi_request" target="HandleCheckNearToPoi">
+            <send event="srv_NavigationComponent__CheckNearToPoi_response" target="srv_handler_NavigationComponent__CheckNearToPoi">
+                <param name="ros_fields__poi_name" expr="goal_name"/>
+                <param name="ros_fields__is_near" expr="is_near"/>
+                <param name="ros_fields__is_ok" expr="true"/>
+                <param name="ros_fields__error_msg" expr="''"/>
+            </send>
+        </transition>
+        <transition event="srv_NavigationComponent__TurnBack_request" target="HandleTurnBack"/>
+        <transition event="action_NavigationComponent__GoToPoi_goal_handle" target="HandleActionGoal">
+            <assign location="status" expr="MOVING"/>
+            <assign location="goal_name" expr="_event.data.ros_fields__poi_name"/>
+            <send event="action_NavigationComponent__GoToPoi_goal_accepted" target="action_handler_NavigationComponent__GoToPoi">
+                <param name="goal_id" expr="goal_id"/>
+            </send>
+        </transition>
+    </state>
+    <state id="HandleStopNavigation">
+        <transition target="NavigationAborted"/>
+    </state>
+    <state id="NavigationAborted">
+        <onentry>
+            <assign location="goal_name" expr="''"/>
+            <assign location="goal_id" expr="0"/>
+            <assign location="status" expr="ABORTED"/>
+            <assign location="is_near" expr="false"/>
+            <send event="srv_NavigationComponent__StopNavigation_response" target="srv_handler_NavigationComponent__StopNavigation">
+                <param name="ros_fields__is_ok" expr="true"/>
+                <param name="ros_fields__error_msg" expr="''"/>
+            </send>
+        </onentry>
+        <transition event="srv_NavigationComponent__GetNavigationStatus_request" target="HandleGetNavigationStatus">
+            <send event="srv_NavigationComponent__GetNavigationStatus_response" target="srv_handler_NavigationComponent__GetNavigationStatus">
+                <param name="ros_fields__is_ok" expr="true"/>
+                <param name="ros_fields__current_goal" expr="goal_name"/>
+                <param name="ros_fields__status" expr="status"/>
+                <param name="ros_fields__error_msg" expr="''"/>
+            </send>
+        </transition>
+        <transition event="srv_NavigationComponent__CheckNearToPoi_request" target="HandleCheckNearToPoi">
+            <send event="srv_NavigationComponent__CheckNearToPoi_response" target="srv_handler_NavigationComponent__CheckNearToPoi">
+                <param name="ros_fields__poi_name" expr="goal_name"/>
+                <param name="ros_fields__is_near" expr="is_near"/>
+                <param name="ros_fields__is_ok" expr="true"/>
+                <param name="ros_fields__error_msg" expr="''"/>
+            </send>
+        </transition>
+    </state>
+    <state id="HandleActionGoal">
+        <onentry>
+            <assign location="__RAND__" expr="Math.random()"/>
+        </onentry>
+        <transition cond="0.0 &lt; __RAND__ &amp;&amp; __RAND__ &lt;= 0.7" target="idle">
+            <assign location="status" expr="GOAL_REACHED"/>
+            <assign location="is_near" expr="true"/>
+            <send event="action_NavigationComponent__GoToPoi_result" target="action_handler_NavigationComponent__GoToPoi">
+                <param name="ros_fields__is_ok" expr="true"/>
+                <param name="ros_fields__error_msg" expr="''"/>
+                <param name="goal_id" expr="goal_id"/>
+                <param name="code" expr="4"/>
+            </send>
+        </transition>
+        <transition cond="0.7 &lt; __RAND__ &amp;&amp; __RAND__ &lt;= 1.0" target="NavigationAborted">
+            <assign location="status" expr="ABORTED"/>
+            <assign location="is_near" expr="false"/>
+        </transition>
+    </state>
+    <state id="HandleGetNavigationStatus">
+        <onentry>
+            <send event="srv_NavigationComponent__GetNavigationStatus_response" target="srv_handler_NavigationComponent__GetNavigationStatus">
+                <param name="ros_fields__is_ok" expr="true"/>
+                <param name="ros_fields__current_goal" expr="goal_name"/>
+                <param name="ros_fields__status" expr="status"/>
+                <param name="ros_fields__error_msg" expr="''"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="HandleCheckNearToPoi">
+        <onentry>
+            <send event="srv_NavigationComponent__CheckNearToPoi_response" target="srv_handler_NavigationComponent__CheckNearToPoi">
+                <param name="ros_fields__poi_name" expr="goal_name"/>
+                <param name="ros_fields__is_near" expr="is_near"/>
+                <param name="ros_fields__is_ok" expr="true"/>
+                <param name="ros_fields__error_msg" expr="''"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="HandleTurnBack">
+        <onentry>
+            <send event="srv_NavigationComponent__TurnBack_response" target="srv_handler_NavigationComponent__TurnBack">
+                <param name="ros_fields__is_ok" expr="true"/>
+                <param name="ros_fields__error_msg" expr="''"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+</scxml>

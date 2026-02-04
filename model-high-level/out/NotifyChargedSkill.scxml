@@ -1,0 +1,60 @@
+<scxml name="NotifyChargedSkill" version="1.0" model_src="" initial="idle" xmlns="http://www.w3.org/2005/07/scxml">
+    <datamodel>
+        <!-- TYPE m_result:bool -->
+        <data id="m_result" expr="false"/>
+        <!-- TYPE SUCCESS_RESULT:bool -->
+        <data id="SUCCESS_RESULT" expr="true"/>
+        <!-- TYPE SKILL_SUCCESS:int8 -->
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <!-- TYPE SKILL_FAILURE:int8 -->
+        <data id="SKILL_FAILURE" expr="1"/>
+    </datamodel>
+    <state id="idle">
+        <transition event="srv_NotifyChargedSkill__tick_request" target="startNotify">
+            <send event="srv_NotifyUserComponent__NotifyUserCharged_req_client_NotifyChargedSkill" target="srv_handler_NotifyUserComponent__NotifyUserCharged"/>
+        </transition>
+        <transition event="srv_NotifyChargedSkill__halt_request" target="halted"/>
+    </state>
+    <state id="startNotify">
+        <transition event="srv_NotifyUserComponent__NotifyUserCharged_response_client_NotifyChargedSkill" target="evaluate">
+            <assign location="m_result" expr="_event.data.ros_fields__is_ok"/>
+        </transition>
+    </state>
+    <state id="evaluate">
+        <transition cond="!m_result" target="failure"/>
+        <transition target="decide"/>
+    </state>
+    <state id="decide">
+        <onentry>
+            <if cond="m_result">
+                <send event="srv_NotifyChargedSkill__tick_response" target="srv_handler_NotifyChargedSkill__tick">
+                    <param name="ros_fields__status" expr="SKILL_SUCCESS"/>
+                    <param name="ros_fields__is_ok" expr="true"/>
+                </send>
+                <else/>
+                <send event="srv_NotifyChargedSkill__tick_response" target="srv_handler_NotifyChargedSkill__tick">
+                    <param name="ros_fields__status" expr="SKILL_FAILURE"/>
+                    <param name="ros_fields__is_ok" expr="true"/>
+                </send>
+            </if>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="failure">
+        <onentry>
+            <send event="srv_NotifyChargedSkill__tick_response" target="srv_handler_NotifyChargedSkill__tick">
+                <param name="ros_fields__status" expr="SKILL_FAILURE"/>
+                <param name="ros_fields__is_ok" expr="true"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="halted">
+        <onentry>
+            <send event="srv_NotifyChargedSkill__halt_response" target="srv_handler_NotifyChargedSkill__halt">
+                <param name="ros_fields__is_ok" expr="true"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+</scxml>

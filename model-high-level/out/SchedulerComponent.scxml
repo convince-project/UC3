@@ -1,0 +1,114 @@
+<scxml name="SchedulerComponent" version="1.0" model_src="" initial="idle" xmlns="http://www.w3.org/2005/07/scxml">
+    <datamodel>
+        <!-- TYPE poi_number:int32 -->
+        <data id="poi_number" expr="0"/>
+        <!-- TYPE poi_name:string -->
+        <data id="poi_name" expr="''"/>
+        <!-- TYPE max_poi_number:int32 -->
+        <data id="max_poi_number" expr="6"/>
+        <!-- TYPE poi_done_0:bool -->
+        <data id="poi_done_0" expr="false"/>
+        <!-- TYPE poi_done_1:bool -->
+        <data id="poi_done_1" expr="false"/>
+        <!-- TYPE poi_done_2:bool -->
+        <data id="poi_done_2" expr="false"/>
+        <!-- TYPE poi_done_3:bool -->
+        <data id="poi_done_3" expr="false"/>
+        <!-- TYPE poi_done_4:bool -->
+        <data id="poi_done_4" expr="false"/>
+        <!-- TYPE poi_done_5:bool -->
+        <data id="poi_done_5" expr="false"/>
+        <!-- TYPE current_language:string -->
+        <data id="current_language" expr="'en-US'"/>
+        <!-- TYPE current_command:string -->
+        <data id="current_command" expr="''"/>
+        <!-- TYPE current_action:string -->
+        <data id="current_action" expr="''"/>
+        <!-- TYPE current_action_param:string -->
+        <data id="current_action_param" expr="''"/>
+        <!-- TYPE current_action_is_blocking:bool -->
+        <data id="current_action_is_blocking" expr="false"/>
+        <!-- TYPE current_action_type:string -->
+        <data id="current_action_type" expr="''"/>
+        <!-- TYPE all_commands:string -->
+        <data id="all_commands" expr="''"/>
+    </datamodel>
+    <state id="idle">
+        <transition event="srv_SchedulerComponent__Reset_request" target="HandleReset"/>
+        <transition event="srv_SchedulerComponent__SetPoiFromPlanner_request" target="HandleSetPoi">
+            <assign location="poi_number" expr="_event.data.ros_fields__poi_number"/>
+        </transition>
+        <transition event="srv_SchedulerComponent__GetCurrentPoiForNavigation_request" target="HandleGetCurrentPoi"/>
+        <transition event="srv_SchedulerComponent__GetCurrentPoi_request" target="HandleGetCurrentPoi"/>
+    </state>
+    <state id="HandleReset">
+        <onentry>
+            <assign location="poi_number" expr="0"/>
+            <assign location="poi_done_0" expr="false"/>
+            <assign location="poi_done_1" expr="false"/>
+            <assign location="poi_done_2" expr="false"/>
+            <assign location="poi_done_3" expr="false"/>
+            <assign location="poi_done_4" expr="false"/>
+            <assign location="poi_done_5" expr="false"/>
+            <send event="srv_SchedulerComponent__Reset_response" target="srv_handler_SchedulerComponent__Reset">
+                <param name="ros_fields__is_ok" expr="true"/>
+                <param name="ros_fields__error_msg" expr="''"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="HandleSetPoi">
+        <onentry>
+            <if cond="poi_number &lt; max_poi_number">
+                <if cond="poi_number &gt; 0">
+                    <assign location="poi_done_0" expr="true"/>
+                </if>
+                <if cond="poi_number &gt; 1">
+                    <assign location="poi_done_1" expr="true"/>
+                </if>
+                <if cond="poi_number &gt; 2">
+                    <assign location="poi_done_2" expr="true"/>
+                </if>
+                <if cond="poi_number &gt; 3">
+                    <assign location="poi_done_3" expr="true"/>
+                </if>
+                <if cond="poi_number &gt; 4">
+                    <assign location="poi_done_4" expr="true"/>
+                </if>
+                <if cond="poi_number &gt; 5">
+                    <assign location="poi_done_5" expr="true"/>
+                </if>
+                <else/>
+                <assign location="poi_number" expr="0"/>
+                <assign location="poi_done_0" expr="false"/>
+                <assign location="poi_done_1" expr="false"/>
+                <assign location="poi_done_2" expr="false"/>
+                <assign location="poi_done_3" expr="false"/>
+                <assign location="poi_done_4" expr="false"/>
+                <assign location="poi_done_5" expr="false"/>
+            </if>
+            <send event="srv_SchedulerComponent__SetPoiFromPlanner_response" target="srv_handler_SchedulerComponent__SetPoiFromPlanner">
+                <param name="ros_fields__error_msg" expr="''"/>
+                <param name="ros_fields__is_ok" expr="true"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="HandleGetCurrentPoi">
+        <onentry>
+            <send event="srv_SchedulerComponent__GetCurrentPoiForNavigation_response" target="srv_handler_SchedulerComponent__GetCurrentPoiForNavigation">
+                <param name="ros_fields__poi_name" expr="poi_name"/>
+                <param name="ros_fields__poi_number" expr="poi_number"/>
+                <param name="ros_fields__is_ok" expr="true"/>
+                <param name="ros_fields__error_msg" expr="''"/>
+            </send>
+            <send event="srv_SchedulerComponent__GetCurrentPoi_response" target="srv_handler_SchedulerComponent__GetCurrentPoi">
+                <param name="ros_fields__poi_name" expr="poi_name"/>
+                <param name="ros_fields__poi_number" expr="poi_number"/>
+                <param name="ros_fields__is_ok" expr="true"/>
+                <param name="ros_fields__error_msg" expr="''"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+</scxml>

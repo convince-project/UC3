@@ -1,0 +1,27 @@
+<scxml name="srv_handler_TimerCheckForPeopleComponent__IsTimerActive" version="1.0" model_src="" initial="waiting" xmlns="http://www.w3.org/2005/07/scxml">
+    <datamodel>
+        <!-- TYPE ros_fields__is_ok:bool -->
+        <data id="ros_fields__is_ok" expr="false"/>
+        <!-- TYPE ros_fields__is_active:bool -->
+        <data id="ros_fields__is_active" expr="false"/>
+        <!-- TYPE ros_fields__error_msg:string -->
+        <data id="ros_fields__error_msg" expr="''"/>
+    </datamodel>
+    <state id="waiting">
+        <transition event="srv_TimerCheckForPeopleComponent__IsTimerActive_req_client_RunTimerSkill" target="processing_client_RunTimerSkill">
+            <send event="srv_TimerCheckForPeopleComponent__IsTimerActive_request" target="TimerCheckForPeopleComponent"/>
+        </transition>
+    </state>
+    <state id="processing_client_RunTimerSkill">
+        <transition event="srv_TimerCheckForPeopleComponent__IsTimerActive_response" target="waiting">
+            <assign location="ros_fields__is_ok" expr="_event.data.ros_fields__is_ok"/>
+            <assign location="ros_fields__is_active" expr="_event.data.ros_fields__is_active"/>
+            <assign location="ros_fields__error_msg" expr="_event.data.ros_fields__error_msg"/>
+            <send event="srv_TimerCheckForPeopleComponent__IsTimerActive_response_client_RunTimerSkill" target="RunTimerSkill">
+                <param name="ros_fields__is_ok" expr="ros_fields__is_ok"/>
+                <param name="ros_fields__is_active" expr="ros_fields__is_active"/>
+                <param name="ros_fields__error_msg" expr="ros_fields__error_msg"/>
+            </send>
+        </transition>
+    </state>
+</scxml>

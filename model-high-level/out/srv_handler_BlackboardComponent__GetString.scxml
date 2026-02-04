@@ -1,0 +1,32 @@
+<scxml name="srv_handler_BlackboardComponent__GetString" version="1.0" model_src="" initial="waiting" xmlns="http://www.w3.org/2005/07/scxml">
+    <datamodel>
+        <!-- TYPE ros_fields__field_name:string -->
+        <data id="ros_fields__field_name" expr="''"/>
+        <!-- TYPE ros_fields__value:string -->
+        <data id="ros_fields__value" expr="''"/>
+        <!-- TYPE ros_fields__is_ok:bool -->
+        <data id="ros_fields__is_ok" expr="false"/>
+        <!-- TYPE ros_fields__error_msg:string -->
+        <data id="ros_fields__error_msg" expr="''"/>
+    </datamodel>
+    <state id="waiting">
+        <transition event="srv_BlackboardComponent__GetString_req_client_IsAllowedToTurnBackSkill" target="processing_client_IsAllowedToTurnBackSkill">
+            <assign location="ros_fields__field_name" expr="_event.data.ros_fields__field_name"/>
+            <send event="srv_BlackboardComponent__GetString_request" target="BlackboardComponent">
+                <param name="ros_fields__field_name" expr="ros_fields__field_name"/>
+            </send>
+        </transition>
+    </state>
+    <state id="processing_client_IsAllowedToTurnBackSkill">
+        <transition event="srv_BlackboardComponent__GetString_response" target="waiting">
+            <assign location="ros_fields__value" expr="_event.data.ros_fields__value"/>
+            <assign location="ros_fields__is_ok" expr="_event.data.ros_fields__is_ok"/>
+            <assign location="ros_fields__error_msg" expr="_event.data.ros_fields__error_msg"/>
+            <send event="srv_BlackboardComponent__GetString_response_client_IsAllowedToTurnBackSkill" target="IsAllowedToTurnBackSkill">
+                <param name="ros_fields__value" expr="ros_fields__value"/>
+                <param name="ros_fields__is_ok" expr="ros_fields__is_ok"/>
+                <param name="ros_fields__error_msg" expr="ros_fields__error_msg"/>
+            </send>
+        </transition>
+    </state>
+</scxml>

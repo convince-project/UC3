@@ -1,0 +1,53 @@
+<scxml name="NarrateComponent" version="1.0" model_src="" initial="idle" xmlns="http://www.w3.org/2005/07/scxml">
+    <datamodel>
+        <!-- TYPE temp_command:string -->
+        <data id="temp_command" expr="''"/>
+        <!-- TYPE is_done:bool -->
+        <data id="is_done" expr="true"/>
+        <!-- TYPE stopped:bool -->
+        <data id="stopped" expr="false"/>
+    </datamodel>
+    <state id="idle">
+        <transition event="srv_NarrateComponent__Narrate_request" target="HandleNarrate">
+            <assign location="temp_command" expr="_event.data.ros_fields__command"/>
+        </transition>
+        <transition event="srv_NarrateComponent__IsDone_request" target="HandleIsDone"/>
+        <transition event="srv_NarrateComponent__Stop_request" target="HandleStop">
+            <assign location="stopped" expr="true"/>
+        </transition>
+        <transition event="ros_time_rate.speak_timer" target="idle">
+            <assign location="is_done" expr="true"/>
+        </transition>
+    </state>
+    <state id="HandleNarrate">
+        <onentry>
+            <send event="srv_NarrateComponent__Narrate_response" target="srv_handler_NarrateComponent__Narrate">
+                <param name="ros_fields__is_ok" expr="true"/>
+                <param name="ros_fields__error_msg" expr="''"/>
+            </send>
+            <assign location="is_done" expr="false"/>
+            <assign location="stopped" expr="false"/>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="HandleIsDone">
+        <onentry>
+            <send event="srv_NarrateComponent__IsDone_response" target="srv_handler_NarrateComponent__IsDone">
+                <param name="ros_fields__is_ok" expr="true"/>
+                <param name="ros_fields__is_done" expr="is_done"/>
+                <param name="ros_fields__error_msg" expr="''"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="HandleStop">
+        <onentry>
+            <send event="srv_NarrateComponent__Stop_response" target="srv_handler_NarrateComponent__Stop">
+                <param name="ros_fields__is_ok" expr="true"/>
+                <param name="ros_fields__error_msg" expr="''"/>
+            </send>
+            <assign location="is_done" expr="true"/>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+</scxml>

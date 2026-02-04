@@ -1,0 +1,75 @@
+<scxml name="IsAtChargingStationSkill" version="1.0" model_src="" initial="idle" xmlns="http://www.w3.org/2005/07/scxml">
+    <datamodel>
+        <!-- TYPE NAV_STATUS_MOVING:int8 -->
+        <data id="NAV_STATUS_MOVING" expr="2"/>
+        <!-- TYPE charging_station:string -->
+        <data id="charging_station" expr="'charging_station'"/>
+        <!-- TYPE distance:float32 -->
+        <data id="distance" expr="0.5"/>
+        <!-- TYPE m_status:int8 -->
+        <data id="m_status" expr="0"/>
+        <!-- TYPE m_is_near:bool -->
+        <data id="m_is_near" expr="false"/>
+        <!-- TYPE SKILL_SUCCESS:int8 -->
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <!-- TYPE SKILL_FAILURE:int8 -->
+        <data id="SKILL_FAILURE" expr="1"/>
+        <!-- TYPE SKILL_RUNNING:int8 -->
+        <data id="SKILL_RUNNING" expr="2"/>
+        <!-- TYPE is_ok:bool -->
+        <data id="is_ok" expr="false"/>
+    </datamodel>
+    <state id="idle">
+        <transition event="srv_IsAtChargingStationSkill__tick_request" target="getStatus">
+            <send event="srv_NavigationComponent__GetNavigationStatus_req_client_IsAtChargingStationSkill" target="srv_handler_NavigationComponent__GetNavigationStatus"/>
+        </transition>
+    </state>
+    <state id="getStatus">
+        <transition event="srv_NavigationComponent__GetNavigationStatus_response_client_IsAtChargingStationSkill" target="evaluateStatus">
+            <assign location="m_status" expr="_event.data.ros_fields__status"/>
+            <assign location="is_ok" expr="_event.data.ros_fields__is_ok"/>
+        </transition>
+    </state>
+    <state id="evaluateStatus">
+        <transition cond="!is_ok" target="failure"/>
+        <transition cond="m_status == NAV_STATUS_MOVING" target="failure"/>
+        <transition target="checkProximity"/>
+    </state>
+    <state id="checkProximity">
+        <onentry>
+            <send event="srv_NavigationComponent__CheckNearToPoi_req_client_IsAtChargingStationSkill" target="srv_handler_NavigationComponent__CheckNearToPoi">
+                <param name="ros_fields__poi_name" expr="charging_station"/>
+                <param name="ros_fields__distance" expr="distance"/>
+                <param name="ros_fields__angle" expr="360"/>
+            </send>
+        </onentry>
+        <transition event="srv_NavigationComponent__CheckNearToPoi_response_client_IsAtChargingStationSkill" target="finalize">
+            <assign location="m_is_near" expr="_event.data.ros_fields__is_near"/>
+        </transition>
+    </state>
+    <state id="finalize">
+        <onentry>
+            <if cond="m_is_near">
+                <send event="srv_IsAtChargingStationSkill__tick_response" target="srv_handler_IsAtChargingStationSkill__tick">
+                    <param name="ros_fields__status" expr="SKILL_SUCCESS"/>
+                    <param name="ros_fields__is_ok" expr="true"/>
+                </send>
+                <else/>
+                <send event="srv_IsAtChargingStationSkill__tick_response" target="srv_handler_IsAtChargingStationSkill__tick">
+                    <param name="ros_fields__status" expr="SKILL_FAILURE"/>
+                    <param name="ros_fields__is_ok" expr="true"/>
+                </send>
+            </if>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="failure">
+        <onentry>
+            <send event="srv_IsAtChargingStationSkill__tick_response" target="srv_handler_IsAtChargingStationSkill__tick">
+                <param name="ros_fields__status" expr="SKILL_FAILURE"/>
+                <param name="ros_fields__is_ok" expr="true"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+</scxml>

@@ -1,0 +1,85 @@
+<scxml name="NarratePoiSkill" version="1.0" model_src="" initial="idle" xmlns="http://www.w3.org/2005/07/scxml">
+    <datamodel>
+        <!-- TYPE m_command:string -->
+        <data id="m_command" expr="'explainRoom'"/>
+        <!-- TYPE m_is_done:bool -->
+        <data id="m_is_done" expr="false"/>
+        <!-- TYPE m_result:bool -->
+        <data id="m_result" expr="false"/>
+        <!-- TYPE SKILL_SUCCESS:int8 -->
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <!-- TYPE SKILL_FAILURE:int8 -->
+        <data id="SKILL_FAILURE" expr="1"/>
+        <!-- TYPE SKILL_RUNNING:int8 -->
+        <data id="SKILL_RUNNING" expr="2"/>
+    </datamodel>
+    <state id="idle">
+        <transition event="srv_NarratePoiSkill__tick_request" target="start">
+            <send event="srv_NarrateComponent__Narrate_req_client_NarratePoiSkill" target="srv_handler_NarrateComponent__Narrate">
+                <param name="ros_fields__command" expr="m_command"/>
+            </send>
+        </transition>
+        <transition event="srv_NarratePoiSkill__halt_request" target="halted"/>
+    </state>
+    <state id="start">
+        <transition event="srv_NarrateComponent__Narrate_response_client_NarratePoiSkill" target="evaluateStart">
+            <assign location="m_result" expr="_event.data.ros_fields__is_ok"/>
+        </transition>
+    </state>
+    <state id="evaluateStart">
+        <transition cond="!m_result" target="failure"/>
+        <transition target="running"/>
+    </state>
+    <state id="running">
+        <onentry>
+            <send event="srv_NarratePoiSkill__tick_response" target="srv_handler_NarratePoiSkill__tick">
+                <param name="ros_fields__status" expr="SKILL_RUNNING"/>
+                <param name="ros_fields__is_ok" expr="true"/>
+            </send>
+        </onentry>
+        <transition event="srv_NarratePoiSkill__tick_request" target="check">
+            <send event="srv_NarrateComponent__IsDone_req_client_NarratePoiSkill" target="srv_handler_NarrateComponent__IsDone"/>
+        </transition>
+        <transition event="srv_NarratePoiSkill__halt_request" target="stop">
+            <send event="srv_NarrateComponent__Stop_req_client_NarratePoiSkill" target="srv_handler_NarrateComponent__Stop"/>
+        </transition>
+    </state>
+    <state id="check">
+        <transition event="srv_NarrateComponent__IsDone_response_client_NarratePoiSkill" target="evaluateCheck">
+            <assign location="m_is_done" expr="_event.data.ros_fields__is_done"/>
+        </transition>
+    </state>
+    <state id="evaluateCheck">
+        <transition cond="m_is_done" target="success"/>
+        <transition target="running"/>
+    </state>
+    <state id="stop">
+        <transition event="srv_NarrateComponent__Stop_response_client_NarratePoiSkill" target="halted"/>
+    </state>
+    <state id="success">
+        <onentry>
+            <send event="srv_NarratePoiSkill__tick_response" target="srv_handler_NarratePoiSkill__tick">
+                <param name="ros_fields__status" expr="SKILL_SUCCESS"/>
+                <param name="ros_fields__is_ok" expr="true"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="failure">
+        <onentry>
+            <send event="srv_NarratePoiSkill__tick_response" target="srv_handler_NarratePoiSkill__tick">
+                <param name="ros_fields__status" expr="SKILL_FAILURE"/>
+                <param name="ros_fields__is_ok" expr="true"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="halted">
+        <onentry>
+            <send event="srv_NarratePoiSkill__halt_response" target="srv_handler_NarratePoiSkill__halt">
+                <param name="ros_fields__is_ok" expr="true"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+</scxml>
