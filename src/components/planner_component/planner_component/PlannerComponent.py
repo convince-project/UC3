@@ -52,6 +52,7 @@ class PlannerComponent(Node):
         self._final_vertex = "vertex12"
         self._visited_vertices = []
         self._pois_explained = []
+        self._pois_done = []
         self._time_for_occupancies = None
         self._btWriter = BTWriter(bt_file_path)
         self._mutex = Lock()
@@ -93,15 +94,16 @@ class PlannerComponent(Node):
     def compute_current_state(self):
         self.get_logger().info("Computing current state...")
         pois_done = []
+        self._pois_done = []
         poidone0 = self.retrieve_blackboard_value('PoiDone0')
-        self.get_logger().info(f"PoiDone0 value: {poidone0}")
+        # self.get_logger().info(f"PoiDone0 value: {poidone0}")
         self._visited_vertices = []
         if self._start_time is None:
             self._start_time = self.get_clock().now().seconds_nanoseconds()[0]
             self.get_logger().info(f"Start time initialized: {self._start_time}")
 
         if poidone0 is None or poidone0 == 0:
-            self.get_logger().info("No POIs done yet. Returning default state.")
+            # self.get_logger().info("No POIs done yet. Returning default state.")
             self._start_time = self.get_clock().now().seconds_nanoseconds()[0]
             self._time_for_occupancies = self.get_clock().now().seconds_nanoseconds()[0]
             return State(self._start_vertex, 
@@ -113,8 +115,9 @@ class PlannerComponent(Node):
             for i in range(1, 11):
                 key = f'PoiDone{i}'
                 vertex_done = self.retrieve_blackboard_value(key)
-                self.get_logger().info(f"Blackboard value for {key}: {vertex_done}")
+                # self.get_logger().info(f"Blackboard value for {key}: {vertex_done}")
                 if vertex_done is not None and vertex_done == 1:
+                    self._pois_done.append(i)
                     if i % 2 == 1:
                         pois_done.append(int((i + 1) / 2))
                         self._visited_vertices.append("vertex" + str(i))
@@ -122,19 +125,21 @@ class PlannerComponent(Node):
                         pois_done.append(int((i) / 2))
                         self._visited_vertices.append("vertex" + str(i))
             
-            self.get_logger().info(f"Visited vertices: {self._visited_vertices}")
-            self.get_logger().info(f"POIs done: {pois_done}")
+            # self.get_logger().info(f"Visited vertices: {self._visited_vertices}")
+            # self.get_logger().info(f"POIs done: {pois_done}")
 
             if not self._visited_vertices:
                 self.reset() # reset the planner if no vertices have been visited, to avoid inconsistencies
-                self.get_logger().error("Visited vertices list is empty. Returning default state.")
+                # self.get_logger().error("Visited vertices list is empty. Returning default state.")
+                self._start_time = self.get_clock().now().seconds_nanoseconds()[0]
+                self._time_for_occupancies = self.get_clock().now().seconds_nanoseconds()[0]
                 return State(self._start_vertex, 
                             self.get_clock().now().seconds_nanoseconds()[0] - self._start_time,
                             set([self._start_vertex]),
                             set())
 
             last_vertex = self._visited_vertices[-1]
-            self.get_logger().info(f"Last visited vertex: {last_vertex}")
+            # self.get_logger().info(f"Last visited vertex: {last_vertex}")
             if len(pois_done) > 1:
                 for i in range(0, len(pois_done) - 1):
                     self._visited_vertices.append(self._doors[i])
@@ -151,11 +156,12 @@ class PlannerComponent(Node):
         self._start_time = None
         self._visited_vertices = []
         self._pois_explained = []
+        self._pois_done = []
         self._time_for_occupancies = None
         
 
     def execute_callback(self, goal_handle):
-        self.get_logger().info('Executing goal...')
+        # self.get_logger().info('Executing goal...')
         predictor = create_generic_cliff_predictor(self._cliff_map_path)
         
         # Debug delle rilevazioni
@@ -176,12 +182,12 @@ class PlannerComponent(Node):
                 }
                 for detection in detections
             ]
-        self.get_logger().info(f"Formatted Current Detections: {formatted_detections}")
-        self.get_logger().info(f"Current occupancies: {current_occupancies}")
+        # self.get_logger().info(f"Formatted Current Detections: {formatted_detections}")
+        # self.get_logger().info(f"Current occupancies: {current_occupancies}")
 
         occupancy_map = OccupancyMap(cliffPredictor=predictor, detections_retriever=self._detections_retriever)
         occupancy_map.load_occupancy_map(self._occupancy_map_path)
-        self.get_logger().info("Occupancy map loaded successfully.")
+        # self.get_logger().info("Occupancy map loaded successfully.")
 
         current_state = self.compute_current_state()
         self.get_logger().info(f"Current state: {current_state}")
@@ -234,23 +240,27 @@ class PlannerComponent(Node):
         plan = self.iterate_over_policy(policy, current_state)
         self.get_logger().info(f"Generated plan: {plan}")
         plan = [int(poi) - 1 for poi in plan]
-        self._btWriter.recreateBTWithPlan(plan)
+        plan_to_write = [int(poi) for poi in self._pois_done] + plan
+        self._btWriter.recreateBTWithPlan(plan_to_write)
         self._btWriter.write()
         try:
             goal_handle.succeed()
         except Exception as e:
             self.get_logger().error(f'Error while succeeding goal: {e}')
 
-        self.get_logger().info(f"Sequence of POIs: {plan}")
+        self.get_logger().info(f"Sequence of POIs: {plan_to_write}")
         result = Plan.Result()
         result.is_ok = True
         return result
+    
+            
 
 
     def iterate_over_policy(self, policy, current_state):
         self.get_logger().info("Iterating over policy...")
         state = current_state
         sequence_of_pois = []
+        # pois_already_done = current_state.get_pois_done()
         while state is not None:
             self.get_logger().info(f"Current state: {state}")
             action = policy[str(state)][2] # get action
@@ -261,6 +271,7 @@ class PlannerComponent(Node):
                 self.get_logger().info(f"Added POI: {vertex}")
             state = policy[str(state)][3] # get next state
         self.get_logger().info(f"Final sequence of POIs: {sequence_of_pois}")
+        # concatenate visited pois and the policy
         return sequence_of_pois
 
 
