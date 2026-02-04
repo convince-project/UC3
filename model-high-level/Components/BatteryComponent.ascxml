@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ascxml
+  version="1.0"
+  xmlns="..."
+  datamodel="ecmascript"
+  name="BatteryComponent"
+  initial="idle">
+
+	<datamodel>
+		<data id="percentage" type="float32" expr="100" />
+    <!-- <data id="timer_duration" type="int32" expr="1000" /> --> <!--Timer duration in milliseconds -->
+	</datamodel>
+
+  <ros_topic_publisher name="battery_level_pub" topic="/BatteryComponent/battery_level" type="sensor_msgs/BatteryState" />
+  <ros_time_rate name="battery_control_timer" rate_hz="1" />
+
+  <state id="idle">
+    <onentry>
+      <!-- <send event="timer_expired" delayexpr="timer_duration + 'ms'" /> -->
+      <if cond="percentage &gt; 0" >
+        <assign location="percentage" expr="percentage - 1" />
+      </if>
+      <ros_topic_publish name="battery_level_pub">
+        <!-- <field name="percentage" expr="percentage" /> -->
+        <!-- <field name="power_supply_status" expr="2" /> -->
+      </ros_topic_publish>
+    </onentry>
+    <!-- <transition event="timer_expired" target="idle"/> -->
+    <ros_rate_callback name="battery_control_timer" >
+
+      <target id="idle" prob="0.99">
+        <ros_topic_publish name="battery_level_pub">
+          <!-- <field name="percentage" expr="percentage"/> -->
+          <!-- <field name="power_supply_status" expr="2"/> -->
+        </ros_topic_publish>
+      </target>
+      <target id="idle" prob="0.01"/>
+
+    </ros_rate_callback>
+    <!-- <transition target="idle"/> -->
+  </state>
+
+</ascxml>
