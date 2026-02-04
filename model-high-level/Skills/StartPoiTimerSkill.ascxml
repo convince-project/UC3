@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ascxml xmlns="http://www.w3.org/2005/07/scxml"
+       version="1.0"
+       name="StartPoiTimerSkill"
+       datamodel="ecmascript"
+       initial="idle">
+
+  <datamodel>
+    <data id="result"         type="bool" expr="false"/>
+    <data id="SKILL_SUCCESS"  type="int8"  expr="0"/>
+    <data id="SKILL_FAILURE"  type="int8" expr="1"/>
+    <data id="FLAG_WARN" type="string" expr="'SaidPoiWarningFlag'"/>
+    <data id="FLAG_EXC"  type="string" expr="'SaidPoiExceededFlag'"/>
+  </datamodel>
+
+  <ros_service_server service_name="/StartPoiTimerSkill/tick"  type="bt_interfaces_dummy/TickAction"/>
+  <ros_service_server service_name="/StartPoiTimerSkill/halt"  type="bt_interfaces_dummy/HaltAction"/>
+
+  <ros_service_client service_name="/TimeComponent/StartPoiTimer"      type="time_interfaces/StartPoiTimer"/>
+  <ros_service_client service_name="/BlackboardComponent/SetInt"        type="blackboard_interfaces/SetIntBlackboard"/>
+
+  <state id="idle">
+    <onentry>
+      <log label="idle state"  />
+    </onentry>
+    <ros_service_handle_request name="/StartPoiTimerSkill/tick" target="startTimer">
+      <ros_service_send_request name="/TimeComponent/StartPoiTimer"/>
+    </ros_service_handle_request>
+    <ros_service_handle_request name="/StartPoiTimerSkill/halt" target="halted"/>
+  </state>
+
+  <state id="startTimer">
+    <onentry>
+      <log label="startTimer state"  />
+    </onentry>
+    <ros_service_handle_response name="/TimeComponent/StartPoiTimer" target="afterTimer">
+      <assign location="result" expr="_res.is_ok"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="afterTimer">
+    <onentry>
+      <log label="afterTimer state"  />
+    </onentry>
+    <transition cond="result == true" target="resetWarn"/>
+    <transition target="failReply"/>
+  </state>
+
+  <state id="resetWarn">
+    <onentry>
+      <log label="resetWarn state"  />
+      <ros_service_send_request name="/BlackboardComponent/SetInt">
+        <field name="field_name" expr="FLAG_WARN"/>
+        <field name="value"      expr="0"/>
+      </ros_service_send_request>
+    </onentry>
+    <ros_service_handle_response name="/BlackboardComponent/SetInt" target="resetExc">
+      <assign location="result" expr="_res.is_ok"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="resetExc">
+    <onentry>
+      <log label="resetExc state"  />
+      <ros_service_send_request name="/BlackboardComponent/SetInt">
+        <field name="field_name" expr="FLAG_EXC"/>
+        <field name="value"      expr="0"/>
+      </ros_service_send_request>
+    </onentry>
+    <ros_service_handle_response name="/BlackboardComponent/SetInt" target="checkResetResult">
+      <assign location="result" expr="_res.is_ok"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="checkResetResult">
+    <onentry>
+      <log label="checkResetResult state"  />
+    </onentry>
+    <transition cond="result == true" target="successReply"/>
+    <transition target="failReply"/>
+  </state>
+
+  <state id="successReply">
+    <onentry>
+      <log label="successReply state"  />
+      <ros_service_send_response name="/StartPoiTimerSkill/tick">
+        <field name="status" expr="SKILL_SUCCESS"/>
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="failReply">
+    <onentry>
+      <log label="failReply state"  />
+      <ros_service_send_response name="/StartPoiTimerSkill/tick">
+        <field name="status" expr="SKILL_FAILURE"/>
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="halted">
+    <onentry>
+      <log label="halted state"  />
+      <ros_service_send_response name="/StartPoiTimerSkill/halt">
+            <field name="is_ok" expr="true"/>
+          </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+</ascxml>

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ascxml
+  xmlns="http://www.w3.org/2005/07/scxml"
+  version="1.0"
+  name="ResetTourAndFlagsSkill"
+  datamodel="ecmascript"
+  initial="idle">
+
+  <!-- Action skill: tick + halt servers -->
+  <ros_service_server service_name="/ResetTourAndFlagsSkill/tick" type="bt_interfaces_dummy/TickAction"/>
+  <ros_service_server service_name="/ResetTourAndFlagsSkill/halt" type="bt_interfaces_dummy/HaltAction"/>
+
+  <!-- Clients for Reset and Blackboard set-all-ints -->
+  <ros_service_client service_name="/SchedulerComponent/Reset" type="scheduler_interfaces/Reset"/>
+  <ros_service_client service_name="/BlackboardComponent/SetAllIntsWithPrefix" type="blackboard_interfaces/SetAllIntsWithPrefixBlackboard"/>
+
+  <ros_service_client service_name="/PlannerComponent/ResetPlanner" type="std_srvs/Trigger"/>
+
+  <datamodel>
+    <data id="m_name"        type="string" expr="'PoiDone'"/>
+    <data id="m_value"       type="int32"  expr="0"/>
+    <data id="m_result"      type="bool"   expr="false"/>
+    <data id="m_result_planner"      type="bool"   expr="false"/>
+    <data id="SKILL_SUCCESS" type="int8"   expr="0"/>
+    <data id="SKILL_FAILURE" type="int8"   expr="1"/>
+  </datamodel>
+
+  <state id="idle">
+    <ros_service_handle_request name="/ResetTourAndFlagsSkill/tick" target="resetPlanner">
+      <ros_service_send_request name="/PlannerComponent/ResetPlanner"/>
+    </ros_service_handle_request>
+    <ros_service_handle_request name="/ResetTourAndFlagsSkill/halt" target="halted"/>
+  </state>
+
+  <state id="resetPlanner">
+    
+    <ros_service_handle_response name="/PlannerComponent/ResetPlanner" target="evaluatePlannerReset">
+      <assign location="m_result_planner" expr="_res.success"/>
+    </ros_service_handle_response>
+
+  </state>
+
+  <state id="evaluatePlannerReset">
+    <transition cond="m_result_planner" target="resetTour">
+      <ros_service_send_request name="/SchedulerComponent/Reset"/>
+    </transition>
+    <transition target="failure"/>
+
+  </state>
+
+
+  <state id="resetTour">
+    <ros_service_handle_response name="/SchedulerComponent/Reset" target="setFlags">
+      <!-- Fix: Use is_ok instead of non-existent result field -->
+      <assign location="m_result" expr="_res.is_ok"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="setFlags">
+    <!-- Check if reset was successful -->
+    <transition cond="!m_result" target="failure"/>
+    <!-- Reset succeeded, now set flags -->
+    <transition target="requestSetFlags"/>
+  </state>
+
+  <state id="requestSetFlags">
+    <onentry>
+      <ros_service_send_request name="/BlackboardComponent/SetAllIntsWithPrefix">
+        <field name="field_name" expr="m_name"/>
+        <field name="value"      expr="m_value"/>
+      </ros_service_send_request>
+    </onentry>
+    <ros_service_handle_response name="/BlackboardComponent/SetAllIntsWithPrefix" target="decide">
+      <!-- Fix: Use is_ok field consistently -->
+      <assign location="m_result" expr="_res.is_ok"/>
+    </ros_service_handle_response>
+  </state>
+
+
+  <state id="decide">
+    <onentry>
+      <if cond="m_result">
+        <ros_service_send_response name="/ResetTourAndFlagsSkill/tick">
+          <field name="status" expr="SKILL_SUCCESS"/> 
+          <field name="is_ok" expr="true"/>
+        </ros_service_send_response>
+      <else/>
+        <ros_service_send_response name="/ResetTourAndFlagsSkill/tick">
+          <field name="status" expr="SKILL_FAILURE"/>
+          <field name="is_ok" expr="true"/>
+        </ros_service_send_response>
+      </if>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+
+
+
+  <state id="failure">
+    <onentry>
+      <ros_service_send_response name="/ResetTourAndFlagsSkill/tick">
+        <field name="status" expr="SKILL_FAILURE"/>
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="halted">
+    <onentry>
+      <ros_service_send_response name="/ResetTourAndFlagsSkill/halt">
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+</ascxml>
