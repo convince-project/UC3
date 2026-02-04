@@ -1,0 +1,51 @@
+<scxml name="ResetCountersSkill" version="1.0" model_src="" initial="idle" xmlns="http://www.w3.org/2005/07/scxml">
+    <datamodel>
+        <!-- TYPE m_result:bool -->
+        <data id="m_result" expr="false"/>
+        <!-- TYPE SKILL_SUCCESS:int8 -->
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <!-- TYPE SKILL_FAILURE:int8 -->
+        <data id="SKILL_FAILURE" expr="1"/>
+    </datamodel>
+    <state id="idle">
+        <transition event="srv_ResetCountersSkill__tick_request" target="resetCounters">
+            <send event="srv_TurnBackManagerComponent__ResetCounters_req_client_ResetCountersSkill" target="srv_handler_TurnBackManagerComponent__ResetCounters"/>
+        </transition>
+        <transition event="srv_ResetCountersSkill__halt_request" target="halted"/>
+    </state>
+    <state id="resetCounters">
+        <transition event="srv_TurnBackManagerComponent__ResetCounters_response_client_ResetCountersSkill" target="evaluate">
+            <assign location="m_result" expr="_event.data.ros_fields__is_ok"/>
+        </transition>
+    </state>
+    <state id="evaluate">
+        <transition cond="!m_result" target="failure"/>
+        <transition target="success"/>
+    </state>
+    <state id="success">
+        <onentry>
+            <send event="srv_ResetCountersSkill__tick_response" target="srv_handler_ResetCountersSkill__tick">
+                <param name="ros_fields__status" expr="SKILL_SUCCESS"/>
+                <param name="ros_fields__is_ok" expr="true"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="failure">
+        <onentry>
+            <send event="srv_ResetCountersSkill__tick_response" target="srv_handler_ResetCountersSkill__tick">
+                <param name="ros_fields__status" expr="SKILL_FAILURE"/>
+                <param name="ros_fields__is_ok" expr="true"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="halted">
+        <onentry>
+            <send event="srv_ResetCountersSkill__halt_response" target="srv_handler_ResetCountersSkill__halt">
+                <param name="ros_fields__is_ok" expr="true"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+</scxml>

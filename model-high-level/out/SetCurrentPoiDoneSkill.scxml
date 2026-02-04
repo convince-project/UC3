@@ -1,0 +1,113 @@
+<scxml name="SetCurrentPoiDoneSkill" version="1.0" model_src="" initial="idle" xmlns="http://www.w3.org/2005/07/scxml">
+    <datamodel>
+        <!-- TYPE poi_number:int32 -->
+        <data id="poi_number" expr="0"/>
+        <!-- TYPE field_name:string -->
+        <data id="field_name" expr="'PoiDone'"/>
+        <!-- TYPE value:int32 -->
+        <data id="value" expr="1"/>
+        <!-- TYPE SKILL_SUCCESS:int8 -->
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <!-- TYPE SKILL_FAILURE:int8 -->
+        <data id="SKILL_FAILURE" expr="1"/>
+        <!-- TYPE SKILL_RUNNING:int8 -->
+        <data id="SKILL_RUNNING" expr="2"/>
+        <!-- TYPE is_ok:bool -->
+        <data id="is_ok" expr="false"/>
+        <!-- TYPE bb_field_name:string -->
+        <data id="bb_field_name" expr="'PoiDone0'"/>
+    </datamodel>
+    <state id="idle">
+        <transition event="srv_SetCurrentPoiDoneSkill__tick_request" target="getCurrentPoi">
+            <send event="srv_SchedulerComponent__GetCurrentPoiForNavigation_req_client_SetCurrentPoiDoneSkill" target="srv_handler_SchedulerComponent__GetCurrentPoiForNavigation"/>
+        </transition>
+        <transition event="srv_SetCurrentPoiDoneSkill__halt_request" target="halted"/>
+    </state>
+    <state id="getCurrentPoi">
+        <onentry>
+            <send event="srv_SetCurrentPoiDoneSkill__tick_response" target="srv_handler_SetCurrentPoiDoneSkill__tick">
+                <param name="ros_fields__status" expr="SKILL_RUNNING"/>
+                <param name="ros_fields__is_ok" expr="true"/>
+            </send>
+        </onentry>
+        <transition event="srv_SchedulerComponent__GetCurrentPoiForNavigation_response_client_SetCurrentPoiDoneSkill" target="checkCallSucceeded">
+            <assign location="poi_number" expr="_event.data.ros_fields__poi_number"/>
+            <assign location="is_ok" expr="_event.data.ros_fields__is_ok"/>
+        </transition>
+        <transition event="srv_SetCurrentPoiDoneSkill__halt_request" target="halted"/>
+    </state>
+    <state id="checkCallSucceeded">
+        <onentry>
+            <if cond="poi_number == 0">
+                <assign location="bb_field_name" expr="'PoiDone0'"/>
+                <elseif cond="poi_number == 1"/>
+                <assign location="bb_field_name" expr="'PoiDone1'"/>
+                <elseif cond="poi_number == 2"/>
+                <assign location="bb_field_name" expr="'PoiDone2'"/>
+                <elseif cond="poi_number == 3"/>
+                <assign location="bb_field_name" expr="'PoiDone3'"/>
+                <elseif cond="poi_number == 4"/>
+                <assign location="bb_field_name" expr="'PoiDone4'"/>
+                <elseif cond="poi_number == 5"/>
+                <assign location="bb_field_name" expr="'PoiDone5'"/>
+                <elseif cond="poi_number == 6"/>
+                <assign location="bb_field_name" expr="'PoiDone6'"/>
+                <elseif cond="poi_number == 7"/>
+                <assign location="bb_field_name" expr="'PoiDone7'"/>
+                <elseif cond="poi_number == 8"/>
+                <assign location="bb_field_name" expr="'PoiDone8'"/>
+                <elseif cond="poi_number == 9"/>
+                <assign location="bb_field_name" expr="'PoiDone9'"/>
+                <elseif cond="poi_number == 10"/>
+                <assign location="bb_field_name" expr="'PoiDone10'"/>
+                <else/>
+                <assign location="bb_field_name" expr="'PoiDone'"/>
+            </if>
+        </onentry>
+        <transition cond="is_ok" target="setInt">
+            <send event="srv_BlackboardComponent__SetInt_req_client_SetCurrentPoiDoneSkill" target="srv_handler_BlackboardComponent__SetInt">
+                <param name="ros_fields__field_name" expr="bb_field_name"/>
+                <param name="ros_fields__value" expr="value"/>
+            </send>
+        </transition>
+        <transition cond="!is_ok" target="idle">
+            <send event="srv_SetCurrentPoiDoneSkill__tick_response" target="srv_handler_SetCurrentPoiDoneSkill__tick">
+                <param name="ros_fields__status" expr="SKILL_FAILURE"/>
+                <param name="ros_fields__is_ok" expr="true"/>
+            </send>
+        </transition>
+    </state>
+    <state id="setInt">
+        <transition event="srv_BlackboardComponent__SetInt_response_client_SetCurrentPoiDoneSkill" target="checkSetIntSucceeded">
+            <assign location="is_ok" expr="_event.data.ros_fields__is_ok"/>
+        </transition>
+        <transition event="srv_SetCurrentPoiDoneSkill__halt_request" target="halted"/>
+    </state>
+    <state id="checkSetIntSucceeded">
+        <onentry>
+            <if cond="is_ok == true">
+                <send event="srv_SetCurrentPoiDoneSkill__tick_response" target="srv_handler_SetCurrentPoiDoneSkill__tick">
+                    <param name="ros_fields__status" expr="SKILL_SUCCESS"/>
+                    <param name="ros_fields__is_ok" expr="true"/>
+                </send>
+                <else/>
+                <send event="srv_SetCurrentPoiDoneSkill__tick_response" target="srv_handler_SetCurrentPoiDoneSkill__tick">
+                    <param name="ros_fields__status" expr="SKILL_FAILURE"/>
+                    <param name="ros_fields__is_ok" expr="true"/>
+                </send>
+            </if>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="halted">
+        <onentry>
+            <assign location="poi_number" expr="0"/>
+            <assign location="value" expr="1"/>
+            <send event="CMD_HALT" target="RunTimerSkill"/>
+            <send event="srv_SetCurrentPoiDoneSkill__halt_response" target="srv_handler_SetCurrentPoiDoneSkill__halt">
+                <param name="ros_fields__is_ok" expr="true"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+</scxml>

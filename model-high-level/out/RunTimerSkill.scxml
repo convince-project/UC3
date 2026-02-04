@@ -1,0 +1,70 @@
+<scxml name="RunTimerSkill" version="1.0" model_src="" initial="idle" xmlns="http://www.w3.org/2005/07/scxml">
+    <datamodel>
+        <!-- TYPE timer_active:bool -->
+        <data id="timer_active" expr="false"/>
+        <!-- TYPE SKILL_SUCCESS:int8 -->
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <!-- TYPE SKILL_FAILURE:int8 -->
+        <data id="SKILL_FAILURE" expr="1"/>
+        <!-- TYPE SKILL_RUNNING:int8 -->
+        <data id="SKILL_RUNNING" expr="2"/>
+        <!-- TYPE result:bool -->
+        <data id="result" expr="false"/>
+        <!-- TYPE status:bool -->
+        <data id="status" expr="false"/>
+    </datamodel>
+    <state id="idle">
+        <transition event="srv_RunTimerSkill__tick_request" target="isTimerActive">
+            <send event="srv_TimerCheckForPeopleComponent__IsTimerActive_req_client_RunTimerSkill" target="srv_handler_TimerCheckForPeopleComponent__IsTimerActive"/>
+        </transition>
+        <transition event="srv_RunTimerSkill__halt_request" target="idle">
+            <send event="srv_RunTimerSkill__halt_response" target="srv_handler_RunTimerSkill__halt">
+                <param name="ros_fields__is_ok" expr="true"/>
+            </send>
+        </transition>
+    </state>
+    <state id="isTimerActive">
+        <transition event="srv_TimerCheckForPeopleComponent__IsTimerActive_response_client_RunTimerSkill" target="evaluateState">
+            <assign location="result" expr="_event.data.ros_fields__is_ok"/>
+            <assign location="status" expr="_event.data.ros_fields__is_active"/>
+        </transition>
+    </state>
+    <state id="evaluateState">
+        <transition cond="result == false" target="idle">
+            <send event="srv_RunTimerSkill__tick_response" target="srv_handler_RunTimerSkill__tick">
+                <param name="ros_fields__status" expr="SKILL_FAILURE"/>
+                <param name="ros_fields__is_ok" expr="true"/>
+            </send>
+        </transition>
+        <transition cond="status == true" target="idle">
+            <send event="srv_RunTimerSkill__tick_response" target="srv_handler_RunTimerSkill__tick">
+                <param name="ros_fields__status" expr="SKILL_RUNNING"/>
+                <param name="ros_fields__is_ok" expr="true"/>
+            </send>
+        </transition>
+        <transition cond="status == false" target="checkTimer">
+            <send event="srv_TimerCheckForPeopleComponent__StartTimer_req_client_RunTimerSkill" target="srv_handler_TimerCheckForPeopleComponent__StartTimer"/>
+        </transition>
+        <transition event="CMD_HALT" target="idle"/>
+    </state>
+    <state id="startTimer">
+        <transition event="srv_TimerCheckForPeopleComponent__StartTimer_response_client_RunTimerSkill" target="checkTimer">
+            <assign location="result" expr="_event.data.ros_fields__is_ok"/>
+        </transition>
+    </state>
+    <state id="checkTimer">
+        <transition cond="result" target="idle">
+            <send event="srv_RunTimerSkill__tick_response" target="srv_handler_RunTimerSkill__tick">
+                <param name="ros_fields__status" expr="SKILL_SUCCESS"/>
+                <param name="ros_fields__is_ok" expr="true"/>
+            </send>
+        </transition>
+        <transition cond="result == false" target="idle">
+            <send event="srv_RunTimerSkill__tick_response" target="srv_handler_RunTimerSkill__tick">
+                <param name="ros_fields__status" expr="SKILL_FAILURE"/>
+                <param name="ros_fields__is_ok" expr="true"/>
+            </send>
+        </transition>
+        <transition event="CMD_HALT" target="idle"/>
+    </state>
+</scxml>

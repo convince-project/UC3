@@ -1,0 +1,79 @@
+<scxml name="SetPoi5Skill" version="1.0" model_src="" initial="idle" xmlns="http://www.w3.org/2005/07/scxml">
+    <datamodel>
+        <!-- TYPE m_result:bool -->
+        <data id="m_result" expr="false"/>
+        <!-- TYPE m_field_name:string -->
+        <data id="m_field_name" expr="'PoiDone5'"/>
+        <!-- TYPE SKILL_SUCCESS:int8 -->
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <!-- TYPE SKILL_FAILURE:int8 -->
+        <data id="SKILL_FAILURE" expr="1"/>
+        <!-- TYPE SKILL_RUNNING:int8 -->
+        <data id="SKILL_RUNNING" expr="2"/>
+    </datamodel>
+    <state id="idle">
+        <transition event="srv_SetPoi5Skill__tick_request" target="setPoi">
+            <send event="srv_SetPoi5Skill__tick_response" target="srv_handler_SetPoi5Skill__tick">
+                <param name="ros_fields__status" expr="SKILL_RUNNING"/>
+                <param name="ros_fields__is_ok" expr="true"/>
+            </send>
+            <send event="srv_SchedulerComponent__SetPoiFromPlanner_req_client_SetPoi5Skill" target="srv_handler_SchedulerComponent__SetPoiFromPlanner">
+                <param name="ros_fields__poi_number" expr="5"/>
+            </send>
+        </transition>
+        <transition event="srv_SetPoi5Skill__halt_request" target="idle">
+            <send event="srv_SetPoi5Skill__halt_response" target="srv_handler_SetPoi5Skill__halt">
+                <param name="ros_fields__is_ok" expr="true"/>
+            </send>
+        </transition>
+    </state>
+    <state id="setPoi">
+        <transition event="srv_SchedulerComponent__SetPoiFromPlanner_response_client_SetPoi5Skill" target="checkResponse">
+            <assign location="m_result" expr="_event.data.ros_fields__is_ok"/>
+        </transition>
+        <transition event="srv_SetPoi5Skill__tick_request" target="setPoi">
+            <send event="srv_SetPoi5Skill__tick_response" target="srv_handler_SetPoi5Skill__tick">
+                <param name="ros_fields__status" expr="SKILL_RUNNING"/>
+                <param name="ros_fields__is_ok" expr="true"/>
+            </send>
+        </transition>
+        <transition event="srv_SetPoi5Skill__halt_request" target="wait_for_halt"/>
+    </state>
+    <state id="wait_for_halt">
+        <transition event="srv_SchedulerComponent__SetPoiFromPlanner_response_client_SetPoi5Skill" target="idle">
+            <send event="srv_SetPoi5Skill__halt_response" target="srv_handler_SetPoi5Skill__halt">
+                <param name="ros_fields__is_ok" expr="true"/>
+            </send>
+        </transition>
+    </state>
+    <state id="checkResponse">
+        <transition cond="m_result" target="sendSuccess"/>
+        <transition target="sendFailure"/>
+    </state>
+    <state id="sendSuccess">
+        <transition event="srv_SetPoi5Skill__tick_request" target="idle">
+            <send event="srv_SetPoi5Skill__tick_response" target="srv_handler_SetPoi5Skill__tick">
+                <param name="ros_fields__status" expr="SKILL_SUCCESS"/>
+                <param name="ros_fields__is_ok" expr="true"/>
+            </send>
+        </transition>
+        <transition event="srv_SetPoi5Skill__halt_request" target="idle">
+            <send event="srv_SetPoi5Skill__halt_response" target="srv_handler_SetPoi5Skill__halt">
+                <param name="ros_fields__is_ok" expr="true"/>
+            </send>
+        </transition>
+    </state>
+    <state id="sendFailure">
+        <transition event="srv_SetPoi5Skill__tick_request" target="idle">
+            <send event="srv_SetPoi5Skill__tick_response" target="srv_handler_SetPoi5Skill__tick">
+                <param name="ros_fields__status" expr="SKILL_FAILURE"/>
+                <param name="ros_fields__is_ok" expr="true"/>
+            </send>
+        </transition>
+        <transition event="srv_SetPoi5Skill__halt_request" target="idle">
+            <send event="srv_SetPoi5Skill__halt_response" target="srv_handler_SetPoi5Skill__halt">
+                <param name="ros_fields__is_ok" expr="true"/>
+            </send>
+        </transition>
+    </state>
+</scxml>

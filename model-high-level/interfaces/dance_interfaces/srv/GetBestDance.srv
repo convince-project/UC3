@@ -1,0 +1,7 @@
+float32 speech_duration
+string dance_category # the category in which the dance falls (for instance gesture, or wave)
+---
+string dance_name # the identifier given to the specific dance that falls in the dance_category (for instance gesture_short, or wave_long)
+float32 dance_duration
+bool is_ok
+string error_msg

@@ -1,0 +1,37 @@
+<scxml name="TimerCheckForPeopleComponent" version="1.0" model_src="" initial="idle" xmlns="http://www.w3.org/2005/07/scxml">
+    <datamodel>
+        <!-- TYPE res_is_ok:bool -->
+        <data id="res_is_ok" expr="false"/>
+        <!-- TYPE res_error_msg:string -->
+        <data id="res_error_msg" expr="''"/>
+        <!-- TYPE is_active:bool -->
+        <data id="is_active" expr="false"/>
+    </datamodel>
+    <state id="idle">
+        <transition event="srv_TimerCheckForPeopleComponent__StartTimer_request" target="HandleStartTimer"/>
+        <transition event="srv_TimerCheckForPeopleComponent__IsTimerActive_request" target="HandleIsTimerActive"/>
+        <transition event="ros_time_rate.timer_check_people_control_timer" target="idle">
+            <assign location="is_active" expr="false"/>
+        </transition>
+    </state>
+    <state id="HandleStartTimer">
+        <onentry>
+            <assign location="is_active" expr="true"/>
+            <send event="srv_TimerCheckForPeopleComponent__StartTimer_response" target="srv_handler_TimerCheckForPeopleComponent__StartTimer">
+                <param name="ros_fields__is_ok" expr="true"/>
+                <param name="ros_fields__error_msg" expr="''"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+    <state id="HandleIsTimerActive">
+        <onentry>
+            <send event="srv_TimerCheckForPeopleComponent__IsTimerActive_response" target="srv_handler_TimerCheckForPeopleComponent__IsTimerActive">
+                <param name="ros_fields__is_active" expr="is_active"/>
+                <param name="ros_fields__is_ok" expr="true"/>
+                <param name="ros_fields__error_msg" expr="''"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+</scxml>

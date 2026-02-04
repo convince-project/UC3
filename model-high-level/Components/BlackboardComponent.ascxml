@@ -75,42 +75,49 @@
           <field name="value" expr="saved_value_int_1"/>
           <field name="is_ok" expr="true"/>
           <field name="error_msg" expr="''"/>
+          <field name="field_name" expr="field_name_int"/>
         </ros_service_send_response>
       <elseif cond="field_name_int == 'PoiDone1'"/>
         <ros_service_send_response name="/BlackboardComponent/GetInt">
           <field name="value" expr="saved_value_int_2"/>
           <field name="is_ok" expr="true"/>
           <field name="error_msg" expr="''"/>
+          <field name="field_name" expr="field_name_int"/>
         </ros_service_send_response>
       <elseif cond="field_name_int == 'PoiDone2'"/>
         <ros_service_send_response name="/BlackboardComponent/GetInt">
           <field name="value" expr="saved_value_int_3"/>
           <field name="is_ok" expr="true"/>
           <field name="error_msg" expr="''"/>
+          <field name="field_name" expr="field_name_int"/>
         </ros_service_send_response>
       <elseif cond="field_name_int == 'PoiDone3'"/>
         <ros_service_send_response name="/BlackboardComponent/GetInt">
           <field name="value" expr="saved_value_int_4"/>
           <field name="is_ok" expr="true"/>
           <field name="error_msg" expr="''"/>
+          <field name="field_name" expr="field_name_int"/>
         </ros_service_send_response>
       <elseif cond="field_name_int == 'PoiDone4'"/> 
         <ros_service_send_response name="/BlackboardComponent/GetInt">
           <field name="value" expr="saved_value_int_5"/>
           <field name="is_ok" expr="true"/>
           <field name="error_msg" expr="''"/>
+          <field name="field_name" expr="field_name_int"/>
         </ros_service_send_response>
       <elseif cond="field_name_int == 'PoiDone5'"/>
         <ros_service_send_response name="/BlackboardComponent/GetInt">
           <field name="value" expr="saved_value_int_6"/>
           <field name="is_ok" expr="true"/>
           <field name="error_msg" expr="''"/>
+          <field name="field_name" expr="field_name_int"/>
         </ros_service_send_response>
       <else />
         <ros_service_send_response name="/BlackboardComponent/GetInt">
           <field name="value" expr="0"/>
           <field name="is_ok" expr="false"/>
           <field name="error_msg" expr="'Field not found'"/>
+          <field name="field_name" expr="field_name_int"/>
         </ros_service_send_response>
       </if>
     </onentry>

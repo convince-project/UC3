@@ -1,0 +1,36 @@
+<scxml name="srv_handler_CheckIfStartSkill__tick" version="1.0" model_src="" initial="waiting" xmlns="http://www.w3.org/2005/07/scxml">
+    <datamodel>
+        <!-- TYPE ros_fields__status:int8 -->
+        <data id="ros_fields__status" expr="0"/>
+        <!-- TYPE ros_fields__is_ok:bool -->
+        <data id="ros_fields__is_ok" expr="false"/>
+    </datamodel>
+    <state id="waiting">
+        <transition event="srv_CheckIfStartSkill__tick_req_client_BT_plugin_1019_CheckIfStart" target="processing_client_BT_plugin_1019_CheckIfStart">
+            <send event="srv_CheckIfStartSkill__tick_request" target="CheckIfStartSkill"/>
+        </transition>
+        <transition event="srv_CheckIfStartSkill__tick_req_client_BT_plugin_1052_CheckIfStart" target="processing_client_BT_plugin_1052_CheckIfStart">
+            <send event="srv_CheckIfStartSkill__tick_request" target="CheckIfStartSkill"/>
+        </transition>
+    </state>
+    <state id="processing_client_BT_plugin_1019_CheckIfStart">
+        <transition event="srv_CheckIfStartSkill__tick_response" target="waiting">
+            <assign location="ros_fields__status" expr="_event.data.ros_fields__status"/>
+            <assign location="ros_fields__is_ok" expr="_event.data.ros_fields__is_ok"/>
+            <send event="srv_CheckIfStartSkill__tick_response_client_BT_plugin_1019_CheckIfStart" target="BT_plugin_1019_CheckIfStart">
+                <param name="ros_fields__status" expr="ros_fields__status"/>
+                <param name="ros_fields__is_ok" expr="ros_fields__is_ok"/>
+            </send>
+        </transition>
+    </state>
+    <state id="processing_client_BT_plugin_1052_CheckIfStart">
+        <transition event="srv_CheckIfStartSkill__tick_response" target="waiting">
+            <assign location="ros_fields__status" expr="_event.data.ros_fields__status"/>
+            <assign location="ros_fields__is_ok" expr="_event.data.ros_fields__is_ok"/>
+            <send event="srv_CheckIfStartSkill__tick_response_client_BT_plugin_1052_CheckIfStart" target="BT_plugin_1052_CheckIfStart">
+                <param name="ros_fields__status" expr="ros_fields__status"/>
+                <param name="ros_fields__is_ok" expr="ros_fields__is_ok"/>
+            </send>
+        </transition>
+    </state>
+</scxml>

@@ -1,0 +1,130 @@
+<scxml name="BatteryComponent" version="1.0" model_src="" initial="idle" xmlns="http://www.w3.org/2005/07/scxml">
+    <datamodel>
+        <!-- TYPE percentage:float32 -->
+        <data id="percentage" expr="1.0"/>
+        <!-- TYPE voltage:float32 -->
+        <data id="voltage" expr="12.0"/>
+        <!-- TYPE current:float32 -->
+        <data id="current" expr="-1.0"/>
+        <!-- TYPE present:bool -->
+        <data id="present" expr="true"/>
+        <!-- TYPE temperature:float32 -->
+        <data id="temperature" expr="25.0"/>
+        <!-- TYPE charge:float32 -->
+        <data id="charge" expr="5.0"/>
+        <!-- TYPE capacity:float32 -->
+        <data id="capacity" expr="10.0"/>
+        <!-- TYPE design_capacity:float32 -->
+        <data id="design_capacity" expr="10.0"/>
+        <!-- TYPE power_supply_health:uint8 -->
+        <data id="power_supply_health" expr="1"/>
+        <!-- TYPE power_supply_technology:uint8 -->
+        <data id="power_supply_technology" expr="2"/>
+        <!-- TYPE cell_voltage:float32[] -->
+        <data id="cell_voltage" expr="[3.7, 3.7, 3.7]"/>
+        <!-- TYPE cell_temperature:float32[] -->
+        <data id="cell_temperature" expr="[25.0, 25.0, 25.0]"/>
+        <!-- TYPE location:string -->
+        <data id="location" expr="'slot_1'"/>
+        <!-- TYPE serial_number:string -->
+        <data id="serial_number" expr="'123456789'"/>
+        <!-- TYPE header_stamp_sec:int32 -->
+        <data id="header_stamp_sec" expr="0"/>
+        <!-- TYPE header_stamp_nanosec:uint32 -->
+        <data id="header_stamp_nanosec" expr="0"/>
+        <!-- TYPE header_frame_id:string -->
+        <data id="header_frame_id" expr="'base_link'"/>
+        <!-- TYPE __RAND__:float64 -->
+        <data id="__RAND__" expr="0.0"/>
+    </datamodel>
+    <state id="idle">
+        <onentry>
+            <if cond="percentage &gt; 0">
+                <assign location="percentage" expr="percentage - 0.01"/>
+            </if>
+            <send event="topic_BatteryComponent__battery_level_msg" target="BatteryChargingSkill">
+                <param name="ros_fields__header__stamp__sec" expr="header_stamp_sec"/>
+                <param name="ros_fields__header__stamp__nanosec" expr="header_stamp_nanosec"/>
+                <param name="ros_fields__header__frame_id" expr="header_frame_id"/>
+                <param name="ros_fields__percentage" expr="percentage"/>
+                <param name="ros_fields__voltage" expr="voltage"/>
+                <param name="ros_fields__current" expr="current"/>
+                <param name="ros_fields__temperature" expr="temperature"/>
+                <param name="ros_fields__charge" expr="charge"/>
+                <param name="ros_fields__capacity" expr="capacity"/>
+                <param name="ros_fields__design_capacity" expr="design_capacity"/>
+                <param name="ros_fields__power_supply_status" expr="2"/>
+                <param name="ros_fields__power_supply_health" expr="power_supply_health"/>
+                <param name="ros_fields__power_supply_technology" expr="power_supply_technology"/>
+                <param name="ros_fields__present" expr="present"/>
+                <param name="ros_fields__cell_voltage" expr="cell_voltage"/>
+                <param name="ros_fields__cell_temperature" expr="cell_temperature"/>
+                <param name="ros_fields__location" expr="location"/>
+                <param name="ros_fields__serial_number" expr="serial_number"/>
+            </send>
+            <send event="topic_BatteryComponent__battery_level_msg" target="BatteryLevelSkill">
+                <param name="ros_fields__header__stamp__sec" expr="header_stamp_sec"/>
+                <param name="ros_fields__header__stamp__nanosec" expr="header_stamp_nanosec"/>
+                <param name="ros_fields__header__frame_id" expr="header_frame_id"/>
+                <param name="ros_fields__percentage" expr="percentage"/>
+                <param name="ros_fields__voltage" expr="voltage"/>
+                <param name="ros_fields__current" expr="current"/>
+                <param name="ros_fields__temperature" expr="temperature"/>
+                <param name="ros_fields__charge" expr="charge"/>
+                <param name="ros_fields__capacity" expr="capacity"/>
+                <param name="ros_fields__design_capacity" expr="design_capacity"/>
+                <param name="ros_fields__power_supply_status" expr="2"/>
+                <param name="ros_fields__power_supply_health" expr="power_supply_health"/>
+                <param name="ros_fields__power_supply_technology" expr="power_supply_technology"/>
+                <param name="ros_fields__present" expr="present"/>
+                <param name="ros_fields__cell_voltage" expr="cell_voltage"/>
+                <param name="ros_fields__cell_temperature" expr="cell_temperature"/>
+                <param name="ros_fields__location" expr="location"/>
+                <param name="ros_fields__serial_number" expr="serial_number"/>
+            </send>
+            <assign location="__RAND__" expr="Math.random()"/>
+        </onentry>
+        <transition event="ros_time_rate.battery_control_timer" cond="0.0 &lt; __RAND__ &amp;&amp; __RAND__ &lt;= 1.0" target="idle">
+            <send event="topic_BatteryComponent__battery_level_msg" target="BatteryChargingSkill">
+                <param name="ros_fields__header__stamp__sec" expr="header_stamp_sec"/>
+                <param name="ros_fields__header__stamp__nanosec" expr="header_stamp_nanosec"/>
+                <param name="ros_fields__header__frame_id" expr="header_frame_id"/>
+                <param name="ros_fields__percentage" expr="percentage"/>
+                <param name="ros_fields__voltage" expr="voltage"/>
+                <param name="ros_fields__current" expr="current"/>
+                <param name="ros_fields__temperature" expr="temperature"/>
+                <param name="ros_fields__charge" expr="charge"/>
+                <param name="ros_fields__capacity" expr="capacity"/>
+                <param name="ros_fields__design_capacity" expr="design_capacity"/>
+                <param name="ros_fields__power_supply_status" expr="2"/>
+                <param name="ros_fields__power_supply_health" expr="power_supply_health"/>
+                <param name="ros_fields__power_supply_technology" expr="power_supply_technology"/>
+                <param name="ros_fields__present" expr="present"/>
+                <param name="ros_fields__cell_voltage" expr="cell_voltage"/>
+                <param name="ros_fields__cell_temperature" expr="cell_temperature"/>
+                <param name="ros_fields__location" expr="location"/>
+                <param name="ros_fields__serial_number" expr="serial_number"/>
+            </send>
+            <send event="topic_BatteryComponent__battery_level_msg" target="BatteryLevelSkill">
+                <param name="ros_fields__header__stamp__sec" expr="header_stamp_sec"/>
+                <param name="ros_fields__header__stamp__nanosec" expr="header_stamp_nanosec"/>
+                <param name="ros_fields__header__frame_id" expr="header_frame_id"/>
+                <param name="ros_fields__percentage" expr="percentage"/>
+                <param name="ros_fields__voltage" expr="voltage"/>
+                <param name="ros_fields__current" expr="current"/>
+                <param name="ros_fields__temperature" expr="temperature"/>
+                <param name="ros_fields__charge" expr="charge"/>
+                <param name="ros_fields__capacity" expr="capacity"/>
+                <param name="ros_fields__design_capacity" expr="design_capacity"/>
+                <param name="ros_fields__power_supply_status" expr="2"/>
+                <param name="ros_fields__power_supply_health" expr="power_supply_health"/>
+                <param name="ros_fields__power_supply_technology" expr="power_supply_technology"/>
+                <param name="ros_fields__present" expr="present"/>
+                <param name="ros_fields__cell_voltage" expr="cell_voltage"/>
+                <param name="ros_fields__cell_temperature" expr="cell_temperature"/>
+                <param name="ros_fields__location" expr="location"/>
+                <param name="ros_fields__serial_number" expr="serial_number"/>
+            </send>
+        </transition>
+    </state>
+</scxml>

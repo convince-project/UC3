@@ -2,5 +2,6 @@
 bool is_blocking
 string param
 string type
+string dance
 bool is_ok
 string error_msg
