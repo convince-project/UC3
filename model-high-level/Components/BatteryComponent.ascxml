@@ -6,38 +6,79 @@
   name="BatteryComponent"
   initial="idle">
 
-	<datamodel>
-		<data id="percentage" type="float32" expr="100" />
-    <!-- <data id="timer_duration" type="int32" expr="1000" /> --> <!--Timer duration in milliseconds -->
-	</datamodel>
+  <datamodel>
+    <data id="percentage" type="float32" expr="1.0" /> <!-- Valore iniziale in scala 0-1 -->
+    <data id="voltage" type="float32" expr="12.0" /> <!-- Valore di esempio -->
+    <data id="current" type="float32" expr="-1.0" /> <!-- Corrente negativa (scarica) -->
+    <data id="present" type="bool" expr="true" /> <!-- Batteria presente -->
+    <data id="temperature" type="float32" expr="25.0" /> <!-- Temperatura in gradi Celsius -->
+    <data id="charge" type="float32" expr="5.0" /> <!-- Carica in Ah -->
+    <data id="capacity" type="float32" expr="10.0" /> <!-- Capacità in Ah -->
+    <data id="design_capacity" type="float32" expr="10.0" /> <!-- Capacità di progetto in Ah -->
+    <data id="power_supply_health" type="uint8" expr="1" /> <!-- Stato di salute della batteria -->
+    <data id="power_supply_technology" type="uint8" expr="2" /> <!-- Tecnologia della batteria -->
+    <data id="cell_voltage" type="float32[]" expr="[3.7, 3.7, 3.7]" /> <!-- Voltaggio delle celle -->
+    <data id="cell_temperature" type="float32[]" expr="[25.0, 25.0, 25.0]" /> <!-- Temperatura delle celle -->
+    <data id="location" type="string" expr="'slot_1'" /> <!-- Posizione della batteria -->
+    <data id="serial_number" type="string" expr="'123456789'" /> <!-- Numero di serie -->
+    <data id="header_stamp_sec" type="int32" expr="0" /> <!-- Timestamp secondi -->
+    <data id="header_stamp_nanosec" type="uint32" expr="0" /> <!-- Timestamp nanosecondi -->
+    <data id="header_frame_id" type="string" expr="'base_link'" /> <!-- Frame di riferimento -->
+  </datamodel>
 
   <ros_topic_publisher name="battery_level_pub" topic="/BatteryComponent/battery_level" type="sensor_msgs/BatteryState" />
   <ros_time_rate name="battery_control_timer" rate_hz="1" />
 
   <state id="idle">
     <onentry>
-      <!-- <send event="timer_expired" delayexpr="timer_duration + 'ms'" /> -->
-      <if cond="percentage &gt; 0" >
-        <assign location="percentage" expr="percentage - 1" />
+      <if cond="percentage &gt; 0">
+        <assign location="percentage" expr="percentage - 0.01" />
       </if>
       <ros_topic_publish name="battery_level_pub">
-        <!-- <field name="percentage" expr="percentage" /> -->
-        <!-- <field name="power_supply_status" expr="2" /> -->
+        <field name="header.stamp.sec" expr="header_stamp_sec" />
+        <field name="header.stamp.nanosec" expr="header_stamp_nanosec" />
+        <field name="header.frame_id" expr="header_frame_id" />
+        <field name="percentage" expr="percentage" />
+        <field name="voltage" expr="voltage" />
+        <field name="current" expr="current" />
+        <field name="temperature" expr="temperature" />
+        <field name="charge" expr="charge" />
+        <field name="capacity" expr="capacity" />
+        <field name="design_capacity" expr="design_capacity" />
+        <field name="power_supply_status" expr="2" /> <!-- Scarica -->
+        <field name="power_supply_health" expr="power_supply_health" />
+        <field name="power_supply_technology" expr="power_supply_technology" />
+        <field name="present" expr="present" />
+        <field name="cell_voltage" expr="cell_voltage" />
+        <field name="cell_temperature" expr="cell_temperature" />
+        <field name="location" expr="location" />
+        <field name="serial_number" expr="serial_number" />
       </ros_topic_publish>
     </onentry>
-    <!-- <transition event="timer_expired" target="idle"/> -->
-    <ros_rate_callback name="battery_control_timer" >
-
-      <target id="idle" prob="0.99">
+    <ros_rate_callback name="battery_control_timer">
+      <target id="idle" prob="1.0">
         <ros_topic_publish name="battery_level_pub">
-          <!-- <field name="percentage" expr="percentage"/> -->
-          <!-- <field name="power_supply_status" expr="2"/> -->
+          <field name="header.stamp.sec" expr="header_stamp_sec" />
+          <field name="header.stamp.nanosec" expr="header_stamp_nanosec" />
+          <field name="header.frame_id" expr="header_frame_id" />
+          <field name="percentage" expr="percentage" />
+          <field name="voltage" expr="voltage" />
+          <field name="current" expr="current" />
+          <field name="temperature" expr="temperature" />
+          <field name="charge" expr="charge" />
+          <field name="capacity" expr="capacity" />
+          <field name="design_capacity" expr="design_capacity" />
+          <field name="power_supply_status" expr="2" />
+          <field name="power_supply_health" expr="power_supply_health" />
+          <field name="power_supply_technology" expr="power_supply_technology" />
+          <field name="present" expr="present" />
+          <field name="cell_voltage" expr="cell_voltage" />
+          <field name="cell_temperature" expr="cell_temperature" />
+          <field name="location" expr="location" />
+          <field name="serial_number" expr="serial_number" />
         </ros_topic_publish>
       </target>
-      <target id="idle" prob="0.01"/>
-
     </ros_rate_callback>
-    <!-- <transition target="idle"/> -->
   </state>
 
 </ascxml>

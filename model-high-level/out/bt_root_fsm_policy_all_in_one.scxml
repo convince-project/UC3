@@ -1,0 +1,13 @@
+<scxml name="bt_root_fsm_policy_all_in_one" version="1.0" model_src="" initial="idle" xmlns="http://www.w3.org/2005/07/scxml">
+    <state id="idle">
+        <transition event="ros_time_rate.policy_all_in_one_tick" target="wait_tick_res">
+            <send event="bt_1000_tick" target="BT_plugin_1000_ReactiveSequence"/>
+        </transition>
+        <transition event="bt_1000_response" target="error"/>
+    </state>
+    <state id="wait_tick_res">
+        <transition event="bt_1000_response" target="idle"/>
+    </state>
+    <state id="done"/>
+    <state id="error"/>
+</scxml>

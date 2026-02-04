@@ -16,7 +16,7 @@ find_package(std_msgs REQUIRED)
 # find_package(<dependency> REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
-"srv/NetworkStatus.srv"
+"msg/NetworkStatus.msg"
 DEPENDENCIES std_msgs
 LIBRARY_NAME ${PROJECT_NAME}
 )

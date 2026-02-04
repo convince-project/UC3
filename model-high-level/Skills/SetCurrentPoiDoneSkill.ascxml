@@ -9,13 +9,14 @@
     <datamodel>
         <data id="poi_number" type="int32" expr="0"/>
         <!-- <data id="poi_name" type="string" expr=""/> -->
-        <!-- <data id="field_name" type="string" expr="'PoiDone'"/>
-        <data id="field_name_init" type="string" expr="'PoiDone'"/> -->
+        <data id="field_name" type="string" expr="'PoiDone'"/>
+        <!--<data id="field_name_init" type="string" expr="'PoiDone'"/> -->
         <data id="value" type="int32" expr="1"/>
         <data id="SKILL_SUCCESS" type="int8" expr="0" />
         <data id="SKILL_FAILURE" type="int8" expr="1" />
         <data id="SKILL_RUNNING" type="int8" expr="2" />
         <data id="is_ok" type="bool" expr="false"/>
+        <data id="bb_field_name" type="string" expr="'PoiDone0'"/>
     </datamodel>
 
     <!-- SetCurrentPoiDoneSkill is a server for tick from the ROS2Action plugin-->
@@ -56,20 +57,50 @@
     </state>
 
     <state id="checkCallSucceeded">
-        <transition cond="is_ok" target="setInt">
-            <ros_service_send_request name="/BlackboardComponent/SetInt">
-                <!-- Correggere da poi_number a stringa appropriata -->
-                <field name="field_name" expr="'PoiDone' + poi_number"/>
-                <field name="value" expr="value"/>
-            </ros_service_send_request>
-        </transition>
-        <transition cond="!is_ok" target="idle">
-            <ros_service_send_response name="/SetCurrentPoiDoneSkill/tick">
-                <field name="status" expr="SKILL_FAILURE"/>
-                <field name="is_ok" expr="true"/>
-            </ros_service_send_response>
-        </transition>
+    <onentry>
+        <if cond="poi_number == 0">
+        <assign location="bb_field_name" expr="'PoiDone0'"/>
+        <elseif cond="poi_number == 1"/>
+        <assign location="bb_field_name" expr="'PoiDone1'"/>
+        <elseif cond="poi_number == 2"/>
+        <assign location="bb_field_name" expr="'PoiDone2'"/>
+        <elseif cond="poi_number == 3"/>
+        <assign location="bb_field_name" expr="'PoiDone3'"/>
+        <elseif cond="poi_number == 4"/>
+        <assign location="bb_field_name" expr="'PoiDone4'"/>
+        <elseif cond="poi_number == 5"/>
+        <assign location="bb_field_name" expr="'PoiDone5'"/>
+        <elseif cond="poi_number == 6"/>
+        <assign location="bb_field_name" expr="'PoiDone6'"/>
+        <elseif cond="poi_number == 7"/>
+        <assign location="bb_field_name" expr="'PoiDone7'"/>
+        <elseif cond="poi_number == 8"/>
+        <assign location="bb_field_name" expr="'PoiDone8'"/>
+        <elseif cond="poi_number == 9"/>
+        <assign location="bb_field_name" expr="'PoiDone9'"/>
+        <elseif cond="poi_number == 10"/>
+        <assign location="bb_field_name" expr="'PoiDone10'"/>
+        <else/>
+        <!-- fallback sensato se poi_number fuori range -->
+        <assign location="bb_field_name" expr="'PoiDone'"/>
+        </if>
+    </onentry>
+
+    <transition cond="is_ok" target="setInt">
+        <ros_service_send_request name="/BlackboardComponent/SetInt">
+        <field name="field_name" expr="bb_field_name"/>
+        <field name="value" expr="value"/>
+        </ros_service_send_request>
+    </transition>
+
+    <transition cond="!is_ok" target="idle">
+        <ros_service_send_response name="/SetCurrentPoiDoneSkill/tick">
+        <field name="status" expr="SKILL_FAILURE"/>
+        <field name="is_ok" expr="true"/>
+        </ros_service_send_response>
+    </transition>
     </state>
+
 
     <state id="setInt">
         <ros_service_handle_response name="/BlackboardComponent/SetInt" target="checkSetIntSucceeded">
@@ -100,6 +131,7 @@
         <onentry>
             <assign location="poi_number" expr="0"/>
             <assign location="value" expr="1"/>
+            <send event="CMD_HALT"/> <!-- Mittente aggiunto -->
             <ros_service_send_response name="/SetCurrentPoiDoneSkill/halt">
                 <field name="is_ok" expr="true"/>
             </ros_service_send_response>

@@ -1,0 +1,28 @@
+<scxml name="BT_plugin_1029_IsPoiDone1Skill" version="1.0" model_src="" initial="idle" xmlns="http://www.w3.org/2005/07/scxml">
+    <datamodel>
+        <!-- TYPE SKILL_SUCCESS:int8 -->
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <!-- TYPE SKILL_FAILURE:int8 -->
+        <data id="SKILL_FAILURE" expr="1"/>
+    </datamodel>
+    <state id="idle">
+        <transition event="bt_1029_tick" target="handle_response">
+            <send event="srv_IsPoiDone1Skill__tick_req_client_BT_plugin_1029_IsPoiDone1Skill" target="srv_handler_IsPoiDone1Skill__tick"/>
+        </transition>
+        <transition event="bt_1029_halt" target="idle">
+            <send event="bt_1029_halt_response" target="BT_plugin_1028_Inverter"/>
+        </transition>
+    </state>
+    <state id="handle_response">
+        <transition event="srv_IsPoiDone1Skill__tick_response_client_BT_plugin_1029_IsPoiDone1Skill" cond="_event.data.ros_fields__status == SKILL_SUCCESS" target="idle">
+            <send event="bt_1029_response" target="BT_plugin_1028_Inverter">
+                <param name="status" expr="1"/>
+            </send>
+        </transition>
+        <transition event="srv_IsPoiDone1Skill__tick_response_client_BT_plugin_1029_IsPoiDone1Skill" cond="_event.data.ros_fields__status == SKILL_FAILURE" target="idle">
+            <send event="bt_1029_response" target="BT_plugin_1028_Inverter">
+                <param name="status" expr="2"/>
+            </send>
+        </transition>
+    </state>
+</scxml>

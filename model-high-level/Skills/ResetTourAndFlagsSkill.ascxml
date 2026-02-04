@@ -14,7 +14,7 @@
   <ros_service_client service_name="/SchedulerComponent/Reset" type="scheduler_interfaces/Reset"/>
   <ros_service_client service_name="/BlackboardComponent/SetAllIntsWithPrefix" type="blackboard_interfaces/SetAllIntsWithPrefixBlackboard"/>
 
-  <ros_service_client service_name="/PlannerComponent/ResetPlanner" type="std_srvs/Trigger"/>
+  <!-- <ros_service_client service_name="/PlannerComponent/ResetPlanner" type="std_srvs/Trigger"/> -->
 
   <datamodel>
     <data id="m_name"        type="string" expr="'PoiDone'"/>
@@ -27,16 +27,16 @@
 
   <state id="idle">
     <ros_service_handle_request name="/ResetTourAndFlagsSkill/tick" target="resetPlanner">
-      <ros_service_send_request name="/PlannerComponent/ResetPlanner"/>
+      <!-- <ros_service_send_request name="/PlannerComponent/ResetPlanner"/> -->
     </ros_service_handle_request>
     <ros_service_handle_request name="/ResetTourAndFlagsSkill/halt" target="halted"/>
   </state>
 
   <state id="resetPlanner">
     
-    <ros_service_handle_response name="/PlannerComponent/ResetPlanner" target="evaluatePlannerReset">
+    <!-- <ros_service_handle_response name="/PlannerComponent/ResetPlanner" target="evaluatePlannerReset">
       <assign location="m_result_planner" expr="_res.success"/>
-    </ros_service_handle_response>
+    </ros_service_handle_response> -->
 
   </state>
 

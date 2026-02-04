@@ -1,0 +1,36 @@
+<scxml name="IsAllowedToMoveSkill" version="1.0" model_src="" initial="idle" xmlns="http://www.w3.org/2005/07/scxml">
+    <datamodel>
+        <!-- TYPE m_is_allowed_to_move:bool -->
+        <data id="m_is_allowed_to_move" expr="false"/>
+        <!-- TYPE SKILL_SUCCESS:int8 -->
+        <data id="SKILL_SUCCESS" expr="0"/>
+        <!-- TYPE SKILL_FAILURE:int8 -->
+        <data id="SKILL_FAILURE" expr="1"/>
+    </datamodel>
+    <state id="idle">
+        <transition event="srv_IsAllowedToMoveSkill__tick_request" target="query">
+            <send event="srv_AllowedToMoveComponent__IsAllowedToMove_req_client_IsAllowedToMoveSkill" target="srv_handler_AllowedToMoveComponent__IsAllowedToMove"/>
+        </transition>
+    </state>
+    <state id="query">
+        <transition event="srv_AllowedToMoveComponent__IsAllowedToMove_response_client_IsAllowedToMoveSkill" target="decide">
+            <assign location="m_is_allowed_to_move" expr="_event.data.ros_fields__is_allowed_to_move"/>
+        </transition>
+    </state>
+    <state id="decide">
+        <onentry>
+            <if cond="m_is_allowed_to_move">
+                <send event="srv_IsAllowedToMoveSkill__tick_response" target="srv_handler_IsAllowedToMoveSkill__tick">
+                    <param name="ros_fields__status" expr="SKILL_SUCCESS"/>
+                    <param name="ros_fields__is_ok" expr="true"/>
+                </send>
+                <else/>
+                <send event="srv_IsAllowedToMoveSkill__tick_response" target="srv_handler_IsAllowedToMoveSkill__tick">
+                    <param name="ros_fields__status" expr="SKILL_FAILURE"/>
+                    <param name="ros_fields__is_ok" expr="true"/>
+                </send>
+            </if>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+</scxml>

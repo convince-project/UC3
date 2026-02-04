@@ -1,0 +1,19 @@
+<scxml name="AllowedToMoveComponent" version="1.0" model_src="" initial="idle" xmlns="http://www.w3.org/2005/07/scxml">
+    <datamodel>
+        <!-- TYPE is_robot_allowed_to_move:bool -->
+        <data id="is_robot_allowed_to_move" expr="true"/>
+    </datamodel>
+    <state id="idle">
+        <transition event="srv_AllowedToMoveComponent__IsAllowedToMove_request" target="HandleIsAllowedToMove"/>
+    </state>
+    <state id="HandleIsAllowedToMove">
+        <onentry>
+            <send event="srv_AllowedToMoveComponent__IsAllowedToMove_response" target="srv_handler_AllowedToMoveComponent__IsAllowedToMove">
+                <param name="ros_fields__is_allowed_to_move" expr="is_robot_allowed_to_move"/>
+                <param name="ros_fields__is_ok" expr="true"/>
+                <param name="ros_fields__error_msg" expr="''"/>
+            </send>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+</scxml>

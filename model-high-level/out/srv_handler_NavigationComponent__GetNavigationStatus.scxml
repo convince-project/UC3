@@ -1,0 +1,65 @@
+<scxml name="srv_handler_NavigationComponent__GetNavigationStatus" version="1.0" model_src="" initial="waiting" xmlns="http://www.w3.org/2005/07/scxml">
+    <datamodel>
+        <!-- TYPE ros_fields__status:int8 -->
+        <data id="ros_fields__status" expr="0"/>
+        <!-- TYPE ros_fields__current_goal:string -->
+        <data id="ros_fields__current_goal" expr="''"/>
+        <!-- TYPE ros_fields__is_ok:bool -->
+        <data id="ros_fields__is_ok" expr="false"/>
+        <!-- TYPE ros_fields__error_msg:string -->
+        <data id="ros_fields__error_msg" expr="''"/>
+    </datamodel>
+    <state id="waiting">
+        <transition event="srv_NavigationComponent__GetNavigationStatus_req_client_IsAtChargingStationSkill" target="processing_client_IsAtChargingStationSkill">
+            <send event="srv_NavigationComponent__GetNavigationStatus_request" target="NavigationComponent"/>
+        </transition>
+        <transition event="srv_NavigationComponent__GetNavigationStatus_req_client_IsAtCurrentPoiSkill" target="processing_client_IsAtCurrentPoiSkill">
+            <send event="srv_NavigationComponent__GetNavigationStatus_request" target="NavigationComponent"/>
+        </transition>
+        <transition event="srv_NavigationComponent__GetNavigationStatus_req_client_StopAndTurnBackSkill" target="processing_client_StopAndTurnBackSkill">
+            <send event="srv_NavigationComponent__GetNavigationStatus_request" target="NavigationComponent"/>
+        </transition>
+    </state>
+    <state id="processing_client_IsAtChargingStationSkill">
+        <transition event="srv_NavigationComponent__GetNavigationStatus_response" target="waiting">
+            <assign location="ros_fields__status" expr="_event.data.ros_fields__status"/>
+            <assign location="ros_fields__current_goal" expr="_event.data.ros_fields__current_goal"/>
+            <assign location="ros_fields__is_ok" expr="_event.data.ros_fields__is_ok"/>
+            <assign location="ros_fields__error_msg" expr="_event.data.ros_fields__error_msg"/>
+            <send event="srv_NavigationComponent__GetNavigationStatus_response_client_IsAtChargingStationSkill" target="IsAtChargingStationSkill">
+                <param name="ros_fields__status" expr="ros_fields__status"/>
+                <param name="ros_fields__current_goal" expr="ros_fields__current_goal"/>
+                <param name="ros_fields__is_ok" expr="ros_fields__is_ok"/>
+                <param name="ros_fields__error_msg" expr="ros_fields__error_msg"/>
+            </send>
+        </transition>
+    </state>
+    <state id="processing_client_IsAtCurrentPoiSkill">
+        <transition event="srv_NavigationComponent__GetNavigationStatus_response" target="waiting">
+            <assign location="ros_fields__status" expr="_event.data.ros_fields__status"/>
+            <assign location="ros_fields__current_goal" expr="_event.data.ros_fields__current_goal"/>
+            <assign location="ros_fields__is_ok" expr="_event.data.ros_fields__is_ok"/>
+            <assign location="ros_fields__error_msg" expr="_event.data.ros_fields__error_msg"/>
+            <send event="srv_NavigationComponent__GetNavigationStatus_response_client_IsAtCurrentPoiSkill" target="IsAtCurrentPoiSkill">
+                <param name="ros_fields__status" expr="ros_fields__status"/>
+                <param name="ros_fields__current_goal" expr="ros_fields__current_goal"/>
+                <param name="ros_fields__is_ok" expr="ros_fields__is_ok"/>
+                <param name="ros_fields__error_msg" expr="ros_fields__error_msg"/>
+            </send>
+        </transition>
+    </state>
+    <state id="processing_client_StopAndTurnBackSkill">
+        <transition event="srv_NavigationComponent__GetNavigationStatus_response" target="waiting">
+            <assign location="ros_fields__status" expr="_event.data.ros_fields__status"/>
+            <assign location="ros_fields__current_goal" expr="_event.data.ros_fields__current_goal"/>
+            <assign location="ros_fields__is_ok" expr="_event.data.ros_fields__is_ok"/>
+            <assign location="ros_fields__error_msg" expr="_event.data.ros_fields__error_msg"/>
+            <send event="srv_NavigationComponent__GetNavigationStatus_response_client_StopAndTurnBackSkill" target="StopAndTurnBackSkill">
+                <param name="ros_fields__status" expr="ros_fields__status"/>
+                <param name="ros_fields__current_goal" expr="ros_fields__current_goal"/>
+                <param name="ros_fields__is_ok" expr="ros_fields__is_ok"/>
+                <param name="ros_fields__error_msg" expr="ros_fields__error_msg"/>
+            </send>
+        </transition>
+    </state>
+</scxml>

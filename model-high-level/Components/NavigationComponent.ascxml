@@ -48,8 +48,9 @@
     <!-- CheckNearToPoi -->
     <ros_service_handle_request name="/NavigationComponent/CheckNearToPoi" target="HandleCheckNearToPoi">
       <ros_service_send_response name="/NavigationComponent/CheckNearToPoi">
-        <field name="is_ok"      expr="true"/>
+        <field name="poi_name"  expr="goal_name"/>
         <field name="is_near"    expr="is_near"/>
+        <field name="is_ok"      expr="true"/>
         <field name="error_msg"  expr="''"/>
       </ros_service_send_response>
     </ros_service_handle_request>
@@ -101,8 +102,9 @@
     <!-- CheckNearToPoi -->
     <ros_service_handle_request name="/NavigationComponent/CheckNearToPoi" target="HandleCheckNearToPoi">
       <ros_service_send_response name="/NavigationComponent/CheckNearToPoi">
-        <field name="is_ok"      expr="true"/>
+        <field name="poi_name"  expr="goal_name"/>
         <field name="is_near"    expr="is_near"/>
+        <field name="is_ok"      expr="true"/>
         <field name="error_msg"  expr="''"/>
       </ros_service_send_response>
     </ros_service_handle_request>
@@ -144,17 +146,6 @@
 
   </state>
 
-  <state id="HandleStopNavigation">
-
-    <onentry>
-      <ros_service_send_response name="/NavigationComponent/StopNavigation">
-        <field name="is_ok"      expr="true"/>
-        <field name="error_msg"  expr="''"/>
-      </ros_service_send_response>
-    </onentry>
-    <transition target="idle"/>
-  </state>
-
   <state id="HandleGetNavigationStatus">
     <onentry>
       <ros_service_send_response name="/NavigationComponent/GetNavigationStatus">
@@ -170,8 +161,9 @@
   <state id="HandleCheckNearToPoi">
     <onentry>
       <ros_service_send_response name="/NavigationComponent/CheckNearToPoi">
-        <field name="is_ok"      expr="true"/>
+        <field name="poi_name"  expr="goal_name"/>
         <field name="is_near"    expr="is_near"/>
+        <field name="is_ok"      expr="true"/>
         <field name="error_msg"  expr="''"/>
       </ros_service_send_response>
     </onentry>

@@ -1,0 +1,19 @@
+<scxml name="TimerComponent" version="1.0" model_src="" initial="idle" xmlns="http://www.w3.org/2005/07/scxml">
+    <datamodel>
+        <!-- TYPE timer_active:bool -->
+        <data id="timer_active" expr="false"/>
+        <!-- TYPE counter:int32 -->
+        <data id="counter" expr="0"/>
+        <!-- TYPE counter_max:int32 -->
+        <data id="counter_max" expr="30000"/>
+    </datamodel>
+    <state id="idle">
+        <transition event="srv_TimeComponent__IsMuseumClosing_request" target="idle">
+            <send event="srv_TimeComponent__IsMuseumClosing_response" target="srv_handler_TimeComponent__IsMuseumClosing">
+                <param name="ros_fields__is_ok" expr="true"/>
+                <param name="ros_fields__is_closing" expr="counter &gt; counter_max"/>
+                <param name="ros_fields__error_msg" expr="''"/>
+            </send>
+        </transition>
+    </state>
+</scxml>

@@ -1,0 +1,27 @@
+<scxml name="srv_handler_NarrateComponent__IsDone" version="1.0" model_src="" initial="waiting" xmlns="http://www.w3.org/2005/07/scxml">
+    <datamodel>
+        <!-- TYPE ros_fields__is_done:bool -->
+        <data id="ros_fields__is_done" expr="false"/>
+        <!-- TYPE ros_fields__is_ok:bool -->
+        <data id="ros_fields__is_ok" expr="false"/>
+        <!-- TYPE ros_fields__error_msg:string -->
+        <data id="ros_fields__error_msg" expr="''"/>
+    </datamodel>
+    <state id="waiting">
+        <transition event="srv_NarrateComponent__IsDone_req_client_NarratePoiSkill" target="processing_client_NarratePoiSkill">
+            <send event="srv_NarrateComponent__IsDone_request" target="NarrateComponent"/>
+        </transition>
+    </state>
+    <state id="processing_client_NarratePoiSkill">
+        <transition event="srv_NarrateComponent__IsDone_response" target="waiting">
+            <assign location="ros_fields__is_done" expr="_event.data.ros_fields__is_done"/>
+            <assign location="ros_fields__is_ok" expr="_event.data.ros_fields__is_ok"/>
+            <assign location="ros_fields__error_msg" expr="_event.data.ros_fields__error_msg"/>
+            <send event="srv_NarrateComponent__IsDone_response_client_NarratePoiSkill" target="NarratePoiSkill">
+                <param name="ros_fields__is_done" expr="ros_fields__is_done"/>
+                <param name="ros_fields__is_ok" expr="ros_fields__is_ok"/>
+                <param name="ros_fields__error_msg" expr="ros_fields__error_msg"/>
+            </send>
+        </transition>
+    </state>
+</scxml>
