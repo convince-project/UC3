@@ -399,6 +399,10 @@ bool DialogComponent::start(int argc, char *argv[])
     setMicrophoneClientNode = rclcpp::Node::make_shared("DialogComponentSetMicrophoneNode");
     setMicrophoneClient = setMicrophoneClientNode->create_client<text_to_speech_interfaces::srv::SetMicrophone>("/TextToSpeechComponent/SetMicrophone");
 
+    nodeBatchGeneration = rclcpp::Node::make_shared(m_name + "DialogComponentNodeBatchGeneration");
+    clientBatchGeneration  =
+    rclcpp_action::create_client<text_to_speech_interfaces::action::BatchGeneration>(nodeBatchGeneration, "/TextToSpeechComponent/BatchGeneration");
+
     action_cb_group_ =
         m_node->create_callback_group(rclcpp::CallbackGroupType::Reentrant);
 
@@ -465,6 +469,14 @@ bool DialogComponent::start(int argc, char *argv[])
 
     m_ResetStateService = m_node->create_service<dialog_interfaces::srv::ResetState>("/DialogComponent/CppResetState",
                                                                                        std::bind(&DialogComponent::ResetState,
+                                                                                                    this,
+                                                                                                    std::placeholders::_1,
+                                                                                                    std::placeholders::_2),
+                                                                                                    rclcpp::ServicesQoS(),
+                                                                                                service_cb_group_);
+
+    m_ForwardBatchGenerationService = m_node->create_service<dialog_interfaces::srv::ForwardBatchGeneration>("/DialogComponent/ForwardBatchGeneration",
+                                                                                       std::bind(&DialogComponent::ForwardBatchGeneration,
                                                                                                     this,
                                                                                                     std::placeholders::_1,
                                                                                                     std::placeholders::_2),
@@ -1029,8 +1041,8 @@ void DialogComponent::InterpretCommand(const std::shared_ptr<dialog_interfaces::
 
             std::string speakAction = "";
 
-            std::vector<std::string> replies;
-            std::vector<std::string> dances;
+            std::string outputReplies;
+            std::string outputDances;
 
             for (const auto &action : tempActions)
             {
@@ -1042,12 +1054,12 @@ void DialogComponent::InterpretCommand(const std::shared_ptr<dialog_interfaces::
                 case ActionTypes::SPEAK:
                 {
                     speakAction += action.getParam() + " "; // Concatenate all the speak actions
-                    replies.push_back(action.getParam());
-                    dances.push_back(action.getDance());
+                    outputReplies += action.getParam() + "#";
+                    outputDances += action.getDance() + "#";
 
-                    response->reply = replies;
-                    response->dance = dances;
-                    m_number_of_predefined_answers = replies.size();
+                    response->reply = outputReplies;
+                    response->dance = outputDances;
+                    m_number_of_predefined_answers = std::count(outputReplies.begin(), outputReplies.end(), '#') + 1;
                     break;
                 }
                 default:
@@ -1452,8 +1464,47 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
     feedback->status = "Speaking";
     auto result = std::make_shared<dialog_interfaces::action::Speak::Result>();
 
-    std::vector<std::string> dances = goal->dances;
-    std::vector<std::string> texts = goal->texts;
+    int input_dances_size = std::count(goal->dances.begin(), goal->dances.end(), '#');
+    int input_texts_size = std::count(goal->texts.begin(), goal->texts.end(), '#');
+
+    if (input_dances_size != input_texts_size)
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Dances and texts strings must have the same number of delimiters");
+        result->is_ok = false;
+        goal_handle->abort(result);
+        return;
+    }
+
+    // Delimiter
+    string del = "#";
+    std::string dancesStr = goal->dances;
+    std::string textsStr = goal->texts;
+
+    // Find first occurrence of the delimiter
+    auto dancePos = dancesStr.find(del);
+    auto textPos = textsStr.find(del);
+    std::vector<std::string> dances;
+    std::vector<std::string> texts;
+
+
+    // While there are still delimiters in the
+  	// string
+    while (dancePos != string::npos && textPos != string::npos) {
+
+        // Extracting the substring up to the
+      	// delimiter
+        dances.push_back(dancesStr.substr(0, dancePos));
+        texts.push_back(textsStr.substr(0, textPos));
+
+        // Erase the extracted part from the
+      	// original string
+        dancesStr.erase(0, dancePos + del.length());
+        textsStr.erase(0, textPos + del.length());
+        // Find the next occurrence of the
+      	// delimiter
+        dancePos = dancesStr.find(del);
+        textPos = textsStr.find(del);
+    }
 
     if (dances.size() != texts.size())
     {
@@ -1802,3 +1853,40 @@ void DialogComponent::ResetState(const std::shared_ptr<dialog_interfaces::srv::R
     response->is_ok = true;
 }
 
+
+void DialogComponent::ForwardBatchGeneration(const std::shared_ptr<dialog_interfaces::srv::ForwardBatchGeneration::Request> request,
+                      std::shared_ptr<dialog_interfaces::srv::ForwardBatchGeneration::Response> response) {
+
+    text_to_speech_interfaces::action::BatchGeneration::Goal goal_msg;
+
+    // Delimiter
+    string del = "#";
+    std::string textsStr = request->batch_texts;
+
+    // Find first occurrence of the delimiter
+    auto textPos = textsStr.find(del);
+    std::vector<std::string> texts;
+
+
+    // While there are still delimiters in the
+  	// string
+    while (dancePos != string::npos && textPos != string::npos) {
+
+        // Extracting the substring up to the
+      	// delimiter
+        texts.push_back(textsStr.substr(0, textPos));
+
+        // Erase the extracted part from the
+      	// original string
+        textsStr.erase(0, textPos + del.length());
+        // Find the next occurrence of the
+      	// delimiter
+        textPos = textsStr.find(del);
+    }
+
+    goal_msg.texts = texts;
+    
+    send_goal(goal_msg);
+
+    response->is_ok = true;
+}

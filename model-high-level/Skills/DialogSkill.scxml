@@ -19,7 +19,7 @@
     <data id="m_interaction"  type="string" expr="''"/>
     <data id="m_context"      type="string" expr="''"/>
     <data id="m_is_poi_ended" type="bool"   expr="false"/>
-    <data id="m_dance"       type="array" expr="[]"/>
+    <data id="m_dance"        type="string" expr="''"/>
     <data id="m_reply"        type="string" expr="''"/>
     <data id="m_is_reply_finished" type="bool" expr="false"/>
     <data id="m_is_beginning_of_conversation" type="bool" expr="true"/>
@@ -340,7 +340,7 @@
 
     <transition cond="m_result == true" target="waitForInteraction" >
       <ros_action_send_goal name="wait_for_interaction_action">
-        <field name="is_beginning_of_conversation" expr="m_is_beginning_of_conversation == 'false'"/>
+        <field name="is_beginning_of_conversation" expr="false"/>
       </ros_action_send_goal>
     </transition>
     <transition cond="m_result == false" target="sendFailure" />

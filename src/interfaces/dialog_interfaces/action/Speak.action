@@ -1,5 +1,5 @@
-string[] texts # The text to be spoken
-string[] dances # The dance to be performed while speaking
+string texts # The text to be spoken, if needed multiple texts can be provided as a single string, separated by the '#' character
+string dances # The dance to be performed while speaking, if needed multiple dances can be provided as a single string, separated by the '#' character
 ---
 bool is_ok
 bool is_reply_finished # True if the reply has finished (i.e., all predefined answers have been given)

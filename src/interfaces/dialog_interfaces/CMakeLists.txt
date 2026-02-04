@@ -27,6 +27,7 @@ rosidl_generate_interfaces(dialog_interfaces
                             "srv/SetWebStatus.srv"
                             "srv/OfflineSpeak.srv"
                             "srv/ResetState.srv"
+                            "srv/ForwardBatchGeneration.srv"
                             "action/Speak.action"
                             "action/WaitForInteraction.action"
                             DEPENDENCIES sensor_msgs

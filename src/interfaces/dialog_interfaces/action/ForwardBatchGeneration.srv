@@ -1,0 +1,5 @@
+string batch_texts # the texts to be forwarded to the text_to_speech_component. It should contain multiple texts separated by the '#' character
+---
+bool is_ok
+---
+int missing_texts
