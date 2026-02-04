@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ascxml
+    version="1.0"
+    xmlns="..."
+    datamodel="ecmascript"
+    name="SetCurrentPoiDoneSkill"
+    initial="idle"> 
+
+    <datamodel>
+        <data id="poi_number" type="int32" expr="0"/>
+        <!-- <data id="poi_name" type="string" expr=""/> -->
+        <!-- <data id="field_name" type="string" expr="'PoiDone'"/>
+        <data id="field_name_init" type="string" expr="'PoiDone'"/> -->
+        <data id="value" type="int32" expr="1"/>
+        <data id="SKILL_SUCCESS" type="int8" expr="0" />
+        <data id="SKILL_FAILURE" type="int8" expr="1" />
+        <data id="SKILL_RUNNING" type="int8" expr="2" />
+        <data id="is_ok" type="bool" expr="false"/>
+    </datamodel>
+
+    <!-- SetCurrentPoiDoneSkill is a server for tick from the ROS2Action plugin-->
+    <ros_service_server service_name="/SetCurrentPoiDoneSkill/tick" type ="bt_interfaces_dummy/TickAction"/>
+    <!-- SetCurrentPoiDoneSkill is a server for halt from the ROS2Action plugin-->
+    <ros_service_server service_name="/SetCurrentPoiDoneSkill/halt" type="bt_interfaces_dummy/HaltAction"/>
+    <!-- SetCurrentPoiDoneSkill is a client for GetCurrentPoi from the SchedulerComponent -->
+    <ros_service_client service_name="/SchedulerComponent/GetCurrentPoiForNavigation" type ="scheduler_interfaces/GetCurrentPoi"/>
+    <!-- SetCurrentPoiDoneSkill is a client for SetInt from the BlackboardComponent -->
+    <ros_service_client service_name="/BlackboardComponent/SetInt" type ="blackboard_interfaces/SetIntBlackboard"/>
+
+    <state id="idle">
+        <ros_service_handle_request name="/SetCurrentPoiDoneSkill/tick" target="getCurrentPoi">
+            <ros_service_send_request name="/SchedulerComponent/GetCurrentPoiForNavigation"/>
+        </ros_service_handle_request>
+        <!-- Decommentare e correggere -->
+        <ros_service_handle_request name="/SetCurrentPoiDoneSkill/halt" target="halted"/>
+    </state>
+
+    <state id="getCurrentPoi">
+        <onentry>
+            <ros_service_send_response name="/SetCurrentPoiDoneSkill/tick">
+                <field name="status" expr="SKILL_RUNNING"/>
+                <field name="is_ok" expr="true"/>
+            </ros_service_send_response>
+        </onentry>
+        <ros_service_handle_response name="/SchedulerComponent/GetCurrentPoiForNavigation" target="checkCallSucceeded">
+            <assign location="poi_number" expr="_res.poi_number"/>
+            <assign location="is_ok" expr="_res.is_ok"/>
+            <!-- <script>
+                field_name = field_name_init + poi_number;
+            </script> -->
+
+        </ros_service_handle_response>
+
+        <!-- Aggiungere gestione halt -->
+        <ros_service_handle_request name="/SetCurrentPoiDoneSkill/halt" target="halted"/>
+    </state>
+
+    <state id="checkCallSucceeded">
+        <transition cond="is_ok" target="setInt">
+            <ros_service_send_request name="/BlackboardComponent/SetInt">
+                <!-- Correggere da poi_number a stringa appropriata -->
+                <field name="field_name" expr="'PoiDone' + poi_number"/>
+                <field name="value" expr="value"/>
+            </ros_service_send_request>
+        </transition>
+        <transition cond="!is_ok" target="idle">
+            <ros_service_send_response name="/SetCurrentPoiDoneSkill/tick">
+                <field name="status" expr="SKILL_FAILURE"/>
+                <field name="is_ok" expr="true"/>
+            </ros_service_send_response>
+        </transition>
+    </state>
+
+    <state id="setInt">
+        <ros_service_handle_response name="/BlackboardComponent/SetInt" target="checkSetIntSucceeded">
+            <assign location="is_ok" expr="_res.is_ok"/>
+        </ros_service_handle_response>
+        <!-- Aggiungere gestione halt -->
+        <ros_service_handle_request name="/SetCurrentPoiDoneSkill/halt" target="halted"/>
+    </state>
+
+    <state id="checkSetIntSucceeded">
+        <onentry>
+            <if cond="is_ok == true">
+                <ros_service_send_response name="/SetCurrentPoiDoneSkill/tick">
+                    <field name="status" expr="SKILL_SUCCESS"/>
+                    <field name="is_ok" expr="true"/>
+                </ros_service_send_response>
+            <else/>
+                <ros_service_send_response name="/SetCurrentPoiDoneSkill/tick">
+                    <field name="status" expr="SKILL_FAILURE"/>
+                    <field name="is_ok" expr="true"/>
+                </ros_service_send_response>
+            </if>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+
+    <state id="halted">
+        <onentry>
+            <assign location="poi_number" expr="0"/>
+            <assign location="value" expr="1"/>
+            <ros_service_send_response name="/SetCurrentPoiDoneSkill/halt">
+                <field name="is_ok" expr="true"/>
+            </ros_service_send_response>
+        </onentry>
+        <transition target="idle"/>
+    </state>
+
+</ascxml>
