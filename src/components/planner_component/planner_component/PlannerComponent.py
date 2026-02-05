@@ -129,7 +129,7 @@ class PlannerComponent(Node):
             # self.get_logger().info(f"POIs done: {pois_done}")
 
             if not self._visited_vertices:
-                self.reset() # reset the planner if no vertices have been visited, to avoid inconsistencies
+                self._reset_internal() # reset the planner if no vertices have been visited, to avoid inconsistencies
                 # self.get_logger().error("Visited vertices list is empty. Returning default state.")
                 self._start_time = self.get_clock().now().seconds_nanoseconds()[0]
                 self._time_for_occupancies = self.get_clock().now().seconds_nanoseconds()[0]
@@ -150,8 +150,21 @@ class PlannerComponent(Node):
                         set(poi_done for poi_done in pois_done))
 
 
-    def reset(self):
+    def reset(self, request, response):
         self.get_logger().info("Resetting Planner Component...")
+        self._started = False
+        self._start_time = None
+        self._visited_vertices = []
+        self._pois_explained = []
+        self._pois_done = []
+        self._time_for_occupancies = None
+        response.success = True
+        response.message = "Planner Component has been reset."
+        return response
+
+    def _reset_internal(self):
+        """Internal reset logic for the Planner Component."""
+        self.get_logger().info("Resetting Planner Component (internal)...")
         self._started = False
         self._start_time = None
         self._visited_vertices = []
@@ -235,7 +248,7 @@ class PlannerComponent(Node):
                 self.get_logger().error(f'Error while aborting goal: {e}')
             return result
 
-        self.get_logger().info(f"Policy generated: {policy}")
+        # self.get_logger().info(f"Policy generated: {policy}")
 
         plan = self.iterate_over_policy(policy, current_state)
         self.get_logger().info(f"Generated plan: {plan}")
