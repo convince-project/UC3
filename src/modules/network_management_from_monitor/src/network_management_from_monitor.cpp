@@ -32,6 +32,10 @@ public:
     webstatus_client_ = this->create_client<dialog_interfaces::srv::SetWebStatus>(
       "/DialogComponent/SetWebStatus");
 
+    // Client per i servizi Set WebStatus della NarrateComponent
+    webstatusNarrate_client_ = this->create_client<dialog_interfaces::srv::SetWebStatus>(
+      "/NarrateComponent/SetWebStatus");
+
     // Subscriber al topic del monitor
     verdict_sub_ = this->create_subscription<std_msgs::msg::String>(
       "/monitor_prop13/monitor_verdict",
@@ -86,7 +90,11 @@ private:
   {
     // Aspetta che il servizio SetWebStatus sia disponibile
     if (!webstatus_client_->wait_for_service(1s)) {
-        RCLCPP_ERROR(get_logger(), "SetWebStatus service not available.");
+        RCLCPP_ERROR(get_logger(), "SetWebStatusDialog service not available.");
+        return;
+    }
+    else if (!webstatusNarrate_client_->wait_for_service(1s)) {
+        RCLCPP_ERROR(get_logger(), "SetWebStatusNarrate service not available.");
         return;
     }
 
@@ -104,6 +112,20 @@ private:
                 }
             } catch (const std::exception &e) {
                 RCLCPP_ERROR(get_logger(), "SetWebStatus call failed: %s", e.what());
+            }
+        });
+
+    auto future_narrate = webstatusNarrate_client_->async_send_request(
+        request,
+        [this](rclcpp::Client<dialog_interfaces::srv::SetWebStatus>::SharedFuture response) {
+            try {
+                if (response.get()->is_ok) {
+                    RCLCPP_INFO(get_logger(), "SetWebStatusNarrate SUCCESS");
+                } else {
+                    RCLCPP_WARN(get_logger(), "SetWebStatusNarrate returned is_ok=false");
+                }
+            } catch (const std::exception &e) {
+                RCLCPP_ERROR(get_logger(), "SetWebStatusNarrate call failed: %s", e.what());
             }
         });
   }
@@ -166,6 +188,7 @@ private:
   rclcpp::Client<manage_service_interfaces::srv::StartService>::SharedPtr start_client_;
   rclcpp::Client<manage_service_interfaces::srv::StopService>::SharedPtr  stop_client_;
   rclcpp::Client<dialog_interfaces::srv::SetWebStatus>::SharedPtr webstatus_client_;
+  rclcpp::Client<dialog_interfaces::srv::SetWebStatus>::SharedPtr webstatusNarrate_client_;
   // assume starting with web and network connections on
   bool m_last_web_status_{true};
   bool m_last_network_status_{true};
