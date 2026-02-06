@@ -129,7 +129,7 @@ class PlannerComponent(Node):
             # self.get_logger().info(f"POIs done: {pois_done}")
 
             if not self._visited_vertices:
-                self._reset_internal() # reset the planner if no vertices have been visited, to avoid inconsistencies
+                # self._reset_internal() # reset the planner if no vertices have been visited, to avoid inconsistencies
                 # self.get_logger().error("Visited vertices list is empty. Returning default state.")
                 self._start_time = self.get_clock().now().seconds_nanoseconds()[0]
                 self._time_for_occupancies = self.get_clock().now().seconds_nanoseconds()[0]
