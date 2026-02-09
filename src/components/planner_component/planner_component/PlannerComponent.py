@@ -53,6 +53,7 @@ class PlannerComponent(Node):
         self._visited_vertices = []
         self._pois_explained = []
         self._pois_done = []
+        self._room_explained = []
         self._time_for_occupancies = None
         self._btWriter = BTWriter(bt_file_path)
         self._mutex = Lock()
@@ -99,7 +100,11 @@ class PlannerComponent(Node):
         }
 
         self.plan_to_real_pois_mapping = {v: k for k, v in self.real_to_plan_pois_mapping.items()}
-        self.poi_done_to_poi_explained_mapping = {
+
+
+
+
+        self.poi_done_to_room_explained_mapping = {
             "PoiDone1": 1,
             "PoiDone2": 1,
             "PoiDone3": 2,
@@ -111,7 +116,7 @@ class PlannerComponent(Node):
             "PoiDone9": 5,
             "PoiDone10": 5,
         }
-        self.verrtex_to_explained_poi_mapping = {
+        self.vertex_to_room_explained_mapping = {
             "vertex2": 1,
             "vertex3": 1,
             "vertex4": 2,
@@ -167,7 +172,8 @@ class PlannerComponent(Node):
                 if vertex_done is not None and vertex_done == 1:
                     vertex = self.real_to_plan_pois_mapping[key]
                     self._visited_vertices.append(vertex)
-                    self._pois_done.append(self.verrtex_to_explained_poi_mapping[vertex])
+                    self._pois_done.append(i)
+                    self._room_explained.append(self.vertex_to_room_explained_mapping[vertex])
                     # add the doors passed for each visited vertex
 
             if not self._visited_vertices:
@@ -189,7 +195,7 @@ class PlannerComponent(Node):
             return State(last_vertex, 
                         self.get_clock().now().seconds_nanoseconds()[0] - self._start_time,
                         set([self._start_vertex] + [vertex for vertex in self._visited_vertices]),
-                        set(poi_done for poi_done in self._pois_done))
+                        set(poi_done for poi_done in self._room_explained))
 
 
     def reset(self, request, response):
@@ -199,6 +205,7 @@ class PlannerComponent(Node):
         self._visited_vertices = []
         self._pois_explained = []
         self._pois_done = []
+        self._room_explained = []
         self._time_for_occupancies = None
         response.success = True
         response.message = "Planner Component has been reset."
@@ -235,7 +242,7 @@ class PlannerComponent(Node):
         # self.get_logger().info("Occupancy map loaded successfully.")
 
         current_state = self.compute_current_state()
-        self.get_logger().info(f"Current state: {current_state}")
+        self.get_logger().info(f"******************** Current state: {current_state}")
 
         lrtdp = LrtdpTvmaAlgorithm(occupancy_map=occupancy_map,
                             initial_state_name=current_state.get_vertex(),
@@ -284,7 +291,7 @@ class PlannerComponent(Node):
 
         plan = self.iterate_over_policy(policy, current_state)
         self.get_logger().info(f"Generated plan: {plan}")
-        bt_plan = [int(poi) - 1 for poi in plan]
+        bt_plan = [int(poi) for poi in plan]
         plan_to_write = [int(poi) for poi in self._pois_done] + bt_plan
         self._btWriter.recreateBTWithPlan(plan_to_write)
         self._btWriter.write()
@@ -312,9 +319,12 @@ class PlannerComponent(Node):
             self.get_logger().info(f"Action: {action}")
             if action == "explain":
                 vertex_explained = state.get_vertex()
-                sequence_of_pois.append(self.plan_to_real_pois_mapping[vertex_explained].replace("vertex", ""))
+                self.get_logger().warning(f"Vertex explained: {vertex_explained}")
+                sequence_of_pois.append(self.plan_to_real_pois_mapping[vertex_explained].replace("PoiDone", ""))
             state = policy[str(state)][3] # get next state
-        self.get_logger().info(f"Final sequence of POIs: {sequence_of_pois}")
+        pois_in_plan = [int(poi) + 1 for poi in sequence_of_pois] # convert from 0-based to 1-based indexing
+        self.get_logger().info(f"POIs in plan (1-based): {pois_in_plan}")
+        self.get_logger().info(f"Final sequence of POIs: {sequence_of_pois}") # here is wrong
         # concatenate visited pois and the policy
         return sequence_of_pois
 
