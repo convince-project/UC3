@@ -548,8 +548,13 @@ void NarrateComponent::_narrateTask(const std::shared_ptr<narrate_interfaces::sr
                 else {
                     m_danceBuffer.push_back(currentAction->dance);
                 }
+
                 std::string audioName = m_audioFolder + "/" + currentPoiName + "_" + request->command + std::to_string(actionCounter+1) + ".wav";
                 m_audioNamesBuffer.push_back(audioName);
+
+                if ((request->command == "sayBye") || (request->command == "sayFollowMe") ||(request->command == "sayPeopleLeft") || (request->command == "saySkipQuestions") || (request->command == "sayDurationExceeded") || (request->command == "sayDurationWarning")) {
+                    m_audioNamesBuffer.push_back(m_audioFolder + "/" + "___generic____" + request->command + std::to_string(actionCounter+1) + ".wav");
+                }
             }
 
             // calls the UpdateAction service
