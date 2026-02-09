@@ -36,7 +36,7 @@ class PlannerComponent(Node):
             self,
             Plan,
             '/PlannerComponent/Plan',
-            self.execute_callback)
+            self.plan)
         self.get_logger().info('Planner Component has been started.')
         self._occupancy_map_path = occupancy_map_path
         self._cliff_map_path = cliff_map_path
@@ -73,7 +73,56 @@ class PlannerComponent(Node):
         # add reset server
         self._reset_server = self.create_service(Trigger, '/PlannerComponent/ResetPlanner', self.reset)
         self._detections_retriever = DetectionsRetriever(self, detections_topic)
+        self.doors_passed = {
+            "vertex2": [],
+            "vertex3": [],
+            "vertex4": ["vertex13"],
+            "vertex5": ["vertex14"],
+            "vertex6": ["vertex14", "vertex15"],
+            "vertex7": ["vertex14", "vertex15"],
+            "vertex8": ["vertex14", "vertex15", "vertex16"],
+            "vertex9": ["vertex14", "vertex15", "vertex16"],
+            "vertex10": ["vertex13", "vertex14", "vertex15", "vertex16"],
+            "vertex11": ["vertex13", "vertex14", "vertex15", "vertex16"]
+        }
+        self.real_to_plan_pois_mapping = {
+            "PoiDone1": "vertex2",
+            "PoiDone2": "vertex3",
+            "PoiDone3": "vertex4",
+            "PoiDone4": "vertex5",
+            "PoiDone5": "vertex6",
+            "PoiDone6": "vertex7",
+            "PoiDone7": "vertex8",
+            "PoiDone8": "vertex9",
+            "PoiDone9": "vertex10",
+            "PoiDone10": "vertex11",
+        }
 
+        self.plan_to_real_pois_mapping = {v: k for k, v in self.real_to_plan_pois_mapping.items()}
+        self.poi_done_to_poi_explained_mapping = {
+            "PoiDone1": 1,
+            "PoiDone2": 1,
+            "PoiDone3": 2,
+            "PoiDone4": 2,
+            "PoiDone5": 3,
+            "PoiDone6": 3,
+            "PoiDone7": 4,
+            "PoiDone8": 4,
+            "PoiDone9": 5,
+            "PoiDone10": 5,
+        }
+        self.verrtex_to_explained_poi_mapping = {
+            "vertex2": 1,
+            "vertex3": 1,
+            "vertex4": 2,
+            "vertex5": 2,
+            "vertex6": 3,
+            "vertex7": 3,
+            "vertex8": 4,
+            "vertex9": 4,
+            "vertex10": 5,
+            "vertex11": 5,
+        }
 
     def retrieve_blackboard_value(self, key):
         # here a mutex is requested internally by the rclpy client
@@ -93,7 +142,6 @@ class PlannerComponent(Node):
 
     def compute_current_state(self):
         self.get_logger().info("Computing current state...")
-        pois_done = []
         self._pois_done = []
         poidone0 = self.retrieve_blackboard_value('PoiDone0')
         # self.get_logger().info(f"PoiDone0 value: {poidone0}")
@@ -117,16 +165,10 @@ class PlannerComponent(Node):
                 vertex_done = self.retrieve_blackboard_value(key)
                 # self.get_logger().info(f"Blackboard value for {key}: {vertex_done}")
                 if vertex_done is not None and vertex_done == 1:
-                    self._pois_done.append(i)
-                    if i % 2 == 1:
-                        pois_done.append(int((i + 1) / 2))
-                        self._visited_vertices.append("vertex" + str(i))
-                    else:
-                        pois_done.append(int((i) / 2))
-                        self._visited_vertices.append("vertex" + str(i))
-            
-            # self.get_logger().info(f"Visited vertices: {self._visited_vertices}")
-            # self.get_logger().info(f"POIs done: {pois_done}")
+                    vertex = self.real_to_plan_pois_mapping[key]
+                    self._visited_vertices.append(vertex)
+                    self._pois_done.append(self.verrtex_to_explained_poi_mapping[vertex])
+                    # add the doors passed for each visited vertex
 
             if not self._visited_vertices:
                 # self._reset_internal() # reset the planner if no vertices have been visited, to avoid inconsistencies
@@ -140,14 +182,14 @@ class PlannerComponent(Node):
 
             last_vertex = self._visited_vertices[-1]
             # self.get_logger().info(f"Last visited vertex: {last_vertex}")
-            if len(pois_done) > 1:
-                for i in range(0, len(pois_done) - 1):
-                    self._visited_vertices.append(self._doors[i])
+            # add the doors
+            for door in self.doors_passed[last_vertex]:
+                self._visited_vertices.append(door)
             self._time_for_occupancies = self.get_clock().now().seconds_nanoseconds()[0]
             return State(last_vertex, 
                         self.get_clock().now().seconds_nanoseconds()[0] - self._start_time,
                         set([self._start_vertex] + [vertex for vertex in self._visited_vertices]),
-                        set(poi_done for poi_done in pois_done))
+                        set(poi_done for poi_done in self._pois_done))
 
 
     def reset(self, request, response):
@@ -162,39 +204,29 @@ class PlannerComponent(Node):
         response.message = "Planner Component has been reset."
         return response
 
-    def _reset_internal(self):
-        """Internal reset logic for the Planner Component."""
-        self.get_logger().info("Resetting Planner Component (internal)...")
-        self._started = False
-        self._start_time = None
-        self._visited_vertices = []
-        self._pois_explained = []
-        self._pois_done = []
-        self._time_for_occupancies = None
-        
 
-    def execute_callback(self, goal_handle):
+    def plan(self, goal_handle):
         # self.get_logger().info('Executing goal...')
         predictor = create_generic_cliff_predictor(self._cliff_map_path)
         
-        # Debug delle rilevazioni
-        current_detections = self._detections_retriever.get_detections()
-        current_occupancies = self._detections_retriever.get_current_occupancies()
+        # # Debug delle rilevazioni
+        # current_detections = self._detections_retriever.get_detections()
+        # current_occupancies = self._detections_retriever.get_current_occupancies()
 
-        # Migliorare la stampa delle current detections
-        formatted_detections = {}
-        for person_id, detections in current_detections.items():
-            formatted_detections[person_id] = [
-                {
-                    "person_id": detection.person_id,
-                    "positionx": detection.positionx,
-                    "positiony": detection.positiony,
-                    "timestamp": detection.timestamp,
-                    "vx": detection.vx,
-                    "vy": detection.vy
-                }
-                for detection in detections
-            ]
+        # # Migliorare la stampa delle current detections
+        # formatted_detections = {}
+        # for person_id, detections in current_detections.items():
+        #     formatted_detections[person_id] = [
+        #         {
+        #             "person_id": detection.person_id,
+        #             "positionx": detection.positionx,
+        #             "positiony": detection.positiony,
+        #             "timestamp": detection.timestamp,
+        #             "vx": detection.vx,
+        #             "vy": detection.vy
+        #         }
+        #         for detection in detections
+        #     ]
         # self.get_logger().info(f"Formatted Current Detections: {formatted_detections}")
         # self.get_logger().info(f"Current occupancies: {current_occupancies}")
 
@@ -206,7 +238,7 @@ class PlannerComponent(Node):
         self.get_logger().info(f"Current state: {current_state}")
 
         lrtdp = LrtdpTvmaAlgorithm(occupancy_map=occupancy_map,
-                            initial_state_name=current_state,
+                            initial_state_name=current_state.get_vertex(),
                             convergence_threshold=self._convergence_threshold,
                             time_bound_real=self._time_bound_real,
                             planner_time_bound=self._time_bound_lrtdp,
@@ -252,8 +284,8 @@ class PlannerComponent(Node):
 
         plan = self.iterate_over_policy(policy, current_state)
         self.get_logger().info(f"Generated plan: {plan}")
-        plan = [int(poi) - 1 for poi in plan]
-        plan_to_write = [int(poi) for poi in self._pois_done] + plan
+        bt_plan = [int(poi) - 1 for poi in plan]
+        plan_to_write = [int(poi) for poi in self._pois_done] + bt_plan
         self._btWriter.recreateBTWithPlan(plan_to_write)
         self._btWriter.write()
         try:
@@ -279,9 +311,8 @@ class PlannerComponent(Node):
             action = policy[str(state)][2] # get action
             self.get_logger().info(f"Action: {action}")
             if action == "explain":
-                vertex = policy[str(state)][1].get_vertex().replace("vertex", "")
-                sequence_of_pois.append(vertex)
-                self.get_logger().info(f"Added POI: {vertex}")
+                vertex_explained = state.get_vertex()
+                sequence_of_pois.append(self.plan_to_real_pois_mapping[vertex_explained].replace("vertex", ""))
             state = policy[str(state)][3] # get next state
         self.get_logger().info(f"Final sequence of POIs: {sequence_of_pois}")
         # concatenate visited pois and the policy
