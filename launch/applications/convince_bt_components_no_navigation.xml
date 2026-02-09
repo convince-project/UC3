@@ -85,7 +85,7 @@
 
     <module>
         <name>ros2_narrate_component</name>
-        <parameters>run narrate_component narrate_component</parameters>
+        <parameters>run narrate_component narrate_component --NARRATECOMPONENT::audio-folder /home/user1/UC3/conf/audio/female</parameters>
         <workdir />
         <node>bt</node>
     </module>
@@ -186,5 +186,5 @@
         <workdir />
         <node>bt</node>
     </module>
-    
+
 </application>

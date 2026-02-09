@@ -13,6 +13,11 @@ YARP_LOG_COMPONENT(VERBAL_OUTPUT_BATCH_READER, "convince.narrate_component.Verba
 
 void VerbalOutputBatchReader::onRead(yarp::sig::Sound &msg)
 {
+    if(!m_useAudio)
+    {
+        yCInfo(VERBAL_OUTPUT_BATCH_READER) << "[VerbalOutputBatchReader::onRead] Audio usage disabled, discarding message.";
+        return;
+    }
     m_audioQueue->push(msg);
     yCInfo(VERBAL_OUTPUT_BATCH_READER) << "[VerbalOutputBatchReader::onRead] Received audio message. Queue size is now: " << m_audioQueue->size();
 }
