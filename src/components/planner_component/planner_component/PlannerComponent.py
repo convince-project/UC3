@@ -148,6 +148,7 @@ class PlannerComponent(Node):
     def compute_current_state(self):
         self.get_logger().info("Computing current state...")
         self._pois_done = []
+        self._room_explained = []
         poidone0 = self.retrieve_blackboard_value('PoiDone0')
         # self.get_logger().info(f"PoiDone0 value: {poidone0}")
         self._visited_vertices = []
