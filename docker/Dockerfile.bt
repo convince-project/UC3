@@ -43,10 +43,21 @@ WORKDIR /home/user1
 #     cd /home/user1 && git clone https://github.com/ste93/ROSMonitoring.git -b ros2"
 
 # installing as2fm
-# RUN /bin/bash -c "/home/user1/convince-python-env/bin/pip install --upgrade pip"
-# RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
-#     cd /home/user1 && \
-#     git clone https://github.com/convince-project/AS2FM.git && /home/user1/convince-python-env/bin/python -m pip install AS2FM/"
+RUN /bin/bash -c "python3 -m venv convince-python-env"
+RUN /bin/bash -c "/home/user1/convince-python-env/bin/pip install --upgrade pip"
+RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
+    cd /home/user1 && \
+    git clone https://github.com/convince-project/AS2FM.git && /home/user1/convince-python-env/bin/python -m pip install AS2FM/"
+
+
+# install git lfs
+RUN /bin/bash -c "cd ~; wget https://github.com/git-lfs/git-lfs/releases/download/v3.7.1/git-lfs-linux-amd64-v3.7.1.tar.gz; \
+    tar -xvzf git-lfs-linux-amd64-v3.7.1.tar.gz; cd git-lfs-3.7.1; ./install.sh; git lfs install; \
+    rm ../git-lfs-linux-amd64-v3.7.1.tar.gz; rm -rf ../git-lfs-3.7.1"
+
+ENV PATH=${PATH}:/home/user1/convince-python-env/bin
+
+ENV PYTHONPATH=${PYTHONPATH}:/home/user1/AS2FM
 
 # install SCAN
 USER user1
@@ -65,7 +76,7 @@ RUN echo "export PATH=\$PATH:/home/user1/Groot/build" >> ~/.bashrc
 
 ENV PATH=/usr/local/Qt-6.8.3/bin:$PATH
 
-RUN /bin/bash -c "echo 'updated on 202503250921' && \
+RUN /bin/bash -c "echo 'updated on 202602041529' && \
     source /opt/ros/jazzy/setup.bash && \
     cd /home/user1 && \
     git clone https://github.com/convince-project/UC3.git && \
