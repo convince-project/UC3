@@ -333,7 +333,6 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
 
     yInfo() << "[DialogComponent::ConfigureYARP] Successfully configured component";
 
-
     // set face expression port
     m_faceexpression_rpc_port_name = "/DialogComponent/FaceExpressionClient/rpc:o";
     if (!m_faceexpression_rpc_port.open(m_faceexpression_rpc_port_name))
@@ -341,7 +340,6 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
         yError() << "[DialogComponent::ConfigureYARP] Unable to open Face Expression RPC port: " << m_faceexpression_rpc_port_name;
         return false;
     }
-
 
     return true;
 }
@@ -355,7 +353,7 @@ bool DialogComponent::start(int argc, char *argv[])
 
     m_node = rclcpp::Node::make_shared("DialogComponentNode");
 
-    m_interactionPublisher = m_node->create_publisher<std_msgs::msg::String>("/DialogComponent/interaction", 10);
+    m_interactionPublisher = m_node->create_publisher<dialog_interfaces::msg::VerbalInteraction>("/DialogComponent/interaction", 10);
 
     nodeGetCurrentPoi = rclcpp::Node::make_shared("DialogComponentNodeGetCurrentPoi");
     clientGetCurrentPoi = nodeGetCurrentPoi->create_client<scheduler_interfaces::srv::GetCurrentPoi>("/SchedulerComponent/GetCurrentPoi");
@@ -412,64 +410,64 @@ bool DialogComponent::start(int argc, char *argv[])
                                                                                                      this,
                                                                                                      std::placeholders::_1,
                                                                                                      std::placeholders::_2),
-                                                                                                     rclcpp::ServicesQoS(),
-                                                                                                   service_cb_group_);
+                                                                                           rclcpp::ServicesQoS(),
+                                                                                           service_cb_group_);
 
     m_ShortenReplyService = m_node->create_service<dialog_interfaces::srv::ShortenReply>("/DialogComponent/ShortenReply",
                                                                                          std::bind(&DialogComponent::ShortenReply,
                                                                                                    this,
                                                                                                    std::placeholders::_1,
                                                                                                    std::placeholders::_2),
-                                                                                                   rclcpp::ServicesQoS(),
-                                                                                                   service_cb_group_);
+                                                                                         rclcpp::ServicesQoS(),
+                                                                                         service_cb_group_);
 
     m_AnswerService = m_node->create_service<dialog_interfaces::srv::Answer>("/DialogComponent/Answer",
                                                                              std::bind(&DialogComponent::Answer,
                                                                                        this,
                                                                                        std::placeholders::_1,
                                                                                        std::placeholders::_2),
-                                                                                       rclcpp::ServicesQoS(),
-                                                                                    service_cb_group_);
+                                                                             rclcpp::ServicesQoS(),
+                                                                             service_cb_group_);
 
     m_SetLanguageService = m_node->create_service<dialog_interfaces::srv::SetLanguage>("/DialogComponent/SetLanguage",
                                                                                        std::bind(&DialogComponent::SetLanguage,
                                                                                                  this,
                                                                                                  std::placeholders::_1,
                                                                                                  std::placeholders::_2),
-                                                                                                 rclcpp::ServicesQoS(),
-                                                                                                service_cb_group_);
+                                                                                       rclcpp::ServicesQoS(),
+                                                                                       service_cb_group_);
 
     m_InterpretCommandService = m_node->create_service<dialog_interfaces::srv::InterpretCommand>("/DialogComponent/InterpretCommand",
                                                                                                  std::bind(&DialogComponent::InterpretCommand,
                                                                                                            this,
                                                                                                            std::placeholders::_1,
                                                                                                            std::placeholders::_2),
-                                                                                                           rclcpp::ServicesQoS(),
-                                                                                                        service_cb_group_);
+                                                                                                 rclcpp::ServicesQoS(),
+                                                                                                 service_cb_group_);
 
     m_SetWebStatusService = m_node->create_service<dialog_interfaces::srv::SetWebStatus>("/DialogComponent/SetWebStatus",
-                                                                                       std::bind(&DialogComponent::SetWebStatus,
-                                                                                                    this,
-                                                                                                    std::placeholders::_1,
-                                                                                                    std::placeholders::_2),
-                                                                                                    rclcpp::ServicesQoS(),
-                                                                                                service_cb_group_);
+                                                                                         std::bind(&DialogComponent::SetWebStatus,
+                                                                                                   this,
+                                                                                                   std::placeholders::_1,
+                                                                                                   std::placeholders::_2),
+                                                                                         rclcpp::ServicesQoS(),
+                                                                                         service_cb_group_);
 
     m_OfflineSpeakService = m_node->create_service<dialog_interfaces::srv::OfflineSpeak>("/DialogComponent/OfflineSpeak",
-                                                                                       std::bind(&DialogComponent::OfflineSpeak,
-                                                                                                    this,
-                                                                                                    std::placeholders::_1,
-                                                                                                    std::placeholders::_2),
-                                                                                                    rclcpp::ServicesQoS(),
-                                                                                                service_cb_group_);
+                                                                                         std::bind(&DialogComponent::OfflineSpeak,
+                                                                                                   this,
+                                                                                                   std::placeholders::_1,
+                                                                                                   std::placeholders::_2),
+                                                                                         rclcpp::ServicesQoS(),
+                                                                                         service_cb_group_);
 
     m_ResetStateService = m_node->create_service<dialog_interfaces::srv::ResetState>("/DialogComponent/CppResetState",
-                                                                                       std::bind(&DialogComponent::ResetState,
-                                                                                                    this,
-                                                                                                    std::placeholders::_1,
-                                                                                                    std::placeholders::_2),
-                                                                                                    rclcpp::ServicesQoS(),
-                                                                                                service_cb_group_);
+                                                                                     std::bind(&DialogComponent::ResetState,
+                                                                                               this,
+                                                                                               std::placeholders::_1,
+                                                                                               std::placeholders::_2),
+                                                                                     rclcpp::ServicesQoS(),
+                                                                                     service_cb_group_);
 
     m_WaitForInteractionAction = rclcpp_action::create_server<dialog_interfaces::action::WaitForInteraction>(
         m_node,
@@ -533,7 +531,7 @@ void DialogComponent::ManageContext(const std::shared_ptr<dialog_interfaces::srv
     {
 
         ExecuteAudio("generic-no_internet_cant_speak");
-        response->is_ok=true;
+        response->is_ok = true;
         response->is_poi_ended = true;
         return;
     }
@@ -623,7 +621,7 @@ bool DialogComponent::CommandManager(const std::string &command, std::shared_ptr
         response->is_ok = true;
     }
     else if (action == "exp_d")
-    {  
+    {
         response->context = "explainDescription";
         response->is_ok = true;
     }
@@ -640,8 +638,16 @@ bool DialogComponent::CommandManager(const std::string &command, std::shared_ptr
     else if (action == "next_poi" || action == "start_tour") // means that it has been found // NEXT POI
     {
 
+        // if (action == "start_tour") {
+        //     auto msgInteraction  = dialog_interfaces::msg::VerbalInteraction();
+        //     msgInteraction.text = m_last_received_interaction;
+        //     msgInteraction.id = interactionCounter++;
+        //     msgInteraction.confidence = confidence;
+        //     m_interactionPublisher->publish(msgInteraction);
+        // }
+
         yInfo() << "[DialogComponent::CommandManager] Next Poi Detected" << __LINE__;
-        
+
         response->is_ok = true;
         response->is_poi_ended = true;
     }
@@ -667,7 +673,7 @@ bool DialogComponent::CommandManager(const std::string &command, std::shared_ptr
 
 bool DialogComponent::UpdatePoILLMPrompt()
 {
-    
+
     auto requestGetCurrentPoi = std::make_shared<scheduler_interfaces::srv::GetCurrentPoi::Request>();
     while (!clientGetCurrentPoi->wait_for_service(std::chrono::milliseconds(100)))
     {
@@ -779,7 +785,6 @@ void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::
         return;
     }
 
-    
     auto request3 = std::make_shared<text_to_speech_interfaces::srv::SetVoice::Request>();
     request3->new_voice = m_voicesMap[newLang];
     while (!setVoiceClient->wait_for_service(std::chrono::milliseconds(100)))
@@ -803,7 +808,6 @@ void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::
         return;
     }
 
-    
     auto request4 = std::make_shared<text_to_speech_interfaces::srv::SetLanguage::Request>();
     request4->new_language = newLang;
     while (!setSpeechToTextLanguageClient->wait_for_service(std::chrono::milliseconds(100)))
@@ -826,12 +830,11 @@ void DialogComponent::SetLanguage(const std::shared_ptr<dialog_interfaces::srv::
         response->is_ok = false;
         return;
     }
-
 }
 
 bool DialogComponent::WaitForSpeakStart()
 {
-    
+
     auto isSpeakingRequest = std::make_shared<text_to_speech_interfaces::srv::IsSpeaking::Request>();
     while (!isSpeakingClient->wait_for_service(std::chrono::milliseconds(100)))
     {
@@ -1112,9 +1115,9 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitFor
 
     // if (goal->is_beginning_of_conversation)
     // {
-        // m_replies.clear();
-        // m_last_received_interaction = "";
-        // yDebug() << "[DialogComponent::WaitForInteraction] Beginning of conversation detected, clearing replies" << __LINE__;
+    // m_replies.clear();
+    // m_last_received_interaction = "";
+    // yDebug() << "[DialogComponent::WaitForInteraction] Beginning of conversation detected, clearing replies" << __LINE__;
     // }
 
     std::string questionText = "";
@@ -1134,8 +1137,9 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitFor
 
         do
         {
-            
-            if (m_currentPoiName != "madama_start") {
+
+            if (m_currentPoiName != "madama_start")
+            {
                 auto currentTime = std::chrono::steady_clock::now();
                 auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(currentTime - startTime).count();
                 if (elapsedTime > 60) // Timeout after 60 seconds
@@ -1146,9 +1150,11 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitFor
                     break;
                 }
             }
-            yarp::os::Bottle* incoming = m_speechToTextPort.read(false); // Read from the port without blocking
 
-            if (incoming) {
+            yarp::os::Bottle *incoming = m_speechToTextPort.read(false); // Read from the port without blocking
+
+            if (incoming)
+            {
                 vocalInteraction = std::make_unique<yarp::os::Bottle>(*incoming);
             }
 
@@ -1176,7 +1182,7 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitFor
             yWarning() << "[DialogComponent::WaitForInteraction] Web status is false and/or timer exceeded." << __LINE__;
             vocalInteraction = std::make_unique<yarp::os::Bottle>();
             vocalInteraction->clear();
-            vocalInteraction->addString("continue the tour");
+            vocalInteraction->addString("autogenerated::continue the tour");
             vocalInteraction->addFloat64(1.0);
             // goal_handle->abort(result);
             // RCLCPP_INFO(m_node->get_logger(), "Goal aborted due to web status false");
@@ -1200,14 +1206,30 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitFor
         confidence = 1.0;
     }
 
-
-    if (questionText != "") {
+    if (questionText != "")
+    {
         SetFaceExpression("thinking");
     }
 
-    auto msgInteraction  = std_msgs::msg::String();
-    msgInteraction.data = questionText;
-    m_interactionPublisher->publish(msgInteraction);
+    if (m_currentPoiName != "madama_start")
+    {
+        auto msgInteraction = dialog_interfaces::msg::VerbalInteraction();
+        msgInteraction.text = questionText;
+        msgInteraction.id = interactionCounter++;
+        msgInteraction.confidence = confidence;
+        m_interactionPublisher->publish(msgInteraction);
+    }
+    else
+    {
+        interactionCounter = 0; // reset interaction counter at the beginning of the tour
+    }
+
+    bool isAutogenerated = questionText.find("autogenerated::") != std::string::npos;
+
+    if (isAutogenerated)
+    {
+        questionText = questionText.substr(std::string("autogenerated::").length());
+    }
 
     m_last_received_interaction = questionText;
     result->is_ok = true;
@@ -1224,14 +1246,14 @@ void DialogComponent::ExecuteDance(std::string danceName, float estimatedSpeechT
 
     // ---------------------------------Execute Dance Component Service ExecuteDance------------------------------
     yInfo() << "[DialogComponent::ExecuteDance] Starting Execute Dance Service";
-    
+
     auto dance_request = std::make_shared<execute_dance_interfaces::srv::ExecuteDance::Request>();
     dance_request->dance_name = danceName;
     if (estimatedSpeechTime > 0.0)
     {
         dance_request->speech_time = estimatedSpeechTime;
     }
-    
+
     // Wait for service
     while (!danceClient->wait_for_service(std::chrono::milliseconds(100)))
     {
@@ -1257,7 +1279,7 @@ void DialogComponent::ResetDance()
 {
     // ---------------------------------Execute Dance Component Service resetDance------------------------------
     yInfo() << "[DialogComponent::ResetDance] Starting Reset Dance Service";
-    
+
     auto dance_request = std::make_shared<execute_dance_interfaces::srv::ResetDance::Request>();
     // Wait for service
     while (!resetDanceClient->wait_for_service(std::chrono::milliseconds(100)))
@@ -1286,7 +1308,7 @@ void DialogComponent::ExecutePointing(std::string pointingTarget)
 
     // ---------------------------------Text to Speech Service SPEAK------------------------------
     yInfo() << "[DialogComponent::ExecutePointing] Starting Cartesian Pointing Service";
-    
+
     auto pointing_request = std::make_shared<cartesian_pointing_interfaces::srv::PointAt::Request>();
     pointing_request->target_name = pointingTarget;
     // Wait for service
@@ -1330,7 +1352,6 @@ void DialogComponent::ShortenReply(const std::shared_ptr<dialog_interfaces::srv:
                               "You have to answer it, but you have to take into account that the user has already received a similar answer. " +
                               "The previous answer was: " + previousReply + ". " +
                               "Please maintain the context and shorten it to a single sentence. Be careful to reply in the same language of the question!!!";
-
 
     yarp::dev::LLM_Message answer;
 
@@ -1444,7 +1465,7 @@ void DialogComponent::handle_speak_accepted(const std::shared_ptr<GoalHandleSpea
 }
 
 void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
-{   
+{
 
     RCLCPP_INFO(m_node->get_logger(), "Starting Speak");
     auto goal = goal_handle->get_goal();
@@ -1487,14 +1508,16 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
         auto elapsed_time = std::chrono::high_resolution_clock::now() - start_time;
-        if (elapsed_time > std::chrono::seconds(10)) {
+        if (elapsed_time > std::chrono::seconds(10))
+        {
             RCLCPP_WARN(m_node->get_logger(), "Timeout waiting for verbal output");
             break;
         }
 
     } while (verbalOutput == nullptr);
 
-    if (verbalOutput == nullptr) {
+    if (verbalOutput == nullptr)
+    {
         SetFaceExpression("happy");
         m_predefined_answer_index = 0;
         m_number_of_predefined_answers = 0;
@@ -1528,9 +1551,10 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
     yInfo() << "[DialogComponent::SpeakFromAudio] Audio written to port";
 
     if (dance != "none")
-    {   
+    {
         // Wait for a maximum of 10 seconds, if the return is false, we skip the dance
-        if (WaitForSpeakStart()){
+        if (WaitForSpeakStart())
+        {
             if (dance.find("point") != std::string::npos)
             {
                 yInfo() << "[DialogComponent::SpeakFromAudio] Pointing detected, executing pointing";
@@ -1550,7 +1574,8 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
                 ExecuteDance(dance, estimatedSpeechTime);
             }
         }
-        else {
+        else
+        {
             yInfo() << "[DialogComponent::CommandManager] Speak did not start in time, skipping dance: " << dance;
             yInfo() << "[DialogComponent::CommandManager] May the connection between dialog component and audio player be down?";
         }
@@ -1598,8 +1623,9 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
 
 // Speak action fragment of code end
 
-void DialogComponent::WaitForPointingEnd() {
-    
+void DialogComponent::WaitForPointingEnd()
+{
+
     auto isMotionDoneRequest = std::make_shared<cartesian_pointing_interfaces::srv::IsMotionDone::Request>();
     while (!isMotionDoneClient->wait_for_service(std::chrono::milliseconds(100)))
     {
@@ -1626,23 +1652,25 @@ void DialogComponent::WaitForPointingEnd() {
     } while (!isMotionDone);
 }
 
-void DialogComponent::SetFaceExpression(std::string expressionName) {
+void DialogComponent::SetFaceExpression(std::string expressionName)
+{
 
     yarp::os::Bottle request, reply;
 
     if (expressionName == "happy")
-        request.fromString("emotion 1"); //happy
+        request.fromString("emotion 1"); // happy
     else if (expressionName == "sad")
-        request.fromString("emotion 0"); //sad
+        request.fromString("emotion 0"); // sad
     else if (expressionName == "thinking")
-        request.fromString("emotion 2"); //thinking
+        request.fromString("emotion 2"); // thinking
     else
-        request.fromString("emotion 1"); //happy
- 
-    m_faceexpression_rpc_port.write(request,reply);
+        request.fromString("emotion 1"); // happy
+
+    m_faceexpression_rpc_port.write(request, reply);
 }
 
-void DialogComponent::ResetTourAndFlags() {
+void DialogComponent::ResetTourAndFlags()
+{
 
     // Reset the tour in the SchedulerComponent
     auto requestEndTour = std::make_shared<scheduler_interfaces::srv::EndTour::Request>();
@@ -1692,20 +1720,19 @@ void DialogComponent::ResetTourAndFlags() {
 }
 
 void DialogComponent::SetWebStatus(const std::shared_ptr<dialog_interfaces::srv::SetWebStatus::Request> request,
-                                 std::shared_ptr<dialog_interfaces::srv::SetWebStatus::Response> response)
-{   
+                                   std::shared_ptr<dialog_interfaces::srv::SetWebStatus::Response> response)
+{
     std::cout << "DialogComponent::SetWebStatus call received with status: " << request->is_web_reachable << std::endl;
     m_webStatus = request->is_web_reachable;
     response->is_ok = true;
 }
 
-
 void DialogComponent::OfflineSpeak(const std::shared_ptr<dialog_interfaces::srv::OfflineSpeak::Request> request,
-                      std::shared_ptr<dialog_interfaces::srv::OfflineSpeak::Response> response)
-{   
+                                   std::shared_ptr<dialog_interfaces::srv::OfflineSpeak::Response> response)
+{
 
     RCLCPP_INFO(m_node->get_logger(), "Starting Offline Speak");
-    
+
     std::string audioFileName = request->audio_name;
 
     SetFaceExpression("happy");
@@ -1719,7 +1746,8 @@ void DialogComponent::OfflineSpeak(const std::shared_ptr<dialog_interfaces::srv:
     RCLCPP_INFO(m_node->get_logger(), "OfflineSpeak succeeded");
 }
 
-void DialogComponent::ExecuteAudio(std::string audioName) {
+void DialogComponent::ExecuteAudio(std::string audioName)
+{
 
     yInfo() << "[DialogComponent::ExecuteAudio] Sending audio to Yarp Audio Player with name " << audioName;
 
@@ -1751,7 +1779,6 @@ void DialogComponent::ExecuteAudio(std::string audioName) {
     std::chrono::duration wait_ms = 2000ms;
     std::this_thread::sleep_for(wait_ms);
     WaitForSpeakEnd();
-
 }
 
 void DialogComponent::DisableMicrophone()
@@ -1779,10 +1806,9 @@ void DialogComponent::DisableMicrophone()
     }
 }
 
-
 void DialogComponent::ResetState(const std::shared_ptr<dialog_interfaces::srv::ResetState::Request> request,
-                      std::shared_ptr<dialog_interfaces::srv::ResetState::Response> response) {
-
+                                 std::shared_ptr<dialog_interfaces::srv::ResetState::Response> response)
+{
 
     yInfo() << "[DialogComponent::ResetState] Resetting the state of interactions and llms" << __LINE__;
 
@@ -1793,7 +1819,7 @@ void DialogComponent::ResetState(const std::shared_ptr<dialog_interfaces::srv::R
 
     m_replies.clear();
     m_last_received_interaction = "";
-    
+
     m_verbalOutputBatchReader.setDialogPhaseActive(false);
     m_verbalOutputBatchReader.resetQueue();
 
@@ -1801,4 +1827,3 @@ void DialogComponent::ResetState(const std::shared_ptr<dialog_interfaces::srv::R
 
     response->is_ok = true;
 }
-
