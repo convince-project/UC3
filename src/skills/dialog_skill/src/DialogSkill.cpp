@@ -294,6 +294,35 @@ bool DialogSkill::start(int argc, char *argv[])
             }
         }
 
+
+        auto setLanguageRequest = std::make_shared<dialog_interfaces::srv::SetLanguage::Request>();
+        setLanguageRequest->language = "it-IT";
+        wait_succeded = true;
+        while (!clientSetLanguage->wait_for_service(std::chrono::milliseconds(100))) {
+            if (!rclcpp::ok()) {
+                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'SetLanguage'. Exiting.");
+                wait_succeded = false;
+                m_stateMachine.submitEvent("DialogComponent.SetLanguage.Return");
+            } 
+        }
+        if (wait_succeded) {
+            // send the request                                                                    
+            auto result = clientSetLanguage->async_send_request(setLanguageRequest);
+            auto futureResult = rclcpp::spin_until_future_complete(nodeSetLanguage, result);
+            auto response = result.get();
+            if (futureResult == rclcpp::FutureReturnCode::SUCCESS)
+            {
+                if( response->is_ok ==true) {
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.SetLanguage.Return second half done");
+                } else {
+                    QVariantMap data;
+                    data.insert("result", "FAILURE");
+                    m_stateMachine.submitEvent("DialogComponent.SetLanguage.Return", data);
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "DialogComponent.SetLanguage.Return failed");
+                }
+            }
+        }
+
         wait_succeded = true;
         while (!pyDialogResetClient->wait_for_service(std::chrono::milliseconds(100))) {
             if (!rclcpp::ok()) {
@@ -322,6 +351,7 @@ bool DialogSkill::start(int argc, char *argv[])
                 }
             }
         }
+
     
     
     });

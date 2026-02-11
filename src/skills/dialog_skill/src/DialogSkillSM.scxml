@@ -210,7 +210,7 @@
           <param name="context" expr="m_context"/>
         </send>
     </transition>
-    <transition cond="m_result == 'SUCCESS'" target="evaluateDuplicate" />
+    <!-- <transition cond="m_result == 'SUCCESS'" target="evaluateDuplicate" /> -->
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
   </state>
 
