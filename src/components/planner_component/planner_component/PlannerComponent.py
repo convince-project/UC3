@@ -139,6 +139,7 @@ class PlannerComponent(Node):
             while not future.done():
                 self._blackboard_executor.spin_once(timeout_sec=0.1)
             if future.result() is not None:
+                self.get_logger().info('Service call succeeded: %r for key %r' % (future.result(), key))
                 return future.result().value
             else:
                 self.get_logger().error('Service call failed %r' % (future.exception(),))

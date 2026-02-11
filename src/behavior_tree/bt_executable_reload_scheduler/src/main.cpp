@@ -89,13 +89,17 @@ int main(int argc, char* argv[])
     printTreeRecursively((*tree).rootNode());
     // Create the reload service and pass the tree by reference
     rclcpp::Service<bt_interfaces_dummy::srv::ReloadTree>::SharedPtr m_reloadTreeService = 
-        m_node->create_service<bt_interfaces_dummy::srv::ReloadTree>(
-            "/BtExecutableSchedulerComponent/ReloadTree",
-            [&tree, &path, &halt, &bt_factory, &publisher_zmq](const std::shared_ptr<bt_interfaces_dummy::srv::ReloadTree::Request> request,
-                    std::shared_ptr<bt_interfaces_dummy::srv::ReloadTree::Response> response)
-            {
-                ReloadTree(request, response, tree, path, halt, bt_factory, publisher_zmq);
-            });
+    m_node->create_service<bt_interfaces_dummy::srv::ReloadTree>(
+        "/BtExecutableSchedulerComponent/ReloadTree",
+        [&tree, &path, &halt, &bt_factory, &publisher_zmq, &m_node](const std::shared_ptr<bt_interfaces_dummy::srv::ReloadTree::Request> request,
+                std::shared_ptr<bt_interfaces_dummy::srv::ReloadTree::Response> response)
+        {
+            auto tick_start_time = std::chrono::steady_clock::now();
+            ReloadTree(request, response, tree, path, halt, bt_factory, publisher_zmq);
+            auto tick_end_time = std::chrono::steady_clock::now();
+            auto duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(tick_end_time - tick_start_time).count();
+            RCLCPP_INFO(m_node->get_logger(), "Reload tree takes: %ld ms", duration_ms);
+        });
 
     rclcpp::Service<bt_interfaces_dummy::srv::TickAction>::SharedPtr m_tickService = 
         m_node->create_service<bt_interfaces_dummy::srv::TickAction>(
@@ -104,10 +108,18 @@ int main(int argc, char* argv[])
                     std::shared_ptr<bt_interfaces_dummy::srv::TickAction::Response> response)
             {
                 RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Ticking the behavior tree...");
+                
+                // Inizio del timer
+                auto tick_start_time = std::chrono::steady_clock::now();
+                
                 auto status = (*tree).tickRoot();
                 if (status == BT::NodeStatus::SUCCESS)
                 {
                     response->status = bt_interfaces_dummy::msg::ActionResponse::SKILL_SUCCESS;
+                    // Fine del timer
+                    auto tick_end_time = std::chrono::steady_clock::now();
+                    auto duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(tick_end_time - tick_start_time).count();
+                    RCLCPP_INFO(m_node->get_logger(), "Tick duration: %ld ms", duration_ms);
                 }
                 else if (status == BT::NodeStatus::FAILURE)
                 {
