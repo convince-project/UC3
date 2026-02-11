@@ -10,14 +10,14 @@ OUTPUT_BASE="/home/user1/UC3/src/skills"
 
 # list of skills to exclude
 SKILLS_TO_EXCLUDE=(
-    "DialogSkill.scxml"
+    "DialogSkill.ascxml"
 )
 
 # Ensure the output base directory exists
 mkdir -p "$OUTPUT_BASE"
 
 # Process each SCXML file
-for scxml_file in "$SKILLS_DIR"/*.scxml; do
+for scxml_file in "$SKILLS_DIR"/*.ascxml; do
     # Skip if not a file
     [ -f "$scxml_file" ] || continue
     # skip if in exclude list
@@ -28,7 +28,7 @@ for scxml_file in "$SKILLS_DIR"/*.scxml; do
     fi
     # Get the base name without extension
     filename=$(basename "$scxml_file")
-    skill_name="${filename%.scxml}"
+    skill_name="${filename%.ascxml}"
     
     # Remove "Skill" from the name if present
     skill_name="${skill_name%Skill}"
