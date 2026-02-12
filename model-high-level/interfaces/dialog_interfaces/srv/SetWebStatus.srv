@@ -1,0 +1,4 @@
+bool is_web_reachable
+---
+bool is_ok
+string error_msg
