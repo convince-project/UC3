@@ -103,7 +103,7 @@ ENV PATH=/usr/local/Qt-6.8.3/bin:$PATH
 RUN /bin/bash -c "echo 'updated on 202601271357' && \
     source /opt/ros/jazzy/setup.bash && \
     cd /home/user1 && \
-    git clone https://github.com/convince-project/UC3.git -b  feat/bt_with_planner && \
+    git clone https://github.com/convince-project/UC3.git && \
     source /opt/ros/jazzy/setup.bash && \
     cd /home/user1/UC3/launch/symbolic_links/ && \
     python3 create_symlinks.py ../applications/convince_bt_components.xml && \
