@@ -41,6 +41,8 @@ enum class Status{
 	failure
 };
 
+using namespace std::placeholders;
+
 class DialogSkill
 {
 public:
@@ -60,6 +62,24 @@ public:
 
 	using ActionSynthesizeText = text_to_speech_interfaces::action::BatchGeneration;
 	using GoalHandleSynthesizeText = rclcpp_action::ClientGoalHandle<ActionSynthesizeText>;
+
+	// ROS2 Action Client for WaitForInteraction
+	void goal_response_wait_for_interaction_callback(rclcpp_action::ClientGoalHandle<dialog_interfaces::action::WaitForInteraction>::SharedPtr goal_handle);
+	void feedback_wait_for_interaction_callback(rclcpp_action::ClientGoalHandle<dialog_interfaces::action::WaitForInteraction>::SharedPtr,
+											   const std::shared_ptr<const dialog_interfaces::action::WaitForInteraction::Feedback> feedback);
+	void result_wait_for_interaction_callback(const rclcpp_action::ClientGoalHandle<dialog_interfaces::action::WaitForInteraction>::WrappedResult & result);	
+
+	// ROS2 Action Client for Speak
+	void goal_response_speak_callback(rclcpp_action::ClientGoalHandle<dialog_interfaces::action::Speak>::SharedPtr goal_handle);
+	void feedback_speak_callback(rclcpp_action::ClientGoalHandle<dialog_interfaces::action::Speak>::SharedPtr,
+								const std::shared_ptr<const dialog_interfaces::action::Speak::Feedback> feedback);
+	void result_speak_callback(const rclcpp_action::ClientGoalHandle<dialog_interfaces::action::Speak>::WrappedResult & result);
+
+	// ROS2 Action Client for SynthesizeText
+	void goal_response_synthesize_text_callback(rclcpp_action::ClientGoalHandle<text_to_speech_interfaces::action::BatchGeneration>::SharedPtr goal_handle);
+	void feedback_synthesize_text_callback(rclcpp_action::ClientGoalHandle<text_to_speech_interfaces::action::BatchGeneration>::SharedPtr,
+										  const std::shared_ptr<const text_to_speech_interfaces::action::BatchGeneration::Feedback> feedback);
+	void result_synthesize_text_callback(const rclcpp_action::ClientGoalHandle<text_to_speech_interfaces::action::BatchGeneration>::WrappedResult & result);
 
 private:
 	void EnableMicrophone();
@@ -110,16 +130,6 @@ private:
 
 	std::shared_ptr<rclcpp::Node> pyDialogResetClientNode;
     std::shared_ptr<rclcpp::Client<dialog_interfaces::srv::ResetState>> pyDialogResetClient;
-
-	// Members
-	std::shared_ptr<rclcpp::executors::SingleThreadedExecutor> m_executor;
-	QThread* m_thread = nullptr;
-
-	std::shared_ptr<rclcpp::executors::SingleThreadedExecutor> m_SpeakExecutor;
-	QThread* m_SpeakThread = nullptr;
-
-	std::shared_ptr<rclcpp::executors::SingleThreadedExecutor> m_SynthesizeTextExecutor;
-	QThread* m_SynthesizeTextThread = nullptr;
 	
 	// save the vector of pairs <text,dance> for the synthesis
 	std::vector<std::pair<std::string, std::string>> m_replies;

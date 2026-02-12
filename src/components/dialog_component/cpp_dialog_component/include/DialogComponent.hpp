@@ -49,6 +49,7 @@
 #include <text_to_speech_interfaces/srv/set_voice.hpp>
 #include <text_to_speech_interfaces/srv/set_microphone.hpp>
 #include <text_to_speech_interfaces/srv/is_speaking.hpp>
+#include <text_to_speech_interfaces/action/batch_generation.hpp>
 
 // Scheduler Interfaces
 #include <scheduler_interfaces/srv/get_current_poi.hpp>
@@ -85,6 +86,7 @@ public:
     using GoalHandleWaitForInteraction = rclcpp_action::ServerGoalHandle<actionWaitForInteraction>;
     using actionSpeak = dialog_interfaces::action::Speak;
     using GoalHandleSpeak = rclcpp_action::ServerGoalHandle<actionSpeak>;
+    using actionForwardBatchGeneration = 
 
     DialogComponent();
 
@@ -120,6 +122,8 @@ public:
 
     void ResetState(const std::shared_ptr<dialog_interfaces::srv::ResetState::Request> request,
                       std::shared_ptr<dialog_interfaces::srv::ResetState::Response> response);
+    
+    void ForwardBatchGeneration(const std::shared_ptr<GoalHandleForwardBatchGeneration> goal_handle);
 
     // void SetMicrophone(const std::shared_ptr<dialog_interfaces::srv::SetMicrophone::Request> request,
                     //    std::shared_ptr<dialog_interfaces::srv::SetMicrophone::Response> response); // Opens/closes the microphone ports
@@ -203,6 +207,9 @@ private:
     void handle_speak_accepted(
         const std::shared_ptr<GoalHandleSpeak> goal_handle);
 
+    // ROS2 Action Server for forwarding batch generation to TextToSpeechComponent
+    rclcpp_action::Server<dialog_interfaces
+
     /*Dialog JSON*/
     std::shared_ptr<TourStorage> m_tourStorage;
     std::string m_currentPoiName;
@@ -281,6 +288,9 @@ private:
 
     std::shared_ptr<rclcpp::Node> setMicrophoneClientNode;
     std::shared_ptr<rclcpp::Client<text_to_speech_interfaces::srv::SetMicrophone>> setMicrophoneClient;
+
+    std::shared_ptr<rclcpp::Node> nodeBatchGeneration;
+    rclcpp_action::Client<text_to_speech_interfaces::action::BatchGeneration>::SharedPtr clientBatchGeneration;
 
     bool m_webStatus;
 

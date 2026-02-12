@@ -1,5 +1,5 @@
 string context # the command to be interpreted
 ---
-string[] reply # The interpreted command
-string[] dance # The dance to be performed while speaking
+string reply # The reply to be given, if available multiple replies are provided as a single string, separated by the '#' character
+string dance # The dance to be performed while speaking, if available multiple dances are provided as a single string, separated by the '#' character
 bool is_ok

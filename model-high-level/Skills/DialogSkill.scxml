@@ -14,7 +14,16 @@
     <data id="MAX_RETRIES"    type="int8"   expr="3"/>
     <data id="SKILL_SUCCESS"  type="int8"   expr="0"/>
     <data id="SKILL_FAILURE"  type="int8"   expr="1"/>
-    <data id="SKILL_RUNNING"  type="int8"   expr="2"/>
+    <data id="RUNNING"  type="int8"   expr="2"/>
+    <data id="m_result"       type="bool" expr="false"/>
+    <data id="m_interaction"  type="string" expr="''"/>
+    <data id="m_context"      type="string" expr="''"/>
+    <data id="m_is_poi_ended" type="bool"   expr="false"/>
+    <data id="m_dance"        type="string" expr="''"/>
+    <data id="m_reply"        type="string" expr="''"/>
+    <data id="m_is_reply_finished" type="bool" expr="false"/>
+    <data id="m_is_beginning_of_conversation" type="bool" expr="true"/>
+    <data id="m_duplicate_index" type="int32" expr="-1"/>
   </datamodel>
 
 
@@ -23,102 +32,361 @@
   <ros_service_server service_name="/DialogSkill/halt" type="bt_interfaces_dummy/HaltAction"/>
 
   <!-- ROS2 service clients - allineati con dialog_interfaces -->
-  <ros_service_client service_name="/SchedulerComponent/GetCurrentLanguage" type="scheduler_interfaces/GetCurrentLanguage"/>
-  <ros_service_client service_name="/DialogComponent/SetLanguage" type="dialog_interfaces/SetLanguage"/>
-  <ros_service_client service_name="/DialogComponent/EnableDialog" type="dialog_interfaces/EnableDialog"/>
-  <ros_service_client service_name="/DialogComponent/GetState" type="dialog_interfaces/GetState"/>
+  <ros_service_client service_name="/DialogComponent/ManageContext" type="dialog_interfaces/ManageContext"/>
+  <ros_service_client service_name="/DialogComponent/RememberInteractions" type="dialog_interfaces/RememberInteractions"/>
+  <ros_service_client service_name="/DialogComponent/CppResetState" type="dialog_interfaces/ResetState"/>
+  <ros_service_client service_name="/DialogComponent/PyResetState" type="dialog_interfaces/ResetState"/>
+  <ros_service_client service_name="/DialogComponent/ShortenReply" type="dialog_interfaces/ShortenReply"/>
+  <ros_service_client service_name="/DialogComponent/InterpretCommand" type="dialog_interfaces/InterpretCommand"/>
+  <ros_service_client service_name="/DialogComponent/Answer" type="dialog_interfaces/Answer"/>
+
+  <!-- ROS2 action clients -->
+  <ros_action_client name="wait_for_interaction_action" action_name="/DialogComponent/WaitForInteraction" type="dialog_interfaces/WaitForInteraction" />
+  <ros_action_client name="speak_action" action_name="/DialogComponent/Speak" type="dialog_interfaces/Speak" />
+  <ros_action_client name="synthesize_text_action" action_name="/TextToSpeechComponent/BatchGeneration" type="text_to_speech_interfaces/BatchGeneration" />
+
 
   <state id="idle">
     <onentry>
       <!-- Reset error counter on new execution -->
-      <assign location="m_error_count" expr="0"/>
+      <assign location="m_is_beginning_of_conversation" expr="true"/>
     </onentry>
     <!-- tick request -->
-    <ros_service_handle_request name="/DialogSkill/tick" target="getLanguage">
-      <ros_service_send_request name="/SchedulerComponent/GetCurrentLanguage"/>
+    <ros_service_handle_request name="/DialogSkill/tick" target="waitForInteraction">
+      <ros_service_send_response name="/DialogSkill/tick">
+        <field name="result" expr="RUNNING"/>
+      </ros_service_send_response>
+      <ros_action_send_goal name="wait_for_interaction_action">
+        <field name="is_beginning_of_conversation" expr="m_is_beginning_of_conversation == 'true'"/>
+      </ros_action_send_goal>
     </ros_service_handle_request>
     <!-- halt request -->
-    <ros_service_handle_request name="/DialogSkill/halt" target="disableDialog">
-      <ros_service_send_request name="/DialogComponent/EnableDialog"/>
+    <ros_service_handle_request name="/DialogSkill/halt" target="stop">
+      <ros_service_send_response name="/DialogSkill/halt" />
     </ros_service_handle_request>
+
   </state>
 
-  <state id="getLanguage">
-    <!-- Success case -->
-    <ros_service_handle_response name="/SchedulerComponent/GetCurrentLanguage" target="setLanguage">
-      <assign location="m_language" expr="_res.language"/>
-    </ros_service_handle_response>
-  </state>
+  <state id="waitForInteraction">
 
-  <state id="setLanguage">
-    <onentry>
-      <ros_service_send_request name="/DialogComponent/SetLanguage"/>
-    </onentry>
-    <!-- Procede automaticamente dopo aver inviato la richiesta -->
-    <ros_service_handle_response name="/DialogComponent/SetLanguage" target="enableDialog"/>
-  </state>
-
-  <state id="enableDialog">
-    <onentry>
-      <ros_service_send_request name="/DialogComponent/EnableDialog"/>
-    </onentry>
-    <!-- Procede a running dopo aver abilitato il dialogo -->
-    <ros_service_handle_response name="/DialogComponent/EnableDialog" target="running"/>
-  </state>
-
-  <state id="running">
-    <onentry>
+    <!-- halt case-->
+    <ros_service_handle_request name="/DialogSkill/halt" target="stop" />
+    <!-- tick case -->
+    <ros_service_handle_request name="/DialogSkill/tick" target="waitForInteraction">
       <ros_service_send_response name="/DialogSkill/tick">
-        <field name="status" expr="SKILL_RUNNING"/>
+        <field name="result" expr="RUNNING"/>
       </ros_service_send_response>
-    </onentry>
-    <!-- Poll for completion -->
-    <ros_service_handle_request name="/DialogSkill/tick" target="checkState">
-      <ros_service_send_request name="/DialogComponent/GetState"/>
     </ros_service_handle_request>
-    <!-- Allow halt while running -->
-    <ros_service_handle_request name="/DialogSkill/halt" target="disableDialog">
-      <ros_service_send_request name="/DialogComponent/EnableDialog"/>
-    </ros_service_handle_request>
+
+    <!-- success case-->
+    <ros_action_handle_success_result name="wait_for_interaction_action" target="waitForInteractionResult" >
+      <assign location="m_result" expr="_res.is_ok"/>
+      <assign location="m_interaction" expr="_res.interaction"/>
+    </ros_action_handle_success_result>
   </state>
 
-  <state id="checkState">
-    <!-- Riceve la risposta con il campo 'state' come int16 -->
-    <ros_service_handle_response name="/DialogComponent/GetState" target="decide">
-      <assign location="m_state" expr="_res.state"/>
+  <state id="waitForInteractionResult">
+
+    <!-- If we receive FAILURE from the return of waitForInteraction, it means we are handling a lost connection, so we return SUCCESS to allow the behavior tree to continue -->
+    <transition cond="m_result == false" target="sendFailure"/>
+
+    <!-- manage situation of VAD transcribing void string -->
+    <transition cond="m_interaction == ''" target="waitForInteraction">
+      <ros_action_send_goal name="wait_for_interaction_action">
+        <field name="is_beginning_of_conversation" expr="m_is_beginning_of_conversation == 'false'"/>
+      </ros_action_send_goal>
+    </transition>
+
+    <transition cond="m_result == true" target="manageContext">
+      <ros_service_send_request name="/DialogComponent/ManageContext">
+        <field name="interaction" expr="m_interaction"/>
+      </ros_service_send_request>
+    </transition>
+
+  </state>
+
+  <state id="manageContext">
+
+    <!-- halt case-->
+    <ros_service_handle_request name="/DialogSkill/halt" target="stop" />
+    <!-- tick case -->
+    <ros_service_handle_request name="/DialogSkill/tick" target="manageContext">
+      <ros_service_send_response name="/DialogSkill/tick">
+        <field name="result" expr="RUNNING"/>
+      </ros_service_send_response>
+    </ros_service_handle_request>
+
+    <!-- success case-->
+    <ros_service_handle_response name="/DialogComponent/ManageContext" target="manageContextResult">
+      <assign location="m_result" expr="_res.is_ok"/>
+      <assign location="m_language" expr="_res.language"/>
+      <assign location="m_context" expr="_res.context"/>
+      <assign location="m_is_poi_ended" expr="_res.isPoIEnded"/>
+      <assign location="m_dance" expr="_res.dance"/>
     </ros_service_handle_response>
   </state>
 
-  <state id="decide">
-    <onentry>
-      <if cond="m_state == STATUS_DONE">
-        <ros_service_send_response name="/DialogSkill/tick">
-          <field name="status" expr="SKILL_SUCCESS"/>
-        </ros_service_send_response>
-      <else/>
-        <ros_service_send_response name="/DialogSkill/tick">
-          <field name="status" expr="SKILL_RUNNING"/>
-        </ros_service_send_response>
-      </if>
-    </onentry>
-    <transition cond="m_state == STATUS_DONE" target="idle"/>
-    <transition cond="m_state != STATUS_DONE" target="running"/>
+  <state id="manageContextResult">
+    <transition cond="m_result == true" target="evaluateContext" />
+    <transition cond="m_result == false" target="sendFailure" />
   </state>
 
-  <state id="disableDialog">
-    <onentry>
-      <ros_service_send_request name="/DialogComponent/EnableDialog"/>
-    </onentry>
-    <ros_service_handle_response name="/DialogComponent/EnableDialog" target="halted"/>
+  <state id="evaluateContext">
+    <transition cond="m_is_duplicate == true" target="resetState" >
+      <ros_service_send_request name="/DialogComponent/CppResetState"/>
+      <ros_service_send_request name="/DialogComponent/PyResetState"/>
+    </transition>
+
+    <transition cond="m_is_poi_ended == false" target="checkDuplicate" >
+      <ros_service_send_request name="/DialogComponent/RememberInteractions">
+        <field name="interaction" expr="m_interaction"/>
+        <field name="is_beginning_of_conversation" expr="m_is_beginning_of_conversation == 'true'"/>
+        <field name="context" expr="m_context"/>
+      </ros_service_send_request>
+    </transition>
   </state>
 
-  <state id="halted">
+  <state id="resetState">
+    <ros_service_handle_request name="/DialogSkill/tick" target="resetState">
+      <ros_service_send_response name="/DialogSkill/tick">
+        <field name="result" expr="RUNNING"/>
+      </ros_service_send_response>
+    </ros_service_handle_request>
+
+    <ros_service_handle_response name="/DialogComponent/CppResetState">
+      <assign location="m_result" expr="_res.is_ok"/>
+    </ros_service_handle_response>
+    <ros_service_handle_response name="/DialogComponent/PyResetState" target="resetStateResult">
+      <assign location="m_result" expr="_res.is_ok"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="resetStateResult">
+    <transition cond="m_result == true" target="sendSuccess" />
+    <transition cond="m_result == false" target="sendFailure" />
+  </state>
+
+  <state id="checkDuplicate">
     <onentry>
-      <ros_service_send_response name="/DialogSkill/halt">
-            <field name="is_ok" expr="true"/>
-          </ros_service_send_response>
+      <assign location="m_is_beginning_of_conversation" expr="false"/>
+    </onentry>
+    <ros_service_handle_request name="/DialogSkill/halt" target="stop" />
+    <ros_service_handle_request name="/DialogSkill/tick" target="checkDuplicate">
+      <ros_service_send_response name="/DialogSkill/tick">
+        <field name="result" expr="RUNNING"/>
+      </ros_service_send_response>
+    </ros_service_handle_request>
+
+    <ros_service_handle_response name="/DialogComponent/RememberInteractions" target="checkDuplicateResult">
+      <assign location="m_result" expr="_res.is_ok"/>
+      <assign location="m_duplicate_index" expr="_res.duplicate_index"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="checkDuplicateResult">
+    <transition cond="m_result == true" target="evaluateDuplicate" />
+    <transition cond="m_result == false" target="sendFailure" />
+  </state>
+
+  <state id="evaluateDuplicate">
+    
+    <!-- <transition cond="m_duplicate_index &gt; 0" target="shortenReply"/>
+    <transition cond="m_duplicate_index &lt; 0" target="interpret"/> -->
+    <!-- undesirable solution, but I couldn't make the integer comparison work -->
+    <transition cond="m_duplicate_index != '-1'" target="shortenReply">
+        <ros_service_send_request name="/DialogComponent/ShortenReply">
+          <field name="index" expr="m_duplicate_index"/>
+          <field name="context" expr="m_context"/>
+          <field name="interaction" expr="m_interaction"/>
+        </ros_service_send_request>
+    </transition>
+    <!-- if the context requires a predefined answer, such as for describing something or explaining the function , go in InterpretCommans State -->
+    <transition cond="m_context == 'explainFunction' || m_context == 'explainDescription'" target="interpretCommand">
+        <ros_service_send_request name="/DialogComponent/InterpretCommand">
+          <field name="context" expr="m_context"/>
+        </ros_service_send_request>
+    </transition>
+    <transition target="answer">
+        <ros_service_send_request name="/DialogComponent/Answer">
+          <field name="interaction" expr="m_interaction"/>
+          <field name="context" expr="m_context"/>
+        </ros_service_send_request>
+    </transition>
+
+  </state>
+
+  <state id="shortenReply">
+    <ros_service_handle_request name="/DialogSkill/halt" target="stop" />
+    <ros_service_handle_request name="/DialogSkill/tick" target="shortenReply">
+      <ros_service_send_response name="/DialogSkill/tick">
+        <field name="result" expr="RUNNING"/>
+      </ros_service_send_response>
+    </ros_service_handle_request>
+    <ros_service_handle_response name="/DialogComponent/ShortenReply" target="shortenReplyResult">
+      <assign location="m_result" expr="_res.is_ok"/>
+      <assign location="m_reply" expr="_res.reply"/>
+      <assign location="m_is_reply_finished" expr="_res.is_reply_finished"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="shortenReplyResult">
+    <transition cond="m_result == true" target="sendSynthesizedTextCall" />
+    <transition cond="m_result == false" target="sendFailure" />
+  </state>
+
+
+  <state id="interpretCommand">
+    <ros_service_handle_request name="/DialogSkill/halt" target="stop" />
+    <ros_service_handle_request name="/DialogSkill/tick" target="interpretCommand">
+      <ros_service_send_response name="/DialogSkill/tick">
+        <field name="result" expr="RUNNING"/>
+      </ros_service_send_response>
+    </ros_service_handle_request>
+    <ros_service_handle_response name="/DialogComponent/InterpretCommand" target="interpretCommandResult">
+      <assign location="m_result" expr="_res.is_ok"/>
+      <assign location="m_reply" expr="_res.reply"/>
+      <assign location="m_dance" expr="_res.dance"/>
+      <assign location="m_is_reply_finished" expr="_res.is_reply_finished"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="interpretCommandResult">
+
+    <transition cond="m_result == true" target="sendSynthesizedTextCall" />
+    <transition cond="m_result == false" target="sendFailure" />
+  </state>
+
+  <state id="answer">
+    <ros_service_handle_request name="/DialogSkill/halt" target="stop" />
+    <ros_service_handle_request name="/DialogSkill/tick" target="answer">
+      <ros_service_send_response name="/DialogSkill/tick">
+        <field name="result" expr="RUNNING"/>
+      </ros_service_send_response>
+    </ros_service_handle_request>
+    <ros_service_handle_response name="/DialogComponent/Answer" target="answerResult">
+      <assign location="m_result" expr="_res.is_ok"/>
+      <assign location="m_reply" expr="_res.reply"/>
+      <assign location="m_is_reply_finished" expr="_res.is_reply_finished"/>
+    </ros_service_handle_response>
+  </state>
+
+  <state id="answerResult">
+    <transition cond="m_result == true" target="sendSynthesizedTextCall" />
+    <transition cond="m_result == false" target="sendFailure" />
+  </state>
+
+
+  <state id="sendSynthesizedTextCall">
+    <transition cond="m_result == true" target="synthesizeText">
+      <ros_service_send_response name="/DialogSkill/tick">
+          <field name="result" expr="RUNNING"/>
+      </ros_service_send_response>
+      <ros_action_send_goal name="synthesize_text_action">
+        <field name="text" expr="m_reply"/>
+      </ros_action_send_goal>
+    </transition>
+
+    <transition cond="m_result == false" target="sendFailure" />
+  </state>
+
+  <!-- this state or the next one may be unified in a single one -->
+  <state id="synthesizeText">
+    <ros_service_handle_request name="/DialogSkill/halt" target="stop" />
+    <ros_service_handle_request name="/DialogSkill/tick" target="synthesizeText">
+      <ros_service_send_response name="/DialogSkill/tick">
+        <field name="result" expr="RUNNING"/>
+      </ros_service_send_response>
+    </ros_service_handle_request>
+
+    <!-- <ros_action_handle_success_result name="synthesize_text_action" target="synthesizeTextResult">
+      <assign location="m_result" expr="_wrapped_result.result.result"/>
+    </ros_action_handle_success_result> -->
+    <transition target="synthesizeTextResult" />
+  </state>
+
+  <state id="synthesizeTextResult">
+    
+    <transition cond="m_result == true" target="speak" />
+    <transition cond="m_result == false" target="sendFailure" />
+  </state>
+
+  <state id="speak">
+    <transition cond="m_result == true" target="whileSpeaking">
+      <ros_service_send_response name="/DialogSkill/tick">
+          <field name="result" expr="RUNNING"/>
+      </ros_service_send_response>
+      <ros_action_send_goal name="speak_action">
+        <field name="text" expr="m_reply"/>
+        <field name="dance" expr="m_dance"/>
+      </ros_action_send_goal>
+    </transition>
+  </state>
+
+  <state id="whileSpeaking">
+    <ros_service_handle_request name="/DialogSkill/halt" target="stop" />
+    <ros_service_handle_request name="/DialogSkill/tick" target="whileSpeaking">
+      <ros_service_send_response name="/DialogSkill/tick">
+        <field name="result" expr="RUNNING"/>
+      </ros_service_send_response>
+    </ros_service_handle_request>
+    <ros_action_handle_success_result name="speak_action" target="speakResult">
+      <assign location="m_result" expr="_wrapped_result.result.is_ok"/>
+      <assign location="m_is_reply_finished" expr="_wrapped_result.result.is_reply_finished"/>
+    </ros_action_handle_success_result>
+  </state>
+
+  <state id="speakResult">
+    <transition cond ="m_is_reply_finished == false" target="speak"/>
+
+    <transition cond="m_result == true" target="waitForInteraction" >
+      <ros_action_send_goal name="wait_for_interaction_action">
+        <field name="is_beginning_of_conversation" expr="false"/>
+      </ros_action_send_goal>
+    </transition>
+    <transition cond="m_result == false" target="sendFailure" />
+
+  </state>
+
+  <state id="stop">
+    <ros_service_handle_request name="/DialogSkill/tick" target="stop">
+      <ros_service_send_response name="/DialogSkill/tick">
+        <field name="result" expr="RUNNING"/>
+      </ros_service_send_response>
+    </ros_service_handle_request>
+
+    <transition target="stopResult" />
+
+  </state>
+
+  <state id="stopResult">
+
+    <transition cond="m_result == true" target="sendHalted" />
+    <transition cond="m_result == false" target="stop" />
+  </state>
+
+  <state id="sendHalted">
+    <onentry>
+      <ros_service_send_response name="/DialogSkill/halt" />
     </onentry>
     <transition target="idle"/>
+  </state>
+
+  <state id="sendSuccess">
+  
+    <ros_service_handle_request name="/DialogSkill/tick" target="idle">
+      <ros_service_send_response name="/DialogSkill/tick">
+            <field name="result" expr="SUCCESS"/>
+          </ros_service_send_response>
+    </ros_service_handle_request>
+  </state>
+
+
+  <state id="sendFailure">
+    <ros_service_handle_request name="/DialogSkill/tick" target="idle">
+      <ros_service_send_response name="/DialogSkill/tick">
+            <field name="result" expr="FAILURE"/>
+          </ros_service_send_response>
+    </ros_service_handle_request>
   </state>
 
 </scxml>
