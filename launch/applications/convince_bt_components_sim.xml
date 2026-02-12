@@ -183,6 +183,24 @@
         <name>ros2_py_dialog_component</name>
         <parameters>run py_interaction_cliserv service</parameters>
         <workdir />
+        <node>opt</node>
+    </module>
+
+
+
+    <module>
+        <name>ros2_planner_component</name>
+        <parameters>run planner_component planner_component  --load_from_yaml /home/user1/UC3/src/components/planner_component/resource/configuration.yaml
+            
+        </parameters>
+        <workdir>/home/user1/UC3</workdir>
+        <node>bt</node>
+    </module>
+
+    <module>
+        <name>ros2_bt_scheduler</name>
+        <parameters>launch launch/bt_launch_scheduler.py</parameters>
+        <workdir>/home/user1/UC3</workdir>
         <node>bt</node>
     </module>
 

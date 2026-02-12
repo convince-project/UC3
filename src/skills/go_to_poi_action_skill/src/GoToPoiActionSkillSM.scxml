@@ -1,7 +1,7 @@
 <scxml version="1.0" xmlns="http://www.w3.org/2005/07/scxml" datamodel="ecmascript" name="GoToPoiActionSkillAction" initial="idle">
     <datamodel>
         <data id="poi_number" expr="0"/>
-        <data id="poi_name" expr=""/>
+        <data id="poi_name" expr="&apos;&apos;"/>
         <data id="status" expr="0"/>
         <data id="result" expr="true"/>
         <data id="SKILL_SUCCESS" expr="0"/>
@@ -12,8 +12,11 @@
     <!-- GoToPoiActionSkill is a client for GetCurrentPoi from the SchedulerComponent -->
     <!-- GoToPoiActionSkill is a client for GoToPoi action from the Navigation Component -->
     <state id="idle">
+        <onentry>
+            <log label="Entering idle state"/>
+        </onentry>
         <transition target="getPoi" event="CMD_TICK">
-            <send event="SchedulerComponent.GetCurrentPoi.Call"/>
+            <send event="SchedulerComponent.GetCurrentPoiForNavigation.Call"/>
         </transition>
         <transition target="idle" event="CMD_HALT">
             <send event="HALT_RESPONSE">
@@ -22,7 +25,10 @@
         </transition>
     </state>
     <state id="getPoi">
-        <transition target="goalResponse" event="SchedulerComponent.GetCurrentPoi.Return">
+        <onentry>
+            <log label="Entering getPoi state"/>
+        </onentry>
+        <transition target="goalResponse" event="SchedulerComponent.GetCurrentPoiForNavigation.Return">
             <assign location="poi_number" expr="_event.data.poi_number"/>
             <assign location="poi_name" expr="_event.data.poi_name"/>
             <send event="NavigationComponent.GoToPoi.SendGoal">
@@ -36,13 +42,19 @@
         <transition target="getCurrentPoiResponseHalt" event="CMD_HALT"/>
     </state>
     <state id="getCurrentPoiResponseHalt">
-        <transition target="idle" event="SchedulerComponent.GetCurrentPoi.Return">
+        <onentry>
+            <log label="Entering getCurrentPoiResponseHalt state"/>
+        </onentry>
+        <transition target="idle" event="SchedulerComponent.GetCurrentPoiForNavigation.Return">
             <send event="HALT_RESPONSE">
                 <param name="is_ok" expr="true"/>
             </send>
         </transition>
     </state>
     <state id="goalResponse">
+        <onentry>
+            <log label="Entering goalResponse state"/>
+        </onentry>
         <transition event="NavigationComponent.GoToPoi.GoalResponse" cond="_event.data.call_succeeded == true" target="wait_result"/>
         <transition event="NavigationComponent.GoToPoi.GoalResponse" cond="_event.data.call_succeeded == false" target="send_failure"/>
         <transition target="goalResponse" event="CMD_TICK">
@@ -58,6 +70,9 @@
         </transition>
     </state>
     <state id="wait_result">
+        <onentry>
+            <log label="Entering wait_result state"/>
+        </onentry>
         <transition target="wait_result" event="CMD_TICK">
             <send event="TICK_RESPONSE">
                 <param name="is_ok" expr="true"/>
@@ -67,7 +82,7 @@
         <transition target="wait_result" event="NavigationComponent.GoToPoi.FeedbackReturn">
             <assign location="status" expr="_event.data.status"/>
         </transition>
-        <transition target="goal_done" event="NavigationComponent.GoToPoi.ResultResponse">
+        <transition target="evaluate_result" event="NavigationComponent.GoToPoi.ResultResponse">
             <assign location="result" expr="_event.data.is_ok"/>
         </transition>
         <transition target="idle" event="CMD_HALT">
@@ -76,7 +91,28 @@
             </send>
         </transition>
     </state>
+    <state id="evaluate_result">
+        <onentry>
+            <log label="Entering evaluate_result state"/>
+        </onentry>
+        <!-- <ros_service_handle_request name="/GoToPoiActionSkill/tick" target="wait_result">
+            <ros_service_send_response name="/GoToPoiActionSkill/tick">
+                <field name="is_ok" expr="true"/>
+                <field name="status" expr="SKILL_RUNNING"/>
+            </ros_service_send_response>
+        </ros_service_handle_request> -->
+        <transition cond="result" target="goal_done"/>
+        <transition cond="!result" target="send_failure"/>
+        <!-- <ros_service_handle_request name="/GoToPoiActionSkill/halt" target="idle">
+            <ros_service_send_response name="/GoToPoiActionSkill/halt">
+                <field name="is_ok" expr="true"/>
+            </ros_service_send_response>
+        </ros_service_handle_request> -->
+    </state>
     <state id="goal_done">
+        <onentry>
+            <log label="Entering goal_done state"/>
+        </onentry>
         <transition target="idle" event="CMD_TICK">
             <send event="TICK_RESPONSE">
                 <param name="is_ok" expr="true"/>
@@ -91,11 +127,18 @@
     </state>
     <state id="send_failure">
         <onentry>
+            <log label="Entering send_failure state"/>
+        </onentry>
+        <transition target="idle" event="CMD_TICK">
             <send event="TICK_RESPONSE">
                 <param name="is_ok" expr="true"/>
                 <param name="status" expr="SKILL_FAILURE"/>
             </send>
-        </onentry>
-        <transition target="idle"/>
+        </transition>
+        <transition target="idle" event="CMD_HALT">
+            <send event="HALT_RESPONSE">
+                <param name="is_ok" expr="true"/>
+            </send>
+        </transition>
     </state>
 </scxml>

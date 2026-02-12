@@ -37,6 +37,30 @@ WORKDIR ${robotology_install_folder}
     
 WORKDIR /home/user1 
 
+# install tinyxml2
+RUN /bin/bash -c "git clone https://github.com/Microsoft/vcpkg.git && \
+cd vcpkg && \
+./bootstrap-vcpkg.sh && \
+./vcpkg integrate install && \
+./vcpkg install tinyxml2"
+
+# install model2code
+RUN /bin/bash -c "git clone https://github.com/convince-project/model2code.git && \
+cd model2code && \
+mkdir build && \
+cd build && \
+cmake .. && \
+make"
+
+ENV PATH=${PATH}:/home/user1/model2code/build
+
+# clone the repo
+
+
+ENV  PYTHONPATH={$PYTHONPATH}:/home/user1/venv-congestion-coverage-plan/lib/python3.12/site-packages
+
+ENV PYTHONPATH=${PYTHONPATH}:/home/user1/UC3/src/components/dialog_component/py_interaction_cliserv/sbert/lib/python3.12/site-packages
+
 # RUN /bin/bash -c "cd /home/user1 && rm -rf ROSMonitoring"
 
 # RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
@@ -61,9 +85,9 @@ ENV PYTHONPATH=${PYTHONPATH}:/home/user1/AS2FM
 
 # install SCAN
 USER user1
-# RUN /bin/bash -c "curl https://sh.rustup.rs -sSf | sh -s -- -y"
+RUN /bin/bash -c "curl https://sh.rustup.rs -sSf | sh -s -- -y"
 
-# RUN /bin/bash -c "source /home/user1/.cargo/env && cargo install --git https://github.com/convince-project/scan"
+RUN /bin/bash -c "source /home/user1/.cargo/env && cargo install --git https://github.com/convince-project/scan"
 
 # RUN /bin/bash -c "sudo apt install gobject-introspection libgirepository1.0-dev -y"
 # RUN /bin/bash -c "cd /home/user1/ && \
@@ -76,17 +100,34 @@ RUN echo "export PATH=\$PATH:/home/user1/Groot/build" >> ~/.bashrc
 
 ENV PATH=/usr/local/Qt-6.8.3/bin:$PATH
 
-RUN /bin/bash -c "echo 'updated on 202602041529' && \
+RUN /bin/bash -c "echo 'updated on 202601271357' && \
     source /opt/ros/jazzy/setup.bash && \
     cd /home/user1 && \
-    git clone https://github.com/convince-project/UC3.git && \
+    git clone https://github.com/convince-project/UC3.git -b  feat/bt_with_planner && \
     source /opt/ros/jazzy/setup.bash && \
+    cd /home/user1/UC3/launch/symbolic_links/ && \
+    python3 create_symlinks.py ../applications/convince_bt_components.xml && \
+    python3 create_symlinks.py ../applications/convince_bt_skills.xml && \
+    python3 create_symlinks.py ../applications/convince_bt_skills_pois.xml && \
+    python3 create_symlinks.py ../applications/convince_bt.xml && \
     cd /home/user1/UC3/ && \
     colcon build --base-paths src/* --packages-ignore face_expressions_wrapper"
+
+RUN /bin/bash -c "echo 'updated on 202630011120' && \
+        cd ~; git clone --branch fix/UC3 https://github.com/convince-project/congestion-coverage-plan.git;\
+        cd /home/user1/UC3/src/components/planner_component;\
+        python3 -m venv create venv-congestion-coverage-plan;\
+        source ./venv-congestion-coverage-plan/bin/activate;\
+        touch ./venv-congestion-coverage-plan/COLCON_IGNORE;\
+        python3 -m pip install --upgrade pip;\
+        cd ~/congestion-coverage-plan/;\
+        python3 -m pip install -e .;"
+
 
 RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
     cd /home/user1/UC3/src/components/dialog_component/py_interaction_cliserv/ && \
     python3 -m venv create sbert && \
+    touch sbert/COLCON_IGNORE && \
     source sbert/bin/activate && \
     pip install --upgrade pip && \
     pip install -r requirements.txt"
@@ -101,7 +142,7 @@ ENV LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/src/robot/yarp/build/lib/
 
 ENV LD_LIBRARY_PATH=/usr/local/Qt-6.8.3/lib/:$LD_LIBRARY_PATH 
 
-ENV CYCLONEDDS_URI=/home/user1/UC3/docker/cyclone_dds_settings.xml
+# ENV CYCLONEDDS_URI=/home/user1/UC3/docker/cyclone_dds_settings.xml
 
 ENV YARP_DATA_DIRS=${YARP_DATA_DIRS}:/home/user1/UC3/launch
 
@@ -109,5 +150,10 @@ ENV TZ=Europe/Rome
 
 ENV LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/home/user1/Groot/build/
 
+ENV  PYTHONPATH=${PYTHONPATH}:/home/user1/congestion-coverage-plan/src
+
+ENV  PYTHONPATH=${PYTHONPATH}:/home/user1/congestion-coverage-plan
+
+ENV  PYTHONPATH=${PYTHONPATH}:/home/user1/UC3/src/components/planner_component/venv-congestion-coverage-plan/lib/python3.12/site-packages
 
 ENV PYTHONPATH=${PYTHONPATH}:/home/user1/UC3/src/components/dialog_component/py_interaction_cliserv/sbert/lib/python3.12/site-packages

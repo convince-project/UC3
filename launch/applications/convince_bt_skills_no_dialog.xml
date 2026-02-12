@@ -10,7 +10,7 @@
 
     <module>
          <name>ros2_dummy_condition</name>
-         <parameters>run dummy_condition dummy_condition --skill_name NarratePoi --default_status SUCCESS</parameters>
+         <parameters>run dummy_action dummy_action --skill_name NarratePoi --default_status SUCCESS</parameters>
          <workdir />
          <node>bt</node>
     </module>
@@ -18,7 +18,7 @@
 
     <module>
          <name>ros2_dummy_condition</name>
-         <parameters>run dummy_condition dummy_condition --skill_name Dialog --default_status SUCCESS</parameters>
+         <parameters>run dummy_action dummy_action --skill_name Dialog --default_status SUCCESS</parameters>
          <workdir />
          <node>bt</node>
     </module>
@@ -97,8 +97,8 @@
     </module>
 
     <module>
-         <name>ros2_dummy_condition</name>
-         <parameters>run dummy_condition dummy_condition --skill_name SayBye --default_status SUCCESS</parameters>
+         <name>ros2_dummy_action</name>
+         <parameters>run dummy_action dummy_action --skill_name SayBye --default_status SUCCESS</parameters>
          <workdir />
          <node>bt</node>
     </module>
@@ -211,14 +211,14 @@
 
     <module>
          <name>ros2_dummy_condition</name>
-         <parameters>run dummy_condition dummy_condition --skill_name SayFollowMe --default_status SUCCESS</parameters>
+         <parameters>run dummy_action dummy_action --skill_name SayFollowMe --default_status SUCCESS</parameters>
          <workdir />
          <node>bt</node>
     </module>
 
     <module>
          <name>ros2_dummy_condition</name>
-         <parameters>run dummy_condition dummy_condition --skill_name SayWhileNavigating --default_status SUCCESS</parameters>
+         <parameters>run dummy_action dummy_action --skill_name SayWhileNavigating --default_status SUCCESS</parameters>
          <workdir />
          <node>bt</node>
     </module>
@@ -262,7 +262,7 @@
 
     <module>
          <name>ros2_dummy_condition</name>
-         <parameters>run dummy_condition dummy_condition --skill_name SayPeopleLeft --default_status SUCCESS</parameters>
+         <parameters>run dummy_action dummy_action --skill_name SayPeopleLeft --default_status SUCCESS</parameters>
          <workdir />
          <node>bt</node>
     </module>
@@ -312,7 +312,7 @@
 
     <module>
          <name>ros2_dummy_condition</name>
-         <parameters>run dummy_condition dummy_condition --skill_name VisitorsFollowingRobot --default_status SUCCESS</parameters>
+         <parameters>run dummy_condition dummy_condition --skill_name AlwaysSuccess --default_status SUCCESS</parameters>
          <workdir />
          <node>bt</node>
     </module>
@@ -332,12 +332,22 @@
         <node>bt</node>
     </module>
 
+
     <module>
-        <name>ros2</name>
-        <parameters>launch bt_launch_poi_skills_generate_bt.py json_file:=/home/user1/UC3/conf/tours.json tour_name:=TOUR_MADAMA_3 bt_file:=../src/behavior_tree/BT/bt_poi_complex.xml</parameters>
-        <workdir>/home/user1/UC3/launch/</workdir>
+        <name>ros2_plan_skill</name>
+        <parameters>run plan_skill plan_skill</parameters>
+        <workdir />
         <node>bt</node>
     </module>
+
+
+    <module>
+        <name>ros2_reload_bt_scheduler_skill</name>
+        <parameters>run reload_bt_scheduler_skill reload_bt_scheduler_skill</parameters>
+        <workdir />
+        <node>bt</node>
+    </module>
+
         
     <module>
          <name>ros2_dummy_condition</name>
@@ -348,7 +358,7 @@
 
     <module>
         <name>ros2_say_skip_questions_skill</name>
-        <parameters>run dummy_condition dummy_condition --skill_name SaySkipQuestions --default_status SUCCESS</parameters>
+        <parameters>run dummy_action dummy_action --skill_name SaySkipQuestions --default_status SUCCESS</parameters>
         <workdir />
         <node>bt</node>
     </module>

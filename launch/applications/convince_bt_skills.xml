@@ -48,13 +48,6 @@
     </module>
 
     <module>
-        <name>ros2_update_poi_skill</name>
-        <parameters>run update_poi_skill update_poi_skill</parameters>
-        <workdir />
-        <node>bt</node>
-    </module> 
-
-    <module>
         <name>ros2_reset_counters_skill</name>
         <parameters>run reset_counters_skill reset_counters_skill</parameters>
         <workdir />
@@ -138,35 +131,6 @@
         <workdir />
         <node>bt</node>
     </module>
-
-    
-    <module>
-        <name>ros2_network_up_skill</name>
-        <parameters>run network_up_skill network_up_skill</parameters>
-        <workdir />
-        <node>bt</node>
-    </module>
-    <module>
-        <name>ros2_start_service_skill</name>
-        <parameters>run start_service_skill start_service_skill</parameters>
-        <workdir />
-        <node>bt</node>
-    </module>
-
-    <module>
-        <name>ros2_stop_service_skill</name>
-        <parameters>run stop_service_skill stop_service_skill</parameters>
-        <workdir />
-        <node>bt</node>
-    </module>
-
-    <module>
-        <name>ros2_network_status_changed_skill</name>
-        <parameters>run network_status_changed_skill network_status_changed_skill</parameters>
-        <workdir />
-        <node>bt</node>
-    </module>
-
     
     <module>
         <name>ros2_is_at_current_poi_skill</name>
@@ -327,98 +291,17 @@
     </module>
 
     <module>
-        <name>ros2</name>
-        <parameters>run is_poi_done0_skill is_poi_done0_skill</parameters>
+        <name>ros2_reload_bt_scheduler_skill</name>
+        <parameters>run reload_bt_scheduler_skill reload_bt_scheduler_skill</parameters>
         <workdir />
         <node>bt</node>
     </module>
 
     <module>
-        <name>ros2</name>
-        <parameters>run is_poi_done1_skill is_poi_done1_skill</parameters>
+        <name>ros2_plan_skill</name>
+        <parameters>run plan_skill plan_skill</parameters>
         <workdir />
         <node>bt</node>
-    </module>
-
-    <module>
-        <name>ros2</name>
-        <parameters>run is_poi_done2_skill is_poi_done2_skill</parameters>
-        <workdir />
-        <node>bt</node>
-    </module>
-
-    
-    <module>
-        <name>ros2</name>
-        <parameters>run is_poi_done3_skill is_poi_done3_skill</parameters>
-        <workdir />
-        <node>bt</node>
-    </module>
-
-
-    <module>
-        <name>ros2</name>
-        <parameters>run is_poi_done4_skill is_poi_done4_skill</parameters>
-        <workdir />
-        <node>bt</node>
-    </module>
-
-
-    <module>
-        <name>ros2</name>
-        <parameters>run is_poi_done5_skill is_poi_done5_skill</parameters>
-        <workdir />
-        <node>bt</node>
-    </module>
-
-
-    <module>
-        <name>ros2</name>
-        <parameters>run set_poi0_skill set_poi0_skill</parameters>
-        <workdir />
-        <node>bt</node>
-    </module>
-
-    <module>
-        <name>ros2</name>
-        <parameters>run set_poi1_skill set_poi1_skill</parameters>
-        <workdir />
-        <node>bt</node>
-    </module>
-
-    <module>
-        <name>ros2</name>
-        <parameters>run set_poi2_skill set_poi2_skill</parameters>
-        <workdir />
-        <node>bt</node>
-    </module>
-
-    <module>
-        <name>ros2</name>
-        <parameters>run set_poi3_skill set_poi3_skill</parameters>
-        <workdir />
-        <node>bt</node>
-    </module>
-
-    <module>
-        <name>ros2</name>
-        <parameters>run set_poi4_skill set_poi4_skill</parameters>
-        <workdir />
-        <node>bt</node>
-    </module>
-
-    <module>
-        <name>ros2</name>
-        <parameters>run set_poi5_skill set_poi5_skill</parameters>
-        <workdir />
-        <node>bt</node>
-    </module>
-
-    <module>
-         <name>ros2</name>
-         <parameters>run dummy_condition dummy_condition --skill_name SaySkipQuestions --default_status SUCCESS</parameters>
-         <workdir />
-         <node>bt</node>
     </module>
 
     <module>

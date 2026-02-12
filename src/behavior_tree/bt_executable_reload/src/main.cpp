@@ -137,20 +137,23 @@ int main(int argc, char* argv[])
 #endif
     printTreeRecursively((*tree).rootNode());
     // Create the reload service and pass the tree by reference
-    rclcpp::Service<bt_interfaces_dummy::srv::ReloadTree>::SharedPtr m_reloadTreeService = 
-        m_node->create_service<bt_interfaces_dummy::srv::ReloadTree>(
-            "/BtExecutable/ReloadTree",
-            [&tree, &path, &halt, &bt_factory, &publisher_zmq](const std::shared_ptr<bt_interfaces_dummy::srv::ReloadTree::Request> request,
-                    std::shared_ptr<bt_interfaces_dummy::srv::ReloadTree::Response> response)
-            {
-                ReloadTree(request, response, tree, path, halt, bt_factory, publisher_zmq);
-            });
-    while (rclcpp::ok())
+    // rclcpp::Service<bt_interfaces_dummy::srv::ReloadTree>::SharedPtr m_reloadTreeService = 
+    //     m_node->create_service<bt_interfaces_dummy::srv::ReloadTree>(
+    //         "/BtExecutable/ReloadTree",
+    //         [&tree, &path, &halt, &bt_factory, &publisher_zmq](const std::shared_ptr<bt_interfaces_dummy::srv::ReloadTree::Request> request,
+    //                 std::shared_ptr<bt_interfaces_dummy::srv::ReloadTree::Response> response)
+    //         {
+    //             ReloadTree(request, response, tree, path, halt, bt_factory, publisher_zmq);
+    //         });
+    while (true)
     {
+        auto time_start = std::chrono::high_resolution_clock::now();
         (*tree).tickRoot();
-        rclcpp::spin_some(m_node);
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        // rclcpp::spin_some(m_node);
+        auto time_end = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(time_end - time_start);
+        std::cout << "Tick duration: " << duration.count() << " microseconds" << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
     rclcpp::shutdown();

@@ -10,6 +10,7 @@
     <data id="NAV_STATUS_MOVING" type="int8"    expr="2"/>
     <data id="distance"          type="float32" expr="0.2"/>
     <data id="m_poi_number"     type="int32"   expr="0"/>
+    <data id="m_poi_name"       type="string"  expr="''"/>
     <data id="m_poi_result"      type="bool"    expr="false"/>
     <data id="m_nav_result"      type="bool"    expr="false"/>
     <data id="m_status"          type="int8"    expr="0"/>
@@ -22,19 +23,20 @@
   <ros_service_server service_name="/IsAtCurrentPoiSkill/tick" type="bt_interfaces_dummy/TickCondition"/>
 
   <!-- Clients -->
-  <ros_service_client service_name="/SchedulerComponent/GetCurrentPoi" type="scheduler_interfaces/GetCurrentPoi"/>
+  <ros_service_client service_name="/SchedulerComponent/GetCurrentPoiForNavigation" type="scheduler_interfaces/GetCurrentPoi"/>
   <ros_service_client service_name="/NavigationComponent/GetNavigationStatus" type="navigation_interfaces/GetNavigationStatus"/>
   <ros_service_client service_name="/NavigationComponent/CheckNearToPoi" type="navigation_interfaces/CheckNearToPoi"/>
 
   <state id="idle">
     <ros_service_handle_request name="/IsAtCurrentPoiSkill/tick" target="getPoi">
-      <ros_service_send_request name="/SchedulerComponent/GetCurrentPoi"/>
+      <ros_service_send_request name="/SchedulerComponent/GetCurrentPoiForNavigation"/>
     </ros_service_handle_request>
   </state>
 
   <state id="getPoi">
-    <ros_service_handle_response name="/SchedulerComponent/GetCurrentPoi" target="evaluatePoi">
+    <ros_service_handle_response name="/SchedulerComponent/GetCurrentPoiForNavigation" target="evaluatePoi">
       <assign location="m_poi_number"   expr="_res.poi_number"/>
+      <assign location="m_poi_name" expr="_res.poi_name"/>
       <assign location="m_poi_result" expr="true"/>
     </ros_service_handle_response>
   </state>
@@ -72,44 +74,14 @@
   <state id="checkNear">
     <onentry>
     <log expr="'checkNear'"/>
+    <log label="IsAtCurrentPoi.m_poi_name" expr="m_poi_name"/>
     <log label="IsAtCurrentPoi.m_poi_number" expr="m_poi_number"/>
-    <if cond="m_poi_number == 0">
       <ros_service_send_request name="/NavigationComponent/CheckNearToPoi">
-        <field name="poi_name" expr="'madama_start'"/>
+
+        <field name="poi_name" expr="m_poi_name"/>
         <field name="distance" expr="distance"/>
-        <field name="angle"    expr="8"/>
+        <field name="angle" expr="8"/>
       </ros_service_send_request>
-    <elseif cond="m_poi_number == 1"/>
-      <ros_service_send_request name="/NavigationComponent/CheckNearToPoi">
-        <field name="poi_name" expr="'sala_delle_guardie'"/>
-        <field name="distance" expr="distance"/>
-        <field name="angle"    expr="8"/>
-      </ros_service_send_request>
-    <elseif cond="m_poi_number == 2"/>
-      <ros_service_send_request name="/NavigationComponent/CheckNearToPoi">
-        <field name="poi_name" expr="'sala_guidobono'"/>
-        <field name="distance" expr="distance"/>
-        <field name="angle"    expr="8"/>
-      </ros_service_send_request>
-    <elseif cond="m_poi_number == 3"/>
-      <ros_service_send_request name="/NavigationComponent/CheckNearToPoi">
-        <field name="poi_name" expr="'sala_delle_feste'"/>
-        <field name="distance" expr="distance"/>
-        <field name="angle"    expr="360"/>
-      </ros_service_send_request>
-    <elseif cond="m_poi_number == 4"/>
-      <ros_service_send_request name="/NavigationComponent/CheckNearToPoi">
-        <field name="poi_name" expr="'sala_4_stagioni'"/>
-        <field name="distance" expr="distance"/>
-        <field name="angle"    expr="8"/>
-      </ros_service_send_request>
-    <elseif cond="m_poi_number == 5"/>
-      <ros_service_send_request name="/NavigationComponent/CheckNearToPoi">
-        <field name="poi_name" expr="'camera_di_madama_reale'"/>
-        <field name="distance" expr="distance"/>
-        <field name="angle"    expr="8"/>
-      </ros_service_send_request>
-    </if>
     </onentry>
     <ros_service_handle_response name="/NavigationComponent/CheckNearToPoi" target="finalize">
       <assign location="m_is_near" expr="_res.is_near"/>
