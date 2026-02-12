@@ -597,6 +597,7 @@ bool DialogComponent::CommandManager(const std::string &command, std::shared_ptr
     yDebug() << "DialogComponent::CommandManager" << __LINE__;
 
     response->language = newLang;
+    m_last_reveived_interaction_language = newLang;
     response->dance = dance;
 
     // Get the poi object from the Tour manager
@@ -1351,7 +1352,7 @@ void DialogComponent::ShortenReply(const std::shared_ptr<dialog_interfaces::srv:
     std::string LLMQuestion = "You have just received a question: " + request->interaction + ". " +
                               "You have to answer it, but you have to take into account that the user has already received a similar answer. " +
                               "The previous answer was: " + previousReply + ". " +
-                              "Please maintain the context and shorten it to a single sentence. Be careful to reply in the same language of the question!!!";
+                              "Please maintain the context and shorten it to a single sentence. Be careful to reply in the language" + m_last_reveived_interaction_language;
 
     yarp::dev::LLM_Message answer;
 
@@ -1393,7 +1394,7 @@ void DialogComponent::Answer(const std::shared_ptr<dialog_interfaces::srv::Answe
 {
 
     std::string LLMQuestion = "You have received a question: " + request->interaction + ". " +
-                              "You have to answer it while maintaining the context of the conversation. Be careful to reply in the same language of the question!!!";
+                              "You have to answer it while maintaining the context of the conversation. Be careful to reply in the language " + m_last_reveived_interaction_language;
 
     std::chrono::duration wait_ms = 200ms;
     yarp::dev::LLM_Message answer;

@@ -225,6 +225,8 @@ private:
 
     // save the last received interaction, may be omitted
     std::string m_last_received_interaction;
+    // save the language of the last received interaction
+    std::string m_last_reveived_interaction_language;
     // map of vectors of replies
     std::unordered_map<std::string, std::vector<std::string>> m_replies;
 
