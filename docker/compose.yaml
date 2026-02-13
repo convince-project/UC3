@@ -6,7 +6,7 @@ x-common-gpu: &common-gpu
   pid: host
   environment:
     - DISPLAY
-    - CYCLONEDDS_URI
+    - CYCLONEDDS_URI=/home/user1/.config/cyclone_dds_settings.xml
     - ROS_DOMAIN_ID
     - QT_X11_NO_MITSHM=1
     - NVIDIA_DRIVER_CAPABILITIES=all
@@ -19,7 +19,7 @@ x-common-gpu: &common-gpu
         reservations:
           devices:
             - driver: nvidia
-              count: all # alternatively, use `count: all` for all GPUs
+              count: all
               capabilities: [gpu]
   runtime: nvidia
   pull_policy: always
@@ -31,23 +31,18 @@ services:
     container_name: navigation_sim
     <<: *common-gpu
     # command: ["bash", "-i", "-c", "yarpserver --read & yarp run --server /console --log & yarpmanager"]
-    command: >
-      bash -c "
-        echo 'Starting yarpserver';
-        yarpserver --read &
-        sleep 1;
-
-        echo 'Starting yarprun';
-        yarp run --server /console --log &
-        sleep 1;
-
-        echo 'Starting yarpmanager';
-        yarpmanager &
-        sleep 1;
-
-        echo 'Starting yarplogger';
-        yarplogger --start
+    command: 
+        bash -c "
+          yarpserver --read &
+          sleep 1 &
+          yarp run --server /console --log &
+          sleep 1 &
+          yarpmanager &
+          sleep 1 &
+          yarplogger --start &
+          wait
         "
+
     stdin_open: true
     tty: true
 
@@ -55,7 +50,13 @@ services:
     image: ste93/convince:tour_ubuntu_24.04_qt_6.8.3_jazzy_bt_devel_planner
     container_name: bt
     <<: *common-gpu
-    command: ["bash", "-i", "-c", "yarp run --server /bt --log & yarpmanager"]
+    # command: ["bash", "-i", "-c", "yarp run --server /bt --log & yarpmanager"]
+    command: >
+      bash -c "
+        yarp run --server /bt --log &
+        yarpmanager &
+        wait
+      "
     stdin_open: true
     tty: true
     depends_on:
