@@ -1,0 +1,45 @@
+num_points_per_person: 7
+persons:
+  person1:
+    id: 1
+    start_x: 9.94
+    start_y: 1.3
+    vx: 0
+    vy: 0
+
+  person4:
+    id: 4
+    start_x: 18.1
+    start_y: -1.5
+    vx: 0
+    vy: 0
+  
+  person7:
+    id: 7
+    start_x: 15.6
+    start_y: -16.0
+    vx: 0
+    vy: 0
+  
+  person10:
+    id: 10
+    start_x: 16.0
+    start_y: -33.0
+    vx: 0
+    vy: 0
+
+  person13:
+    id: 13
+    start_x: 9.3
+    start_y: -30.0
+    vx: 0
+    vy: 0
+  
+  person16:
+    id: 16
+    start_x: 15.68
+    start_y: -15.96
+    vx: 0
+    vy: 0
+
+    
