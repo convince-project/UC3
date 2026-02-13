@@ -50,7 +50,7 @@
 
     <module>
         <name>yarprobotinterface</name>
-        <parameters>--context google --from googleTranscription.ini --transcription_lang it-IT</parameters>
+        <parameters>--context speechPipeline --from azureTranscription_tr.ini</parameters>
         <environment></environment>
         <node>console-llm</node>
     </module>
@@ -72,6 +72,12 @@
         <parameters> --filename configuration.ini --execute</parameters>
         <workdir>/home/r1-user/UC3/conf/animations</workdir>
         <node>r1-torso</node>
+    </module>
+
+    <module>
+        <name>yarpAudioPlayer</name>
+        <workdir>/home/user1/UC3/conf/</workdir>
+        <node>bt</node>
     </module>
 
     <module>
