@@ -1,0 +1,92 @@
+version: "3.9"
+
+x-common-gpu: &common-gpu
+  privileged: true
+  network_mode: host
+  pid: host
+  environment:
+    - DISPLAY
+    - CYCLONEDDS_URI
+    - ROS_DOMAIN_ID
+    - QT_X11_NO_MITSHM=1
+    - NVIDIA_DRIVER_CAPABILITIES=all
+  volumes:
+    - /tmp/.X11-unix:/tmp/.X11-unix
+    - ${CYCLONEDDS_URI}:/home/user1/.config/cyclone_dds_settings.xml
+    - ${HOME}/.config/yarp/yarp.conf:/home/user1/.config/yarp/yarp.conf
+  deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all # alternatively, use `count: all` for all GPUs
+              capabilities: [gpu]
+  runtime: nvidia
+  pull_policy: always
+
+services:
+
+  navigation_sim:
+    image: elandini84/r1images:tourSim2_ubuntu24.04_jazzy_devel
+    container_name: navigation_sim
+    <<: *common-gpu
+    # command: ["bash", "-i", "-c", "yarpserver --read & yarp run --server /console --log & yarpmanager"]
+    command: >
+      bash -c "
+        echo 'Starting yarpserver';
+        yarpserver --read &
+        sleep 1;
+
+        echo 'Starting yarprun';
+        yarp run --server /console --log &
+        sleep 1;
+
+        echo 'Starting yarpmanager';
+        yarpmanager &
+        sleep 1;
+
+        echo 'Starting yarplogger';
+        yarplogger --start
+        "
+    stdin_open: true
+    tty: true
+
+  bt:
+    image: ste93/convince:tour_ubuntu_24.04_qt_6.8.3_jazzy_bt_devel_planner
+    container_name: bt
+    <<: *common-gpu
+    command: ["bash", "-i", "-c", "yarp run --server /bt --log & yarpmanager"]
+    stdin_open: true
+    tty: true
+    depends_on:
+      - navigation_sim
+
+  verification:
+    image: ste93/convince:tour_ubuntu_24.04_qt_6.8.3_jazzy_verification_devel
+    container_name: verification
+    <<: *common-gpu
+    command: ["bash", "-i", "-c", "yarp run --server /monitoring --log"]
+    stdin_open: true
+    tty: true
+    depends_on:
+      - navigation_sim
+
+  r1_talk:
+    image: elandini84/r1_talk:ub24.04_vcpkg_gccpp_v2.33
+    container_name: r1_talk
+    <<: *common-gpu
+    command: ["bash", "-i", "-c", "yarp run --server /console-llm --log"]
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ${CYCLONEDDS_URI}:/home/user1/.config/cyclone_dds_settings.xml
+      - ${HOME}/.config/yarp/yarp.conf:/home/yarp-user/.config/yarp/yarp.conf
+      - /home/r1-user/.config/credentials/google-credentials/:/home/yarp-user/.config/google-credential/
+      - ${HOME}/.config/credentials/azure-credentials/config.env:/home/yarp-user/.env/config.env
+    devices:
+      - /dev/snd:/dev/snd
+    group_add:
+      - audio
+    stdin_open: true
+    tty: true
+    depends_on:
+      - navigation_sim
