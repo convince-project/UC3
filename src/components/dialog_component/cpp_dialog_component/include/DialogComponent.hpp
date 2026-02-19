@@ -13,7 +13,6 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
 #include <rclcpp/service.hpp>
-#include <std_msgs/msg/string.hpp>
 #include <yarp/os/Network.h>
 #include <yarp/os/LogStream.h>
 #include <yarp/os/RFModule.h>
@@ -23,6 +22,9 @@
 #include <yarp/dev/ILLM.h>
 #include <yarp/dev/IAudioGrabberSound.h>
 #include <yarp/os/RpcClient.h>
+
+// Dialog Component Message Interfaces
+#include <dialog_interfaces/msg/verbal_interaction.hpp>
 
 // Dialog Component Service Interfaces
 #include <dialog_interfaces/srv/manage_context.hpp>
@@ -171,7 +173,7 @@ private:
     rclcpp::Node::SharedPtr m_node;
 
     // ROS2 Topic Publisher
-    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr m_interactionPublisher;
+    rclcpp::Publisher<dialog_interfaces::msg::VerbalInteraction>::SharedPtr m_interactionPublisher;
 
     /* ROS2 Services Servers provided by this component */
     rclcpp::Service<dialog_interfaces::srv::ManageContext>::SharedPtr m_manageContextService;
@@ -223,6 +225,8 @@ private:
 
     // save the last received interaction, may be omitted
     std::string m_last_received_interaction;
+    // save the language of the last received interaction
+    std::string m_last_reveived_interaction_language;
     // map of vectors of replies
     std::unordered_map<std::string, std::vector<std::string>> m_replies;
 
@@ -287,6 +291,8 @@ private:
     rclcpp::CallbackGroup::SharedPtr action_cb_group_;
     rclcpp::CallbackGroup::SharedPtr service_cb_group_;
     rcl_action_server_options_t action_options;
+
+    int interactionCounter{0};
 
 };
 

@@ -132,19 +132,19 @@
       <send event="DialogComponent.ResetState.Call" />
     </transition>
     <!-- Else, continue the pipeline -->
-    <!-- <transition cond="m_is_poi_ended == false" target="setLanguage">
+    <transition cond="m_is_poi_ended == false" target="setLanguage">
         <send event="DialogComponent.SetLanguage.Call">
           <param name="new_language" expr="m_language"/>
         </send>
-    </transition> -->
+    </transition>
 
-    <transition cond="m_is_poi_ended == false" target="checkDuplicate" >
+    <!-- <transition cond="m_is_poi_ended == false" target="checkDuplicate" >
       <send event="DialogComponent.CheckDuplicate.Call">
         <param name="interaction" expr="m_interaction"/>
         <param name="is_beginning_of_conversation" expr="m_is_beginning_of_conversation == 'true'"/>
         <param name="context" expr="m_context"/>
       </send>
-    </transition>
+    </transition> -->
 
   </state>
 
@@ -179,7 +179,7 @@
   </state>
 
 
-  <!-- <state id="setLanguage">
+  <state id="setLanguage">
     <onentry>
 
         <log label="State setLanguage" expr="m_result"/>
@@ -202,8 +202,6 @@
     </transition>
   </state>
 
-
-
   <state id="setLanguageResult">
     <transition cond="m_result == 'SUCCESS'" target="checkDuplicate" >
         <send event="DialogComponent.CheckDuplicate.Call">
@@ -212,9 +210,9 @@
           <param name="context" expr="m_context"/>
         </send>
     </transition>
-    <transition cond="m_result == 'SUCCESS'" target="evaluateDuplicate" />
+    <!-- <transition cond="m_result == 'SUCCESS'" target="evaluateDuplicate" /> -->
     <transition cond="m_result == 'FAILURE'" target="sendFailure" />
-  </state> -->
+  </state>
 
   <state id="checkDuplicate">
     <onentry>
