@@ -7,39 +7,40 @@ persons:
     vx: 0
     vy: 0
 
-  person4:
-    id: 4
+  person2:
+    id: 2
     start_x: 18.1
     start_y: -1.5
     vx: 0
     vy: 0
   
-  person7:
-    id: 7
-    start_x: 15.6
-    start_y: -16.0
+  person3:
+    id: 3
+    start_x: 24.86
+    start_y: -9.74
+    vx: 0
+    vy: 0
+
+  person4:
+    id: 4
+    start_x: 23.1
+    start_y: -21.7
     vx: 0
     vy: 0
   
-  person10:
-    id: 10
+  person5:
+    id: 5
     start_x: 16.0
     start_y: -33.0
     vx: 0
     vy: 0
 
-  person13:
-    id: 13
-    start_x: 9.3
-    start_y: -30.0
+  person6:
+    id: 6
+    start_x: 5.34
+    start_y: -29.6
     vx: 0
     vy: 0
   
-  person16:
-    id: 16
-    start_x: 15.68
-    start_y: -15.96
-    vx: 0
-    vy: 0
 
     
