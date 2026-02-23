@@ -81,7 +81,7 @@ services:
       - /tmp/.X11-unix:/tmp/.X11-unix
       - ${CYCLONEDDS_URI}:/home/user1/.config/cyclone_dds_settings.xml
       - ${HOME}/.config/yarp/yarp.conf:/home/yarp-user/.config/yarp/yarp.conf
-      - /home/r1-user/.config/credentials/google-credentials/:/home/yarp-user/.config/google-credential/
+      - ${HOME}/.config/credentials/google-credentials/:/home/yarp-user/.config/google-credential/
       - ${HOME}/.config/credentials/azure-credentials/config.env:/home/yarp-user/.env/config.env
     devices:
       - /dev/snd:/dev/snd
