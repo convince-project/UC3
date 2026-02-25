@@ -23,6 +23,7 @@ rosidl_generate_interfaces(dance_interfaces
 "srv/SetDance.srv"
 "srv/GetDance.srv"
 "srv/GetDanceDuration.srv"
+"srv/GetBestDance.srv"
 DEPENDENCIES sensor_msgs
 LIBRARY_NAME dance_interfaces 
 )

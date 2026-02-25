@@ -1,0 +1,5 @@
+---
+bool is_speaking
+int32 seconds_left
+bool is_ok
+string error_msg
