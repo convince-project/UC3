@@ -6,7 +6,7 @@ USER root
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update 
-RUN apt-get install -y libczmq-dev ros-jazzy-zmqpp-vendor-dbgsym ros-jazzy-zmqpp-vendor libczmq-dev libczmq4 curl 
+RUN apt-get install -y libczmq-dev ros-jazzy-zmqpp-vendor-dbgsym ros-jazzy-zmqpp-vendor libczmq-dev libczmq4 curl git-lfs
 
 RUN apt install qtbase5-dev libqt5svg5-dev libzmq3-dev libdw-dev libboost-all-dev -y
 RUN apt-get clean
@@ -111,6 +111,7 @@ RUN /bin/bash -c "echo 'updated on 202601271357' && \
     python3 create_symlinks.py ../applications/convince_bt_skills_pois.xml && \
     python3 create_symlinks.py ../applications/convince_bt.xml && \
     cd /home/user1/UC3/ && \
+    git lfs pull && \
     colcon build --base-paths src/* --packages-ignore face_expressions_wrapper"
 
 RUN /bin/bash -c "echo 'updated on 202630011120' && \
