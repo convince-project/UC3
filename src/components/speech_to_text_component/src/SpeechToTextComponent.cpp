@@ -234,38 +234,36 @@ void SpeechToTextComponent::onRead(yarp::sig::Sound &msg)
         {
             auto ret = m_iSpeechTranscr->setLanguage(lang);
 
+            if(!m_iSpeechTranscr->transcribe(msg, transcriptionText, confidence))
+            {
+                yError() << "[SpeechToTextComponent::onRead] Error transcribing audio, sending empty transcription. May the credentials be wrong?";
+                outputText.addString("");
+                outputText.addFloat64(1.0);
+                m_transcriptionOutputPort.write();
+                return;
+            }
+
             if(!ret)
             {
-                yError() << "[SpeechToTextComponent::onRead] Unable to set language to " << lang << ", trying next language";
-                continue;
-            }
-            else{
-
-                if(!m_iSpeechTranscr->transcribe(msg, transcriptionText, confidence))
-                {
-                    yError() << "[SpeechToTextComponent::onRead] Error transcribing audio, sending empty transcription. May the credentials be wrong?";
-                    outputText.addString("");
-                    outputText.addFloat64(1.0);
-                    m_transcriptionOutputPort.write();
-                    return;
-                }
-                
                 if (ret == yarp::dev::ReturnValue::return_code::return_value_error_not_implemented_by_device)
                 {   
+                    yWarning() << "[SpeechToTextComponent::onRead] The speech transcription nws does not impleement language setting";
                     // If the device does not implement language setting, this means that the transcription
                     // is indipendent from the language set, so we can break here to avoid unnecessary iterations
                     bestTranscription = transcriptionText;
                     bestConfidence = confidence;
                     break;
                 }
-                else
+                yError() << "[SpeechToTextComponent::onRead] Unable to set language to " << lang << ", trying next language";
+                continue;
+            }
+            else{
+
+                if (confidence > bestConfidence)
                 {
-                    if (confidence > bestConfidence)
-                    {
-                        bestConfidence = confidence;
-                        bestTranscription = transcriptionText;
-                        bestLanguageForTranscription = lang;
-                    }
+                    bestConfidence = confidence;
+                    bestTranscription = transcriptionText;
+                    bestLanguageForTranscription = lang;
                 }
             }
             
