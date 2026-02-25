@@ -32,9 +32,9 @@ services:
     <<: *common-gpu
     # command: ["bash", "-i", "-c", "yarpserver --read & yarp run --server /console --log & yarpmanager"]
     command: 
-        bash -c "
+        bash -i -c "
           yarpserver --read &
-          sleep 1 &
+          sleep 1;
           yarp run --server /console --log &
           sleep 1 &
           yarpmanager &
@@ -52,7 +52,7 @@ services:
     <<: *common-gpu
     # command: ["bash", "-i", "-c", "yarp run --server /bt --log & yarpmanager"]
     command: >
-      bash -c "
+      bash -i -c "
         yarp run --server /bt --log &
         yarpmanager &
         wait
