@@ -162,7 +162,6 @@ void SpeechToTextComponent::spin()
     rclcpp::spin(m_node);
 }
 
-
 void SpeechToTextComponent::SetLanguage(const std::shared_ptr<text_to_speech_interfaces::srv::SetLanguage::Request> request,
                         std::shared_ptr<text_to_speech_interfaces::srv::SetLanguage::Response> response)
 {
@@ -216,28 +215,75 @@ void SpeechToTextComponent::onRead(yarp::sig::Sound &msg)
         m_iAudioGrabberSound->stopRecording();
         yInfo() << "[SpeechToTextComponent::onRead] Stopping the recording";
     }
+
+    auto startTime = std::chrono::steady_clock::now();
+
+    std::vector<std::string> languages = {"en-US", "it-IT", "es-ES", "fr-FR", "de-DE"};
+
+    std::string bestTranscription;
+    double bestConfidence = -1.0;
+    std::string bestLanguageForTranscription = "";
+    yarp::os::Bottle& outputText = m_transcriptionOutputPort.prepare();
+    outputText.clear();
+
     if (m_iSpeechTranscr)
-    {
-        yarp::os::Bottle& outputText = m_transcriptionOutputPort.prepare();
-        outputText.clear();
+    {   
         std::string transcriptionText;
         double confidence;
-        if(!m_iSpeechTranscr->transcribe(msg, transcriptionText, confidence))
-
+        for (const auto &lang : languages)
         {
-            yError() << "[SpeechToTextComponent::onRead] Error transcribing audio, sending empty transcription. May the credentials be wrong?";
-            outputText.addString("");
-            outputText.addFloat64(1.0);
-            m_transcriptionOutputPort.write();
-            return;
+            auto ret = m_iSpeechTranscr->setLanguage(lang);
+
+            if(!m_iSpeechTranscr->transcribe(msg, transcriptionText, confidence))
+            {
+                yError() << "[SpeechToTextComponent::onRead] Error transcribing audio, sending empty transcription. May the credentials be wrong?";
+                outputText.addString("");
+                outputText.addFloat64(1.0);
+                m_transcriptionOutputPort.write();
+                return;
+            }
+
+            if(!ret)
+            {
+                if (ret == yarp::dev::ReturnValue::return_code::return_value_error_not_implemented_by_device)
+                {   
+                    yWarning() << "[SpeechToTextComponent::onRead] The speech transcription nws does not impleement language setting";
+                    // If the device does not implement language setting, this means that the transcription
+                    // is indipendent from the language set, so we can break here to avoid unnecessary iterations
+                    bestTranscription = transcriptionText;
+                    bestConfidence = confidence;
+                    break;
+                }
+                yError() << "[SpeechToTextComponent::onRead] Unable to set language to " << lang << ", trying next language";
+                continue;
+            }
+            else{
+
+                if (confidence > bestConfidence)
+                {
+                    bestConfidence = confidence;
+                    bestTranscription = transcriptionText;
+                    bestLanguageForTranscription = lang;
+                }
+            }
+            
         }
-        yInfo() << "[SpeechToTextComponent::onRead] Transcription: " << transcriptionText << " with confidence: " << confidence;
-        outputText.addString(transcriptionText);
-        outputText.addFloat64(confidence);
+
+        yInfo() << "[SpeechToTextComponent::onRead] Transcription: " << bestTranscription << " with confidence: " << bestConfidence;
+        if (bestLanguageForTranscription != "")
+        {
+            yInfo() << "[SpeechToTextComponent::onRead] Language used for transcription: " << bestLanguageForTranscription;
+        }
+        outputText.addString(bestTranscription);
+        outputText.addFloat64(bestConfidence);
         m_transcriptionOutputPort.write();
     }
     else
     {
         yError() << "[SpeechToTextComponent::onRead] Error opening iSpeechSynth interface. Device not available";
     }
+
+    auto currentTime = std::chrono::steady_clock::now();
+    auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(currentTime - startTime).count();
+    std::cout << "Elapsed time: " << elapsedTime << " seconds" << std::endl;
 }
