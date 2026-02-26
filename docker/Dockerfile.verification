@@ -121,18 +121,8 @@ RUN /bin/bash -c "echo 'updated on 202503250921' && \
 RUN echo "source /home/user1/UC3/install/setup.bash" >> ~/.bashrc
 
 
-RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
-    cd /home/user1/ROSMonitoring/generator/ros2_devel && \
-    /home/user1/monitoring-python-env/bin/python generator --config_file /home/user1/UC3/monitoring/monitor_prop1.yaml && \
-    /home/user1/monitoring-python-env/bin/python generator --config_file /home/user1/UC3/monitoring/monitor_prop2.yaml && \
-    /home/user1/monitoring-python-env/bin/python generator --config_file /home/user1/UC3/monitoring/monitor_prop3.yaml && \
-    cd /home/user1/UC3/monitoring/monitor_prop1_ws/src/ && \
-    colcon build && \
-    cd /home/user1/UC3/monitoring/monitor_prop2_ws/src/ && \
-    colcon build && \
-    cd /home/user1/UC3/monitoring/monitor_prop3_ws/src/ && \
-    colcon build"
-
+# generate monitoring code for all the properties and build the monitoring packages
+RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && cd /home/user1/UC3/monitoring && ./generate_all.sh"
 
 # RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
 #     cd /home/user1/MOON/ModelMonitor/config_generator && \
