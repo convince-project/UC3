@@ -47,7 +47,7 @@ services:
     tty: true
 
   bt:
-    image: ste93/convince:tour_ubuntu_24.04_qt_6.8.3_jazzy_bt_devel_planner
+    image: ste93/convince:tour_ubuntu_24.04_qt_6.8.3_jazzy_bt_devel
     container_name: bt
     <<: *common-gpu
     # command: ["bash", "-i", "-c", "yarp run --server /bt --log & yarpmanager"]
