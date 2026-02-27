@@ -32,6 +32,7 @@ GazeboPersonSimulator::GazeboPersonSimulator()
   box_h_ = this->declare_parameter<double>("box_height", 0.5);
   box_t_ = this->declare_parameter<double>("box_thickness", 0.5);
   box_z_ = this->declare_parameter<double>("box_z", 0.25);
+  box_z_ = this->declare_parameter<double>("person_z", 0.0);
 
   // determines tick period
   tick_period_ms_ = this->declare_parameter<int>("tick_period_ms", 50); // 20 Hz
@@ -51,11 +52,16 @@ GazeboPersonSimulator::GazeboPersonSimulator()
   // if true stop when the last way_point is reached
   default_stop_at_end_ = this->declare_parameter<bool>("default_stop_at_end", false);
 
+  // default DAE model filename
+  default_model_filename_ = this->declare_parameter<std::string>(
+    "default_model_filename", "Children/c_casual/sit.dae");
+
   // default radius of the circular trajectory
   auto_path_radius_ = this->declare_parameter<double>("auto_path_radius", 2.0);
 
   // Needed services
   make_box_client_ = this->create_client<simulated_world_nws_ros2_msgs::srv::MakeBox>("/world/makeBox");
+  make_model_client_ = this->create_client<simulated_world_nws_ros2_msgs::srv::MakeModel>("/world/makeModel");
   delete_obj_client_ = this->create_client<simulated_world_nws_ros2_msgs::srv::DeleteObject>("/world/deleteObject");
   set_pose_client_ = this->create_client<simulated_world_nws_ros2_msgs::srv::SetPose>("/world/setPose");
 
@@ -105,6 +111,7 @@ void GazeboPersonSimulator::loadPersons(const std::string& filename) {
     st.max_yaw_rate = p["max_yaw_rate"] ? p["max_yaw_rate"].as<double>() : default_max_yaw_rate_;
     st.loop_path = p["loop_path"] ? p["loop_path"].as<bool>() : default_loop_path_;
     st.stop_at_end = p["stop_at_end"] ? p["stop_at_end"].as<bool>() : default_stop_at_end_;
+    st.model_filename = p["model_filename"] ? p["model_filename"].as<std::string>() : default_model_filename_;
 
     /*
     It is possible to add in the yaml file a path using the following structure:
@@ -145,8 +152,8 @@ void GazeboPersonSimulator::loadPersons(const std::string& filename) {
     person_order_.push_back(name);
 
     RCLCPP_INFO(this->get_logger(),
-      "Loaded %s (x=%.2f y=%.2f speed=%.2f path_pts=%zu)",
-      name.c_str(), st.x, st.y, st.speed, st.path.size());
+      "Loaded %s (x=%.2f y=%.2f speed=%.2f path_pts=%zu model=%s)",
+      name.c_str(), st.x, st.y, st.speed, st.path.size(), st.model_filename.c_str());
   }
 
   RCLCPP_INFO(this->get_logger(),
@@ -185,6 +192,13 @@ void GazeboPersonSimulator::tick() {
     return;
   }
 
+  if (!make_model_client_->service_is_ready() || !set_pose_client_->service_is_ready()) {
+    RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 2000,
+      "Waiting for services /world/makeModel and /world/setPose...");
+    last_tick_ = this->now();
+    return;
+  }
+
   if (person_order_.empty()) return;
 
   const auto now_t = this->now();
@@ -199,6 +213,7 @@ void GazeboPersonSimulator::tick() {
     if (!st.spawned && !st.spawn_in_flight) {
       st.spawn_in_flight = true;
       sendMakeBox(name, st);
+      // sendMakeModel(name, st);
     }
   }
 
@@ -249,8 +264,11 @@ void GazeboPersonSimulator::stepPerson(PersonState& st, double dt) {
   const double max_dyaw = st.max_yaw_rate * dt;
   st.yaw = wrapAngle(st.yaw + clamp(yaw_err, -max_dyaw, max_dyaw));
 
-  st.x += std::cos(st.yaw) * st.speed * dt;
-  st.y += std::sin(st.yaw) * st.speed * dt;
+  // Move in the direction of the desired waypoint at current orientation
+  const double move_dx = dx / dist * st.speed * dt;
+  const double move_dy = dy / dist * st.speed * dt;
+  st.x += move_dx;
+  st.y += move_dy;
 }
 
 void GazeboPersonSimulator::sendMakeBox(const std::string& name, PersonState& st) {
@@ -299,6 +317,41 @@ void GazeboPersonSimulator::sendMakeBox(const std::string& name, PersonState& st
   );
 }
 
+void GazeboPersonSimulator::sendMakeModel(const std::string& name, PersonState& st) {
+  auto req = std::make_shared<simulated_world_nws_ros2_msgs::srv::MakeModel::Request>();
+  req->id = name;
+  req->filename = st.model_filename;
+
+  req->pose.x = st.x;
+  req->pose.y = st.y;
+  req->pose.z = box_z_;
+  req->pose.roll = 0.0;
+  req->pose.pitch = 0.0;
+  req->pose.yaw = wrapAngle(st.yaw + M_PI / 2.0);
+
+  RCLCPP_INFO(this->get_logger(), "Spawning '%s' with model '%s' at (%.2f, %.2f, %.2f)",
+              name.c_str(), st.model_filename.c_str(), st.x, st.y, box_z_);
+
+  make_model_client_->async_send_request(
+    req,
+    [this, name](rclcpp::Client<simulated_world_nws_ros2_msgs::srv::MakeModel>::SharedFuture future) {
+      const auto resp = future.get();
+      auto it = persons_.find(name);
+      if (it == persons_.end()) return;
+
+      if (!resp->success) {
+        RCLCPP_ERROR(this->get_logger(), "makeModel failed for '%s'", name.c_str());
+        it->second.spawned = false;
+      } else {
+        it->second.spawned = true;
+        spawned_names_.insert(name);
+        RCLCPP_INFO(this->get_logger(), "Spawned '%s'", name.c_str());
+      }
+      it->second.spawn_in_flight = false;
+    }
+  );
+}
+
 void GazeboPersonSimulator::sendSetPose(const std::string& name, const PersonState& st) {
   auto req = std::make_shared<simulated_world_nws_ros2_msgs::srv::SetPose::Request>();
   req->id = name;
@@ -308,7 +361,7 @@ void GazeboPersonSimulator::sendSetPose(const std::string& name, const PersonSta
   req->pose.z = box_z_;
   req->pose.roll = 0.0;
   req->pose.pitch = 0.0;
-  req->pose.yaw = st.yaw;
+  req->pose.yaw = wrapAngle(st.yaw + M_PI / 2.0);
 
   set_pose_client_->async_send_request(
     req,
@@ -344,7 +397,7 @@ void GazeboPersonSimulator::cleanupAndDeleteAll(std::chrono::milliseconds timeou
   for (const auto& name : spawned_names_) {
     auto req = std::make_shared<simulated_world_nws_ros2_msgs::srv::DeleteObject::Request>();
     req->id = name;
-    futures.push_back(delete_obj_client_->async_send_request(req));
+    futures.push_back(delete_obj_client_->async_send_request(req).future.share());
   }
 
   // Wait for completion, but need to process callbacks -> spin_some

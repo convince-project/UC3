@@ -6,6 +6,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include <simulated_world_nws_ros2_msgs/srv/make_box.hpp>
+#include <simulated_world_nws_ros2_msgs/srv/make_model.hpp>
 #include <simulated_world_nws_ros2_msgs/srv/delete_object.hpp>
 #include <simulated_world_nws_ros2_msgs/srv/set_pose.hpp>
 
@@ -41,6 +42,7 @@ struct PersonState {
   // spawn
   bool spawned{false};
   bool spawn_in_flight{false};
+  std::string model_filename;
 
   // start (useful for auto-path)
   double start_x{0.0};
@@ -61,6 +63,7 @@ private:
   void stepPerson(PersonState& st, double dt);
 
   void sendMakeBox(const std::string& name, PersonState& st);
+  void sendMakeModel(const std::string& name, PersonState& st);
   void sendSetPose(const std::string& name, const PersonState& st);
 
   // helpers
@@ -79,12 +82,14 @@ private:
   double default_max_yaw_rate_{2.0};
   bool default_loop_path_{true};
   bool default_stop_at_end_{false};
+  std::string default_model_filename_{"Children/c_casual/walk.dae"};
 
   double auto_path_radius_{2.0};
   int num_points_per_person_{7};
 
   // Services
-  rclcpp::Client<simulated_world_nws_ros2_msgs::srv::MakeBox>::SharedPtr make_box_client_;
+    rclcpp::Client<simulated_world_nws_ros2_msgs::srv::MakeBox>::SharedPtr make_box_client_;
+  rclcpp::Client<simulated_world_nws_ros2_msgs::srv::MakeModel>::SharedPtr make_model_client_;
   rclcpp::Client<simulated_world_nws_ros2_msgs::srv::DeleteObject>::SharedPtr delete_obj_client_;
   rclcpp::Client<simulated_world_nws_ros2_msgs::srv::SetPose>::SharedPtr set_pose_client_;
 

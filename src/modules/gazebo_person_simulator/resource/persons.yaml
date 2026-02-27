@@ -6,6 +6,7 @@ persons:
     start_y: 1.3
     vx: 0
     vy: 0
+    model_filename: Female/w_casual/walk.dae
 
   person2:
     id: 2
@@ -13,6 +14,7 @@ persons:
     start_y: -1.5
     vx: 0
     vy: 0
+    model_filename: Children/c_casual/walk.dae
   
   person3:
     id: 3
@@ -20,6 +22,7 @@ persons:
     start_y: -9.74
     vx: 0
     vy: 0
+    model_filename: Male/m_casual/m_casual.dae
 
   person4:
     id: 4
@@ -27,6 +30,7 @@ persons:
     start_y: -21.7
     vx: 0
     vy: 0
+    model_filename: Children/c_casual/walk.dae
   
   person5:
     id: 5
@@ -34,6 +38,7 @@ persons:
     start_y: -33.0
     vx: 0
     vy: 0
+    model_filename: Male/m_casual/m_casual.dae
 
   person6:
     id: 6
@@ -41,6 +46,7 @@ persons:
     start_y: -29.6
     vx: 0
     vy: 0
+    model_filename: Female/w_casual/walk.dae
   
 
     
