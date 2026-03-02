@@ -63,20 +63,21 @@ private:
   void stepPerson(PersonState& st, double dt);
 
   void sendMakeBox(const std::string& name, PersonState& st);
-  void sendMakeModel(const std::string& name, PersonState& st);
-  void sendSetPose(const std::string& name, const PersonState& st);
-
+  void sendMakeModel(const PersonState& st);
+  void sendSetPose( const PersonState& st);
+  void updateValues();
   // helpers
   static double clamp(double v, double lo, double hi);
   static double wrapAngle(double a);
+  void loadPersonsFromCSV(const std::string& filename);
 
 private:
   // Params
   std::string yaml_path_;
 
   double box_w_{1.0}, box_h_{1.0}, box_t_{1.0}, box_z_{0.5};
-  int tick_period_ms_{50};
-
+  double tick_period_ms_{10};
+  int counter_tick_{0};
   double default_speed_{0.5};
   double default_arrive_radius_{0.25};
   double default_max_yaw_rate_{2.0};
@@ -94,7 +95,7 @@ private:
   rclcpp::Client<simulated_world_nws_ros2_msgs::srv::SetPose>::SharedPtr set_pose_client_;
 
   // State
-  std::unordered_map<std::string, PersonState> persons_;
+  std::unordered_map<double, std::vector<PersonState>> persons_;
   std::vector<std::string> person_order_;
 
   std::unordered_set<std::string> spawned_names_;

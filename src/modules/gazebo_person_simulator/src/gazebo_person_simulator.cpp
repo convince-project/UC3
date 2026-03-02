@@ -3,6 +3,8 @@
 #include "gazebo_person_simulator.hpp"
 
 #include <cmath>
+#include <fstream>
+#include <sstream>
 #include <unordered_map>
 #include <utility>
 
@@ -35,7 +37,7 @@ GazeboPersonSimulator::GazeboPersonSimulator()
   box_z_ = this->declare_parameter<double>("person_z", 0.0);
 
   // determines tick period
-  tick_period_ms_ = this->declare_parameter<int>("tick_period_ms", 50); // 20 Hz
+  tick_period_ms_ = this->declare_parameter<int>("tick_period_ms", 500); // 2 Hz
 
   // behaviour defaults
   default_speed_ = this->declare_parameter<double>("default_speed", 0.5);
@@ -65,100 +67,100 @@ GazeboPersonSimulator::GazeboPersonSimulator()
   delete_obj_client_ = this->create_client<simulated_world_nws_ros2_msgs::srv::DeleteObject>("/world/deleteObject");
   set_pose_client_ = this->create_client<simulated_world_nws_ros2_msgs::srv::SetPose>("/world/setPose");
 
-  loadPersons(yaml_path_);
+  loadPersonsFromCSV("/home/user1/congestion-coverage-plan/data/datasets/madama/madama3_september.csv");
 
   last_tick_ = this->now();
   timer_ = this->create_wall_timer(
-    std::chrono::milliseconds(tick_period_ms_),
+    std::chrono::milliseconds(static_cast<int>(tick_period_ms_)),
     std::bind(&GazeboPersonSimulator::tick, this));
 
-  RCLCPP_INFO(this->get_logger(), "Started. Loaded %zu persons from: %s",
-              person_order_.size(), yaml_path_.c_str());
+  //RCLCPP_INFO(this->get_logger(), "Started. Loaded %zu persons from: %s",
+    //          person_order_.size(), yaml_path_.c_str());
 }
 
 
 // function which loads all the parameters from the yaml file
-void GazeboPersonSimulator::loadPersons(const std::string& filename) {
-  persons_.clear();
-  person_order_.clear();
+// void GazeboPersonSimulator::loadPersons(const std::string& filename) {
+//   persons_.clear();
+//   person_order_.clear();
 
-  YAML::Node config = YAML::LoadFile(filename);
-  if (!config["persons"]) {
-    throw std::runtime_error("YAML missing 'persons' key");
-  }
+//   YAML::Node config = YAML::LoadFile(filename);
+//   if (!config["persons"]) {
+//     throw std::runtime_error("YAML missing 'persons' key");
+//   }
 
-  // global YAML param
-  num_points_per_person_ = config["num_points_per_person"]
-    ? config["num_points_per_person"].as<int>()
-    : num_points_per_person_;
+//   // global YAML param
+//   num_points_per_person_ = config["num_points_per_person"]
+//     ? config["num_points_per_person"].as<int>()
+//     : num_points_per_person_;
 
-  for (auto it = config["persons"].begin(); it != config["persons"].end(); ++it) {
-    const std::string name = it->first.as<std::string>();
-    const YAML::Node p = it->second;
+//   for (auto it = config["persons"].begin(); it != config["persons"].end(); ++it) {
+//     const std::string name = it->first.as<std::string>();
+//     const YAML::Node p = it->second;
 
-    PersonState st;
-    st.id = p["id"] ? p["id"].as<int>() : 0;
+//     PersonState st;
+//     st.id = p["id"] ? p["id"].as<int>() : 0;
 
-    st.x = p["start_x"] ? p["start_x"].as<double>() : 0.0;
-    st.y = p["start_y"] ? p["start_y"].as<double>() : 0.0;
-    st.start_x = st.x;
-    st.start_y = st.y;
+//     st.x = p["start_x"] ? p["start_x"].as<double>() : 0.0;
+//     st.y = p["start_y"] ? p["start_y"].as<double>() : 0.0;
+//     st.start_x = st.x;
+//     st.start_y = st.y;
 
-    st.yaw = p["start_yaw"] ? p["start_yaw"].as<double>() : 0.0;
+//     st.yaw = p["start_yaw"] ? p["start_yaw"].as<double>() : 0.0;
 
-    st.speed = p["speed"] ? p["speed"].as<double>() : default_speed_;
-    st.arrive_radius = p["arrive_radius"] ? p["arrive_radius"].as<double>() : default_arrive_radius_;
-    st.max_yaw_rate = p["max_yaw_rate"] ? p["max_yaw_rate"].as<double>() : default_max_yaw_rate_;
-    st.loop_path = p["loop_path"] ? p["loop_path"].as<bool>() : default_loop_path_;
-    st.stop_at_end = p["stop_at_end"] ? p["stop_at_end"].as<bool>() : default_stop_at_end_;
-    st.model_filename = p["model_filename"] ? p["model_filename"].as<std::string>() : default_model_filename_;
+//     st.speed = p["speed"] ? p["speed"].as<double>() : default_speed_;
+//     st.arrive_radius = p["arrive_radius"] ? p["arrive_radius"].as<double>() : default_arrive_radius_;
+//     st.max_yaw_rate = p["max_yaw_rate"] ? p["max_yaw_rate"].as<double>() : default_max_yaw_rate_;
+//     st.loop_path = p["loop_path"] ? p["loop_path"].as<bool>() : default_loop_path_;
+//     st.stop_at_end = p["stop_at_end"] ? p["stop_at_end"].as<bool>() : default_stop_at_end_;
+//     st.model_filename = p["model_filename"] ? p["model_filename"].as<std::string>() : default_model_filename_;
 
-    /*
-    It is possible to add in the yaml file a path using the following structure:
-     ----------- path: [[x,y],[x,y],...] or path: - {x:..., y:...} ----------
-     This coordinates describe the way_point, indeed they define the trajectory the person should do.
-     If the path is not specified, the person will move in a circular path around the start position created
-     in the function generateCircularPath.
-    */
-    if (p["path"] && p["path"].IsSequence()) {
-      for (const auto& wpNode : p["path"]) {
-        Waypoint wp;
-        if (wpNode.IsSequence() && wpNode.size() >= 2) {
-          wp.x = wpNode[0].as<double>();
-          wp.y = wpNode[1].as<double>();
-        } else if (wpNode.IsMap() && wpNode["x"] && wpNode["y"]) {
-          wp.x = wpNode["x"].as<double>();
-          wp.y = wpNode["y"].as<double>();
-        } else {
-          RCLCPP_WARN(this->get_logger(), "Invalid waypoint for '%s' - skipping", name.c_str());
-          continue;
-        }
-        st.path.push_back(wp);
-      }
-    }
+//     /*
+//     It is possible to add in the yaml file a path using the following structure:
+//      ----------- path: [[x,y],[x,y],...] or path: - {x:..., y:...} ----------
+//      This coordinates describe the way_point, indeed they define the trajectory the person should do.
+//      If the path is not specified, the person will move in a circular path around the start position created
+//      in the function generateCircularPath.
+//     */
+//     if (p["path"] && p["path"].IsSequence()) {
+//       for (const auto& wpNode : p["path"]) {
+//         Waypoint wp;
+//         if (wpNode.IsSequence() && wpNode.size() >= 2) {
+//           wp.x = wpNode[0].as<double>();
+//           wp.y = wpNode[1].as<double>();
+//         } else if (wpNode.IsMap() && wpNode["x"] && wpNode["y"]) {
+//           wp.x = wpNode["x"].as<double>();
+//           wp.y = wpNode["y"].as<double>();
+//         } else {
+//           RCLCPP_WARN(this->get_logger(), "Invalid waypoint for '%s' - skipping", name.c_str());
+//           continue;
+//         }
+//         st.path.push_back(wp);
+//       }
+//     }
 
-    // auto-path if missing
-    if (st.path.empty()) {
-      st.path = generateCircularPath(st.start_x, st.start_y, auto_path_radius_, num_points_per_person_);
-      st.loop_path = true;
-      st.stop_at_end = false;
+//     // auto-path if missing
+//     if (st.path.empty()) {
+//       st.path = generateCircularPath(st.start_x, st.start_y, auto_path_radius_, num_points_per_person_);
+//       st.loop_path = true;
+//       st.stop_at_end = false;
 
-      RCLCPP_INFO(this->get_logger(),
-        "Auto-path generated for '%s' with %zu points (radius=%.2f)",
-        name.c_str(), st.path.size(), auto_path_radius_);
-    }
+//       RCLCPP_INFO(this->get_logger(),
+//         "Auto-path generated for '%s' with %zu points (radius=%.2f)",
+//         name.c_str(), st.path.size(), auto_path_radius_);
+//     }
 
-    persons_[name] = st;
-    person_order_.push_back(name);
+//     persons_[name] = st;
+//     person_order_.push_back(name);
 
-    RCLCPP_INFO(this->get_logger(),
-      "Loaded %s (x=%.2f y=%.2f speed=%.2f path_pts=%zu model=%s)",
-      name.c_str(), st.x, st.y, st.speed, st.path.size(), st.model_filename.c_str());
-  }
+//     RCLCPP_INFO(this->get_logger(),
+//       "Loaded %s (x=%.2f y=%.2f speed=%.2f path_pts=%zu model=%s)",
+//       name.c_str(), st.x, st.y, st.speed, st.path.size(), st.model_filename.c_str());
+//   }
 
-  RCLCPP_INFO(this->get_logger(),
-    "num_points_per_person=%d (from YAML or default)", num_points_per_person_);
-}
+//   RCLCPP_INFO(this->get_logger(),
+//     "num_points_per_person=%d (from YAML or default)", num_points_per_person_);
+// }
 
 
 /*
@@ -199,7 +201,8 @@ void GazeboPersonSimulator::tick() {
     return;
   }
 
-  if (person_order_.empty()) return;
+  // Load positions from CSV file
+  updateValues();
 
   const auto now_t = this->now();
   double dt = (now_t - last_tick_).seconds();
@@ -208,23 +211,23 @@ void GazeboPersonSimulator::tick() {
   dt = clamp(dt, 0.0, 0.2);
 
   // spawn all the person
-  for (const auto& name : person_order_) {
-    auto& st = persons_[name];
-    if (!st.spawned && !st.spawn_in_flight) {
-      st.spawn_in_flight = true;
-      sendMakeBox(name, st);
-      // sendMakeModel(name, st);
-    }
-  }
+  // for (const auto& name : person_order_) {
+  //   auto& st = persons_[name];
+  //   if (!st.spawned && !st.spawn_in_flight) {
+  //     st.spawn_in_flight = true;
+  //     //sendMakeBox(name, st);
+  //     //sendMakeModel(name, st);
+  //   }
+  // }
 
   // move & publish
-  for (const auto& name : person_order_) {
-    auto& st = persons_[name];
-    if (!st.spawned) continue;
+  // for (const auto& name : person_order_) {
+  //   auto& st = persons_[name];
+  //   if (!st.spawned) continue;
 
-    stepPerson(st, dt);
-    sendSetPose(name, st);
-  }
+  //   stepPerson(st, dt);
+  //   sendSetPose(name, st);
+  // }
 }
 
 
@@ -271,55 +274,55 @@ void GazeboPersonSimulator::stepPerson(PersonState& st, double dt) {
   st.y += move_dy;
 }
 
-void GazeboPersonSimulator::sendMakeBox(const std::string& name, PersonState& st) {
-  auto req = std::make_shared<simulated_world_nws_ros2_msgs::srv::MakeBox::Request>();
-  req->id = name;
+// void GazeboPersonSimulator::sendMakeBox(const std::string& name, PersonState& st) {
+//   auto req = std::make_shared<simulated_world_nws_ros2_msgs::srv::MakeBox::Request>();
+//   req->id = name;
 
-  req->width = box_w_;
-  req->height = box_h_;
-  req->thickness = box_t_;
+//   req->width = box_w_;
+//   req->height = box_h_;
+//   req->thickness = box_t_;
 
-  req->pose.x = st.x;
-  req->pose.y = st.y;
-  req->pose.z = box_z_;
-  req->pose.roll = 0.0;
-  req->pose.pitch = 0.0;
-  req->pose.yaw = st.yaw;
+//   req->pose.x = st.x;
+//   req->pose.y = st.y;
+//   req->pose.z = box_z_;
+//   req->pose.roll = 0.0;
+//   req->pose.pitch = 0.0;
+//   req->pose.yaw = st.yaw;
 
-  req->color.r = 255;
-  req->color.g = 255;
-  req->color.b = 255;
+//   req->color.r = 255;
+//   req->color.g = 255;
+//   req->color.b = 255;
 
-  req->frame_name = "";
-  req->gravity_enable = false;
-  req->collision_enable = false;
+//   req->frame_name = "";
+//   req->gravity_enable = false;
+//   req->collision_enable = false;
 
-  RCLCPP_INFO(this->get_logger(), "Spawning '%s' at (%.2f, %.2f, %.2f)",
-              name.c_str(), st.x, st.y, box_z_);
+//   RCLCPP_INFO(this->get_logger(), "Spawning '%s' at (%.2f, %.2f, %.2f)",
+//               name.c_str(), st.x, st.y, box_z_);
 
-  make_box_client_->async_send_request(
-    req,
-    [this, name](rclcpp::Client<simulated_world_nws_ros2_msgs::srv::MakeBox>::SharedFuture future) {
-      const auto resp = future.get();
-      auto it = persons_.find(name);
-      if (it == persons_.end()) return;
+//   make_box_client_->async_send_request(
+//     req,
+//     [this, name](rclcpp::Client<simulated_world_nws_ros2_msgs::srv::MakeBox>::SharedFuture future) {
+//       const auto resp = future.get();
+//       auto it = persons_.find(name);
+//       if (it == persons_.end()) return;
 
-      if (!resp->success) {
-        RCLCPP_ERROR(this->get_logger(), "makeBox failed for '%s'", name.c_str());
-        it->second.spawned = false;
-      } else {
-        it->second.spawned = true;
-        spawned_names_.insert(name);
-        RCLCPP_INFO(this->get_logger(), "Spawned '%s'", name.c_str());
-      }
-      it->second.spawn_in_flight = false;
-    }
-  );
-}
+//       if (!resp->success) {
+//         RCLCPP_ERROR(this->get_logger(), "makeBox failed for '%s'", name.c_str());
+//         it->second.spawned = false;
+//       } else {
+//         it->second.spawned = true;
+//         spawned_names_.insert(name);
+//         RCLCPP_INFO(this->get_logger(), "Spawned '%s'", name.c_str());
+//       }
+//       it->second.spawn_in_flight = false;
+//     }
+//   );
+// }
 
-void GazeboPersonSimulator::sendMakeModel(const std::string& name, PersonState& st) {
+void GazeboPersonSimulator::sendMakeModel(const PersonState& st) {
   auto req = std::make_shared<simulated_world_nws_ros2_msgs::srv::MakeModel::Request>();
-  req->id = name;
+  req->id = std::to_string(st.id);
   req->filename = st.model_filename;
 
   req->pose.x = st.x;
@@ -330,31 +333,24 @@ void GazeboPersonSimulator::sendMakeModel(const std::string& name, PersonState& 
   req->pose.yaw = wrapAngle(st.yaw + M_PI / 2.0);
 
   RCLCPP_INFO(this->get_logger(), "Spawning '%s' with model '%s' at (%.2f, %.2f, %.2f)",
-              name.c_str(), st.model_filename.c_str(), st.x, st.y, box_z_);
+              std::to_string(st.id).c_str(), st.model_filename.c_str(), st.x, st.y, box_z_);
 
   make_model_client_->async_send_request(
     req,
-    [this, name](rclcpp::Client<simulated_world_nws_ros2_msgs::srv::MakeModel>::SharedFuture future) {
+    [this, st](rclcpp::Client<simulated_world_nws_ros2_msgs::srv::MakeModel>::SharedFuture future) {
       const auto resp = future.get();
-      auto it = persons_.find(name);
-      if (it == persons_.end()) return;
-
       if (!resp->success) {
-        RCLCPP_ERROR(this->get_logger(), "makeModel failed for '%s'", name.c_str());
-        it->second.spawned = false;
+        RCLCPP_ERROR(this->get_logger(), "makeModel failed for '%s'", std::to_string(st.id).c_str());
       } else {
-        it->second.spawned = true;
-        spawned_names_.insert(name);
-        RCLCPP_INFO(this->get_logger(), "Spawned '%s'", name.c_str());
+        RCLCPP_INFO(this->get_logger(), "Spawned '%s'", std::to_string(st.id).c_str());
       }
-      it->second.spawn_in_flight = false;
     }
   );
 }
 
-void GazeboPersonSimulator::sendSetPose(const std::string& name, const PersonState& st) {
+void GazeboPersonSimulator::sendSetPose(const PersonState& st) {
   auto req = std::make_shared<simulated_world_nws_ros2_msgs::srv::SetPose::Request>();
-  req->id = name;
+  req->id = std::to_string(st.id);
 
   req->pose.x = st.x;
   req->pose.y = st.y;
@@ -363,13 +359,15 @@ void GazeboPersonSimulator::sendSetPose(const std::string& name, const PersonSta
   req->pose.pitch = 0.0;
   req->pose.yaw = wrapAngle(st.yaw + M_PI / 2.0);
 
+  RCLCPP_INFO(this->get_logger(), "Setting pose for '%s' to (%.2f, %.2f, %.2f)",
+              std::to_string(st.id).c_str(), st.x, st.y, box_z_);
   set_pose_client_->async_send_request(
     req,
-    [this, name](rclcpp::Client<simulated_world_nws_ros2_msgs::srv::SetPose>::SharedFuture future) {
+    [this, st](rclcpp::Client<simulated_world_nws_ros2_msgs::srv::SetPose>::SharedFuture future) {
       const auto resp = future.get();
       if (!resp->success) {
         RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 2000,
-          "SetPose failed for '%s'", name.c_str());
+          "SetPose failed for '%s'", std::to_string(st.id).c_str());
       }
     }
   );
@@ -437,4 +435,121 @@ void GazeboPersonSimulator::cleanupAndDeleteAll(std::chrono::milliseconds timeou
 
   spawned_names_.clear();
   RCLCPP_INFO(this->get_logger(), "Cleanup: delete requests sent/completed.");
+}
+
+void GazeboPersonSimulator::loadPersonsFromCSV(const std::string& filename){
+  std::ifstream file(filename);
+  if (!file.is_open()) {
+    RCLCPP_ERROR(this->get_logger(), "Failed to open CSV file: %s", filename.c_str());
+    return;
+  }
+
+  std::string line;
+  while (std::getline(file, line)) {
+    std::istringstream ss(line);
+    std::string timestamp_str, id_str, x_str, y_str;
+
+    // Parse CSV line
+    if (!std::getline(ss, timestamp_str, ',') ||
+        !std::getline(ss, id_str, ',') ||
+        !std::getline(ss, x_str, ',') ||
+        !std::getline(ss, y_str, ',')) {
+      continue;
+    }
+    double timestamp = std::stod(timestamp_str);
+    int id = std::stoi(id_str);
+    double x = std::stod(x_str);
+    double y = std::stod(y_str);
+    auto it = persons_.find(timestamp);
+    PersonState st;
+    st.id = id;
+    st.x = x;
+    st.y = y;
+    st.model_filename = default_model_filename_;
+    if (it == persons_.end()) {
+      // Create new person
+      RCLCPP_INFO(this->get_logger(), "Loaded new person '%s' at (%.2f, %.2f)", id_str.c_str(), x, y);
+      persons_[timestamp] = std::vector<PersonState>{st};
+      //person_order_.push_back(timestamp);
+      
+    }
+    else{
+      RCLCPP_INFO(this->get_logger(), "Loaded existing person '%s' at (%.2f, %.2f)", id_str.c_str(), x, y);
+      it->second.push_back(st);
+    }
+
+  }
+
+  // print the map persons
+  for (const auto& [timestamp, states] : persons_) {
+    RCLCPP_INFO(this->get_logger(), "Timestamp '%s':", std::to_string(timestamp).c_str());
+    for (const auto& state : states) {
+      RCLCPP_INFO(this->get_logger(), "  - State: (%.2f, %.2f, %.2f)", state.x, state.y, state.yaw);
+    }
+  }
+
+}
+
+// Function to read positions from CSV file
+void GazeboPersonSimulator::updateValues() {
+  RCLCPP_INFO(this->get_logger(), "Updating person positions from CSV...");
+  std::vector<std::string> updated_ids;
+
+  // order keys by value in a vector of doubles
+  std::vector<double> values;
+  for (const auto& [timestamp, states] : persons_) {
+    
+    values.push_back(timestamp);
+    
+  }
+  std::sort(values.begin(), values.end());
+  RCLCPP_INFO(this->get_logger(), "Sorted timestamps:");
+  std::vector<PersonState> states = persons_[values[counter_tick_ % values.size()]];
+  for (const auto& state : states) {
+    RCLCPP_INFO(this->get_logger(), "  - State: (%.2f, %.2f, %.2f)", state.x, state.y, state.yaw);
+  }
+  for (const auto& state : states) {
+    RCLCPP_INFO(this->get_logger(), "  Inside for loop");
+    std::string id_str = std::to_string(state.id);
+    updated_ids.push_back(id_str);
+
+    // print spawned names
+    RCLCPP_INFO(this->get_logger(), "Currently spawned names:");
+    for (const auto& name : spawned_names_) {
+      RCLCPP_INFO(this->get_logger(), "  - %s", name.c_str());
+    }
+    if (spawned_names_.find(id_str) != spawned_names_.end())
+    {
+      //RCLCPP_INFO(this->get_logger(), "Updating position of '%s' to (%.2f, %.2f)", id.c_str(), state.x, state.y);
+      //RCLCPP_INFO(this->get_logger(), "Updating position of '%s' to (%.2f, %.2f)", id_str.c_str(), state.x, state.y);
+      sendSetPose(state);
+      
+    }
+    else
+    {
+      spawned_names_.insert(id_str);
+      sendMakeModel(state);
+      //sleep(1);
+    }
+  }
+
+  // Process updated IDs
+  for (const auto& id : spawned_names_) {
+    // Do something with the updated IDs
+    auto it = std::find(updated_ids.begin(), updated_ids.end(), id);
+    if (it == updated_ids.end()) {
+      // ID was updated
+      RCLCPP_INFO(this->get_logger(), "ID '%s' was DELETED.", id.c_str());
+      auto req = std::make_shared<simulated_world_nws_ros2_msgs::srv::DeleteObject::Request>();
+      req->id = id;
+      auto future = delete_obj_client_->async_send_request(req).future.share();
+      if (future.wait_for(std::chrono::milliseconds(0)) == std::future_status::ready) {
+        auto resp = future.get();
+        if (!resp->success) {
+          RCLCPP_WARN(this->get_logger(), "Cleanup: delete failed for '%s'.", id.c_str());
+        }
+      }
+    }
+  }
+  counter_tick_++;
 }
