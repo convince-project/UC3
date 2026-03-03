@@ -55,14 +55,11 @@ public:
 
   void cleanupAndDeleteAll(std::chrono::milliseconds timeout = std::chrono::milliseconds(3000));
 private:
-  void loadPersons(const std::string& filename);
 
   std::vector<Waypoint> generateCircularPath(double cx, double cy, double radius, int n);
 
   void tick();
   void stepPerson(PersonState& st, double dt);
-
-  void sendMakeBox(const std::string& name, PersonState& st);
   void sendMakeModel(const PersonState& st);
   void sendSetPose( const PersonState& st);
   void updateValues();
@@ -73,23 +70,15 @@ private:
 
 private:
   // Params
-  std::string yaml_path_;
 
-  double box_w_{1.0}, box_h_{1.0}, box_t_{1.0}, box_z_{0.5};
   double tick_period_ms_{10};
   int counter_tick_{0};
-  double default_speed_{0.5};
-  double default_arrive_radius_{0.25};
-  double default_max_yaw_rate_{2.0};
-  bool default_loop_path_{true};
-  bool default_stop_at_end_{false};
   std::string default_model_filename_{"Children/c_casual/walk.dae"};
 
   double auto_path_radius_{2.0};
   int num_points_per_person_{7};
 
   // Services
-    rclcpp::Client<simulated_world_nws_ros2_msgs::srv::MakeBox>::SharedPtr make_box_client_;
   rclcpp::Client<simulated_world_nws_ros2_msgs::srv::MakeModel>::SharedPtr make_model_client_;
   rclcpp::Client<simulated_world_nws_ros2_msgs::srv::DeleteObject>::SharedPtr delete_obj_client_;
   rclcpp::Client<simulated_world_nws_ros2_msgs::srv::SetPose>::SharedPtr set_pose_client_;
