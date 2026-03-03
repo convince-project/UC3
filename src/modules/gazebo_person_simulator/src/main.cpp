@@ -11,7 +11,7 @@ int main(int argc, char** argv) {
   exec.add_node(node);
   exec.spin();
 
-  node->cleanupAndDeleteAll(std::chrono::milliseconds(3000));
+  node->cleanupAndDeleteAll(std::chrono::milliseconds(10000));
   rclcpp::shutdown();
   return 0;
 }

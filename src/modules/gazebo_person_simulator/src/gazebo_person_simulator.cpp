@@ -40,7 +40,7 @@ GazeboPersonSimulator::GazeboPersonSimulator()
   delete_obj_client_ = this->create_client<simulated_world_nws_ros2_msgs::srv::DeleteObject>("/world/deleteObject");
   set_pose_client_ = this->create_client<simulated_world_nws_ros2_msgs::srv::SetPose>("/world/setPose");
 
-  loadPersonsFromCSV("/home/user1/congestion-coverage-plan/data/datasets/madama/madama3_september.csv");
+  loadPersonsFromCSV("/home/user1/congestion-coverage-plan/data/datasets/madama/madama3_sept_int.csv");
 
   last_tick_ = this->now();
   timer_ = this->create_wall_timer(
@@ -181,53 +181,45 @@ void GazeboPersonSimulator::cleanupAndDeleteAll(std::chrono::milliseconds timeou
 
   RCLCPP_INFO(this->get_logger(), "Cleanup: deleting %zu persons...", spawned_names_.size());
 
-  // Send all requests
-  std::vector<rclcpp::Client<simulated_world_nws_ros2_msgs::srv::DeleteObject>::SharedFuture> futures;
-  futures.reserve(spawned_names_.size());
+  std::atomic<size_t> pending_deletes(spawned_names_.size());
+  std::mutex mtx;
+  std::condition_variable cv;
 
-  for (const auto& name : spawned_names_) {
+  for (const auto& id : spawned_names_) {
     auto req = std::make_shared<simulated_world_nws_ros2_msgs::srv::DeleteObject::Request>();
-    req->id = name;
-    futures.push_back(delete_obj_client_->async_send_request(req).future.share());
-  }
-
-  // Wait for completion, but need to process callbacks -> spin_some
-  rclcpp::executors::SingleThreadedExecutor tmp_exec;
-  tmp_exec.add_node(this->shared_from_this());
-
-  const auto start = this->now();
-  while (rclcpp::ok()) {
-    bool all_done = true;
-    for (auto & f : futures) {
-      if (f.wait_for(std::chrono::milliseconds(0)) != std::future_status::ready) {
-        all_done = false;
-        break;
+    req->id = id;
+    delete_obj_client_->async_send_request(
+      req,
+      [this, id, &pending_deletes, &mtx, &cv](rclcpp::Client<simulated_world_nws_ros2_msgs::srv::DeleteObject>::SharedFuture future) {
+        const auto resp = future.get();
+        if (!resp->success) {
+          RCLCPP_ERROR(this->get_logger(), "deleteObject failed for '%s'", id.c_str());
+        } else {
+          RCLCPP_INFO(this->get_logger(), "Deleted '%s'", id.c_str());
+          spawned_names_.erase(id);
+          // print of spawned names
+          RCLCPP_INFO(this->get_logger(), "Currently spawned names:");
+          for (const auto& name : spawned_names_) {
+            RCLCPP_INFO(this->get_logger(), "  - %s", name.c_str());
+          }
+        }
+        {
+          std::lock_guard<std::mutex> lock(mtx);
+          pending_deletes--;
+        }
+        cv.notify_all();
       }
-    }
-    if (all_done) break;
-
-    // process service callbacks
-    tmp_exec.spin_some();
-
-    // timeout
-    if ((this->now() - start).seconds() * 1000.0 > static_cast<double>(timeout.count())) {
-      RCLCPP_WARN(this->get_logger(), "Cleanup: timeout reached, some deletes may be pending.");
-      break;
-    }
+    );
+    sleep(0.5);
   }
 
-  // Log results for those that are ready
-  for (size_t i = 0; i < futures.size(); ++i) {
-    if (futures[i].wait_for(std::chrono::milliseconds(0)) == std::future_status::ready) {
-      auto resp = futures[i].get();
-      if (!resp->success) {
-        RCLCPP_WARN(this->get_logger(), "Cleanup: delete failed for one person.");
-      }
-    }
+  // Wait for all deletes to complete or timeout
+  std::unique_lock<std::mutex> lock(mtx);
+  if (!cv.wait_for(lock, timeout, [&pending_deletes]() { return pending_deletes == 0; })) {
+    RCLCPP_WARN(this->get_logger(), "Cleanup: timeout reached, some deletes may be pending.");
+  } else {
+    RCLCPP_INFO(this->get_logger(), "Cleanup: all delete requests completed.");
   }
-
-  spawned_names_.clear();
-  RCLCPP_INFO(this->get_logger(), "Cleanup: delete requests sent/completed.");
 }
 
 void GazeboPersonSimulator::loadPersonsFromCSV(const std::string& filename){
@@ -331,21 +323,25 @@ void GazeboPersonSimulator::updateValues() {
     // Do something with the updated IDs
     auto it = std::find(updated_ids.begin(), updated_ids.end(), id);
     if (it == updated_ids.end()) {
-      // ID was updated
-      RCLCPP_INFO(this->get_logger(), "ID '%s' was DELETED.", id.c_str());
       auto req = std::make_shared<simulated_world_nws_ros2_msgs::srv::DeleteObject::Request>();
       req->id = id;
-      auto future = delete_obj_client_->async_send_request(req).future.share();
-      if (future.wait_for(std::chrono::milliseconds(0)) == std::future_status::ready) {
-        auto resp = future.get();
+      delete_obj_client_->async_send_request(
+      req,
+      [this, id](rclcpp::Client<simulated_world_nws_ros2_msgs::srv::DeleteObject>::SharedFuture future) {
+        const auto resp = future.get();
         if (!resp->success) {
-          RCLCPP_WARN(this->get_logger(), "Cleanup: delete failed for '%s'.", id.c_str());
-        }
-        else{
-          // update also the spawned names set
+          RCLCPP_ERROR(this->get_logger(), "deleteObject failed for '%s'", id.c_str());
+        } else {
+          RCLCPP_INFO(this->get_logger(), "Deleted '%s'", id.c_str());
           spawned_names_.erase(id);
+          // print of spawned names
+          RCLCPP_INFO(this->get_logger(), "Currently spawned names:");
+          for (const auto& name : spawned_names_) {
+            RCLCPP_INFO(this->get_logger(), "  - %s", name.c_str());
+          }
         }
       }
+    );
     }
   }
   counter_tick_++;
