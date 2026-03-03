@@ -4,12 +4,12 @@ import yaml
 import rclpy
 from rclpy.action import ActionServer, GoalResponse, CancelResponse
 from rclpy.node import Node
-from congestion_coverage_plan_museum.mdp.MDP import MDP, State
-from congestion_coverage_plan_museum.map_utils.OccupancyMap import OccupancyMap
-from congestion_coverage_plan_museum.cliff_predictor.PredictorCreator import create_generic_cliff_predictor
-from congestion_coverage_plan_museum.bt_utils.BTWriter import BTWriter
-from congestion_coverage_plan_museum.detections_retriever.DetectionsRetriever import DetectionsRetriever
-from congestion_coverage_plan_museum.solver.LrtdpTvmaAlgorithm import LrtdpTvmaAlgorithm
+from congestion_coverage_plan.mdp.MDP import MDP, State
+from congestion_coverage_plan.map_utils.OccupancyMap import OccupancyMap
+from congestion_coverage_plan.cliff_predictor.PredictorCreator import create_generic_cliff_predictor
+from congestion_coverage_plan.bt_utils.BTWriter import BTWriter
+from congestion_coverage_plan.detections_retriever.DetectionsRetriever import DetectionsRetriever
+from congestion_coverage_plan.solver.LrtdpTvmaAlgorithm import LrtdpTvmaAlgorithm
 from planner_interfaces.action import Plan
 from blackboard_interfaces.srv import GetIntBlackboard
 import sys
@@ -249,14 +249,16 @@ class PlannerComponent(Node):
         lrtdp = LrtdpTvmaAlgorithm(occupancy_map=occupancy_map,
                             initial_state_name=current_state.get_vertex(),
                             convergence_threshold=self._convergence_threshold,
-                            time_bound_real=self._time_bound_real,
-                            planner_time_bound=self._time_bound_lrtdp,
+                            planning_time_bound=self._time_bound_real,
+                            solution_time_bound=self._time_bound_lrtdp,
                             time_for_occupancies=self._time_for_occupancies,
                             time_start=self._start_time,
                             wait_time=self._wait_time,
                             explain_time=self._explain_time,
                             heuristic_function="madama_experiments",
-                            initial_state=current_state)
+                            initial_state=current_state, 
+                            is_museum_experiment=True
+                            )
 
 
         self.get_logger().info("Calling LRTDP solve...")
@@ -277,7 +279,7 @@ class PlannerComponent(Node):
             self.get_logger().error(f"Error during LRTDP solve: {e}")
             self.get_logger().error(traceback.format_exc())
             raise
-        policy = lrtdp.policy
+        policy = lrtdp.get_policy_to_execute()
         self.get_logger().info(f"After Policy LRTDP...")
         if result is None:
             self.get_logger().error('No plan found.')
@@ -309,13 +311,12 @@ class PlannerComponent(Node):
     
             
 
-
     def iterate_over_policy(self, policy, current_state):
         self.get_logger().info("Iterating over policy...")
         state = current_state
         sequence_of_pois = []
         # pois_already_done = current_state.get_pois_done()
-        while state is not None:
+        while str(state) in policy.keys() :
             self.get_logger().info(f"Current state: {state}")
             action = policy[str(state)][2] # get action
             self.get_logger().info(f"Action: {action}")
