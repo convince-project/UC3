@@ -7,7 +7,7 @@
   xmlns="http://www.w3.org/2005/07/scxml">
 
     <datamodel>
-        <data id="percentage" type="int32" expr="100" />
+        <data id="percentage" type="float32" expr="100" />
         <data id="SKILL_SUCCESS" type="int8" expr="0" />
         <data id="SKILL_FAILURE" type="int8" expr="1" />
     </datamodel>
