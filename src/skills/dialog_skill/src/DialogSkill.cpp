@@ -127,6 +127,7 @@ bool DialogSkill::start(int argc, char *argv[])
 
     nodeAnswer = rclcpp::Node::make_shared(m_name + "SkillAnswer");
     clientAnswer = nodeAnswer->create_client<dialog_interfaces::srv::Answer>("/DialogComponent/Answer");
+    clientAnswer->configure_introspection(nodeAnswer->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
     
     setCommandClientNode = rclcpp::Node::make_shared("DialogComponentSetCommandNode");
     setMicrophoneClient = setCommandClientNode->create_client<text_to_speech_interfaces::srv::SetMicrophone>("/TextToSpeechComponent/SetMicrophone");
