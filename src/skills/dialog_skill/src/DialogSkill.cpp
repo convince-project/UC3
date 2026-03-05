@@ -111,7 +111,7 @@ bool DialogSkill::start(int argc, char *argv[])
     nodeSynthesizeText = rclcpp::Node::make_shared(m_name + "SkillNodeSynthesizeText");
     this->clientSynthesizeText =
         rclcpp_action::create_client<text_to_speech_interfaces::action::BatchGeneration>(this->nodeSynthesizeText, "/TextToSpeechComponent/BatchGenerationAction");
-
+                                                                                    
     nodeSetLanguage = rclcpp::Node::make_shared(m_name + "SkillSetLanguage");
     clientSetLanguage = nodeSetLanguage->create_client<dialog_interfaces::srv::SetLanguage>("/DialogComponent/SetLanguage");
 
@@ -121,9 +121,11 @@ bool DialogSkill::start(int argc, char *argv[])
 
     nodeShortenReply = rclcpp::Node::make_shared(m_name + "SkillShortenReply");
     clientShortenReply = nodeShortenReply->create_client<dialog_interfaces::srv::ShortenReply>("/DialogComponent/ShortenReply");
+    clientShortenReply->configure_introspection(nodeShortenReply->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
 
     nodeInterpretCommand = rclcpp::Node::make_shared(m_name + "SkillInterpretCommand");
     clientInterpretCommand = nodeInterpretCommand->create_client<dialog_interfaces::srv::InterpretCommand>("/DialogComponent/InterpretCommand");
+    clientInterpretCommand->configure_introspection(nodeInterpretCommand->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
 
     nodeAnswer = rclcpp::Node::make_shared(m_name + "SkillAnswer");
     clientAnswer = nodeAnswer->create_client<dialog_interfaces::srv::Answer>("/DialogComponent/Answer");

@@ -429,7 +429,7 @@ bool DialogComponent::start(int argc, char *argv[])
                                                                                        std::placeholders::_2),
                                                                              rclcpp::ServicesQoS(),
                                                                              service_cb_group_);
-    m_AnsweService->configure_introspection(m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);/*END_TICK*/
+    m_AnswerService->configure_introspection(m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
 
     m_SetLanguageService = m_node->create_service<dialog_interfaces::srv::SetLanguage>("/DialogComponent/SetLanguage",
                                                                                        std::bind(&DialogComponent::SetLanguage,
