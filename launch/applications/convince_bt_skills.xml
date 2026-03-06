@@ -310,6 +310,13 @@
          <workdir />
          <node>bt</node>
     </module>
+    
+    <module>
+         <name>ros2_dummy_action</name>
+         <parameters>run dummy_action dummy_action --skill_name NarratePoi --default_status SUCCESS</parameters>
+         <workdir />
+         <node>opt</node>
+    </module>
 
     <module>
          <name>ros2_dummy_condition</name>
@@ -317,6 +324,8 @@
          <workdir />
          <node>bt</node>
     </module>
+    
+    
 
     <module>
         <name>ros2_say_skip_questions_skill</name>
