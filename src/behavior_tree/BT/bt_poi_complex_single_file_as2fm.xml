@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="3" main_tree_to_execute="BehaviorTree">
+
+  <!--
+    AS2FM-friendly, single-file BT:
+    - no SubTree usage
+    - only one BehaviorTree element
+    - uses only BT control nodes supported by AS2FM once Parallel/SequenceStar models are present
+    - ROS2Action/ROS2Condition expose explicit service names as ports
+
+    Note: this version intentionally does NOT include the dynamic planner step.
+  -->
+
+  <BehaviorTree ID="BehaviorTree">
+    <SequenceWithMemory>
+
+      <!-- BatteryManagement (inlined) -->
+      <ReactiveSequence>
+        <ReactiveFallback>
+          <Sequence>
+            <ROS2Condition name="BatteryLevel" interface="ROS2SERVICE" isMonitored="false" service_name="/BatteryLevelSkill/tick"/>
+            <Inverter>
+              <ROS2Condition name="BatteryCharging" interface="ROS2SERVICE" isMonitored="false" service_name="/BatteryChargingSkill/tick"/>
+            </Inverter>
+          </Sequence>
+          <ReactiveSequence>
+            <Inverter>
+              <ROS2Condition name="BatteryCharging" interface="ROS2SERVICE" isMonitored="false" service_name="/BatteryChargingSkill/tick"/>
+            </Inverter>
+            <Sequence>
+              <ReactiveFallback>
+                <ROS2Condition name="IsAtChargingStation" interface="ROS2SERVICE" isMonitored="false" service_name="/IsAtChargingStationSkill/tick"/>
+                <SequenceWithMemory>
+                  <ROS2Action name="ResetTourAndFlags" interface="ROS2SERVICE" isMonitored="false" service_name_tick="/ResetTourAndFlagsSkill/tick" service_name_halt="/ResetTourAndFlagsSkill/halt"/>
+                  <ROS2Action name="GoToChargingStation" interface="ROS2SERVICE" isMonitored="false" service_name_tick="/GoToChargingStationSkill/tick" service_name_halt="/GoToChargingStationSkill/halt"/>
+                  <ROS2Action name="Wait" interface="ROS2SERVICE" isMonitored="false" service_name_tick="/WaitSkill/tick" service_name_halt="/WaitSkill/halt"/>
+                </SequenceWithMemory>
+              </ReactiveFallback>
+            </Sequence>
+          </ReactiveSequence>
+        </ReactiveFallback>
+        <Sequence>
+          <ROS2Action name="NotifyCharged" interface="ROS2SERVICE" isMonitored="false" service_name_tick="/NotifyChargedSkill/tick" service_name_halt="/NotifyChargedSkill/halt"/>
+          <ROS2Condition name="IsAllowedToMove" interface="ROS2SERVICE" isMonitored="false" service_name="/IsAllowedToMoveSkill/tick"/>
+        </Sequence>
+      </ReactiveSequence>
+
+      <!-- MuseumHours (inlined) -->
+      <Fallback>
+        <Inverter>
+          <ROS2Condition name="CheckIfStart" interface="ROS2SERVICE" isMonitored="false" service_name="/CheckIfStartSkill/tick"/>
+        </Inverter>
+        <Inverter>
+          <ROS2Condition name="IsMuseumClosing" interface="ROS2SERVICE" isMonitored="false" service_name="/IsMuseumClosingSkill/tick"/>
+        </Inverter>
+      </Fallback>
+
+      <!-- PoiScheduler (inlined decisions from bt_scheduler.xml) -->
+      <Fallback>
+        <Sequence>
+          <Inverter>
+            <ROS2Condition name="IsPoiDone0" interface="ROS2SERVICE" isMonitored="false" service_name="/IsPoiDone0Skill/tick"/>
+          </Inverter>
+          <ROS2Action name="SetPoi0" interface="ROS2SERVICE" isMonitored="false" service_name_tick="/SetPoi0Skill/tick" service_name_halt="/SetPoi0Skill/halt"/>
+        </Sequence>
+
+        <Sequence>
+          <Inverter>
+            <ROS2Condition name="IsPoiDone2" interface="ROS2SERVICE" isMonitored="false" service_name="/IsPoiDone2Skill/tick"/>
+          </Inverter>
+          <ROS2Action name="SetPoi2" interface="ROS2SERVICE" isMonitored="false" service_name_tick="/SetPoi2Skill/tick" service_name_halt="/SetPoi2Skill/halt"/>
+        </Sequence>
+
+        <Sequence>
+          <Inverter>
+            <ROS2Condition name="IsPoiDone4" interface="ROS2SERVICE" isMonitored="false" service_name="/IsPoiDone4Skill/tick"/>
+          </Inverter>
+          <ROS2Action name="SetPoi4" interface="ROS2SERVICE" isMonitored="false" service_name_tick="/SetPoi4Skill/tick" service_name_halt="/SetPoi4Skill/halt"/>
+        </Sequence>
+
+        <Sequence>
+          <Inverter>
+            <ROS2Condition name="IsPoiDone5" interface="ROS2SERVICE" isMonitored="false" service_name="/IsPoiDone5Skill/tick"/>
+          </Inverter>
+          <ROS2Action name="SetPoi5" interface="ROS2SERVICE" isMonitored="false" service_name_tick="/SetPoi5Skill/tick" service_name_halt="/SetPoi5Skill/halt"/>
+        </Sequence>
+
+        <ROS2Action name="ResetTourAndFlags" interface="ROS2SERVICE" isMonitored="false" service_name_tick="/ResetTourAndFlagsSkill/tick" service_name_halt="/ResetTourAndFlagsSkill/halt"/>
+      </Fallback>
+
+      <!-- GoToPoi (inlined) -->
+      <Fallback>
+        <ROS2Condition name="IsAtCurrentPoi" interface="ROS2SERVICE" isMonitored="false" service_name="/IsAtCurrentPoiSkill/tick"/>
+        <ReactiveSequence>
+
+          <!-- PeopleFollowing (inlined) -->
+          <ReactiveFallback>
+            <ROS2Condition name="CheckIfStart" interface="ROS2SERVICE" isMonitored="false" service_name="/CheckIfStartSkill/tick"/>
+            <Inverter>
+              <ROS2Condition name="IsAllowedToTurnBack" interface="ROS2SERVICE" isMonitored="false" service_name="/IsAllowedToTurnBackSkill/tick"/>
+            </Inverter>
+            <ROS2Condition name="VisitorsFollowingRobot" interface="ROS2SERVICE" isMonitored="false" service_name="/VisitorsFollowingRobotSkill/tick"/>
+            <ReactiveSequence>
+              <ReactiveFallback>
+                <ROS2Condition name="IsCheckingForPeople" interface="ROS2SERVICE" isMonitored="false" service_name="/IsCheckingForPeopleSkill/tick"/>
+                <ReactiveSequence>
+                  <ROS2Action name="SetTurning" interface="ROS2SERVICE" isMonitored="false" service_name_tick="/SetTurningSkill/tick" service_name_halt="/SetTurningSkill/halt"/>
+                  <ROS2Action name="StopAndTurnBack" interface="ROS2SERVICE" isMonitored="false" service_name_tick="/StopAndTurnBackSkill/tick" service_name_halt="/StopAndTurnBackSkill/halt"/>
+                  <ROS2Action name="SetTurned" interface="ROS2SERVICE" isMonitored="false" service_name_tick="/SetTurnedSkill/tick" service_name_halt="/SetTurnedSkill/halt"/>
+                </ReactiveSequence>
+              </ReactiveFallback>
+              <ROS2Action name="RunTimer" interface="ROS2SERVICE" isMonitored="false" service_name_tick="/RunTimerSkill/tick" service_name_halt="/RunTimerSkill/halt"/>
+              <ROS2Action name="Wait" interface="ROS2SERVICE" isMonitored="false" service_name_tick="/WaitSkill/tick" service_name_halt="/WaitSkill/halt"/>
+            </ReactiveSequence>
+          </ReactiveFallback>
+
+          <ReactiveSequence>
+            <ROS2Action name="SetNotTurning" interface="ROS2SERVICE" isMonitored="false" service_name_tick="/SetNotTurningSkill/tick" service_name_halt="/SetNotTurningSkill/halt"/>
+            <Sequence>
+              <ROS2Action name="GoToPoiAction" interface="ROS2SERVICE" isMonitored="false" service_name_tick="/GoToPoiActionSkill/tick" service_name_halt="/GoToPoiActionSkill/halt"/>
+            </Sequence>
+          </ReactiveSequence>
+        </ReactiveSequence>
+      </Fallback>
+
+      <!-- CheckArtworkAndExplain (inlined) -->
+      <SequenceWithMemory>
+        <ROS2Action name="NarratePoi" interface="ROS2SERVICE" isMonitored="false" service_name_tick="/NarratePoiSkill/tick" service_name_halt="/NarratePoiSkill/halt"/>
+        <ROS2Action name="SetCurrentPoiDone" interface="ROS2SERVICE" isMonitored="false" service_name_tick="/SetCurrentPoiDoneSkill/tick" service_name_halt="/SetCurrentPoiDoneSkill/halt"/>
+        <ROS2Action name="ResetCounters" interface="ROS2SERVICE" isMonitored="false" service_name_tick="/ResetCountersSkill/tick" service_name_halt="/ResetCountersSkill/halt"/>
+      </SequenceWithMemory>
+
+    </SequenceWithMemory>
+  </BehaviorTree>
+</root>
