@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ascxml
+       xmlns="http://www.w3.org/2005/07/ascxml"
+       version="1.0"
+       initial="idle"
+       name="AllowedToMoveComponent"
+       datamodel="ecmascript">
+
+  <datamodel>
+    <data id="is_robot_allowed_to_move" type="bool" expr="true"/>
+  </datamodel>
+
+  <!-- <ros_service_server service_name="/AllowedToMoveComponent/SetAllowedToMove" type="allowed_to_move_interfaces/SetAllowedToMove"/> -->
+  <ros_service_server service_name="/AllowedToMoveComponent/IsAllowedToMove" type="allowed_to_move_interfaces/IsAllowedToMove"/>
+
+  <state id="idle">
+    <!-- <ros_service_handle_request name="/AllowedToMoveComponent/SetAllowedToMove" target="HandleSetAllowedToMove"> -->
+      <!-- <assign location="is_robot_allowed_to_move" expr="_req.is_allowed_to_move"/>
+    </ros_service_handle_request> -->
+
+    <ros_service_handle_request name="/AllowedToMoveComponent/IsAllowedToMove" target="HandleIsAllowedToMove"/>
+  </state>
+
+  <!-- <state id="HandleSetAllowedToMove">
+    <onentry>
+      <ros_service_send_response name="/AllowedToMoveComponent/SetAllowedToMove">
+        <field name="is_ok" expr="true"/>
+        <field name="error_msg" expr="''"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state> -->
+
+  <state id="HandleIsAllowedToMove">
+    <onentry>
+      <ros_service_send_response name="/AllowedToMoveComponent/IsAllowedToMove">
+        <field name="is_allowed_to_move" expr="is_robot_allowed_to_move"/>
+        <field name="is_ok" expr="true"/>
+        <field name="error_msg" expr="''"/>        
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+</ascxml>
