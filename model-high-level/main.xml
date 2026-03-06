@@ -7,38 +7,29 @@
     </mc_parameters>
 
     <behavior_tree>
-        <input type="bt.cpp-xml" src="./Policy/policy_all_in_one.xml" />
+	    <input type="bt.cpp-xml" src="./Policy/bt_merged.xml" />
         <input type="bt-plugin-ascxml" src="./Plugins/ROS2Condition.ascxml" />
         <input type="bt-plugin-ascxml" src="./Plugins/ROS2Action.ascxml" />
     </behavior_tree>
-
-
 
     <node_models>
         <input type="node-ascxml" src="./Components/AllowedToMoveComponent.ascxml" />
         <input type="node-ascxml" src="./Components/BatteryComponent.ascxml" />
         <input type="node-ascxml" src="./Components/BlackboardComponent.ascxml" />
         <input type="node-ascxml" src="./Components/CheckNetworkComponent.ascxml" />
-        <!-- <input type="node-ascxml" src="./Components/ManagePeopleDetectorComponent.ascxml" /> -->
         <input type="node-ascxml" src="./Components/NarrateComponent.ascxml" />
         <input type="node-ascxml" src="./Components/NavigationComponent.ascxml" />
         <input type="node-ascxml" src="./Components/NotifyUserComponent.ascxml" />
         <input type="node-ascxml" src="./Components/PeopleDetectorFilterComponent.ascxml" />
         <input type="node-ascxml" src="./Components/SchedulerComponent.ascxml" />
-        <!-- <input type="node-ascxml" src="./Components/SpeechToTextComponent.ascxml" /> -->
-        <!-- <input type="node-ascxml" src="./Components/TextToSpeechComponent.ascxml" /> -->
         <input type="node-ascxml" src="./Components/TimerCheckForPeopleComponent.ascxml" />
         <input type="node-ascxml" src="./Components/TimerComponent.ascxml" />
         <input type="node-ascxml" src="./Components/TurnBackManagerComponent.ascxml" />
 
-
-
-        <!-- <input type="node-ascxml" id="AlarmBatteryLowSkill" src="Skills/AlarmBatteryLowSkill.ascxml" /> -->
-        <!-- <input type="node-ascxml" id="ArePeoplePresentSkill" src="Skills/ArePeoplePresentSkill.ascxml" /> -->
+        <input type="node-ascxml" id="AlarmBatteryLowSkill" src="Skills/AlarmBatteryLowSkill.ascxml" />
         <input type="node-ascxml" id="BatteryChargingSkill" src="Skills/BatteryChargingSkill.ascxml" />
         <input type="node-ascxml" id="BatteryLevelSkill" src="Skills/BatteryLevelSkill.ascxml" />
         <input type="node-ascxml" id="CheckIfStartSkill" src="Skills/CheckIfStartSkill.ascxml" />
-        <!-- <input type="node-ascxml" id="CheckIfFirstPoiSkill" src="Skills/CheckIfFirstPoiSkill.ascxml" /> -->
         <input type="node-ascxml" id="GoToChargingStationSkill" src="Skills/GoToChargingStationSkill.ascxml" />
         <input type="node-ascxml" id="GoToPoiActionSkill" src="Skills/GoToPoiActionSkill.ascxml" />
         <input type="node-ascxml" id="IsAllowedToMoveSkill" src="Skills/IsAllowedToMoveSkill.ascxml" />
@@ -46,53 +37,30 @@
         <input type="node-ascxml" id="IsAtChargingStationSkill" src="Skills/IsAtChargingStationSkill.ascxml" />
         <input type="node-ascxml" id="IsAtCurrentPoiSkill" src="Skills/IsAtCurrentPoiSkill.ascxml" />
         <input type="node-ascxml" id="IsCheckingForPeopleSkill" src="Skills/IsCheckingForPeopleSkill.ascxml" />
-        <!-- <input type="node-ascxml" id="IsMaximumDurationSkill" src="Skills/IsMaximumDurationSkill.ascxml" /> -->
         <input type="node-ascxml" id="IsMuseumClosingSkill" src="Skills/IsMuseumClosingSkill.ascxml" />
         <input type="node-ascxml" id="IsPoiDone0Skill" src="Skills/IsPoiDone0Skill.ascxml" />
-        <input type="node-ascxml" id="IsPoiDone1Skill" src="Skills/IsPoiDone1Skill.ascxml" />
         <input type="node-ascxml" id="IsPoiDone2Skill" src="Skills/IsPoiDone2Skill.ascxml" />
-        <input type="node-ascxml" id="IsPoiDone3Skill" src="Skills/IsPoiDone3Skill.ascxml" />
         <input type="node-ascxml" id="IsPoiDone4Skill" src="Skills/IsPoiDone4Skill.ascxml" />
         <input type="node-ascxml" id="IsPoiDone5Skill" src="Skills/IsPoiDone5Skill.ascxml" />
-        <!-- <input type="node-ascxml" id="IsWarningDurationSkill" src="Skills/IsWarningDurationSkill.ascxml" /> -->
         <input type="node-ascxml" id="NarratePoiSkill" src="Skills/NarratePoiSkill.ascxml" />
-        <!-- <input type="node-ascxml" id="NetworkStatusChangeSkill" src="Skills/NetworkStatusChangeSkill.ascxml" />
-        <input type="node-ascxml" id="NetworkUpSkill" src="Skills/NetworkUpSkill.ascxml" /> -->
         <input type="node-ascxml" id="NotifyChargedSkill" src="Skills/NotifyChargedSkill.ascxml" />
-        <!-- <input type="node-ascxml" id="PeopleLeftSkill" src="Skills/PeopleLeftSkill.ascxml" /> -->
         <input type="node-ascxml" id="ResetCountersSkill" src="Skills/ResetCountersSkill.ascxml" />
         <input type="node-ascxml" id="ResetTourAndFlagsSkill" src="Skills/ResetTourAndFlagsSkill.ascxml" />
-        <!-- <input type="node-ascxml" id="ResetTourSkill" src="Skills/ResetTourSkill.ascxml" /> -->
         <input type="node-ascxml" id="RunTimerSkill" src="Skills/RunTimerSkill.ascxml" />
-        <!-- <input type="node-ascxml" id="SayByeSkill" src="Skills/SayByeSkill.ascxml" /> -->
-        <!-- <input type="node-ascxml" id="SayDurationExceededSkill" src="Skills/SayDurationExceededSkill.ascxml" /> -->
-        <!-- <input type="node-ascxml" id="SayFollowMeSkill" src="Skills/SayFollowMeSkill.ascxml" /> -->
-        <!-- <input type="node-ascxml" id="SayPeopleLeftSkill" src="Skills/SayPeopleLeftSkill.ascxml" /> -->
-        <!-- <input type="node-ascxml" id="SayWarningDurationSkill" src="Skills/SayWarningDurationSkill.ascxml" /> -->
-        <!-- <input type="node-ascxml" id="SayWhileNavigatingSkill" src="Skills/SayWhileNavigatingSkill.ascxml" /> -->
         <input type="node-ascxml" id="SetCurrentPoiDoneSkill" src="Skills/SetCurrentPoiDoneSkill.ascxml" />
-        <!-- <input type="node-ascxml" id="SetNavigationPositionSkill" src="Skills/SetNavigationPositionSkill.ascxml" /> -->
         <input type="node-ascxml" id="SetNotTurningSkill" src="Skills/SetNotTurningSkill.ascxml" />
         <input type="node-ascxml" id="SetPoi0Skill" src="Skills/SetPoi0Skill.ascxml" />
-        <input type="node-ascxml" id="SetPoi1Skill" src="Skills/SetPoi1Skill.ascxml" />
         <input type="node-ascxml" id="SetPoi2Skill" src="Skills/SetPoi2Skill.ascxml" />
-        <input type="node-ascxml" id="SetPoi3Skill" src="Skills/SetPoi3Skill.ascxml" />
         <input type="node-ascxml" id="SetPoi4Skill" src="Skills/SetPoi4Skill.ascxml" />
         <input type="node-ascxml" id="SetPoi5Skill" src="Skills/SetPoi5Skill.ascxml" />
         <input type="node-ascxml" id="SetTurnedSkill" src="Skills/SetTurnedSkill.ascxml" />
         <input type="node-ascxml" id="SetTurningSkill" src="Skills/SetTurningSkill.ascxml" />
-        <!-- <input type="node-ascxml" id="StartServiceSkill" src="Skills/StartServiceSkill.ascxml" /> -->
-        <!-- <input type="node-ascxml" id="StartTourTimerSkill" src="Skills/StartTourTimerSkill.ascxml" /> -->
         <input type="node-ascxml" id="StopAndTurnBackSkill" src="Skills/StopAndTurnBackSkill.ascxml" />
-        <!-- <input type="node-ascxml" id="StopServiceSkill" src="Skills/StopServiceSkill.ascxml" /> -->
-        <!-- <input type="node-ascxml" id="StopTourTimerSkill" src="Skills/StopTourTimerSkill.ascxml" /> -->
-        <!-- <input type="node-ascxml" id="UpdatePoiSkill" src="Skills/UpdatePoiSkill.ascxml" /> -->
         <input type="node-ascxml" id="VisitorsFollowingRobotSkill" src="Skills/VisitorsFollowingRobotSkill.ascxml" />
         <input type="node-ascxml" id="WaitSkill" src="Skills/WaitSkill.ascxml" />
     </node_models>
 
     <properties>
-        <!-- <input type="xml" src="./Properties/properties.xml" /> -->
         <input type="jani" src="./Properties/properties.jani" />
     </properties>
 </convince_mc_tc>

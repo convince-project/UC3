@@ -7,13 +7,13 @@
     name="AlarmBatteryLowSkill"
     initial="idle"> 
 
-    <!-- AlarmSkill is a server for tick from the ROS2Action plugin-->
-    <ros_service_server service_name="/AlarmSkill/tick" type ="bt_interfaces_dummy/TickAction"/>
-    <!-- AlarmSkill is a server for halt from the ROS2Action plugin-->
-    <ros_service_server service_name="/AlarmSkill/halt" type ="bt_interfaces_dummy/HaltAction"/>
-    <!-- AlarmSkill is a client for StartAlarm from the NotifyUserComponent -->
+    <!-- AlarmBatteryLowSkill is a server for tick from the ROS2Action plugin-->
+    <ros_service_server service_name="/AlarmBatteryLowSkill/tick" type ="bt_interfaces_dummy/TickAction"/>
+    <!-- AlarmBatteryLowSkill is a server for halt from the ROS2Action plugin-->
+    <ros_service_server service_name="/AlarmBatteryLowSkill/halt" type ="bt_interfaces_dummy/HaltAction"/>
+    <!-- AlarmBatteryLowSkill is a client for StartAlarm from the NotifyUserComponent -->
     <ros_service_client service_name="/NotifyUserComponent/StartAlarm" type ="notify_user_interfaces/StartAlarm"/>
-    <!-- AlarmSkill is a client for StopAlarm from the NotifyUserComponent -->
+    <!-- AlarmBatteryLowSkill is a client for StopAlarm from the NotifyUserComponent -->
     <ros_service_client service_name="/NotifyUserComponent/StopAlarm" type ="notify_user_interfaces/StopAlarm"/>
 
     <datamodel>
@@ -24,10 +24,10 @@
     </datamodel>
 
     <state id="idle">
-        <ros_service_handle_request name="/AlarmSkill/tick" target="startAlarm">
+        <ros_service_handle_request name="/AlarmBatteryLowSkill/tick" target="startAlarm">
             <ros_service_send_request name="/NotifyUserComponent/StartAlarm"/>
         </ros_service_handle_request>
-        <ros_service_handle_request name="/AlarmSkill/halt" target="stopAlarm">
+        <ros_service_handle_request name="/AlarmBatteryLowSkill/halt" target="stopAlarm">
             <ros_service_send_request name="/NotifyUserComponent/StopAlarm"/>
         </ros_service_handle_request>
 
@@ -35,7 +35,7 @@
 
     <state id="startAlarm">
         <onentry>
-            <ros_service_send_response name="/AlarmSkill/tick">
+            <ros_service_send_response name="/AlarmBatteryLowSkill/tick">
                 <field name="status" expr="SKILL_RUNNING"/>
                 <field name="is_ok" expr="true"/>
             </ros_service_send_response>
@@ -44,10 +44,10 @@
             <assign location="is_ok" expr="_res.is_ok"/>
         </ros_service_handle_response>
         <!-- <ros_service_handle_response name="/NotifyUserComponent/StartAlarm" cond="!(_res.is_ok)" target="idle"> -->
-        <ros_service_handle_request name="/AlarmSkill/halt" target="stopAlarm">
+        <ros_service_handle_request name="/AlarmBatteryLowSkill/halt" target="stopAlarm">
             <ros_service_send_request name="/NotifyUserComponent/StopAlarm"/>
         </ros_service_handle_request>
-        <ros_service_handle_request name="/AlarmSkill/tick" target="startAlarm"/>
+        <ros_service_handle_request name="/AlarmBatteryLowSkill/tick" target="startAlarm"/>
     </state>
 
     <state id="evaluateReturn">
@@ -58,11 +58,11 @@
     </state>
 
     <state id="returnRunning">
-        <ros_service_handle_request name="/AlarmSkill/halt" target="stopAlarm">
+        <ros_service_handle_request name="/AlarmBatteryLowSkill/halt" target="stopAlarm">
             <ros_service_send_request name="/NotifyUserComponent/StopAlarm"/>
         </ros_service_handle_request>
-        <ros_service_handle_request name="/AlarmSkill/tick" target="returnRunning">
-            <ros_service_send_response name="/AlarmSkill/tick">
+        <ros_service_handle_request name="/AlarmBatteryLowSkill/tick" target="returnRunning">
+            <ros_service_send_response name="/AlarmBatteryLowSkill/tick">
                 <field name="status" expr="SKILL_RUNNING"/>
                 <field name="is_ok" expr="true"/>
             </ros_service_send_response>
@@ -71,11 +71,11 @@
     </state>
 
     <state id="returnFailure">
-        <ros_service_handle_request name="/AlarmSkill/halt" target="stopAlarm">
+        <ros_service_handle_request name="/AlarmBatteryLowSkill/halt" target="stopAlarm">
             <ros_service_send_request name="/NotifyUserComponent/StopAlarm"/>
         </ros_service_handle_request>
-        <ros_service_handle_request name="/AlarmSkill/tick" target="returnFailure">
-            <ros_service_send_response name="/AlarmSkill/tick">
+        <ros_service_handle_request name="/AlarmBatteryLowSkill/tick" target="returnFailure">
+            <ros_service_send_response name="/AlarmBatteryLowSkill/tick">
                 <field name="status" expr="SKILL_FAILURE"/>
                 <field name="is_ok" expr="false"/>
             </ros_service_send_response>
@@ -87,7 +87,7 @@
 
     <state id="stopAlarm">
         <ros_service_handle_response name="/NotifyUserComponent/StopAlarm" target="idle">
-            <ros_service_send_response name="/AlarmSkill/halt">
+            <ros_service_send_response name="/AlarmBatteryLowSkill/halt">
                 <field name="is_ok" expr="true"/>
             </ros_service_send_response>
         </ros_service_handle_response>
