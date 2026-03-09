@@ -27,9 +27,11 @@
         <input type="node-ascxml" src="./Components/TurnBackManagerComponent.ascxml" />
 
         <input type="node-ascxml" id="AlarmBatteryLowSkill" src="Skills/AlarmBatteryLowSkill.ascxml" />
+        <input type="node-ascxml" id="AlwaysSuccessSkill" src="Skills/AlwaysSuccessSkill.ascxml" />
         <input type="node-ascxml" id="BatteryChargingSkill" src="Skills/BatteryChargingSkill.ascxml" />
         <input type="node-ascxml" id="BatteryLevelSkill" src="Skills/BatteryLevelSkill.ascxml" />
         <input type="node-ascxml" id="CheckIfStartSkill" src="Skills/CheckIfStartSkill.ascxml" />
+        <input type="node-ascxml" id="CheckIfFirstPoiSkill" src="Skills/CheckIfFirstPoiSkill.ascxml" />
         <input type="node-ascxml" id="GoToChargingStationSkill" src="Skills/GoToChargingStationSkill.ascxml" />
         <input type="node-ascxml" id="GoToPoiActionSkill" src="Skills/GoToPoiActionSkill.ascxml" />
         <input type="node-ascxml" id="IsAllowedToMoveSkill" src="Skills/IsAllowedToMoveSkill.ascxml" />
@@ -42,19 +44,32 @@
         <input type="node-ascxml" id="IsPoiDone2Skill" src="Skills/IsPoiDone2Skill.ascxml" />
         <input type="node-ascxml" id="IsPoiDone4Skill" src="Skills/IsPoiDone4Skill.ascxml" />
         <input type="node-ascxml" id="IsPoiDone5Skill" src="Skills/IsPoiDone5Skill.ascxml" />
+        <input type="node-ascxml" id="IsPoiDone8Skill" src="Skills/IsPoiDone8Skill.ascxml" />
+        <input type="node-ascxml" id="IsPoiDone10Skill" src="Skills/IsPoiDone10Skill.ascxml" />
+        <input type="node-ascxml" id="IsTimerDoneSkill" src="Skills/IsTimerDoneSkill.ascxml" />
         <input type="node-ascxml" id="NarratePoiSkill" src="Skills/NarratePoiSkill.ascxml" />
         <input type="node-ascxml" id="NotifyChargedSkill" src="Skills/NotifyChargedSkill.ascxml" />
         <input type="node-ascxml" id="ResetCountersSkill" src="Skills/ResetCountersSkill.ascxml" />
         <input type="node-ascxml" id="ResetTourAndFlagsSkill" src="Skills/ResetTourAndFlagsSkill.ascxml" />
         <input type="node-ascxml" id="RunTimerSkill" src="Skills/RunTimerSkill.ascxml" />
+        <input type="node-ascxml" id="SayByeSkill" src="Skills/SayByeSkill.ascxml" />
+        <input type="node-ascxml" id="SayFollowMeSkill" src="Skills/SayFollowMeSkill.ascxml" />
+        <input type="node-ascxml" id="SayWhileNavigatingSkill" src="Skills/SayWhileNavigatingSkill.ascxml" />
         <input type="node-ascxml" id="SetCurrentPoiDoneSkill" src="Skills/SetCurrentPoiDoneSkill.ascxml" />
+        <input type="node-ascxml" id="SetNavigationPositionSkill" src="Skills/SetNavigationPositionSkill.ascxml" />
         <input type="node-ascxml" id="SetNotTurningSkill" src="Skills/SetNotTurningSkill.ascxml" />
         <input type="node-ascxml" id="SetPoi0Skill" src="Skills/SetPoi0Skill.ascxml" />
         <input type="node-ascxml" id="SetPoi2Skill" src="Skills/SetPoi2Skill.ascxml" />
         <input type="node-ascxml" id="SetPoi4Skill" src="Skills/SetPoi4Skill.ascxml" />
         <input type="node-ascxml" id="SetPoi5Skill" src="Skills/SetPoi5Skill.ascxml" />
+        <input type="node-ascxml" id="SetPoi8Skill" src="Skills/SetPoi8Skill.ascxml" />
+        <input type="node-ascxml" id="SetPoi10Skill" src="Skills/SetPoi10Skill.ascxml" />
         <input type="node-ascxml" id="SetTurnedSkill" src="Skills/SetTurnedSkill.ascxml" />
         <input type="node-ascxml" id="SetTurningSkill" src="Skills/SetTurningSkill.ascxml" />
+        <input type="node-ascxml" id="StartPoiTimerSkill" src="Skills/StartPoiTimerSkill.ascxml" />
+        <input type="node-ascxml" id="StartTourTimerSkill" src="Skills/StartTourTimerSkill.ascxml" />
+        <input type="node-ascxml" id="StopPoiTimerSkill" src="Skills/StopPoiTimerSkill.ascxml" />
+        <input type="node-ascxml" id="StopTourTimerSkill" src="Skills/StopTourTimerSkill.ascxml" />
         <input type="node-ascxml" id="StopAndTurnBackSkill" src="Skills/StopAndTurnBackSkill.ascxml" />
         <input type="node-ascxml" id="VisitorsFollowingRobotSkill" src="Skills/VisitorsFollowingRobotSkill.ascxml" />
         <input type="node-ascxml" id="WaitSkill" src="Skills/WaitSkill.ascxml" />
