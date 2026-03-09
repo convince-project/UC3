@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ascxml xmlns="http://www.w3.org/2005/07/scxml"
+       version="1.0"
+       name="AlwaysSuccessSkill"
+       datamodel="ecmascript"
+       initial="idle">
+
+    <ros_service_server service_name="/AlwaysSuccessSkill/tick"  type="bt_interfaces_dummy/TickCondition"/>
+
+    <state id="idle">
+
+        <ros_service_handle_request name="/AlwaysSuccessSkill/tick" target="idle">
+            <ros_service_send_response name="/AlwaysSuccessSkill/tick">
+                <field name="status" expr="0"/>
+                <field name="is_ok" expr="true"/>
+            </ros_service_send_response>
+        </ros_service_handle_request>
+        
+    </state>
+
+</ascxml>
