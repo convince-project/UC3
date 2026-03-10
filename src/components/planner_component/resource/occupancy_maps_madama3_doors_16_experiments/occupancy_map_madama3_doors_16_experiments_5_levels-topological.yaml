@@ -20,13 +20,13 @@ edges:
 - end: vertex13
   id: edge7
   start: vertex4
-- end: vertex13
+- end: vertex7
   id: edge8
   start: vertex5
 - end: vertex6
   id: edge9
   start: vertex13
-- end: vertex7
+- end: vertex5
   id: edge10
   start: vertex13
 - end: vertex14
@@ -34,7 +34,7 @@ edges:
   start: vertex6
 - end: vertex14
   id: edge12
-  start: vertex7
+  start: vertex17
 - end: vertex8
   id: edge13
   start: vertex14
@@ -59,6 +59,12 @@ edges:
 - end: vertex16
   id: edge20
   start: vertex11
+- end: vertex5
+  id: edge21
+  start: vertex4
+- end: vertex17
+  id: edge22
+  start: vertex7
 name: madama3_doors_16_experiments
 vertices:
 - id: vertex1
@@ -89,8 +95,8 @@ vertices:
   is_final_goal: false
   is_poi: true
   poi_number: 2
-  posx: 19.05
-  posy: -3.0
+  posx: 23.53
+  posy: -5.03
 - id: vertex6
   is_final_goal: false
   is_poi: true
@@ -157,3 +163,9 @@ vertices:
   poi_number: null
   posx: 0.97
   posy: -26.7
+- id: vertex17
+  is_final_goal: false
+  is_poi: false
+  poi_number: null
+  posx: 24.81
+  posy: -23.7
