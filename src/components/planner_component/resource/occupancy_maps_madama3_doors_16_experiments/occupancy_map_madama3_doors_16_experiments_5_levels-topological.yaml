@@ -26,9 +26,9 @@ edges:
 - end: vertex6
   id: edge9
   start: vertex13
-- end: vertex5
+- end: vertex13
   id: edge10
-  start: vertex13
+  start: vertex5
 - end: vertex14
   id: edge11
   start: vertex6
