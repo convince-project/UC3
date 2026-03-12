@@ -1,0 +1,140 @@
+<?xml version="1.1" encoding="UTF-8" ?>
+<properties>
+  <ports>
+    <scxml_event_send event="srv_BatteryLevelSkill__tick_response" origin="BatteryLevelSkill" target="srv_handler_BatteryLevelSkill__tick">
+      <state_var id="battery_low_alarm" param="ros_fields__status" expr="0" type="int32"/>
+    </scxml_event_send>
+
+    <scxml_event_send event="topic_BatteryComponent__battery_level_msg" origin="BatteryComponent" target="BatteryLevelSkill">
+      <state_var id="battery_level" param="ros_fields__percentage" type="float32" expr="100"/>
+      <event_var id="battery_published"/>
+    </scxml_event_send>
+
+    <scxml_event_send event="srv_CheckIfStartSkill__tick_response" origin="CheckIfStartSkill" target="srv_handler_CheckIfStartSkill__tick">
+      <state_var id="check_start" param="ros_fields__status" expr="0" type="int32"/>
+    </scxml_event_send>
+  
+    <scxml_event_send event="srv_IsAtChargingStationSkill__tick_response" origin="IsAtChargingStationSkill" target="srv_handler_IsAtChargingStationSkill__tick">
+        <state_var id="is_at_charging_station" param="ros_fields__status" expr="1" type="int32"/>
+    </scxml_event_send>
+
+    <scxml_event_send event="srv_GoToChargingStationSkill__tick_response" origin="GoToChargingStationSkill" target="srv_handler_GoToChargingStationSkill__tick">
+      <state_var id="goto_charging_station" param="ros_fields__status" type="int32" expr="1"/>
+    </scxml_event_send>
+
+    <scxml_event_send event="topic_PeopleDetectorFilterComponent__is_followed_msg" origin="PeopleDetectorFilterComponent" target="VisitorsFollowingRobotSkill">
+      <event_var id="people_following_published"/>
+    </scxml_event_send>
+
+    <!-- <scxml_event_send event="srv_SchedulerComponent__GetCurrentPoi_response" origin="SchedulerComponent" target="srv_handler_SchedulerComponent__GetCurrentPoi">
+      <state_var id="poi_selected" param="ros_fields__poi_number" expr="0" type="int32"/>
+    </scxml_event_send> -->
+    <scxml_event_send event="srv_SchedulerComponent__GetCurrentPoi_response_client_CheckIfStartSkill" origin="srv_handler_SchedulerComponent__GetCurrentPoi" target="CheckIfStartSkill">
+      <state_var id="poi_selected" type="int32" expr="0" param="ros_fields__poi_number"/>
+    </scxml_event_send>
+
+    <scxml_event_send event="srv_IsPoiDone0Skill__tick_response" origin="IsPoiDone0Skill" target="srv_handler_IsPoiDone0Skill__tick">
+      <state_var id="poi0_completed" param="ros_fields__status" expr="1" type="int32"/>
+    </scxml_event_send>
+  
+    <scxml_event_send event="topic_CheckNetworkComponent__NetworkStatus_msg" origin="CheckNetworkComponent" target="NONE">
+      <event_var id="connected_to_network"/>
+      <!-- <state_var id="connected_to_network" param="ros_fields__data" expr="true" type="bool"/> -->
+    </scxml_event_send>
+
+    <!-- <scxml_event_send event="srv_IsAtChargingStationSkill__tick_response" origin="IsAtChargingStationSkill" target="srv_handler_IsAtChargingStationSkill__tick"> -->
+      <!-- <state_var id="is_at_charging_station" param="ros_fields__status" expr="1" type="int32"/> -->
+    <!-- </scxml_event_send> -->
+  </ports>
+
+  <guarantees>
+    <!-- NOTE: Rye (Reelay) format [https://doganulus.github.io/reelay/rye/] -->
+    <!-- NOTE: List of operators: &&, ||, !, ->, S[a:b], H[a:b], O[a:b] -->
+    <!-- NOTE: Rye allows for simple predicates only (defined within curly brackets). We accept (a subset of) ECMAscript, as in the datamodel of SCXML machines. -->
+    <!-- <property id="alarm_follows_battery_low" expr="P ({ goto_charging_station_is_ok } and H { battery_level > 26 })"/> -->
+    
+    <!-- PROP 1: noAlarmWithHighBattery -->
+    <!-- Each time the battery is charged, no alarm should be triggered -->
+    <!-- PROPERTY = r"historically({high_battery} -> historically( not {alarm}))" -->
+    <property id="noAlarmWithHighBattery1" expr="historically( once({ battery_level &gt; 30 }) -&gt; { battery_low_alarm == 0 })"/>
+    <property id="noAlarmWithHighBattery2" expr="historically( once({ battery_level &gt; 30 }) -&gt; not({ battery_low_alarm == 1 }))"/>
+    <!-- PROP 2: alarmWithLowBattery -->
+    <!-- If there was an alarm the there has been at least one time before an event of low battery. -->
+    <!-- Moreover, if the battery is low then the alarm should be set within 5 seconds. -->
+    <!-- <property id="alarmWithLowBattery1" expr="H ( ({battery_low_alarm == 1} -> P{battery_level <= 30}))"/>
+    <property id="alarmWithLowBattery2" expr="H ( not ( {battery_low_alarm == 0} since[50:] {battery_level <= 30}))"/> -->
+    <property id="alarmWithLowBattery1" expr="historically( ({ battery_low_alarm == 1 }) -&gt; once({ battery_level &lt;= 30 }) )"/>
+    <property id="alarmWithLowBattery2" expr="historically( not( not({ battery_low_alarm == 1 }) since[5000:] ({ battery_level &lt;= 30 }) ) )"/>
+    <!-- PROP 3: isBatteryPublished -->
+    <!-- The battery topic should be published at least each five seconds. -->
+    <!-- <property id="isBatteryPublished" expr="H ((P[50:] true) -> P[:50] { battery_published })"/> -->
+    <property id="isBatteryPublished" expr="historically( (once[5000:] true) -&gt; (once[:5000]{ battery_published }) )"/>
+
+    <!-- PROP 4: isPoiSelectionCorrect** -->
+    <!-- WARN: tour_complete? -->
+    <!-- If the tour is completed, the robot must arrive to the start point within a certain time. -->
+    <!-- <property id="isPoiSelectionCorrect" expr="H !({check_start == 1} S[:100] {tour_complete})"/> -->
+
+    <!-- PROP 5: isPeopleFollowingPublished -->
+    <!-- The peopleFollowing topic must be published at least each 7 seconds. -->
+    <!-- <property id="isPeopleFollowingPublished" expr="H ((P[70:] true) -> P[:70] { people_following_published })"/> -->
+    <property id="isPeopleFollowingPublished" expr="historically( (once[7000:] true) -&gt; (once[:7000]{ people_following_published }) )"/>
+
+    <!-- PROP 6: isCameraPublished -->
+    <!-- WARN: Cannot find camera -->
+    <!-- The camera topic must be published at least each 5 seconds. -->
+    <!-- <property id="isCameraPublished" expr="H ((P[50:] true) -> P[:50] { camera_published })"/> -->
+
+    <!-- PROP 7: notCriticalBattery -->
+    <!-- WARN: Cannot find critical_battery -->
+    <!-- It must never happens that the battery level becomes critical. -->
+    <!-- <property id="notCriticalBattery" expr="H { battery_level > 5 }"/> -->
+    <property id="notCriticalBattery1" expr="historically({ battery_level &gt; 5 })"/>
+    <property id="notCriticalBattery2" expr="historically(not({ battery_level &lt;= 5 }))"/>
+
+    <!-- PROP 8: notWheelsHWFault -->
+    <!-- WARN: Cannot find weel/joint/control -->
+    <!-- The wheels joints must not be in hardware fault. -->
+
+    <!-- PROP 9: notJointsHWFault -->
+    <!-- WARN: Cannot find joint/control -->
+    <!-- The joints of the robot must not be in hardware fault. -->
+
+    <!-- PROP 10 POI1: isPOICompletedInTime -->
+    <!-- WARN: timer only gets up to 100_000ms i.e. 100s (resolution 100ms) -->
+    <!-- WARN: poi_selected is never 1 -->
+    <!-- If a POI is completed, than it must have been set to selected before. -->
+    <!-- Moreover, if a POI is selected then it must be completed within 10 minutes (600 seconds). -->
+    <!-- <property id="isPOI1CompletedInTime" expr="H (({poi1_completed == 0} -> P{poi_selected == 1}) and not( {poi1_completed != 0} S[6000:] {poi_selected == 1}))"/> -->
+    <!-- <property id="neverPOI" expr="H{poi_selected == 0}"/> -->
+
+    <!-- PROP 11: isWellLocalized -->
+    <!-- WARN: cannot find localized/acml -->
+    <!-- The robot must be well localized: i.e. the covariance provided by amcl must be lower than or equal to a certain threshold. -->
+
+    <!-- PROP 12: isMicrophonePluggedIn -->
+    <!-- WARN: cannot find microphone -->
+    <!-- If the microphone is plugged in then the covariance of the audio’s output, when the microphone is recording, should be greater than a certain threshold. -->
+
+    <!-- PROP 13: isExternalPCConnected -->
+    <!-- The laptop used for launching the tour should be connected. -->
+    <!-- <property id="isExternalPCConnected" expr="H((P[50:] true) -> P[:30]{connected_to_network})"/> -->
+    <property id="isExternalPCConnected" expr="historically( (once[3000:] true) -&gt; (once[:3000]{ connected_to_network }) )"/>
+
+    <!-- PROP 14: isConnectedToWeb -->
+    <!-- WARN: cannot find web -->
+    <!-- The laptop or R1 base should always be connected to the web. -->
+
+    <!-- PROP 15: isArrivedAtChargingStationInTime** -->
+    <!-- WARN: never gets to charging station -->
+    <!-- When the battery is low it should arrive to the charging station within a certain amount of time. -->
+    <!-- <property id="isArrivedAtChargingStationInTime" expr="H (not ({is_at_charging_station != 0} S[:600] { battery_low_alarm == 1 }))"/>ù -->
+    <property id="isArrivedAtChargingStationInTime" expr="historically( not( not({ is_at_charging_station == 0 }) since[60000:] ({ battery_low_alarm == 1 }) ) )"/>
+
+  </guarantees>
+
+  <assumes>
+    <!-- NOTE: Same format as guarantees -->
+    <!-- <property ... /> -->
+  </assumes>
+</properties>
