@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ascxml
+  version="1.0"
+  xmlns="http://www.w3.org/2005/07/scxml"
+  datamodel="ecmascript"
+  name="TimerComponent"
+  initial="operational">
+
+  <datamodel>
+    <data id="tour_timer_active" type="bool" expr="false" />
+    <data id="poi_timer_active" type="bool" expr="false" />
+    <data id="tour_counter_ms" type="int32" expr="0" />
+    <data id="poi_counter_ms" type="int32" expr="0" />
+    <data id="tour_counter_max_ms" type="int32" expr="30000" />
+  </datamodel>
+
+  <ros_service_server service_name="/TimeComponent/StartTourTimer" type="time_interfaces/StartTourTimer"/>
+  <ros_service_server service_name="/TimeComponent/StopTourTimer" type="time_interfaces/StopTourTimer"/>
+  <ros_service_server service_name="/TimeComponent/StartPoiTimer" type="time_interfaces/StartPoiTimer"/>
+  <ros_service_server service_name="/TimeComponent/StopPoiTimer" type="time_interfaces/StopPoiTimer"/>
+  <!-- <ros_service_server service_name="/TimeComponent/ReloadConfigFile" type="time_interfaces/ReloadConfigFile"/> -->
+  <ros_service_server service_name="/TimeComponent/IsMuseumClosing" type="time_interfaces/IsMuseumClosing"/>
+  <!-- <ros_topic_publisher name="/TimeComponent/TourTimer" type="std_msgs/String"/> -->
+
+  <!-- 10 Hz callback: the tour timer advances every 100 millisecond while active. -->
+  <ros_time_rate name="time_component_control_timer" rate_hz="10" />
+
+  <state id="operational">
+    <ros_rate_callback name="time_component_control_timer" target="operational">
+      <if cond="tour_timer_active">
+        <assign location="tour_counter_ms" expr="tour_counter_ms + 100"/>
+      </if>
+      <if cond="poi_timer_active">
+        <!-- For simplicity, we use the same counter for both timers, but in a real implementation they would likely be separate. -->
+        <assign location="poi_counter_ms" expr="poi_counter_ms + 100"/>
+      </if>
+    </ros_rate_callback>
+
+    <ros_service_handle_request name="/TimeComponent/StartTourTimer" target="operational">
+      <assign location="tour_timer_active" expr="true"/>
+      <ros_service_send_response name="/TimeComponent/StartTourTimer">
+        <field name="is_ok" expr="true"/>
+        <field name="error_msg" expr="''"/>
+      </ros_service_send_response>
+    </ros_service_handle_request>
+
+    <ros_service_handle_request name="/TimeComponent/StopTourTimer" target="operational">
+      <assign location="tour_timer_active" expr="false"/>
+      <assign location="tour_counter_ms" expr="0"/>
+      <ros_service_send_response name="/TimeComponent/StopTourTimer">
+        <field name="is_ok" expr="true"/>
+        <field name="error_msg" expr="''"/>
+      </ros_service_send_response>
+    </ros_service_handle_request>
+
+    <ros_service_handle_request name="/TimeComponent/StartPoiTimer" target="operational">
+      <assign location="poi_timer_active" expr="true"/>
+      <ros_service_send_response name="/TimeComponent/StartPoiTimer">
+        <field name="is_ok" expr="true"/>
+        <field name="error_msg" expr="''"/>
+      </ros_service_send_response>
+    </ros_service_handle_request>
+
+    <ros_service_handle_request name="/TimeComponent/StopPoiTimer" target="operational">
+      <assign location="poi_timer_active" expr="false"/>
+      <ros_service_send_response name="/TimeComponent/StopPoiTimer">
+        <field name="is_ok" expr="true"/>
+        <field name="error_msg" expr="''"/>
+      </ros_service_send_response>
+    </ros_service_handle_request>
+
+    <ros_service_handle_request name="/TimeComponent/IsMuseumClosing" target="operational">
+      <ros_service_send_response name="/TimeComponent/IsMuseumClosing">
+        <field name="is_closing" expr="tour_counter_ms &gt;= tour_counter_max_ms"/>
+        <field name="is_ok" expr="true"/>
+        <field name="error_msg" expr="''"/>
+      </ros_service_send_response>
+    </ros_service_handle_request>
+  </state>
+</ascxml>

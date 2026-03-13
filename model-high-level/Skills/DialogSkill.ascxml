@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ascxml
+  xmlns="http://www.w3.org/2005/07/scxml"
+  version="1.0"
+  name="DialogSkill"
+  datamodel="ecmascript"
+  initial="idle">
+
+  <datamodel>
+    <data id="STATUS_DONE"    type="int16"  expr="2"/>
+    <data id="m_language"     type="string" expr="''"/>
+    <data id="m_state"        type="int16"  expr="0"/>
+    <data id="m_error_count"  type="int8"   expr="0"/>
+    <data id="MAX_RETRIES"    type="int8"   expr="3"/>
+    <data id="SKILL_SUCCESS"  type="int8"   expr="0"/>
+    <data id="SKILL_FAILURE"  type="int8"   expr="1"/>
+    <data id="SKILL_RUNNING"  type="int8"   expr="2"/>
+  </datamodel>
+
+
+  <!-- ROS2 service servers for tick and halt -->
+  <ros_service_server service_name="/DialogSkill/tick" type="bt_interfaces_dummy/TickAction"/>
+  <ros_service_server service_name="/DialogSkill/halt" type="bt_interfaces_dummy/HaltAction"/>
+
+  <state id="idle">
+    <onentry>
+      <!-- Reset error counter on new execution -->
+      <assign location="m_error_count" expr="0"/>
+    </onentry>
+    <!-- tick request -->
+    <ros_service_handle_request name="/DialogSkill/tick" target="idle">
+      <ros_service_send_response name="/DialogSkill/tick">
+        <field name="status" expr="SKILL_SUCCESS"/>
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
+    </ros_service_handle_request>
+    <!-- halt request -->
+    <ros_service_handle_request name="/DialogSkill/halt" target="idle">
+      <ros_service_send_response name="/DialogSkill/halt">
+        <field name="is_ok" expr="true"/>
+      </ros_service_send_response>
+    </ros_service_handle_request>
+  </state>
+
+
+</ascxml>
