@@ -22,17 +22,17 @@
   <ros_service_server service_name="/TimeComponent/IsMuseumClosing" type="time_interfaces/IsMuseumClosing"/>
   <!-- <ros_topic_publisher name="/TimeComponent/TourTimer" type="std_msgs/String"/> -->
 
-  <!-- 1 kHz callback: the tour timer advances every millisecond while active. -->
-  <ros_time_rate name="time_component_control_timer" rate_hz="1000" />
+  <!-- 10 Hz callback: the tour timer advances every 100 millisecond while active. -->
+  <ros_time_rate name="time_component_control_timer" rate_hz="10" />
 
   <state id="operational">
     <ros_rate_callback name="time_component_control_timer" target="operational">
       <if cond="tour_timer_active">
-        <assign location="tour_counter_ms" expr="tour_counter_ms + 1"/>
+        <assign location="tour_counter_ms" expr="tour_counter_ms + 100"/>
       </if>
       <if cond="poi_timer_active">
         <!-- For simplicity, we use the same counter for both timers, but in a real implementation they would likely be separate. -->
-        <assign location="poi_counter_ms" expr="poi_counter_ms + 1"/>
+        <assign location="poi_counter_ms" expr="poi_counter_ms + 100"/>
       </if>
     </ros_rate_callback>
 
