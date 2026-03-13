@@ -141,7 +141,8 @@ RUN /bin/bash -c "git clone https://github.com/hsp-iit/rag_baseline.git && \
     python3 -m venv rag_baseline_env && \
     source rag_baseline_env/bin/activate && \
     pip install --upgrade pip && \
-    pip install crawl4ai sentence-transformers numpy && \
+    pip install crawl4ai sentence-transformers numpy empy catkin_pkg && \
+    source /opt/ros/jazzy/setup.bash && \
     cd rag_ws && colcon build"
 
 RUN echo "source /home/user1/rag_baseline/rag_ws/install/setup.bash" >> ~/.bashrc
