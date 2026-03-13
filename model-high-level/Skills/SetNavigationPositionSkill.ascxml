@@ -9,7 +9,7 @@
   <datamodel>
     <data id="DANCE_NAME"     type="string"     expr="'navigation_position'"/>
     <data id="is_dancing"  type="bool" expr="false"/>
-    <data id="result"      type="bool"  expr="''"/>
+    <data id="result"      type="bool"  expr="false"/>
     <data id="SKILL_SUCCESS" type="int8" expr="0"/>
     <data id="SKILL_FAILURE" type="int8" expr="1"/>
     <data id="SKILL_RUNNING" type="int8" expr="2"/>
