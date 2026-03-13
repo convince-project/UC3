@@ -81,5 +81,6 @@
 
     <properties>
         <input type="jani" src="./Properties/properties.jani" />
+        <input type="xml" src="./Properties/properties.xml" />
     </properties>
 </convince_mc_tc>

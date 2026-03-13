@@ -1,75 +1,88 @@
-<?xml version="1.1" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <properties>
   <ports>
-    <scxml_event_send event="srv_BatteryLevelSkill__tick_response" origin="BatteryLevelSkill" target="srv_handler_BatteryLevelSkill__tick">
-      <state_var id="battery_low_alarm" param="ros_fields__status" expr="0" type="int32"/>
-    </scxml_event_send>
+    <!-- <ros_service_handle_request name="/NotifyUserComponent/StartAlarm" target="HandleStartAlarm"/> -->
+    <ros_service service_name="/NotifyUserComponent/StartAlarm" type="notify_user_interfaces/StartAlarm" event="response">
+      <event_var id="battery_low_alarm"/>
+    </ros_service>
 
-    <scxml_event_send event="topic_BatteryComponent__battery_level_msg" origin="BatteryComponent" target="BatteryLevelSkill">
-      <state_var id="battery_level" param="ros_fields__percentage" type="float32" expr="100"/>
+    <ros_topic topic_name="/BatteryComponent/battery_level" type="sensor_msgs/BatteryState" event="publish">
+      <state_var id="battery_level" field="percentage" type="int32" expr="100"/>
       <event_var id="battery_published"/>
-    </scxml_event_send>
+    </ros_topic>
 
-    <scxml_event_send event="srv_CheckIfStartSkill__tick_response" origin="CheckIfStartSkill" target="srv_handler_CheckIfStartSkill__tick">
-      <state_var id="check_start" param="ros_fields__status" expr="0" type="int32"/>
-    </scxml_event_send>
-  
-    <scxml_event_send event="srv_IsAtChargingStationSkill__tick_response" origin="IsAtChargingStationSkill" target="srv_handler_IsAtChargingStationSkill__tick">
-        <state_var id="is_at_charging_station" param="ros_fields__status" expr="1" type="int32"/>
-    </scxml_event_send>
+    <ros_service service_name="/CheckIfStartSkill/tick" type="bt_interfaces_dummy/TickCondition" event="response">
+      <state_var id="check_start" field="status" expr="0" type="int32"/>
+    </ros_service>
 
-    <scxml_event_send event="srv_GoToChargingStationSkill__tick_response" origin="GoToChargingStationSkill" target="srv_handler_GoToChargingStationSkill__tick">
-      <state_var id="goto_charging_station" param="ros_fields__status" type="int32" expr="1"/>
-    </scxml_event_send>
+    <ros_service service_name="/IsAtChargingStationSkill/tick" type="bt_interfaces_dummy/TickCondition" event="response">
+      <state_var id="is_at_charging_station" field="status" expr="1" type="int32"/>
+    </ros_service>
 
-    <scxml_event_send event="topic_PeopleDetectorFilterComponent__is_followed_msg" origin="PeopleDetectorFilterComponent" target="VisitorsFollowingRobotSkill">
+    <ros_service service_name="/GoToChargingStationSkill/tick" type="bt_interfaces_dummy/TickAction" event="response">
+      <state_var id="goto_charging_station" field="status" expr="1" type="int32"/>
+    </ros_service>
+
+    <ros_topic topic_name="/PeopleDetectorFilterComponent/is_followed" type="std_msgs/Bool" event="publish">
       <event_var id="people_following_published"/>
-    </scxml_event_send>
+    </ros_topic>
 
-    <!-- <scxml_event_send event="srv_SchedulerComponent__GetCurrentPoi_response" origin="SchedulerComponent" target="srv_handler_SchedulerComponent__GetCurrentPoi">
-      <state_var id="poi_selected" param="ros_fields__poi_number" expr="0" type="int32"/>
-    </scxml_event_send> -->
-    <scxml_event_send event="srv_SchedulerComponent__GetCurrentPoi_response_client_CheckIfStartSkill" origin="srv_handler_SchedulerComponent__GetCurrentPoi" target="CheckIfStartSkill">
-      <state_var id="poi_selected" type="int32" expr="0" param="ros_fields__poi_number"/>
-    </scxml_event_send>
+    <ros_service service_name="/SchedulerComponent/GetCurrentPoi" type="scheduler_interfaces/GetCurrentPoi" event="response">
+      <state_var id="poi_selected" field="poi_number" expr="0" type="int32"/>
+    </ros_service>
 
-    <scxml_event_send event="srv_IsPoiDone0Skill__tick_response" origin="IsPoiDone0Skill" target="srv_handler_IsPoiDone0Skill__tick">
-      <state_var id="poi0_completed" param="ros_fields__status" expr="1" type="int32"/>
-    </scxml_event_send>
-  
-    <scxml_event_send event="topic_CheckNetworkComponent__NetworkStatus_msg" origin="CheckNetworkComponent" target="NONE">
+    <ros_service service_name="/IsPoiDone0Skill/tick" type="bt_interfaces_dummy/TickCondition" event="response">
+      <state_var id="poi0_completed" field="status" expr="1" type="int32"/>
+    </ros_service>
+
+    <ros_topic topic_name="/CheckNetworkComponent/NetworkStatus" type="std_msgs/Bool" event="publish">
       <event_var id="connected_to_network"/>
-      <!-- <state_var id="connected_to_network" param="ros_fields__data" expr="true" type="bool"/> -->
-    </scxml_event_send>
-
-    <!-- <scxml_event_send event="srv_IsAtChargingStationSkill__tick_response" origin="IsAtChargingStationSkill" target="srv_handler_IsAtChargingStationSkill__tick"> -->
-      <!-- <state_var id="is_at_charging_station" param="ros_fields__status" expr="1" type="int32"/> -->
-    <!-- </scxml_event_send> -->
+    </ros_topic>
   </ports>
 
   <guarantees>
-    <!-- NOTE: Rye (Reelay) format [https://doganulus.github.io/reelay/rye/] -->
-    <!-- NOTE: List of operators: &&, ||, !, ->, S[a:b], H[a:b], O[a:b] -->
-    <!-- NOTE: Rye allows for simple predicates only (defined within curly brackets). We accept (a subset of) ECMAscript, as in the datamodel of SCXML machines. -->
-    <!-- <property id="alarm_follows_battery_low" expr="P ({ goto_charging_station_is_ok } and H { battery_level > 26 })"/> -->
-    
     <!-- PROP 1: noAlarmWithHighBattery -->
     <!-- Each time the battery is charged, no alarm should be triggered -->
     <!-- PROPERTY = r"historically({high_battery} -> historically( not {alarm}))" -->
-    <property id="noAlarmWithHighBattery1" expr="historically( once({ battery_level &gt; 30 }) -&gt; { battery_low_alarm == 0 })"/>
-    <property id="noAlarmWithHighBattery2" expr="historically( once({ battery_level &gt; 30 }) -&gt; not({ battery_low_alarm == 1 }))"/>
+    <property id="noAlarmWithHighBattery1" pattern="universality">
+      <event>! battery_low_alarm</event>
+      <scope type="after" event="battery_level &gt; 30"/>
+    </property>
+
+    <!-- OR -->
+    <property id="noAlarmWithHighBattery2" pattern="absence">
+      <event>battery_low_alarm</event>
+      <scope type="after" event="battery_level &gt; 30"/>
+    </property>
+
     <!-- PROP 2: alarmWithLowBattery -->
     <!-- If there was an alarm the there has been at least one time before an event of low battery. -->
     <!-- Moreover, if the battery is low then the alarm should be set within 5 seconds. -->
-    <!-- <property id="alarmWithLowBattery1" expr="H ( ({battery_low_alarm == 1} -> P{battery_level <= 30}))"/>
-    <property id="alarmWithLowBattery2" expr="H ( not ( {battery_low_alarm == 0} since[50:] {battery_level <= 30}))"/> -->
-    <property id="alarmWithLowBattery1" expr="historically( ({ battery_low_alarm == 1 }) -&gt; once({ battery_level &lt;= 30 }) )"/>
-    <property id="alarmWithLowBattery2" expr="historically( not( not({ battery_low_alarm == 1 }) since[5000:] ({ battery_level &lt;= 30 }) ) )"/>
+    <property id="alarmWithLowBattery1" pattern="precedence">
+      <events>
+        <event>battery_level &lt;= 30</event>
+        <event>battery_low_alarm</event>
+      </events>
+      <scope type="globally"/>
+    </property>
+    
+    <property id="alarmWithLowBattery2" pattern="response">
+      <events>
+        <event>battery_level &lt;= 30</event>
+        <event>battery_low_alarm</event>
+      </events>
+      <scope type="globally"/>
+      <time_interval time="5" time_unit="s"/>
+    </property>
+
     <!-- PROP 3: isBatteryPublished -->
     <!-- The battery topic should be published at least each five seconds. -->
-    <!-- <property id="isBatteryPublished" expr="H ((P[50:] true) -> P[:50] { battery_published })"/> -->
-    <property id="isBatteryPublished" expr="historically( (once[5000:] true) -&gt; (once[:5000]{ battery_published }) )"/>
-
+    <property id="isBatteryPublished" pattern="recurrence">
+      <event>battery_published</event>
+      <scope type="globally"/>
+      <time_interval time="5" time_unit="s"/>
+    </property>
+    
     <!-- PROP 4: isPoiSelectionCorrect** -->
     <!-- WARN: tour_complete? -->
     <!-- If the tour is completed, the robot must arrive to the start point within a certain time. -->
@@ -77,8 +90,11 @@
 
     <!-- PROP 5: isPeopleFollowingPublished -->
     <!-- The peopleFollowing topic must be published at least each 7 seconds. -->
-    <!-- <property id="isPeopleFollowingPublished" expr="H ((P[70:] true) -> P[:70] { people_following_published })"/> -->
-    <property id="isPeopleFollowingPublished" expr="historically( (once[7000:] true) -&gt; (once[:7000]{ people_following_published }) )"/>
+    <property id="isPeopleFollowingPublished" pattern="recurrence">
+      <event>people_following_published</event>
+      <scope type="globally"/>
+      <time_interval time="7" time_unit="s"/>
+    </property>
 
     <!-- PROP 6: isCameraPublished -->
     <!-- WARN: Cannot find camera -->
@@ -88,9 +104,16 @@
     <!-- PROP 7: notCriticalBattery -->
     <!-- WARN: Cannot find critical_battery -->
     <!-- It must never happens that the battery level becomes critical. -->
-    <!-- <property id="notCriticalBattery" expr="H { battery_level > 5 }"/> -->
-    <property id="notCriticalBattery1" expr="historically({ battery_level &gt; 5 })"/>
-    <property id="notCriticalBattery2" expr="historically(not({ battery_level &lt;= 5 }))"/>
+    <property id="notCriticalBattery1" pattern="universality">
+      <event>battery_level &gt; 5</event>
+      <scope type="globally"/>
+    </property>
+    
+    <!-- OR -->
+    <property id="notCriticalBattery2" pattern="absence">
+      <event>battery_level &lt;= 5</event>
+      <scope type="globally"/>
+    </property>
 
     <!-- PROP 8: notWheelsHWFault -->
     <!-- WARN: Cannot find weel/joint/control -->
@@ -118,8 +141,11 @@
 
     <!-- PROP 13: isExternalPCConnected -->
     <!-- The laptop used for launching the tour should be connected. -->
-    <!-- <property id="isExternalPCConnected" expr="H((P[50:] true) -> P[:30]{connected_to_network})"/> -->
-    <property id="isExternalPCConnected" expr="historically( (once[3000:] true) -&gt; (once[:3000]{ connected_to_network }) )"/>
+    <property id="isExternalPCConnected" pattern="recurrence">
+      <event>connected_to_network</event>
+      <scope type="globally"/>
+      <time_interval time="3" time_unit="s"/>
+    </property>
 
     <!-- PROP 14: isConnectedToWeb -->
     <!-- WARN: cannot find web -->
@@ -128,13 +154,15 @@
     <!-- PROP 15: isArrivedAtChargingStationInTime** -->
     <!-- WARN: never gets to charging station -->
     <!-- When the battery is low it should arrive to the charging station within a certain amount of time. -->
-    <!-- <property id="isArrivedAtChargingStationInTime" expr="H (not ({is_at_charging_station != 0} S[:600] { battery_low_alarm == 1 }))"/>ù -->
-    <property id="isArrivedAtChargingStationInTime" expr="historically( not( not({ is_at_charging_station == 0 }) since[60000:] ({ battery_low_alarm == 1 }) ) )"/>
+    <property id="isArrivedAtChargingStationInTime" pattern="response">
+      <events>
+        <event>battery_low_alarm</event>
+        <event>is_at_charging_station == 0</event>
+      </events>
+      <scope type="globally"/>
+      <time_interval time="60" time_unit="s"/>
+    </property>
 
   </guarantees>
 
-  <assumes>
-    <!-- NOTE: Same format as guarantees -->
-    <!-- <property ... /> -->
-  </assumes>
 </properties>
