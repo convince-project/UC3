@@ -28,6 +28,19 @@
     <data id="saved_value_int_4" type="int32" expr="0" />
     <data id="saved_value_int_5" type="int32" expr="0" />
     <data id="saved_value_int_6" type="int32" expr="0" />
+    <data id="saved_value_int_7" type="int32" expr="0" />
+    <data id="saved_value_int_8" type="int32" expr="0" />
+    <data id="saved_value_int_9" type="int32" expr="0" />
+    <data id="saved_value_int_10" type="int32" expr="0" />
+    <data id="saved_value_int_11" type="int32" expr="0" />
+    <data id="saved_value_tour_duration_warning_flag" type="int32" expr="0" />
+    <data id="saved_value_tour_duration_exceeded_flag" type="int32" expr="0" />
+    <data id="saved_value_tour_time_passed_minutes" type="int32" expr="0" />
+    <data id="saved_value_poi_time_passed_minutes" type="int32" expr="0" />
+    <data id="saved_value_said_warning_flag" type="int32" expr="0" />
+    <data id="saved_value_said_exceeded_flag" type="int32" expr="0" />
+    <data id="saved_value_said_poi_warning_flag" type="int32" expr="0" />
+    <data id="saved_value_said_poi_exceeded_flag" type="int32" expr="0" />
     <data id="saved_field_name_string" type="string" expr="'turnBackState'" />
     <data id="saved_value_string" type="string" expr="''" />
 
@@ -112,6 +125,104 @@
           <field name="error_msg" expr="''"/>
           <field name="field_name" expr="field_name_int"/>
         </ros_service_send_response>
+      <elseif cond="field_name_int == 'PoiDone6'"/>
+        <ros_service_send_response name="/BlackboardComponent/GetInt">
+          <field name="value" expr="saved_value_int_7"/>
+          <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
+          <field name="field_name" expr="field_name_int"/>
+        </ros_service_send_response>
+      <elseif cond="field_name_int == 'PoiDone7'"/>
+        <ros_service_send_response name="/BlackboardComponent/GetInt">
+          <field name="value" expr="saved_value_int_8"/>
+          <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
+          <field name="field_name" expr="field_name_int"/>
+        </ros_service_send_response>
+      <elseif cond="field_name_int == 'PoiDone8'"/>
+        <ros_service_send_response name="/BlackboardComponent/GetInt">
+          <field name="value" expr="saved_value_int_9"/>
+          <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
+          <field name="field_name" expr="field_name_int"/>
+        </ros_service_send_response>
+      <elseif cond="field_name_int == 'PoiDone9'"/>
+        <ros_service_send_response name="/BlackboardComponent/GetInt">
+          <field name="value" expr="saved_value_int_10"/>
+          <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
+          <field name="field_name" expr="field_name_int"/>
+        </ros_service_send_response>
+      <elseif cond="field_name_int == 'PoiDone10'"/>
+        <ros_service_send_response name="/BlackboardComponent/GetInt">
+          <field name="value" expr="saved_value_int_11"/>
+          <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
+          <field name="field_name" expr="field_name_int"/>
+        </ros_service_send_response>
+      <elseif cond="field_name_int == 'isCheckingForPeople'"/>
+        <ros_service_send_response name="/BlackboardComponent/GetInt">
+          <field name="value" expr="isCheckingForPeople"/>
+          <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
+          <field name="field_name" expr="field_name_int"/>
+        </ros_service_send_response>
+      <elseif cond="field_name_int == 'TourDurationWarningFlag'"/>
+        <ros_service_send_response name="/BlackboardComponent/GetInt">
+          <field name="value" expr="saved_value_tour_duration_warning_flag"/>
+          <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
+          <field name="field_name" expr="field_name_int"/>
+        </ros_service_send_response>
+      <elseif cond="field_name_int == 'TourDurationExceededFlag'"/>
+        <ros_service_send_response name="/BlackboardComponent/GetInt">
+          <field name="value" expr="saved_value_tour_duration_exceeded_flag"/>
+          <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
+          <field name="field_name" expr="field_name_int"/>
+        </ros_service_send_response>
+      <elseif cond="field_name_int == 'TourTimePassedMinutes'"/>
+        <ros_service_send_response name="/BlackboardComponent/GetInt">
+          <field name="value" expr="saved_value_tour_time_passed_minutes"/>
+          <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
+          <field name="field_name" expr="field_name_int"/>
+        </ros_service_send_response>
+      <elseif cond="field_name_int == 'PoiTimePassedMinutes'"/>
+        <ros_service_send_response name="/BlackboardComponent/GetInt">
+          <field name="value" expr="saved_value_poi_time_passed_minutes"/>
+          <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
+          <field name="field_name" expr="field_name_int"/>
+        </ros_service_send_response>
+      <elseif cond="field_name_int == 'SaidWarningFlag'"/>
+        <ros_service_send_response name="/BlackboardComponent/GetInt">
+          <field name="value" expr="saved_value_said_warning_flag"/>
+          <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
+          <field name="field_name" expr="field_name_int"/>
+        </ros_service_send_response>
+      <elseif cond="field_name_int == 'SaidExceededFlag'"/>
+        <ros_service_send_response name="/BlackboardComponent/GetInt">
+          <field name="value" expr="saved_value_said_exceeded_flag"/>
+          <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
+          <field name="field_name" expr="field_name_int"/>
+        </ros_service_send_response>
+      <elseif cond="field_name_int == 'SaidPoiWarningFlag'"/>
+        <ros_service_send_response name="/BlackboardComponent/GetInt">
+          <field name="value" expr="saved_value_said_poi_warning_flag"/>
+          <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
+          <field name="field_name" expr="field_name_int"/>
+        </ros_service_send_response>
+      <elseif cond="field_name_int == 'SaidPoiExceededFlag'"/>
+        <ros_service_send_response name="/BlackboardComponent/GetInt">
+          <field name="value" expr="saved_value_said_poi_exceeded_flag"/>
+          <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
+          <field name="field_name" expr="field_name_int"/>
+        </ros_service_send_response>
       <else />
         <ros_service_send_response name="/BlackboardComponent/GetInt">
           <field name="value" expr="0"/>
@@ -162,6 +273,90 @@
           <field name="error_msg" expr="''"/>
         </ros_service_send_response>
         <assign location="saved_value_int_6" expr="value_int"/>
+      <elseif cond="field_name_int == 'PoiDone6'"/>
+        <ros_service_send_response name="/BlackboardComponent/SetInt">
+          <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
+        </ros_service_send_response>
+        <assign location="saved_value_int_7" expr="value_int"/>
+      <elseif cond="field_name_int == 'PoiDone7'"/>
+        <ros_service_send_response name="/BlackboardComponent/SetInt">
+          <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
+        </ros_service_send_response>
+        <assign location="saved_value_int_8" expr="value_int"/>
+      <elseif cond="field_name_int == 'PoiDone8'"/>
+        <ros_service_send_response name="/BlackboardComponent/SetInt">
+          <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
+        </ros_service_send_response>
+        <assign location="saved_value_int_9" expr="value_int"/>
+      <elseif cond="field_name_int == 'PoiDone9'"/>
+        <ros_service_send_response name="/BlackboardComponent/SetInt">
+          <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
+        </ros_service_send_response>
+        <assign location="saved_value_int_10" expr="value_int"/>
+      <elseif cond="field_name_int == 'PoiDone10'"/>
+        <ros_service_send_response name="/BlackboardComponent/SetInt">
+          <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
+        </ros_service_send_response>
+        <assign location="saved_value_int_11" expr="value_int"/>
+      <elseif cond="field_name_int == 'isCheckingForPeople'"/>
+        <ros_service_send_response name="/BlackboardComponent/SetInt">
+          <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
+        </ros_service_send_response>
+        <assign location="isCheckingForPeople" expr="value_int"/>
+      <elseif cond="field_name_int == 'TourDurationWarningFlag'"/>
+        <ros_service_send_response name="/BlackboardComponent/SetInt">
+          <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
+        </ros_service_send_response>
+        <assign location="saved_value_tour_duration_warning_flag" expr="value_int"/>
+      <elseif cond="field_name_int == 'TourDurationExceededFlag'"/>
+        <ros_service_send_response name="/BlackboardComponent/SetInt">
+          <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
+        </ros_service_send_response>
+        <assign location="saved_value_tour_duration_exceeded_flag" expr="value_int"/>
+      <elseif cond="field_name_int == 'TourTimePassedMinutes'"/>
+        <ros_service_send_response name="/BlackboardComponent/SetInt">
+          <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
+        </ros_service_send_response>
+        <assign location="saved_value_tour_time_passed_minutes" expr="value_int"/>
+      <elseif cond="field_name_int == 'PoiTimePassedMinutes'"/>
+        <ros_service_send_response name="/BlackboardComponent/SetInt">
+          <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
+        </ros_service_send_response>
+        <assign location="saved_value_poi_time_passed_minutes" expr="value_int"/>
+      <elseif cond="field_name_int == 'SaidWarningFlag'"/>
+        <ros_service_send_response name="/BlackboardComponent/SetInt">
+          <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
+        </ros_service_send_response>
+        <assign location="saved_value_said_warning_flag" expr="value_int"/>
+      <elseif cond="field_name_int == 'SaidExceededFlag'"/>
+        <ros_service_send_response name="/BlackboardComponent/SetInt">
+          <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
+        </ros_service_send_response>
+        <assign location="saved_value_said_exceeded_flag" expr="value_int"/>
+      <elseif cond="field_name_int == 'SaidPoiWarningFlag'"/>
+        <ros_service_send_response name="/BlackboardComponent/SetInt">
+          <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
+        </ros_service_send_response>
+        <assign location="saved_value_said_poi_warning_flag" expr="value_int"/>
+      <elseif cond="field_name_int == 'SaidPoiExceededFlag'"/>
+        <ros_service_send_response name="/BlackboardComponent/SetInt">
+          <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
+        </ros_service_send_response>
+        <assign location="saved_value_said_poi_exceeded_flag" expr="value_int"/>
       <else />
         <ros_service_send_response name="/BlackboardComponent/SetInt">
           <field name="is_ok" expr="false"/>
@@ -222,6 +417,11 @@
         <assign location="saved_value_int_4" expr="value_all_int_with_prefix"/>
         <assign location="saved_value_int_5" expr="value_all_int_with_prefix"/>
         <assign location="saved_value_int_6" expr="value_all_int_with_prefix"/>
+        <assign location="saved_value_int_7" expr="value_all_int_with_prefix"/>
+        <assign location="saved_value_int_8" expr="value_all_int_with_prefix"/>
+        <assign location="saved_value_int_9" expr="value_all_int_with_prefix"/>
+        <assign location="saved_value_int_10" expr="value_all_int_with_prefix"/>
+        <assign location="saved_value_int_11" expr="value_all_int_with_prefix"/>
       <else />
         <ros_service_send_response name="/BlackboardComponent/SetAllIntsWithPrefix">
           <field name="is_ok" expr="false"/>
