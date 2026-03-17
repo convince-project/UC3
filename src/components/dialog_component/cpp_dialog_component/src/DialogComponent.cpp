@@ -421,6 +421,7 @@ bool DialogComponent::start(int argc, char *argv[])
                                                                                          rclcpp::ServicesQoS(),
                                                                                          service_cb_group_);
 
+    // define service answer and enable service introspection to be able to call it from the command manager
     m_AnswerService = m_node->create_service<dialog_interfaces::srv::Answer>("/DialogComponent/Answer",
                                                                              std::bind(&DialogComponent::Answer,
                                                                                        this,
@@ -428,6 +429,7 @@ bool DialogComponent::start(int argc, char *argv[])
                                                                                        std::placeholders::_2),
                                                                              rclcpp::ServicesQoS(),
                                                                              service_cb_group_);
+    m_AnswerService->configure_introspection(m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
 
     m_SetLanguageService = m_node->create_service<dialog_interfaces::srv::SetLanguage>("/DialogComponent/SetLanguage",
                                                                                        std::bind(&DialogComponent::SetLanguage,
