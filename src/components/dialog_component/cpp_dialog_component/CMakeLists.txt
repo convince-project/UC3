@@ -24,6 +24,7 @@ find_package(execute_dance_interfaces REQUIRED)
 find_package(cartesian_pointing_interfaces REQUIRED)
 find_package(blackboard_interfaces REQUIRED)
 find_package(execute_audio_interfaces REQUIRED)
+find_package(rag_interfaces REQUIRED)
 #find_package(YCM REQUIRED)
 find_package(YARP REQUIRED COMPONENTS dev os sig REQUIRED)
 
@@ -76,6 +77,7 @@ ament_target_dependencies(${PROJECT_NAME}
 "cartesian_pointing_interfaces"
 "blackboard_interfaces"
 "execute_audio_interfaces"
+"rag_interfaces"
 )
 
 install(TARGETS ${PROJECT_NAME}
