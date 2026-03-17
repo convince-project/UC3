@@ -77,3 +77,38 @@ jobs:
           echo "Failure!"
           exit 1
        fi
+    - name: Set up QEMU (for multi-arch builds)
+      uses: docker/setup-qemu-action@v2
+      with:
+        platforms: linux/arm64
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build the tour core Docker image (arm64)
+      working-directory: docker
+      run: |
+       if [ ${{ github.event_name }} == 'schedule' ]; then
+          echo "Building development tour core image for arm64"
+          sudo docker buildx build --platform linux/arm64 --build-arg base_img=${{matrix.config.base_image_repo}}:${{matrix.config.base_image_tag}}_devel -t ${{matrix.config.image_name_base}}_devel_arm64 -f ${{matrix.config.dockerfile}} --load .
+       elif [ ${{ github.event_name }} == 'workflow_dispatch' ]; then
+          echo "Building stable tour core image for arm64"
+          sudo docker buildx build --platform linux/arm64 --build-arg base_img=${{matrix.config.base_image_repo}}:${{matrix.config.base_image_tag}}_stable -t ${{matrix.config.image_name_base}}_stable_arm64 -f ${{matrix.config.dockerfile}} --load .
+       else
+          echo "Failure!"
+          exit 1
+       fi
+
+    - name: Push tourCore2 image (arm64)
+      working-directory: docker
+      run: |
+       if [ ${{ github.event_name }} == 'schedule' ]; then
+          echo "Pushing tourCore2 development image for arm64"
+          docker push ${{matrix.config.image_name_base}}_devel_arm64
+       elif [ ${{ github.event_name }} == 'workflow_dispatch' ]; then
+          echo "Pushing tourCore2 stable image for arm64"
+          docker push ${{matrix.config.image_name_base}}_stable_arm64
+       else
+          echo "Failure!"
+          exit 1
+       fi
