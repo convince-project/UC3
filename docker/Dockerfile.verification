@@ -106,11 +106,12 @@ python3 -m venv monitoring-python-env && \
 
 RUN /bin/bash -c "echo 'updated on 202503250921' && \
     source /opt/ros/jazzy/setup.bash && \
+    source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
     cd /home/user1 && \
     git clone https://github.com/convince-project/UC3.git && \
     source /opt/ros/jazzy/setup.bash && \
     cd /home/user1/UC3/ && \
-    colcon build --base-paths src/*"
+    colcon build --base-paths src/* --packages-ignore face_expressions_wrapper"
 
 # clone data-model repo
 RUN /bin/bash -c "echo 'updated on 202503250921' && \
