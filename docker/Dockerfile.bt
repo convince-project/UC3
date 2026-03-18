@@ -1,4 +1,4 @@
-ARG base_img=elandini84/r1images:tourCore2_ubuntu_24.04_qt_6.8.3_jazzy_devel
+ARG base_img=ghcr.io/hsp-iit/r1images:tourCore2_ubuntu_24.04_qt_6.8.3_jazzy_devel
 FROM $base_img
 LABEL maintainer="Stefano Bernagozzi"
 USER root
@@ -116,7 +116,7 @@ RUN /bin/bash -c "echo 'updated on 202601271357' && \
     colcon build --base-paths src/* --packages-ignore face_expressions_wrapper"
 
 RUN /bin/bash -c "echo 'updated on 202630011120' && \
-        cd ~; git clone --branch fix/UC3 https://github.com/convince-project/congestion-coverage-plan.git;\
+        cd ~; git clone --branch gem https://github.com/convince-project/congestion-coverage-plan.git;\
         cd /home/user1/UC3/src/components/planner_component;\
         python3 -m venv create venv-congestion-coverage-plan;\
         source ./venv-congestion-coverage-plan/bin/activate;\

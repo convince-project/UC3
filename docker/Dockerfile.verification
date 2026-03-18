@@ -1,4 +1,4 @@
-ARG base_img=elandini84/r1images:tourCore2_ubuntu_24.04_qt_6.8.3_jazzy_devel
+ARG base_img=ghcr.io/hsp-iit/r1images:tourCore2_ubuntu_24.04_qt_6.8.3_jazzy_devel
 FROM $base_img
 LABEL maintainer="Stefano Bernagozzi"
 USER root
@@ -106,11 +106,12 @@ python3 -m venv monitoring-python-env && \
 
 RUN /bin/bash -c "echo 'updated on 202503250921' && \
     source /opt/ros/jazzy/setup.bash && \
+    source /usr/local/src/robot/yarp-devices-ros2/ros2_interfaces_ws/install/setup.bash && \
     cd /home/user1 && \
     git clone https://github.com/convince-project/UC3.git && \
     source /opt/ros/jazzy/setup.bash && \
     cd /home/user1/UC3/ && \
-    colcon build --base-paths src/* --packages-ignore face_expressions_wrapper dialog_component"
+    colcon build --base-paths src/* --packages-ignore face_expressions_wrapper"
 
 # clone data-model repo
 RUN /bin/bash -c "echo 'updated on 202503250921' && \
