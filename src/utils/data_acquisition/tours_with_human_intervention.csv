@@ -1,0 +1,25 @@
+poi_name,poi_number,time_mmss,recoveries,aborts
+sala_delle_guardie,1,01:01,0,0
+sala_guidobono,2,00:55,0,0
+sala_delle_feste,3,08:50,267,15
+sala_4_stagioni,4,01:45,1,0
+camera_di_madama_reale,5,01:13,1,1
+TOTAL,,13:48,,
+############## END ##############
+sala_delle_guardie,1,00:57,0,0
+sala_guidobono,2,00:55,0,0
+sala_delle_feste,3,11:11,266,8
+sala_4_stagioni,4,01:39,4,0
+camera_di_madama_reale,5,00:55,0,0
+TOTAL,,15:41,,
+############## END ##############
+sala_delle_guardie,1,00:48,0,0
+sala_guidobono,2,00:46,2,0
+sala_delle_feste,3,07:32,360,14
+sala_4_stagioni,4,02:02,32,0
+camera_di_madama_reale,5,00:57,1,0
+TOTAL,,12:06,,
+############## END ##############
+
+
+TOTALI 5 SU 37
