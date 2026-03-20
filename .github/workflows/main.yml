@@ -50,33 +50,6 @@ jobs:
       with:
         username: ste93
         password: ${{ secrets.STE93_DOCKERHUB_TOKEN }}
-    - name: Build the tour core Docker image
-      working-directory: docker
-      run: |
-       if [ ${{ github.event_name }} == 'schedule' ]; then
-          echo "Building development tour core image"
-          sudo docker build --build-arg base_img=${{matrix.config.base_image_repo}}:${{matrix.config.base_image_tag}}_devel -t ${{matrix.config.image_name_base}}_devel -f ${{matrix.config.dockerfile}} .
-       elif [ ${{ github.event_name }} == 'workflow_dispatch' ]; then
-          echo "Building stable tour core image"
-          echo $PWD
-          sudo docker build --build-arg base_img=${{matrix.config.base_image_repo}}:${{matrix.config.base_image_tag}}_stable -t ${{matrix.config.image_name_base}}_stable -f ${{matrix.config.dockerfile}} .
-       else
-          echo "Failure!"
-          exit 1
-       fi
-    - name: Push tourCore2 image
-      working-directory: docker
-      run: |
-       if [ ${{ github.event_name }} == 'schedule' ]; then
-          echo "Pushing tourCore2 development image"
-          docker push ${{matrix.config.image_name_base}}_devel
-       elif [ ${{ github.event_name }} == 'workflow_dispatch' ]; then
-          echo "Pushing tourCore2 stable image"
-          docker push ${{matrix.config.image_name_base}}_stable
-       else
-          echo "Failure!"
-          exit 1
-       fi
     - name: Set up QEMU (for multi-arch builds)
       uses: docker/setup-qemu-action@v2
       with:
@@ -85,29 +58,15 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    - name: Build the tour core Docker image (arm64)
+    - name: Build and push multi-arch Docker image
       working-directory: docker
       run: |
        if [ ${{ github.event_name }} == 'schedule' ]; then
-          echo "Building development tour core image for arm64"
-          sudo docker buildx build --platform linux/arm64 --build-arg base_img=${{matrix.config.base_image_repo}}:${{matrix.config.base_image_tag}}_devel -t ${{matrix.config.image_name_base}}_devel_arm64 -f ${{matrix.config.dockerfile}} --load .
+          echo "Building and pushing development tour core image for amd64 and arm64"
+          docker buildx build --platform linux/amd64,linux/arm64 --build-arg base_img=${{matrix.config.base_image_repo}}:${{matrix.config.base_image_tag}}_devel -t ${{matrix.config.image_name_base}}_devel_test -f ${{matrix.config.dockerfile}} --push .
        elif [ ${{ github.event_name }} == 'workflow_dispatch' ]; then
-          echo "Building stable tour core image for arm64"
-          sudo docker buildx build --platform linux/arm64 --build-arg base_img=${{matrix.config.base_image_repo}}:${{matrix.config.base_image_tag}}_stable -t ${{matrix.config.image_name_base}}_stable_arm64 -f ${{matrix.config.dockerfile}} --load .
-       else
-          echo "Failure!"
-          exit 1
-       fi
-
-    - name: Push tourCore2 image (arm64)
-      working-directory: docker
-      run: |
-       if [ ${{ github.event_name }} == 'schedule' ]; then
-          echo "Pushing tourCore2 development image for arm64"
-          docker push ${{matrix.config.image_name_base}}_devel_arm64
-       elif [ ${{ github.event_name }} == 'workflow_dispatch' ]; then
-          echo "Pushing tourCore2 stable image for arm64"
-          docker push ${{matrix.config.image_name_base}}_stable_arm64
+          echo "Building and pushing stable tour core image for amd64 and arm64"
+          docker buildx build --platform linux/amd64,linux/arm64 --build-arg base_img=${{matrix.config.base_image_repo}}:${{matrix.config.base_image_tag}}_stable -t ${{matrix.config.image_name_base}}_stable_test -f ${{matrix.config.dockerfile}} --push .
        else
           echo "Failure!"
           exit 1
