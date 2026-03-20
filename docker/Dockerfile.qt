@@ -1,29 +1,50 @@
 ARG base_img=ubuntu:24.04
-FROM $base_img
+FROM ${base_img}
+
 LABEL maintainer="Stefano Bernagozzi"
+
 ARG qt_version_major=6.8
 ARG qt_version_minor=3
-
 ENV qt_version=${qt_version_major}.${qt_version_minor}
 
 USER root
-
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt upgrade -y && apt-get install -y ninja-build libzmq3-dev build-essential libgl1-mesa-dev wget cmake
-# libqt6scxml6 qt6-base-dev qt6-scxml-dev libqt6scxml6-bin
+# --- System + Qt dependencies ---
+RUN apt-get update && apt-get upgrade -y && apt-get install -y \
+    build-essential cmake ninja-build perl python3 \
+    wget curl git \
+    libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev \
+    libx11-dev libxext-dev libxfixes-dev libxi-dev libxrender-dev \
+    libxcb1-dev libxcb-glx0-dev libxcb-keysyms1-dev libxcb-image0-dev \
+    libxcb-shm0-dev libxcb-icccm4-dev libxcb-sync-dev \
+    libxcb-xfixes0-dev libxcb-shape0-dev libxcb-randr0-dev \
+    libxcb-render-util0-dev libxcb-util-dev libxcb-xinerama0-dev \
+    libxkbcommon-dev libxkbcommon-x11-dev \
+    libdbus-1-dev libfontconfig1-dev libfreetype6-dev \
+    libsm-dev libice-dev \
+    libssl-dev \
+    libzmq3-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN /bin/bash -c "cd /usr/local/src && wget https://download.qt.io/official_releases/qt/${qt_version_major}/${qt_version}/single/qt-everywhere-src-${qt_version}.tar.xz && \
-                    tar -xvf qt-everywhere-src-${qt_version}.tar.xz && \
-                    cd /usr/local/src/qt-everywhere-src-${qt_version} && \
-                    ./configure -prefix /usr/local/Qt-${qt_version} -opensource -confirm-license -nomake examples -nomake tests -DBUILD_qt3d=OFF -DBUILD_qtquick3dphysics=OFF -DBUILD_qtquick3d=OFF  && \
-                    cmake --build . --parallel && \
-                    cmake --install . && \
-                    rm -rf /usr/local/src/qt-everywhere-src-${qt_version}.tar.xz && \
-                    rm -rf cd /usr/local/src/qt-everywhere-src-${qt_version}"
+# --- Build Qt ---
+RUN /bin/bash -c "set -ex && \
+    cd /usr/local/src && \
+    wget https://download.qt.io/official_releases/qt/${qt_version_major}/${qt_version}/single/qt-everywhere-src-${qt_version}.tar.xz && \
+    tar -xf qt-everywhere-src-${qt_version}.tar.xz && \
+    cd qt-everywhere-src-${qt_version} && \
+    ./configure -prefix /usr/local/Qt-${qt_version} \
+        -opensource -confirm-license \
+        -nomake examples -nomake tests \
+        -DBUILD_qt3d=OFF \
+        -DBUILD_qtquick3dphysics=OFF \
+        -DBUILD_qtquick3d=OFF && \
+    cmake --build . --parallel $(nproc) && \
+    cmake --install . && \
+    cd / && \
+    rm -rf /usr/local/src/qt-everywhere-src-${qt_version}*"
 
-
+# --- Environment ---
 ENV Qt6_DIR=/usr/local/Qt-${qt_version}/lib/cmake
-
 ENV PATH=/usr/local/Qt-${qt_version}/bin:$PATH
 ENV LD_LIBRARY_PATH=/usr/local/Qt-${qt_version}/lib:$LD_LIBRARY_PATH
