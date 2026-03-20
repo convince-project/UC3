@@ -15,6 +15,13 @@ jobs:
          config:
          - {
             ros2_distro: "jazzy",
+            base_image_repo: "ubuntu",
+            base_image_tag: "24.04",
+            image_name_base: "ste93/convince:ubuntu_24.04_qt_6.8.3",
+            dockerfile: "Dockerfile.qt"
+         }
+         - {
+            ros2_distro: "jazzy",
             base_image_repo: "ghcr.io/hsp-iit/r1images",
             base_image_tag: "tourCore2_ubuntu_24.04_qt_6.8.3_jazzy",
             image_name_base: "ste93/convince:tour_ubuntu_24.04_qt_6.8.3_jazzy_bt",
