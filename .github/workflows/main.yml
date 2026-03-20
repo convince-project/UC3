@@ -69,11 +69,25 @@ jobs:
       working-directory: docker
       run: |
        if [ ${{ github.event_name }} == 'schedule' ]; then
+          if [ "${{ matrix.config.base_image_repo }}" == "ubuntu" ]; then
+             TAG_SUFFIX=""
+             BASE_TAG_SUFFIX=""
+          else
+             TAG_SUFFIX="_devel"
+             BASE_TAG_SUFFIX="_devel"
+          fi
           echo "Building and pushing development tour core image for amd64 and arm64"
-          docker buildx build --platform linux/amd64,linux/arm64 --build-arg base_img=${{matrix.config.base_image_repo}}:${{matrix.config.base_image_tag}}_devel -t ${{matrix.config.image_name_base}}_devel_test -f ${{matrix.config.dockerfile}} --push .
+          docker buildx build --platform linux/amd64,linux/arm64 --build-arg base_img=${{matrix.config.base_image_repo}}:${{matrix.config.base_image_tag}}${BASE_TAG_SUFFIX} -t ${{matrix.config.image_name_base}}${TAG_SUFFIX}_test -f ${{matrix.config.dockerfile}} --push .
        elif [ ${{ github.event_name }} == 'workflow_dispatch' ]; then
+          if [ "${{ matrix.config.base_image_repo }}" == "ubuntu" ]; then
+             TAG_SUFFIX=""
+             BASE_TAG_SUFFIX=""
+          else
+             TAG_SUFFIX="_stable"
+             BASE_TAG_SUFFIX="_stable"
+          fi
           echo "Building and pushing stable tour core image for amd64 and arm64"
-          docker buildx build --platform linux/amd64,linux/arm64 --build-arg base_img=${{matrix.config.base_image_repo}}:${{matrix.config.base_image_tag}}_stable -t ${{matrix.config.image_name_base}}_stable_test -f ${{matrix.config.dockerfile}} --push .
+          docker buildx build --platform linux/amd64,linux/arm64 --build-arg base_img=${{matrix.config.base_image_repo}}:${{matrix.config.base_image_tag}}${BASE_TAG_SUFFIX} -t ${{matrix.config.image_name_base}}${TAG_SUFFIX}_test -f ${{matrix.config.dockerfile}} --push .
        else
           echo "Failure!"
           exit 1
