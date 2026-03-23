@@ -3,15 +3,10 @@ FROM ${base_img}
 
 LABEL maintainer="Stefano Bernagozzi"
 
-ARG qt_version_major=6.8
-ARG qt_version_minor=3
-ENV qt_version=${qt_version_major}.${qt_version_minor}
-ARG qt_build_jobs=2
-
 USER root
 ENV DEBIAN_FRONTEND=noninteractive
 
-# --- System dependencies for Qt + Groot (GUI inside container) ---
+# --- System + Qt dependencies (Qt from Ubuntu packages) ---
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential cmake ninja-build perl python3 \
     wget curl git \
@@ -24,51 +19,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxkbcommon-dev libxkbcommon-x11-dev \
     libdbus-1-dev libfontconfig1-dev libfreetype6-dev \
     libsm-dev libice-dev \
-    libssl-dev libzmq3-dev \
+    libssl-dev \
+    libzmq3-dev \
+    qt6-base-dev \
+    qt6-base-dev-tools \
+    qt6-declarative-dev \
+    qt6-scxml-dev \
+    qt6-tools-dev \
+    qt6-svg-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# --- Build Qt from source (minimal set that still supports Groot) ---
-RUN /bin/bash -c "set -ex && \
-    cd /usr/local/src && \
-    wget -q https://download.qt.io/official_releases/qt/${qt_version_major}/${qt_version}/single/qt-everywhere-src-${qt_version}.tar.xz && \
-    tar -xf qt-everywhere-src-${qt_version}.tar.xz && \
-    cd qt-everywhere-src-${qt_version} && \
-    ./configure -prefix /usr/local/Qt-${qt_version} \
-        -opensource -confirm-license \
-        -nomake examples -nomake tests \
-        -DBUILD_qtbase=ON \
-        -DBUILD_qtscxml=ON \
-        -DBUILD_qtdeclarative=ON \
-        -DBUILD_qtimageformats=OFF \
-        -DBUILD_qttranslations=OFF \
-        -DBUILD_qttools=ON \
-        -DBUILD_qt3d=OFF \
-        -DBUILD_qtquick3d=OFF \
-        -DBUILD_qtquick3dphysics=OFF \
-        -DBUILD_qtsvg=ON \
-        -DBUILD_qtnetworkauth=OFF \
-        -DBUILD_qtspeech=OFF \
-        -DBUILD_qtvirtualkeyboard=OFF \
-        -DBUILD_qt5compat=OFF \
-        -DBUILD_qtcharts=OFF \
-        -DBUILD_qtlocation=OFF \
-        -DBUILD_qtmultimedia=OFF \
-        -DBUILD_qtpositioning=OFF \
-        -DBUILD_qtserialbus=OFF \
-        -DBUILD_qtserialport=OFF \
-        -DBUILD_qtshadertools=OFF \
-        -DBUILD_qtwayland=OFF \
-        -DBUILD_qtwebchannel=OFF \
-        -DBUILD_qtwebengine=OFF \
-        -DBUILD_qtwebsockets=OFF \
-        -DBUILD_qtremoteobjects=OFF \
-        -DBUILD_qtlanguageserver=OFF && \
-    cmake --build . --parallel ${qt_build_jobs} && \
-    cmake --install . && \
-    cd / && \
-    rm -rf /usr/local/src/qt-everywhere-src-${qt_version}*"
-
 # --- Environment ---
-ENV Qt6_DIR=/usr/local/Qt-${qt_version}/lib/cmake
-ENV PATH=/usr/local/Qt-${qt_version}/bin:$PATH
-ENV LD_LIBRARY_PATH=/usr/local/Qt-${qt_version}/lib
+ENV PATH=/usr/lib/qt6/bin:$PATH
