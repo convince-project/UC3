@@ -18,6 +18,7 @@
         <input type="node-ascxml" src="./Components/BlackboardComponent.ascxml" />
         <input type="node-ascxml" src="./Components/CheckNetworkComponent.ascxml" />
         <input type="node-ascxml" src="./Components/ExecuteDanceComponent.ascxml" />
+        <input type="node-ascxml" src="./Components/SystemMonitorComponent.ascxml" />
         <input type="node-ascxml" src="./Components/NarrateComponent.ascxml" />
         <input type="node-ascxml" src="./Components/NavigationComponent.ascxml" />
         <input type="node-ascxml" src="./Components/NotifyUserComponent.ascxml" />

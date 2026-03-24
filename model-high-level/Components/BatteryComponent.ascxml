@@ -8,6 +8,14 @@
 
   <datamodel>
     <data id="percentage" type="float32" expr="100.0" /> <!-- Valore iniziale in scala 0-1 -->
+    <data id="min_percentage" type="float32" expr="6.0" />
+    <data id="max_percentage" type="float32" expr="100.0" />
+    <data id="charge_step" type="float32" expr="2.0" />
+    <data id="discharge_step" type="float32" expr="1.0" />
+    <data id="charging_station" type="string" expr="'charging_station'" />
+    <data id="charging_distance" type="float32" expr="0.5" />
+    <data id="charging_angle" type="float64" expr="360.0" />
+    <data id="is_charging" type="bool" expr="false" />
     <data id="voltage" type="float32" expr="12.0" /> <!-- Valore di esempio -->
     <data id="current" type="float32" expr="-1.0" /> <!-- Corrente negativa (scarica) -->
     <data id="present" type="bool" expr="true" /> <!-- Batteria presente -->
@@ -15,6 +23,7 @@
     <data id="charge" type="float32" expr="5.0" /> <!-- Carica in Ah -->
     <data id="capacity" type="float32" expr="10.0" /> <!-- Capacità in Ah -->
     <data id="design_capacity" type="float32" expr="10.0" /> <!-- Capacità di progetto in Ah -->
+    <data id="power_supply_status" type="uint8" expr="2" /> <!-- 1=charging, 2=discharging -->
     <data id="power_supply_health" type="uint8" expr="1" /> <!-- Stato di salute della batteria -->
     <data id="power_supply_technology" type="uint8" expr="2" /> <!-- Tecnologia della batteria -->
     <data id="cell_voltage" type="float32[]" expr="[3.7, 3.7, 3.7]" /> <!-- Voltaggio delle celle -->
@@ -27,12 +36,32 @@
   </datamodel>
 
   <ros_topic_publisher name="battery_level_pub" topic="/BatteryComponent/battery_level" type="sensor_msgs/BatteryState" />
+  <ros_service_client service_name="/NavigationComponent/CheckNearToPoi" type="navigation_interfaces/CheckNearToPoi" />
   <ros_time_rate name="battery_control_timer" rate_hz="1" />
 
   <state id="idle">
     <onentry>
-      <if cond="percentage &gt; 0">
-        <assign location="percentage" expr="percentage - 1" />
+      <ros_service_send_request name="/NavigationComponent/CheckNearToPoi">
+        <field name="poi_name" expr="charging_station"/>
+        <field name="distance" expr="charging_distance"/>
+        <field name="angle" expr="charging_angle"/>
+      </ros_service_send_request>
+      <if cond="is_charging">
+        <if cond="percentage &lt; max_percentage">
+          <if cond="percentage + charge_step &gt; max_percentage">
+            <assign location="percentage" expr="max_percentage" />
+          <else/>
+            <assign location="percentage" expr="percentage + charge_step" />
+          </if>
+        </if>
+      <else/>
+        <if cond="percentage &gt; min_percentage">
+          <if cond="percentage - discharge_step &lt; min_percentage">
+            <assign location="percentage" expr="min_percentage" />
+          <else/>
+            <assign location="percentage" expr="percentage - discharge_step" />
+          </if>
+        </if>
       </if>
       <ros_topic_publish name="battery_level_pub">
         <field name="header.stamp.sec" expr="header_stamp_sec" />
@@ -45,7 +74,7 @@
         <field name="charge" expr="charge" />
         <field name="capacity" expr="capacity" />
         <field name="design_capacity" expr="design_capacity" />
-        <field name="power_supply_status" expr="2" /> <!-- Scarica -->
+        <field name="power_supply_status" expr="power_supply_status" />
         <field name="power_supply_health" expr="power_supply_health" />
         <field name="power_supply_technology" expr="power_supply_technology" />
         <field name="present" expr="present" />
@@ -55,8 +84,42 @@
         <field name="serial_number" expr="serial_number" />
       </ros_topic_publish>
     </onentry>
+
+    <ros_service_handle_response name="/NavigationComponent/CheckNearToPoi" target="idle">
+      <if cond="_res.is_near">
+        <assign location="is_charging" expr="true" />
+        <assign location="power_supply_status" expr="1" />
+      <else/>
+        <assign location="is_charging" expr="false" />
+        <assign location="power_supply_status" expr="2" />
+      </if>
+    </ros_service_handle_response>
+
     <ros_rate_callback name="battery_control_timer">
       <target id="idle" prob="1.0">
+        <ros_service_send_request name="/NavigationComponent/CheckNearToPoi">
+          <field name="poi_name" expr="charging_station"/>
+          <field name="distance" expr="charging_distance"/>
+          <field name="angle" expr="charging_angle"/>
+        </ros_service_send_request>
+        <if cond="is_charging">
+          <if cond="percentage &lt; max_percentage">
+            <if cond="percentage + charge_step &gt; max_percentage">
+              <assign location="percentage" expr="max_percentage" />
+            <else/>
+              <assign location="percentage" expr="percentage + charge_step" />
+            </if>
+          </if>
+        <else/>
+          <if cond="percentage &gt; min_percentage">
+            <if cond="percentage - discharge_step &lt; min_percentage">
+              <assign location="percentage" expr="min_percentage" />
+            <else/>
+              <assign location="percentage" expr="percentage - discharge_step" />
+            </if>
+          </if>
+        </if>
+
         <ros_topic_publish name="battery_level_pub">
           <field name="header.stamp.sec" expr="header_stamp_sec" />
           <field name="header.stamp.nanosec" expr="header_stamp_nanosec" />
@@ -68,7 +131,7 @@
           <field name="charge" expr="charge" />
           <field name="capacity" expr="capacity" />
           <field name="design_capacity" expr="design_capacity" />
-          <field name="power_supply_status" expr="2" />
+          <field name="power_supply_status" expr="power_supply_status" />
           <field name="power_supply_health" expr="power_supply_health" />
           <field name="power_supply_technology" expr="power_supply_technology" />
           <field name="present" expr="present" />

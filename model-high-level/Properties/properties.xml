@@ -23,7 +23,7 @@
       <state_var id="goto_charging_station" field="status" expr="1" type="int32"/>
     </ros_service>
 
-    <ros_topic topic_name="/PeopleDetectorFilterComponent/is_followed" type="std_msgs/Bool" event="publish">
+    <ros_topic topic_name="/PeopleDetectorFilterComponent/is_followed" type="std_msgs/Bool" event="publish" target="SystemMonitorComponent">
       <event_var id="people_following_published"/>
     </ros_topic>
 
@@ -35,7 +35,7 @@
       <state_var id="poi0_completed" field="status" expr="1" type="int32"/>
     </ros_service>
 
-    <ros_topic topic_name="/CheckNetworkComponent/NetworkStatus" type="std_msgs/Bool" event="publish">
+    <ros_topic topic_name="/CheckNetworkComponent/NetworkStatus" type="std_msgs/Bool" event="publish" target="BlackboardComponent">
       <event_var id="connected_to_network"/>
     </ros_topic>
   </ports>
