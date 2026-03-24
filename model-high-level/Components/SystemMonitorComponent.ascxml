@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ascxml xmlns="http://www.w3.org/2005/07/scxml"
+       version="1.0"
+       name="SystemMonitorComponent"
+       initial="monitoring"
+       datamodel="ecmascript">
+
+  <datamodel>
+    <data id="network_status" type="bool" expr="true"/>
+    <data id="people_following" type="bool" expr="false"/>
+  </datamodel>
+  <ros_topic_subscriber  topic="/CheckNetworkComponent/NetworkStatus" type="std_msgs/Bool"/>
+  <ros_topic_subscriber  topic="/PeopleDetectorFilterComponent/is_followed" type="std_msgs/Bool"/>
+
+  <state id="monitoring">
+    <ros_topic_callback name="/CheckNetworkComponent/NetworkStatus" target="monitoring">
+      <assign location="network_status" expr="_msg.data"/>
+    </ros_topic_callback>
+    <ros_topic_callback name="/PeopleDetectorFilterComponent/is_followed" target="monitoring">
+      <assign location="people_following" expr="_msg.data"/>
+    </ros_topic_callback>
+  </state>
+</ascxml>
