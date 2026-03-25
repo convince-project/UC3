@@ -40,51 +40,6 @@
   <ros_time_rate name="battery_control_timer" rate_hz="1" />
 
   <state id="idle">
-    <!-- <onentry>
-      <ros_service_send_request name="/NavigationComponent/CheckNearToPoi">
-        <field name="poi_name" expr="charging_station"/>
-        <field name="distance" expr="charging_distance"/>
-        <field name="angle" expr="charging_angle"/>
-      </ros_service_send_request>
-      <if cond="is_charging">
-        <if cond="percentage &lt; max_percentage">
-          <if cond="percentage + charge_step &gt; max_percentage">
-            <assign location="percentage" expr="max_percentage" />
-          <else/>
-            <assign location="percentage" expr="percentage + charge_step" />
-          </if>
-        </if>
-      <else/>
-        <if cond="percentage &gt; min_percentage">
-          <if cond="percentage - discharge_step &lt; min_percentage">
-            <assign location="percentage" expr="min_percentage" />
-          <else/>
-            <assign location="percentage" expr="percentage - discharge_step" />
-          </if>
-        </if>
-      </if>
-      <ros_topic_publish name="battery_level_pub">
-        <field name="header.stamp.sec" expr="header_stamp_sec" />
-        <field name="header.stamp.nanosec" expr="header_stamp_nanosec" />
-        <field name="header.frame_id" expr="header_frame_id" />
-        <field name="percentage" expr="percentage" />
-        <field name="voltage" expr="voltage" />
-        <field name="current" expr="current" />
-        <field name="temperature" expr="temperature" />
-        <field name="charge" expr="charge" />
-        <field name="capacity" expr="capacity" />
-        <field name="design_capacity" expr="design_capacity" />
-        <field name="power_supply_status" expr="power_supply_status" />
-        <field name="power_supply_health" expr="power_supply_health" />
-        <field name="power_supply_technology" expr="power_supply_technology" />
-        <field name="present" expr="present" />
-        <field name="cell_voltage" expr="cell_voltage" />
-        <field name="cell_temperature" expr="cell_temperature" />
-        <field name="location" expr="location" />
-        <field name="serial_number" expr="serial_number" />
-      </ros_topic_publish>
-    </onentry> -->
-
     <ros_service_handle_response name="/NavigationComponent/CheckNearToPoi" target="idle">
       <if cond="_res.is_near">
         <assign location="is_charging" expr="true" />
