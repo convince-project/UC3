@@ -77,42 +77,36 @@
     </state>
 
     <state id="wait_result">
+        <!-- Handle request -->
         <ros_service_handle_request name="/GoToPoiActionSkill/tick" target="wait_result">
             <ros_service_send_response name="/GoToPoiActionSkill/tick">
                 <field name="is_ok" expr="true"/>
                 <field name="status" expr="SKILL_RUNNING"/>
             </ros_service_send_response>
         </ros_service_handle_request>
+
+        <!-- Handle feedback -->
         <ros_action_handle_feedback name="go_to_poi_action" target="wait_result">
             <assign location="status" expr="_feedback.status" />
         </ros_action_handle_feedback>
-        <ros_action_handle_success_result name="go_to_poi_action" target="evaluate_result">
-            <assign location="result" expr="_wrapped_result.result.is_ok" />
+
+        <!-- Handle success -->
+        <ros_action_handle_success_result name="go_to_poi_action" target="goal_done">
+            <assign location="result" expr="true" />
         </ros_action_handle_success_result>
+
+        <!-- Handle abort -->
+        <ros_action_handle_aborted_result name="go_to_poi_action" target="send_failure">
+            <assign location="result" expr="false" />
+        </ros_action_handle_aborted_result>
+
+        <!-- Handle halt -->
         <ros_service_handle_request name="/GoToPoiActionSkill/halt" target="idle">
             <ros_service_send_response name="/GoToPoiActionSkill/halt">
                 <field name="is_ok" expr="true"/>
             </ros_service_send_response>
         </ros_service_handle_request>
     </state>
-
-
-    <state id="evaluate_result">
-        <!-- <ros_service_handle_request name="/GoToPoiActionSkill/tick" target="wait_result">
-            <ros_service_send_response name="/GoToPoiActionSkill/tick">
-                <field name="is_ok" expr="true"/>
-                <field name="status" expr="SKILL_RUNNING"/>
-            </ros_service_send_response>
-        </ros_service_handle_request> -->
-        <transition cond="result" target="goal_done"/>
-        <transition cond="!result" target="send_failure"/>
-        <!-- <ros_service_handle_request name="/GoToPoiActionSkill/halt" target="idle">
-            <ros_service_send_response name="/GoToPoiActionSkill/halt">
-                <field name="is_ok" expr="true"/>
-            </ros_service_send_response>
-        </ros_service_handle_request> -->
-    </state>
-
 
     <state id="goal_done">
         <ros_service_handle_request name="/GoToPoiActionSkill/tick" target="idle">
