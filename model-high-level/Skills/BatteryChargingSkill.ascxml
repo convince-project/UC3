@@ -7,7 +7,10 @@
   xmlns="http://www.w3.org/2005/07/scxml">
 
     <datamodel>
-        <data id="battery_status" type="int32" expr="100" />
+        <!-- Battery status assumes the same values as power_supply_status: -->
+        <!-- - 1 for charging -->
+        <!-- - 2 for not charging -->
+        <data id="battery_status" type="uint8" expr="2" />
         <data id="SKILL_SUCCESS" type="int8" expr="0" />
         <data id="SKILL_FAILURE" type="int8" expr="1" />
     </datamodel>
