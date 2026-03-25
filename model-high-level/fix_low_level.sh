@@ -28,4 +28,13 @@ for file in "$folder"/*.scxml; do
 done
 
 echo ""
+echo "Fixing strict random lower-bound guards (0.0 < __RAND__)..."
+for file in "$folder"/*.scxml; do
+    if grep -q '0.0 &lt; __RAND__' "$file"; then
+        echo "  Editing: $file"
+        sed -i 's/0.0 \&lt; __RAND__/0.0 \&lt;= __RAND__/g' "$file"
+    fi
+done
+
+echo ""
 echo "Type annotation fixes completed!"

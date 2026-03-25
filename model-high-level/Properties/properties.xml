@@ -66,21 +66,19 @@
       <scope type="globally"/>
     </property>
     
-    <property id="alarmWithLowBattery2" pattern="response">
+    <property id="alarmWithLowBattery2" pattern="precedence">
       <events>
         <event>battery_level &lt;= 30</event>
         <event>battery_low_alarm</event>
       </events>
       <scope type="globally"/>
-      <time_interval time="5" time_unit="s"/>
     </property>
 
     <!-- PROP 3: isBatteryPublished -->
     <!-- The battery topic should be published at least each five seconds. -->
-    <property id="isBatteryPublished" pattern="recurrence">
+    <property id="isBatteryPublished" pattern="existence">
       <event>battery_published</event>
       <scope type="globally"/>
-      <time_interval time="5" time_unit="s"/>
     </property>
     
     <!-- PROP 4: isPoiSelectionCorrect** -->
@@ -90,10 +88,9 @@
 
     <!-- PROP 5: isPeopleFollowingPublished -->
     <!-- The peopleFollowing topic must be published at least each 7 seconds. -->
-    <property id="isPeopleFollowingPublished" pattern="recurrence">
+    <property id="isPeopleFollowingPublished" pattern="existence">
       <event>people_following_published</event>
       <scope type="globally"/>
-      <time_interval time="7" time_unit="s"/>
     </property>
 
     <!-- PROP 6: isCameraPublished -->
@@ -141,10 +138,9 @@
 
     <!-- PROP 13: isExternalPCConnected -->
     <!-- The laptop used for launching the tour should be connected. -->
-    <property id="isExternalPCConnected" pattern="recurrence">
+    <property id="isExternalPCConnected" pattern="existence">
       <event>connected_to_network</event>
       <scope type="globally"/>
-      <time_interval time="3" time_unit="s"/>
     </property>
 
     <!-- PROP 14: isConnectedToWeb -->

@@ -11,6 +11,9 @@
         <data id="SKILL_RUNNING" type="int8" expr="2" />
         <data id="wait_time_ms" type="int32" expr="5000" />
         <data id="start_time" type="int64" expr="0" />
+        <data id="wait_ticks" type="int32" expr="0" />
+        <data id="max_wait_ticks" type="int32" expr="50" />
+        <data id="wait_done" type="bool" expr="false" />
     </datamodel>
 
     <!-- WaitSkill is a server for tick from the ROS2Action plugin-->
@@ -20,6 +23,8 @@
 
     <state id="idle">
         <ros_service_handle_request name="/WaitSkill/tick" target="wait">
+            <assign location="wait_ticks" expr="0"/>
+            <assign location="wait_done" expr="false"/>
             <ros_service_send_response name="/WaitSkill/tick">
                 <field name="status" expr="SKILL_RUNNING"/>
                 <field name="is_ok" expr="true"/>
@@ -43,11 +48,23 @@
             </ros_service_send_response>
         </ros_service_handle_request>
         <ros_service_handle_request name="/WaitSkill/tick" target="wait">
-            <ros_service_send_response name="/WaitSkill/tick">
-                <field name="status" expr="SKILL_RUNNING"/>
-                <field name="is_ok" expr="true"/>
-            </ros_service_send_response>
+            <if cond="wait_ticks &gt;= max_wait_ticks">
+                <ros_service_send_response name="/WaitSkill/tick">
+                    <field name="status" expr="SKILL_SUCCESS"/>
+                    <field name="is_ok" expr="true"/>
+                </ros_service_send_response>
+                <assign location="wait_ticks" expr="0"/>
+                <assign location="wait_done" expr="true"/>
+            <else/>
+                <assign location="wait_ticks" expr="wait_ticks + 1"/>
+                <assign location="wait_done" expr="false"/>
+                <ros_service_send_response name="/WaitSkill/tick">
+                    <field name="status" expr="SKILL_RUNNING"/>
+                    <field name="is_ok" expr="true"/>
+                </ros_service_send_response>
+            </if>
         </ros_service_handle_request>
+        <transition cond="wait_done" target="idle"/>
     </state>
 
 </ascxml>
