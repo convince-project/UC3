@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <properties>
   <ports>
-    <!-- <ros_service_handle_request name="/NotifyUserComponent/StartAlarm" target="HandleStartAlarm"/> -->
     <ros_service service_name="/NotifyUserComponent/StartAlarm" type="notify_user_interfaces/StartAlarm" event="response">
       <event_var id="battery_low_alarm"/>
     </ros_service>
@@ -68,16 +67,11 @@
     <!-- PROP 1: noAlarmWithHighBattery -->
     <!-- Each time the battery is charged, no alarm should be triggered -->
     <!-- PROPERTY = r"historically({high_battery} -> historically( not {alarm}))" -->
-    <property id="noAlarmWithHighBattery1" pattern="universality">
-      <event>! battery_low_alarm</event>
-      <scope type="after" event="battery_level &gt; 30"/>
-    </property>
-
-    <!-- OR -->
-    <property id="noAlarmWithHighBattery2" pattern="absence">
-      <event>battery_low_alarm</event>
-      <scope type="after" event="battery_level &gt; 30"/>
-    </property>
+    <!-- CURRENTLY UNIMPLEMENTED -->
+    <!-- <property id="noAlarmWithHighBattery" pattern="absence"> -->
+      <!-- <event>battery_low_alarm</event> -->
+      <!-- <scope type="before" event="battery_level &lt;= 30"/> -->
+    <!-- </property> -->
 
     <!-- PROP 2: alarmWithLowBattery -->
     <!-- If there was an alarm the there has been at least one time before an event of low battery. -->
