@@ -40,7 +40,7 @@
   <ros_time_rate name="battery_control_timer" rate_hz="1" />
 
   <state id="idle">
-    <onentry>
+    <!-- <onentry>
       <ros_service_send_request name="/NavigationComponent/CheckNearToPoi">
         <field name="poi_name" expr="charging_station"/>
         <field name="distance" expr="charging_distance"/>
@@ -83,7 +83,7 @@
         <field name="location" expr="location" />
         <field name="serial_number" expr="serial_number" />
       </ros_topic_publish>
-    </onentry>
+    </onentry> -->
 
     <ros_service_handle_response name="/NavigationComponent/CheckNearToPoi" target="idle">
       <if cond="_res.is_near">
