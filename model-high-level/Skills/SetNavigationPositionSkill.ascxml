@@ -29,7 +29,7 @@
     <ros_service_handle_request name="/SetNavigationPositionSkill/tick" target="executeDance">
       <ros_service_send_request name="/ExecuteDanceComponent/ExecuteDance">
         <field name="dance_name" expr="DANCE_NAME"/>
-        <field name="speech_time" expr="0"/>
+        <field name="speech_time" expr="0.0"/>
       </ros_service_send_request>
     </ros_service_handle_request>
 

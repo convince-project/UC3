@@ -19,6 +19,15 @@ for file in "$folder"/*.scxml; do
 done
 
 echo ""
+echo "Normalizing ros_fields__speech_time literal values to float..."
+for file in "$folder"/*.scxml; do
+    if grep -q 'name="ros_fields__speech_time" expr="0"' "$file"; then
+        echo "  Editing: $file"
+        sed -i 's/name="ros_fields__speech_time" expr="0"/name="ros_fields__speech_time" expr="0.0"/g' "$file"
+    fi
+done
+
+echo ""
 echo "Fixing ros_fields__angle type annotations..."
 for file in "$folder"/*.scxml; do
     if grep -q 'name="ros_fields__angle"' "$file"; then
