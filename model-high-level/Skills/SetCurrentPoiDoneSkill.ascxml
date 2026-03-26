@@ -31,29 +31,35 @@
     <state id="idle">
         <ros_service_handle_request name="/SetCurrentPoiDoneSkill/tick" target="getCurrentPoi">
             <ros_service_send_request name="/SchedulerComponent/GetCurrentPoiForNavigation"/>
+            <ros_service_send_response name="/SetCurrentPoiDoneSkill/tick">
+                <field name="status" expr="SKILL_RUNNING"/>
+                <field name="is_ok" expr="true"/>
+            </ros_service_send_response>
         </ros_service_handle_request>
         <!-- Decommentare e correggere -->
         <ros_service_handle_request name="/SetCurrentPoiDoneSkill/halt" target="halted"/>
     </state>
 
     <state id="getCurrentPoi">
-        <onentry>
+        <ros_service_handle_response name="/SchedulerComponent/GetCurrentPoiForNavigation" target="checkCallSucceeded">
+            <assign location="poi_number" expr="_res.poi_number"/>
+            <assign location="is_ok" expr="_res.is_ok"/>
+        </ros_service_handle_response>
+
+        <ros_service_handle_request name="/SetCurrentPoiDoneSkill/tick" target="getCurrentPoi">
             <ros_service_send_response name="/SetCurrentPoiDoneSkill/tick">
                 <field name="status" expr="SKILL_RUNNING"/>
                 <field name="is_ok" expr="true"/>
             </ros_service_send_response>
-        </onentry>
-        <ros_service_handle_response name="/SchedulerComponent/GetCurrentPoiForNavigation" target="checkCallSucceeded">
-            <assign location="poi_number" expr="_res.poi_number"/>
-            <assign location="is_ok" expr="_res.is_ok"/>
-            <!-- <script>
-                field_name = field_name_init + poi_number;
-            </script> -->
-
-        </ros_service_handle_response>
+        </ros_service_handle_request>
 
         <!-- Aggiungere gestione halt -->
-        <ros_service_handle_request name="/SetCurrentPoiDoneSkill/halt" target="halted"/>
+        <ros_service_handle_request name="/SetCurrentPoiDoneSkill/halt" target="haltGetCurrentPoi"/>
+    </state>
+
+    <state id="haltGetCurrentPoi">
+        <!-- Halt after waiting for pending response -->
+        <ros_service_handle_response name="/SchedulerComponent/GetCurrentPoiForNavigation" target="halted"/>
     </state>
 
     <state id="checkCallSucceeded">
@@ -106,13 +112,25 @@
         <ros_service_handle_response name="/BlackboardComponent/SetInt" target="checkSetIntSucceeded">
             <assign location="is_ok" expr="_res.is_ok"/>
         </ros_service_handle_response>
+        <!-- Handle new ticks -->
+        <ros_service_handle_request name="/SetCurrentPoiDoneSkill/tick" target="setInt">
+            <ros_service_send_response name="/SetCurrentPoiDoneSkill/tick">
+                <field name="status" expr="SKILL_RUNNING"/>
+                <field name="is_ok" expr="true"/>
+            </ros_service_send_response>
+        </ros_service_handle_request>
         <!-- Aggiungere gestione halt -->
         <ros_service_handle_request name="/SetCurrentPoiDoneSkill/halt" target="halted"/>
     </state>
 
+    <state id="haltSetInt">
+        <!-- Halt after waiting for pending response -->
+        <ros_service_handle_response name="/BlackboardComponent/SetInt" target="halted"/>
+    </state>
+
     <state id="checkSetIntSucceeded">
-        <onentry>
-            <if cond="is_ok == true">
+        <ros_service_handle_request name="/SetCurrentPoiDoneSkill/tick" target="idle">
+            <if cond="is_ok">
                 <ros_service_send_response name="/SetCurrentPoiDoneSkill/tick">
                     <field name="status" expr="SKILL_SUCCESS"/>
                     <field name="is_ok" expr="true"/>
@@ -123,8 +141,9 @@
                     <field name="is_ok" expr="true"/>
                 </ros_service_send_response>
             </if>
-        </onentry>
-        <transition target="idle"/>
+        </ros_service_handle_request>
+        <!-- Aggiungere gestione halt -->
+        <ros_service_handle_request name="/SetCurrentPoiDoneSkill/halt" target="halted"/>
     </state>
 
     <state id="halted">
