@@ -233,7 +233,7 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
     // ----- VOICES ---------
     {
         std::string eng = "en-US-Standard-G";
-        std::string ita = "it-IT-Standard-A";
+        std::string ita = "it-IT-Standard-E";
         std::string fra = "fr-FR-Standard-A";
         std::string ger = "de-DE-Standard-A";
         std::string spa = "es-ES-Standard-C";
