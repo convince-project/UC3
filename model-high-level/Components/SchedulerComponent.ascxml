@@ -9,7 +9,7 @@
     <!-- request and response placeholders -->
     <!-- response fields -->
     <data id="poi_number" type="int32" expr="0"/>
-    <data id="poi_number_for_planner" type="int32" expr="0"/>
+    <data id="poi_number_from_planner" type="int32" expr="0"/>
     <data id="poi_name" type="string" expr="''"/>
     <data id="max_poi_number" type="int32" expr="6"/>
     <data id="poi_done_0" type="bool" expr="false"/>
@@ -47,31 +47,32 @@
 
   <state id="idle">
     <ros_service_handle_request name="/SchedulerComponent/Reset" target="HandleReset"/>
-    <ros_service_handle_request name="/SchedulerComponent/SetPoiFromPlanner" target="HandleSetPoi">
+    <ros_service_handle_request name="/SchedulerComponent/SetPoiFromPlanner" target="HandleSetPoiFromPlanner">
       <!-- Convert external POI ID to internal index: 0→0, 2→1, 4→2, 5→3, 8→4, 10→5 -->
       <if cond="_req.poi_number == 0">
+        <assign location="poi_name" expr="'0'"/>
         <assign location="poi_number" expr="0"/>
-        <assign location="poi_number_for_planner" expr="0"/>
-      </if>
-      <if cond="_req.poi_number == 2">
+        <assign location="poi_number_from_planner" expr="0"/>
+      <elseif cond="_req.poi_number == 2"/>
+        <assign location="poi_name" expr="'2'"/>
         <assign location="poi_number" expr="1"/>
-        <assign location="poi_number_for_planner" expr="2"/>
-      </if>
-      <if cond="_req.poi_number == 4">
+        <assign location="poi_number_from_planner" expr="2"/>
+      <elseif cond="_req.poi_number == 4"/>
+        <assign location="poi_name" expr="'4'"/>
         <assign location="poi_number" expr="2"/>
-        <assign location="poi_number_for_planner" expr="4"/>
-      </if>
-      <if cond="_req.poi_number == 5">
+        <assign location="poi_number_from_planner" expr="4"/>
+      <elseif cond="_req.poi_number == 5"/>
+        <assign location="poi_name" expr="'5'"/>
         <assign location="poi_number" expr="3"/>
-        <assign location="poi_number_for_planner" expr="5"/>
-      </if>
-      <if cond="_req.poi_number == 8">
+        <assign location="poi_number_from_planner" expr="5"/>
+      <elseif cond="_req.poi_number == 8"/>
+        <assign location="poi_name" expr="'8'"/>
         <assign location="poi_number" expr="4"/>
-        <assign location="poi_number_for_planner" expr="8"/>
-      </if>
-      <if cond="_req.poi_number == 10">
+        <assign location="poi_number_from_planner" expr="8"/>
+      <elseif cond="_req.poi_number == 10"/>
+        <assign location="poi_name" expr="'10'"/>
         <assign location="poi_number" expr="5"/>
-        <assign location="poi_number_for_planner" expr="10"/>
+        <assign location="poi_number_from_planner" expr="10"/>
       </if>
     </ros_service_handle_request>
     <ros_service_handle_request name="/SchedulerComponent/GetCurrentPoiForNavigation" target="HandleGetCurrentPoiForNavigation"/>
@@ -81,7 +82,7 @@
   <state id="HandleReset">
     <onentry>
       <assign location="poi_number" expr="0"/>
-      <assign location="poi_number_for_planner" expr="0"/>
+      <assign location="poi_number_from_planner" expr="0"/>
       <assign location="poi_done_0" expr="false"/>
       <assign location="poi_done_1" expr="false"/>
       <assign location="poi_done_2" expr="false"/>
@@ -111,59 +112,9 @@
   <state id="HandleGetCurrentPoiForNavigation">
     <onentry>
       <!-- GetCurrentPoiForNavigation returns external POI ID: 0→0, 1→2, 2→4, 3→5, 4→8, 5→10 -->
-      <if cond="poi_number == 0">
-        <ros_service_send_response name="/SchedulerComponent/GetCurrentPoiForNavigation">
-          <field name="poi_name"   expr="poi_name"/>
-          <field name="poi_number" expr="0"/>
-          <field name="is_ok"      expr="true"/>
-          <field name="error_msg"  expr="''"/>
-        </ros_service_send_response>
-      </if>
-      <if cond="poi_number == 1">
-        <ros_service_send_response name="/SchedulerComponent/GetCurrentPoiForNavigation">
-          <field name="poi_name"   expr="poi_name"/>
-          <field name="poi_number" expr="2"/>
-          <field name="is_ok"      expr="true"/>
-          <field name="error_msg"  expr="''"/>
-        </ros_service_send_response>
-      </if>
-      <if cond="poi_number == 2">
-        <ros_service_send_response name="/SchedulerComponent/GetCurrentPoiForNavigation">
-          <field name="poi_name"   expr="poi_name"/>
-          <field name="poi_number" expr="4"/>
-          <field name="is_ok"      expr="true"/>
-          <field name="error_msg"  expr="''"/>
-        </ros_service_send_response>
-      </if>
-      <if cond="poi_number == 3">
-        <ros_service_send_response name="/SchedulerComponent/GetCurrentPoiForNavigation">
-          <field name="poi_name"   expr="poi_name"/>
-          <field name="poi_number" expr="5"/>
-          <field name="is_ok"      expr="true"/>
-          <field name="error_msg"  expr="''"/>
-        </ros_service_send_response>
-      </if>
-      <if cond="poi_number == 4">
-        <ros_service_send_response name="/SchedulerComponent/GetCurrentPoiForNavigation">
-          <field name="poi_name"   expr="poi_name"/>
-          <field name="poi_number" expr="8"/>
-          <field name="is_ok"      expr="true"/>
-          <field name="error_msg"  expr="''"/>
-        </ros_service_send_response>
-      </if>
-      <if cond="poi_number == 5">
-        <ros_service_send_response name="/SchedulerComponent/GetCurrentPoiForNavigation">
-          <field name="poi_name"   expr="poi_name"/>
-          <field name="poi_number" expr="10"/>
-          <field name="is_ok"      expr="true"/>
-          <field name="error_msg"  expr="''"/>
-        </ros_service_send_response>
-      </if>
-
-      <!-- GetCurrentPoi returns internal index as-is -->
-      <ros_service_send_response name="/SchedulerComponent/GetCurrentPoi">
+      <ros_service_send_response name="/SchedulerComponent/GetCurrentPoiForNavigation">
         <field name="poi_name"   expr="poi_name"/>
-        <field name="poi_number" expr="poi_number"/>
+        <field name="poi_number" expr="poi_number_from_planner"/>
         <field name="is_ok"      expr="true"/>
         <field name="error_msg"  expr="''"/>
       </ros_service_send_response>
@@ -178,6 +129,16 @@
         <field name="poi_number" expr="poi_number"/>
         <field name="is_ok"      expr="true"/>
         <field name="error_msg"  expr="''"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="HandleSetPoiFromPlanner">
+    <onentry>
+      <ros_service_send_response name="/SchedulerComponent/SetPoiFromPlanner">
+        <field name="is_ok" expr="true"/>
+        <field name="error_msg" expr="''"/>
       </ros_service_send_response>
     </onentry>
     <transition target="idle"/>
