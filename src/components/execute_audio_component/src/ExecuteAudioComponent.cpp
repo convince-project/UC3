@@ -23,6 +23,8 @@ bool ExecuteAudioComponent::start(int argc, char *argv[])
                                                                                                           std::placeholders::_1,
                                                                                                           std::placeholders::_2));
 
+    m_executeAudioService->configure_introspection(m_node->get_clock(), rclcpp::SystemDefaultsQoS(), RCL_SERVICE_INTROSPECTION_CONTENTS);
+
     RCLCPP_DEBUG(m_node->get_logger(), "ExecuteAudioComponent::start");
     return true;
 }

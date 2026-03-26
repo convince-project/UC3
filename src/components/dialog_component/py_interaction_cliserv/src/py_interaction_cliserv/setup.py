@@ -22,6 +22,8 @@ setup(
         'console_scripts': [
             'service = py_interaction_cliserv.interaction_service:main',
             'client = py_interaction_cliserv.interaction_client:main',
+            'service_event_forwarder = py_interaction_cliserv.service_event_forwarder:main',
+            'interaction_response_handler = py_interaction_cliserv.interaction_response_handler:main',
         ],
     },
 )
