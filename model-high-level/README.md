@@ -11,7 +11,7 @@ as2fm_roaml_to_jani main.xml --scxml-out-dir generated
 
 cd generated
 scan . validate
-scan . verify --all
+scan . verify --all -d 1000
 ```
 
 If you do not want to activate the virtual environment, use the absolute command path:
@@ -22,7 +22,7 @@ cd /home/user1/UC3/model-high-level
 ./fix_low_level.sh generated
 cd generated
 scan . validate
-scan . verify --all
+scan . verify --all -d 1000
 ```
 
 ## Common errors
