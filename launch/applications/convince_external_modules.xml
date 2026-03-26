@@ -85,5 +85,12 @@
         <parameters>--context headSynchronizer --from faceDisplay.ini</parameters>
         <node>r1-face</node>
     </module>
+    
+    <module>
+        <name>ros2</name>
+        <parameters>run topic_tools relay /battery_status /BatteryComponent/battery_level</parameters>
+        <node>laptop</node>
+    </module>
+    
 
 </application>
