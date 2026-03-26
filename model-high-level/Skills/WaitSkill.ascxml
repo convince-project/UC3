@@ -22,7 +22,7 @@
     <ros_service_server service_name="/WaitSkill/halt" type="bt_interfaces_dummy/HaltAction"/>
 
     <state id="idle">
-        <ros_service_handle_request name="/WaitSkill/tick" target="wait">
+        <ros_service_handle_request name="/WaitSkill/tick" target="idle">
             <assign location="wait_ticks" expr="0"/>
             <assign location="wait_done" expr="false"/>
             <ros_service_send_response name="/WaitSkill/tick">
@@ -38,33 +38,5 @@
         </ros_service_handle_request>
     </state>
 
-    <state id="wait">
-        <!-- <onentry>
-            <assign location="start_time" expr="Date.now()"/>
-        </onentry> -->
-        <ros_service_handle_request name="/WaitSkill/halt" target="idle">
-            <ros_service_send_response name="/WaitSkill/halt">
-                <field name="is_ok" expr="true"/>
-            </ros_service_send_response>
-        </ros_service_handle_request>
-        <ros_service_handle_request name="/WaitSkill/tick" target="wait">
-            <if cond="wait_ticks &gt;= max_wait_ticks">
-                <ros_service_send_response name="/WaitSkill/tick">
-                    <field name="status" expr="SKILL_SUCCESS"/>
-                    <field name="is_ok" expr="true"/>
-                </ros_service_send_response>
-                <assign location="wait_ticks" expr="0"/>
-                <assign location="wait_done" expr="true"/>
-            <else/>
-                <assign location="wait_ticks" expr="wait_ticks + 1"/>
-                <assign location="wait_done" expr="false"/>
-                <ros_service_send_response name="/WaitSkill/tick">
-                    <field name="status" expr="SKILL_RUNNING"/>
-                    <field name="is_ok" expr="true"/>
-                </ros_service_send_response>
-            </if>
-        </ros_service_handle_request>
-        <transition cond="wait_done" target="idle"/>
-    </state>
 
 </ascxml>

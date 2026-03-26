@@ -27,17 +27,41 @@
       <event_var id="people_following_published"/>
     </ros_topic>
 
-    <ros_service service_name="/SchedulerComponent/GetCurrentPoi" type="scheduler_interfaces/GetCurrentPoi" event="response">
+    <ros_service service_name="/SchedulerComponent/GetCurrentPoiForNavigation" type="scheduler_interfaces/GetCurrentPoi" event="response">
       <state_var id="poi_selected" field="poi_number" expr="0" type="int32"/>
     </ros_service>
 
     <ros_service service_name="/IsPoiDone0Skill/tick" type="bt_interfaces_dummy/TickCondition" event="response">
-      <state_var id="poi0_completed" field="status" expr="1" type="int32"/>
+      <state_var id="poi0_completed" field="status" expr="0" type="int32"/>
+    </ros_service>
+
+    <ros_service service_name="/IsPoiDone2Skill/tick" type="bt_interfaces_dummy/TickCondition" event="response">
+      <state_var id="poi2_completed" field="status" expr="0" type="int32"/>
+    </ros_service>
+
+    <ros_service service_name="/IsPoiDone4Skill/tick" type="bt_interfaces_dummy/TickCondition" event="response">
+      <state_var id="poi4_completed" field="status" expr="0" type="int32"/>
+    </ros_service>
+
+    <ros_service service_name="/IsPoiDone5Skill/tick" type="bt_interfaces_dummy/TickCondition" event="response">
+      <state_var id="poi5_completed" field="status" expr="0" type="int32"/>
+    </ros_service>
+
+    <ros_service service_name="/IsPoiDone8Skill/tick" type="bt_interfaces_dummy/TickCondition" event="response">
+      <state_var id="poi8_completed" field="status" expr="0" type="int32"/>
+    </ros_service>
+
+    <ros_service service_name="/IsPoiDone10Skill/tick" type="bt_interfaces_dummy/TickCondition" event="response">
+      <state_var id="poi10_completed" field="status" expr="0" type="int32"/>
     </ros_service>
 
     <ros_topic topic_name="/CheckNetworkComponent/NetworkStatus" type="std_msgs/Bool" event="publish" target="BlackboardComponent">
       <event_var id="connected_to_network"/>
     </ros_topic>
+
+    <ros_service service_name="/ResetTourAndFlagsSkill/tick" type="bt_interfaces_dummy/TickAction" event="response">
+      <event_var id="tour_complete" field="status" expr="1" type="int32"/>
+    </ros_service>
   </ports>
 
   <guarantees>
@@ -85,6 +109,10 @@
     <!-- WARN: tour_complete? -->
     <!-- If the tour is completed, the robot must arrive to the start point within a certain time. -->
     <!-- <property id="isPoiSelectionCorrect" expr="H !({check_start == 1} S[:100] {tour_complete})"/> -->
+    <property id="isPoiSelectionCorrect" pattern="absence">
+      <event>check_start == 1</event>
+      <scope type="after" event="tour_complete"/>
+    </property>
 
     <!-- PROP 5: isPeopleFollowingPublished -->
     <!-- The peopleFollowing topic must be published at least each 7 seconds. -->
@@ -120,13 +148,125 @@
     <!-- WARN: Cannot find joint/control -->
     <!-- The joints of the robot must not be in hardware fault. -->
 
-    <!-- PROP 10 POI1: isPOICompletedInTime -->
-    <!-- WARN: timer only gets up to 100_000ms i.e. 100s (resolution 100ms) -->
-    <!-- WARN: poi_selected is never 1 -->
-    <!-- If a POI is completed, than it must have been set to selected before. -->
+    <!-- PROP 10 POI0: isPOICompletedInTime -->
+    <!-- If a POI is completed, then it must have been set to selected before. -->
+    <property id="isPOI0CompletedAfterSelection" pattern="precedence">
+      <events>
+        <event>poi_selected == 0</event>
+        <event>poi0_completed == 1</event>
+      </events>
+      <scope type="globally"/>
+    </property>
+
     <!-- Moreover, if a POI is selected then it must be completed within 10 minutes (600 seconds). -->
-    <!-- <property id="isPOI1CompletedInTime" expr="H (({poi1_completed == 0} -> P{poi_selected == 1}) and not( {poi1_completed != 0} S[6000:] {poi_selected == 1}))"/> -->
-    <!-- <property id="neverPOI" expr="H{poi_selected == 0}"/> -->
+    <property id="isPOI0CompletedInTime" pattern="response">
+      <events>
+        <event>poi_selected == 0</event>
+        <event>poi0_completed == 1</event>
+      </events>
+      <scope type="globally"/>
+      <time_interval time="600" time_unit="s"/>
+    </property>
+
+    <!-- PROP 10 POI2: isPOICompletedInTime -->
+    <!-- If a POI is completed, then it must have been set to selected before. -->
+    <property id="isPOI2CompletedAfterSelection" pattern="precedence">
+      <events>
+        <event>poi_selected == 2</event>
+        <event>poi2_completed == 1</event>
+      </events>
+      <scope type="globally"/>
+    </property>
+
+    <!-- Moreover, if a POI is selected then it must be completed within 10 minutes (600 seconds). -->
+    <property id="isPOI2CompletedInTime" pattern="response">
+      <events>
+        <event>poi_selected == 2</event>
+        <event>poi2_completed == 1</event>
+      </events>
+      <scope type="globally"/>
+      <time_interval time="600" time_unit="s"/>
+    </property>
+
+    <!-- PROP 10 POI4: isPOICompletedInTime -->
+    <!-- If a POI is completed, then it must have been set to selected before. -->
+    <property id="isPOI4CompletedAfterSelection" pattern="precedence">
+      <events>
+        <event>poi_selected == 4</event>
+        <event>poi4_completed == 1</event>
+      </events>
+      <scope type="globally"/>
+    </property>
+
+    <!-- Moreover, if a POI is selected then it must be completed within 10 minutes (600 seconds). -->
+    <property id="isPOI4CompletedInTime" pattern="response">
+      <events>
+        <event>poi_selected == 4</event>
+        <event>poi4_completed == 1</event>
+      </events>
+      <scope type="globally"/>
+      <time_interval time="600" time_unit="s"/>
+    </property>
+
+    <!-- PROP 10 POI5: isPOICompletedInTime -->
+    <!-- If a POI is completed, then it must have been set to selected before. -->
+    <property id="isPOI5CompletedAfterSelection" pattern="precedence">
+      <events>
+        <event>poi_selected == 5</event>
+        <event>poi5_completed == 1</event>
+      </events>
+      <scope type="globally"/>
+    </property>
+
+    <!-- Moreover, if a POI is selected then it must be completed within 10 minutes (600 seconds). -->
+    <property id="isPOI5CompletedInTime" pattern="response">
+      <events>
+        <event>poi_selected == 5</event>
+        <event>poi5_completed == 1</event>
+      </events>
+      <scope type="globally"/>
+      <time_interval time="600" time_unit="s"/>
+    </property>
+
+    <!-- PROP 10 POI8: isPOICompletedInTime -->
+    <!-- If a POI is completed, then it must have been set to selected before. -->
+    <property id="isPOI8CompletedAfterSelection" pattern="precedence">
+      <events>
+        <event>poi_selected == 8</event>
+        <event>poi8_completed == 1</event>
+      </events>
+      <scope type="globally"/>
+    </property>
+
+    <!-- Moreover, if a POI is selected then it must be completed within 10 minutes (600 seconds). -->
+    <property id="isPOI8CompletedInTime" pattern="response">
+      <events>
+        <event>poi_selected == 8</event>
+        <event>poi8_completed == 1</event>
+      </events>
+      <scope type="globally"/>
+      <time_interval time="600" time_unit="s"/>
+    </property>
+
+    <!-- PROP 10 POI10: isPOICompletedInTime -->
+    <!-- If a POI is completed, then it must have been set to selected before. -->
+    <property id="isPOI10CompletedAfterSelection" pattern="precedence">
+      <events>
+        <event>poi_selected == 10</event>
+        <event>poi10_completed == 1</event>
+      </events>
+      <scope type="globally"/>
+    </property>
+
+    <!-- Moreover, if a POI is selected then it must be completed within 10 minutes (600 seconds). -->
+    <property id="isPOI10CompletedInTime" pattern="response">
+      <events>
+        <event>poi_selected == 10</event>
+        <event>poi10_completed == 1</event>
+      </events>
+      <scope type="globally"/>
+      <time_interval time="600" time_unit="s"/>
+    </property>
 
     <!-- PROP 11: isWellLocalized -->
     <!-- WARN: cannot find localized/acml -->
