@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ascxml xmlns="http://www.w3.org/2005/07/scxml"
+       version="1.0"
+       name="SchedulerComponent"
+       initial="idle"
+       datamodel="ecmascript">
+
+  <datamodel>
+    <!-- request and response placeholders -->
+    <!-- response fields -->
+    <data id="poi_number" type="int32" expr="0"/>
+    <data id="poi_number_from_planner" type="int32" expr="0"/>
+    <data id="poi_name" type="string" expr="''"/>
+    <data id="max_poi_number" type="int32" expr="6"/>
+    <data id="poi_done_0" type="bool" expr="false"/>
+    <data id="poi_done_1" type="bool" expr="false"/>
+    <data id="poi_done_2" type="bool" expr="false"/>
+    <data id="poi_done_3" type="bool" expr="false"/>
+    <data id="poi_done_4" type="bool" expr="false"/>
+    <data id="poi_done_5" type="bool" expr="false"/>
+    <data id="poi_done_planner_0" type="bool" expr="false"/>
+    <data id="poi_done_planner_1" type="bool" expr="false"/>
+    <data id="poi_done_planner_2" type="bool" expr="false"/>
+    <data id="poi_done_planner_3" type="bool" expr="false"/>
+    <data id="poi_done_planner_4" type="bool" expr="false"/>
+    <data id="poi_done_planner_5" type="bool" expr="false"/>
+    <data id="poi_done_planner_6" type="bool" expr="false"/>
+    <data id="poi_done_planner_7" type="bool" expr="false"/>
+    <data id="poi_done_planner_8" type="bool" expr="false"/>
+    <data id="poi_done_planner_9" type="bool" expr="false"/>
+    <data id="poi_done_planner_10" type="bool" expr="false"/>
+    <data id="current_language" type="string" expr="'en-US'"/>
+    <data id="current_command" type="string" expr="''"/>
+    <data id="current_action" type="string" expr="''"/>
+    <data id="current_action_param" type="string" expr="''"/>
+    <data id="current_action_is_blocking" type="bool" expr="false"/>
+    <data id="current_action_type" type="string" expr="''"/>
+    <data id="all_commands" type="string" expr="''"/>
+    
+  </datamodel>
+
+  <!-- service servers -->
+  <ros_service_server service_name="/SchedulerComponent/Reset" type="scheduler_interfaces/Reset"/>
+  <ros_service_server service_name="/SchedulerComponent/SetPoiFromPlanner" type="scheduler_interfaces/SetPoi"/>
+  <ros_service_server service_name="/SchedulerComponent/GetCurrentPoiForNavigation" type="scheduler_interfaces/GetCurrentPoi"/>
+  <ros_service_server service_name="/SchedulerComponent/GetCurrentPoi" type="scheduler_interfaces/GetCurrentPoi"/>
+
+  <state id="idle">
+    <ros_service_handle_request name="/SchedulerComponent/Reset" target="HandleReset"/>
+    <ros_service_handle_request name="/SchedulerComponent/SetPoiFromPlanner" target="HandleSetPoiFromPlanner">
+      <!-- Convert external POI ID to internal index: 0→0, 2→1, 4→2, 5→3, 8→4, 10→5 -->
+      <if cond="_req.poi_number == 0">
+        <assign location="poi_name" expr="'0'"/>
+        <assign location="poi_number" expr="0"/>
+        <assign location="poi_number_from_planner" expr="0"/>
+      <elseif cond="_req.poi_number == 2"/>
+        <assign location="poi_name" expr="'2'"/>
+        <assign location="poi_number" expr="1"/>
+        <assign location="poi_number_from_planner" expr="2"/>
+      <elseif cond="_req.poi_number == 4"/>
+        <assign location="poi_name" expr="'4'"/>
+        <assign location="poi_number" expr="2"/>
+        <assign location="poi_number_from_planner" expr="4"/>
+      <elseif cond="_req.poi_number == 5"/>
+        <assign location="poi_name" expr="'5'"/>
+        <assign location="poi_number" expr="3"/>
+        <assign location="poi_number_from_planner" expr="5"/>
+      <elseif cond="_req.poi_number == 8"/>
+        <assign location="poi_name" expr="'8'"/>
+        <assign location="poi_number" expr="4"/>
+        <assign location="poi_number_from_planner" expr="8"/>
+      <elseif cond="_req.poi_number == 10"/>
+        <assign location="poi_name" expr="'10'"/>
+        <assign location="poi_number" expr="5"/>
+        <assign location="poi_number_from_planner" expr="10"/>
+      </if>
+    </ros_service_handle_request>
+    <ros_service_handle_request name="/SchedulerComponent/GetCurrentPoiForNavigation" target="HandleGetCurrentPoiForNavigation"/>
+    <ros_service_handle_request name="/SchedulerComponent/GetCurrentPoi" target="HandleGetCurrentPoi"/>
+  </state>
+
+  <state id="HandleReset">
+    <onentry>
+      <assign location="poi_number" expr="0"/>
+      <assign location="poi_number_from_planner" expr="0"/>
+      <assign location="poi_done_0" expr="false"/>
+      <assign location="poi_done_1" expr="false"/>
+      <assign location="poi_done_2" expr="false"/>
+      <assign location="poi_done_3" expr="false"/>
+      <assign location="poi_done_4" expr="false"/>
+      <assign location="poi_done_5" expr="false"/>
+      <assign location="poi_done_planner_0" expr="false"/>
+      <assign location="poi_done_planner_1" expr="false"/>
+      <assign location="poi_done_planner_2" expr="false"/>
+      <assign location="poi_done_planner_3" expr="false"/>
+      <assign location="poi_done_planner_4" expr="false"/>
+      <assign location="poi_done_planner_5" expr="false"/>
+      <assign location="poi_done_planner_6" expr="false"/>
+      <assign location="poi_done_planner_7" expr="false"/>
+      <assign location="poi_done_planner_8" expr="false"/>
+      <assign location="poi_done_planner_9" expr="false"/>
+      <assign location="poi_done_planner_10" expr="false"/>
+
+      <ros_service_send_response name="/SchedulerComponent/Reset">
+        <field name="is_ok" expr="true"/>
+        <field name="error_msg" expr="''"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="HandleGetCurrentPoiForNavigation">
+    <onentry>
+      <!-- GetCurrentPoiForNavigation returns external POI ID: 0→0, 1→2, 2→4, 3→5, 4→8, 5→10 -->
+      <ros_service_send_response name="/SchedulerComponent/GetCurrentPoiForNavigation">
+        <field name="poi_name"   expr="poi_name"/>
+        <field name="poi_number" expr="poi_number_from_planner"/>
+        <field name="is_ok"      expr="true"/>
+        <field name="error_msg"  expr="''"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="HandleGetCurrentPoi">
+    <onentry>
+      <ros_service_send_response name="/SchedulerComponent/GetCurrentPoi">
+        <field name="poi_name"   expr="poi_name"/>
+        <field name="poi_number" expr="poi_number"/>
+        <field name="is_ok"      expr="true"/>
+        <field name="error_msg"  expr="''"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="HandleSetPoiFromPlanner">
+    <onentry>
+      <ros_service_send_response name="/SchedulerComponent/SetPoiFromPlanner">
+        <field name="is_ok" expr="true"/>
+        <field name="error_msg" expr="''"/>
+      </ros_service_send_response>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+  
+</ascxml>
