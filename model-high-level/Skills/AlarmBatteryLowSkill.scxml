@@ -13,6 +13,8 @@
     <ros_service_client service_name="/NotifyUserComponent/StartAlarm" type ="notify_user_interfaces/StartAlarm"/>
     <!-- AlarmSkill is a client for StopAlarm from the NotifyUserComponent -->
     <ros_service_client service_name="/NotifyUserComponent/StopAlarm" type ="notify_user_interfaces/StopAlarm"/>
+    <!-- Client of SetAllowedToMove from the AllowedToMoveComponent -->
+    <ros_service_client service_name="/AllowedToMoveComponent/SetAllowedToMove" type ="allowed_to_move_interfaces/SetAllowedToMove"/>
 
     <datamodel>
         <data id="SKILL_SUCCESS" type="int8" expr="0" />
@@ -22,12 +24,39 @@
     </datamodel>
 
     <state id="idle">
-        <ros_service_handle_request name="/AlarmSkill/tick" target="startAlarm">
-            <ros_service_send_request name="/NotifyUserComponent/StartAlarm"/>
+        <ros_service_handle_request name="/AlarmSkill/tick" target="setNotAllowedToMove">
+            <ros_service_send_request name="/AllowedToMoveComponent/SetAllowedToMove">
+                <field name="is_allowed_to_move" expr="0"/>
+            </ros_service_send_request>
+            
         </ros_service_handle_request>
         <ros_service_handle_request name="/AlarmSkill/halt" target="stopAlarm">
             <ros_service_send_request name="/NotifyUserComponent/StopAlarm"/>
         </ros_service_handle_request>
+    </state>
+
+    <state id="setNotAllowedToMove">
+        <onentry>
+            <ros_service_send_response name="/AlarmSkill/tick">
+                <field name="status" expr="SKILL_RUNNING"/>
+                <field name="is_ok" expr="true"/>
+            </ros_service_send_response>
+        </onentry>
+
+        <ros_service_handle_response name="/AllowedToMoveComponent/SetAllowedToMove" target="evaluateAllowedToMove">
+            <assign location="is_ok" expr="_res.is_ok"/>
+        </ros_service_handle_response>
+
+        <ros_service_handle_request name="/AlarmSkill/tick" target="setNotAllowedToMove"/>
+    
+    </state>
+
+    <state id="evaluateAllowedToMove">
+
+        <transition target="startAlarm" cond="is_ok">
+            <ros_service_send_request name="/NotifyUserComponent/StartAlarm"/>
+        </transition>
+        <transition target="returnFailure"/>
 
     </state>
 

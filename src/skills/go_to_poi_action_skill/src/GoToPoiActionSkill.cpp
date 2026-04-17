@@ -314,7 +314,7 @@ void GoToPoiActionSkill::result_callback(const  rclcpp_action::ClientGoalHandle<
   //std::cout << "Result received: " << result.result->is_ok << std::endl;
   // RCLCPP_INFO(m_node->get_logger(), "Result received: %d ", result.result->is_ok);
   QVariantMap data;
-  // data.insert("is_ok", result.result->is_ok);
+  data.insert("is_ok", result.result->is_ok);
   m_stateMachine.submitEvent("NavigationComponent.GoToPoi.ResultResponse", data);
   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "NavigationComponent.GoToPoi.ResultResponse");
 }
