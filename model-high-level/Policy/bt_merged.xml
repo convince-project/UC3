@@ -81,8 +81,8 @@
         <Action ID="ROS2Action" interface="ROS2SERVICE" isMonitored="false" name="ResetTourAndFlags" service_name_tick="/ResetTourAndFlagsSkill/tick" service_name_halt="/ResetTourAndFlagsSkill/halt" />
       </Fallback>
       <Sequence>
-        <ROS2Action name="StopPoiTimer" interface="" isMonitored="" service_name_tick="/StopPoiTimerSkill/tick" service_name_halt="/StopPoiTimerSkill/halt" />
-        <ROS2Action name="StartPoiTimer" interface="" isMonitored="" service_name_tick="/StartPoiTimerSkill/tick" service_name_halt="/StartPoiTimerSkill/halt" />
+        <ROS2Action name="StopPoiTimer" interface="ROS2SERVICE" isMonitored="false" service_name_tick="/StopPoiTimerSkill/tick" service_name_halt="/StopPoiTimerSkill/halt" />
+        <ROS2Action name="StartPoiTimer" interface="ROS2SERVICE" isMonitored="false" service_name_tick="/StartPoiTimerSkill/tick" service_name_halt="/StartPoiTimerSkill/halt" />
         <Fallback>
           <ReactiveSequence>
             <ROS2Condition name="CheckIfStart" interface="ROS2SERVICE" isMonitored="false" service_name="/CheckIfStartSkill/tick" />
