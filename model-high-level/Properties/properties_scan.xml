@@ -1,0 +1,83 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<properties>
+  <ports>
+    <scxml_event_send event="srv_AlarmBatteryLowSkill__tick_response" origin="AlarmBatteryLowSkill" target="srv_handler_AlarmBatteryLowSkill__tick">
+      <state_var id="battery_low_alarm" type="int32" expr="0" param="ros_fields__status"/>
+    </scxml_event_send>
+    <scxml_event_send event="topic_BatteryComponent__battery_level_msg" origin="BatteryComponent" target="BatteryChargingSkill">
+      <state_var id="battery_level" type="int32" expr="100" param="ros_fields__percentage"/>
+      <event_var id="battery_published"/>
+    </scxml_event_send>
+    <scxml_event_send event="srv_CheckIfStartSkill__tick_response" origin="CheckIfStartSkill" target="srv_handler_CheckIfStartSkill__tick">
+      <state_var id="check_start" type="int32" expr="0" param="ros_fields__status"/>
+    </scxml_event_send>
+    <scxml_event_send event="srv_IsAtChargingStationSkill__tick_response" origin="IsAtChargingStationSkill" target="srv_handler_IsAtChargingStationSkill__tick">
+      <state_var id="is_at_charging_station" type="int32" expr="0" param="ros_fields__status"/>
+    </scxml_event_send>
+    <scxml_event_send event="srv_GoToChargingStationSkill__tick_response" origin="GoToChargingStationSkill" target="srv_handler_GoToChargingStationSkill__tick">
+      <state_var id="goto_charging_station" type="int32" expr="0" param="ros_fields__status"/>
+    </scxml_event_send>
+    <scxml_event_send event="topic_PeopleDetectorFilterComponent__is_followed_msg" origin="PeopleDetectorFilterComponent" target="SystemMonitorComponent">
+      <event_var id="people_following_published"/>
+    </scxml_event_send>
+    <scxml_event_send event="srv_SchedulerComponent__GetCurrentPoiForNavigation_response_client_GoToPoiActionSkill" origin="srv_handler_SchedulerComponent__GetCurrentPoiForNavigation" target="GoToPoiActionSkill">
+      <state_var id="poi_selected" type="int32" expr="-1" param="ros_fields__poi_number"/>
+    </scxml_event_send>
+    <scxml_event_send event="srv_IsPoiDone0Skill__tick_response" origin="IsPoiDone0Skill" target="srv_handler_IsPoiDone0Skill__tick">
+      <state_var id="poi0_completed" type="int32" expr="0" param="ros_fields__status"/>
+    </scxml_event_send>
+    <scxml_event_send event="srv_IsPoiDone2Skill__tick_response" origin="IsPoiDone2Skill" target="srv_handler_IsPoiDone2Skill__tick">
+      <state_var id="poi2_completed" type="int32" expr="0" param="ros_fields__status"/>
+    </scxml_event_send>
+    <scxml_event_send event="srv_IsPoiDone4Skill__tick_response" origin="IsPoiDone4Skill" target="srv_handler_IsPoiDone4Skill__tick">
+      <state_var id="poi4_completed" type="int32" expr="0" param="ros_fields__status"/>
+    </scxml_event_send>
+    <scxml_event_send event="srv_IsPoiDone5Skill__tick_response" origin="IsPoiDone5Skill" target="srv_handler_IsPoiDone5Skill__tick">
+      <state_var id="poi5_completed" type="int32" expr="0" param="ros_fields__status"/>
+    </scxml_event_send>
+    <scxml_event_send event="srv_IsPoiDone8Skill__tick_response" origin="IsPoiDone8Skill" target="srv_handler_IsPoiDone8Skill__tick">
+      <state_var id="poi8_completed" type="int32" expr="0" param="ros_fields__status"/>
+    </scxml_event_send>
+    <scxml_event_send event="srv_IsPoiDone10Skill__tick_response" origin="IsPoiDone10Skill" target="srv_handler_IsPoiDone10Skill__tick">
+      <state_var id="poi10_completed" type="int32" expr="0" param="ros_fields__status"/>
+    </scxml_event_send>
+    <scxml_event_send event="topic_CheckNetworkComponent__NetworkStatus_msg" origin="CheckNetworkComponent" target="SystemMonitorComponent">
+      <event_var id="connected_to_network"/>
+    </scxml_event_send>
+    <scxml_event_send event="srv_ResetTourAndFlagsSkill__tick_response" origin="ResetTourAndFlagsSkill" target="srv_handler_ResetTourAndFlagsSkill__tick">
+      <event_var id="tour_complete"/>
+      <state_var id="completed_tour" type="int32" expr="0" param="ros_fields__status"/>
+    </scxml_event_send>
+    <scxml_event_send event="srv_SetCurrentPoiDoneSkill__tick_request" origin="srv_handler_SetCurrentPoiDoneSkill__tick" target="SetCurrentPoiDoneSkill">
+      <event_var id="poi_done_set"/>
+    </scxml_event_send>
+    <!-- <scxml_event_send event="srv_BlackboardComponent__GetInt_response_client_IsCheckingForPeopleSkill" origin="srv_handler_BlackboardComponent__GetInt" target="IsCheckingForPeopleSkill"> -->
+      <!-- <state_var id="m_value" type="int32" expr="0" param="ros_fields__value"/> -->
+      <!-- <state_var id="m_result" type="bool" expr="false" param="ros_fields__is_ok"/> -->
+    <!-- </scxml_event_send> -->
+  </ports>
+  <guarantees>
+    <property id="noAlarmWithHighBattery1" expr="historically( { battery_level &gt; 30 } -&gt; { battery_low_alarm != 3 })"/>
+    <property id="noAlarmWithHighBattery2" expr="historically( { battery_level &gt; 30 } -&gt; not({ battery_low_alarm == 3 }))"/>
+    <property id="alarmWithLowBattery1" expr="historically( ({ battery_low_alarm == 3 }) -&gt; once({ battery_level &lt;= 30 }) )"/>
+    <property id="alarmWithLowBattery2" expr="historically( not( not({ battery_low_alarm == 3 }) since[50:] ({ battery_level &lt;= 30 &amp;&amp; is_at_charging_station == 2 }) ) )"/>
+    <property id="isBatteryPublished" expr="historically( (once[50:] true) -&gt; (once[:50]{ battery_published }) )"/>
+    <property id="isPeopleFollowingPublished" expr="historically( (once[70:] true) -&gt; (once[:70]{ people_following_published }) )"/>
+    <property id="notCriticalBattery1" expr="historically({ battery_level &gt; 10 })"/>
+    <property id="notCriticalBattery2" expr="historically(not({ battery_level &lt;= 10 }))"/>
+    <property id="isPOI0CompletedAfterSelection" expr="historically( ({ poi0_completed == 1 }) -&gt; once({ poi_selected == 0 }) )"/>
+    <property id="isPOI0CompletedInTime" expr="historically( not( not({ poi0_completed == 1 }) since[60:] ({ poi_selected == 0 }) ) )"/>
+    <property id="isPOI2CompletedAfterSelection" expr="historically( ({ poi2_completed == 1 }) -&gt; once({ poi_selected == 2 }) )"/>
+    <property id="isPOI2CompletedInTime" expr="historically( not( not({ poi2_completed == 1 }) since[60:] ({ poi_selected == 2 }) ) )"/>
+    <property id="isPOI4CompletedAfterSelection" expr="historically( ({ poi4_completed == 1 }) -&gt; once({ poi_selected == 4 }) )"/>
+    <property id="isPOI4CompletedInTime" expr="historically( not( not({ poi4_completed == 1 }) since[60:] ({ poi_selected == 4 }) ) )"/>
+    <property id="isPOI5CompletedAfterSelection" expr="historically( ({ poi5_completed == 1 }) -&gt; once({ poi_selected == 5 }) )"/>
+    <property id="isPOI5CompletedInTime" expr="historically( not( not({ poi5_completed == 1 }) since[60:] ({ poi_selected == 5 }) ) )"/>
+    <property id="isPOI8CompletedAfterSelection" expr="historically( ({ poi8_completed == 1 }) -&gt; once({ poi_selected == 8 }) )"/>
+    <property id="isPOI8CompletedInTime" expr="historically( not( not({ poi8_completed == 1 }) since[60:] ({ poi_selected == 8 }) ) )"/>
+    <property id="isPOI10CompletedAfterSelection" expr="historically( ({ poi10_completed == 1 }) -&gt; once({ poi_selected == 10 }) )"/>
+    <property id="isPOI10CompletedInTime" expr="historically( not( not({ poi10_completed == 1 }) since[60:] ({ poi_selected == 10 }) ) )"/>
+    <property id="isExternalPCConnected" expr="historically( (once[30:] true) -&gt; (once[:30]{ connected_to_network }) )"/>
+    <property id="isArrivedAtChargingStationInTime" expr="historically( not( not({ is_at_charging_station == 3 }) since[100:] ({ battery_low_alarm == 3 }) ) )"/>
+  </guarantees>
+</properties>
