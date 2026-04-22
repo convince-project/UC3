@@ -21,6 +21,7 @@
 #include <yarp/dev/IAudioGrabberSound.h>
 #include <text_to_speech_interfaces/srv/get_language.hpp>
 #include <text_to_speech_interfaces/srv/set_language.hpp>
+#include <dialog_interfaces/srv/set_web_status.hpp>
 
 class SpeechToTextComponent : public yarp::os::TypedReaderCallback<yarp::sig::Sound>
 {
@@ -39,18 +40,24 @@ public:
 
     void onRead(yarp::sig::Sound &msg) override;
 
+    void SetWebStatus(const std::shared_ptr<dialog_interfaces::srv::SetWebStatus::Request> request,
+                      std::shared_ptr<dialog_interfaces::srv::SetWebStatus::Response> response); // Sets the web connectivity status
+
 private:
     yarp::dev::PolyDriver m_speechTranscrPoly;
     yarp::dev::ISpeechTranscription *m_iSpeechTranscr{nullptr};
     rclcpp::Node::SharedPtr m_node;
     rclcpp::Service<text_to_speech_interfaces::srv::GetLanguage>::SharedPtr m_getLanguageService;
     rclcpp::Service<text_to_speech_interfaces::srv::SetLanguage>::SharedPtr m_setLanguageService;
+    rclcpp::Service<dialog_interfaces::srv::SetWebStatus>::SharedPtr m_SetWebStatusService;
     std::mutex m_mutex;
     yarp::os::BufferedPort<yarp::sig::Sound> m_audioInputPort;
     yarp::os::BufferedPort<yarp::os::Bottle> m_transcriptionOutputPort;
 
     yarp::dev::PolyDriver m_audioRecorderPoly;
     yarp::dev::IAudioGrabberSound *m_iAudioGrabberSound{nullptr};
+
+    bool m_webStatus;
 };
 
 #endif // SPEECH_TO_TEXT_COMPONENT__HPP

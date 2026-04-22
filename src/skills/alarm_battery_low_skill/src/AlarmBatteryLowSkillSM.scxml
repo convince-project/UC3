@@ -3,6 +3,7 @@
     <!-- AlarmSkill is a server for halt from the ROS2Action plugin-->
     <!-- AlarmSkill is a client for StartAlarm from the NotifyUserComponent -->
     <!-- AlarmSkill is a client for StopAlarm from the NotifyUserComponent -->
+    <!-- Client of SetAllowedToMove from the AllowedToMoveComponent -->
     <datamodel>
         <data id="SKILL_SUCCESS" expr="0"/>
         <data id="SKILL_FAILURE" expr="1"/>
@@ -10,12 +11,32 @@
         <data id="is_ok" expr="false"/>
     </datamodel>
     <state id="idle">
-        <transition target="startAlarm" event="CMD_TICK">
-            <send event="NotifyUserComponent.StartAlarm.Call"/>
+        <transition target="setNotAllowedToMove" event="CMD_TICK">
+            <send event="AllowedToMoveComponent.SetAllowedToMove.Call">
+                <param name="is_allowed_to_move" expr="0"/>
+            </send>
         </transition>
         <transition target="stopAlarm" event="CMD_HALT">
             <send event="NotifyUserComponent.StopAlarm.Call"/>
         </transition>
+    </state>
+    <state id="setNotAllowedToMove">
+        <onentry>
+            <send event="TICK_RESPONSE">
+                <param name="status" expr="SKILL_RUNNING"/>
+                <param name="is_ok" expr="true"/>
+            </send>
+        </onentry>
+        <transition target="evaluateAllowedToMove" event="AllowedToMoveComponent.SetAllowedToMove.Return">
+            <assign location="is_ok" expr="_event.data.is_ok"/>
+        </transition>
+        <transition target="setNotAllowedToMove" event="CMD_TICK"/>
+    </state>
+    <state id="evaluateAllowedToMove">
+        <transition target="startAlarm" cond="is_ok">
+            <send event="NotifyUserComponent.StartAlarm.Call"/>
+        </transition>
+        <transition target="returnFailure"/>
     </state>
     <state id="startAlarm">
         <onentry>
