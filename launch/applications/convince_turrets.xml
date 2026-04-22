@@ -1,0 +1,44 @@
+<application>
+    <name>convince_turrets</name>
+
+    <module>
+        <name>python3</name>
+        <parameters>back_sub_live.py</parameters>
+        <environment></environment>
+        <workdir>/usr/local/src/robot/ros2_ws/src/occupancy_static_devices</workdir>
+        <node>console-turrets</node>
+    </module>
+
+    <module>
+        <name>python3</name>
+        <parameters>publish_tfs.py</parameters>
+        <environment></environment>
+        <workdir>/usr/local/src/robot/ros2_ws/src/occupancy_static_devices</workdir>
+        <node>console-turrets</node>
+    </module>
+
+
+    <module>
+        <name>ros2yarp_bridge</name>
+        <parameters></parameters>
+        <environment></environment>
+        <workdir>/usr/local/src/robot/ros2_ws/src/occupancy_static_devices/build/bridges/ros2yarp_bridge/</workdir>
+        <node>console-turrets</node>
+    </module>
+
+
+    <module>
+        <name>yarp2ros_bridge</name>
+        <parameters></parameters>
+        <environment></environment>
+        <workdir>/usr/local/src/robot/ros2_ws/src/occupancy_static_devices/build/bridges/yarp2ros_bridge/</workdir>
+        <node>r1-torso</node>
+    </module>
+
+    <connection>
+        <from>/detections:o</from>
+        <to>/detections:i</to>
+        <protocol>fast_tcp</protocol>
+    </connection>
+
+</application>
