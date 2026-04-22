@@ -17,6 +17,21 @@
         <node>console-turrets</node>
     </module>
 
+    <module>
+        <name>python3</name>
+        <parameters>tracks_to_marker.py</parameters>
+        <environment></environment>
+        <workdir>/usr/local/src/robot/ros2_ws/src/occupancy_static_devices</workdir>
+        <node>console-turrets</node>
+    </module>
+
+    <module>
+        <name>rviz2</name>
+        <parameters>-d /usr/local/src/robot/tour-guide-robot/app/navigation2/conf/r1_visualizer.rviz</parameters>
+        <environment></environment>
+        <workdir>/usr/local/src/robot/ros2_ws/src/occupancy_static_devices</workdir>
+        <node>console-turrets</node>
+    </module>
 
     <module>
         <name>ros2yarp_bridge</name>
@@ -25,7 +40,6 @@
         <workdir>/usr/local/src/robot/ros2_ws/src/occupancy_static_devices/build/bridges/ros2yarp_bridge/</workdir>
         <node>console-turrets</node>
     </module>
-
 
     <module>
         <name>yarp2ros_bridge</name>
