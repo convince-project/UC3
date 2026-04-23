@@ -30,6 +30,7 @@ class PlannerComponent(Node):
                  explain_time,
                  detections_topic="static_tracks", 
                  bt_file_path="/home/user1/UC3/src/behavior_tree/BT/bt_scheduler.xml",
+                 max_vertex_index=None
                  ):
         super().__init__('planner_component')
         self._action_server = ActionServer(
@@ -57,6 +58,7 @@ class PlannerComponent(Node):
         self._time_for_occupancies = None
         self._btWriter = BTWriter(bt_file_path)
         self._mutex = Lock()
+        self.max_vertex_index = max_vertex_index
         # create new node to retrieve blackboard values
         self._blackboard_node = rclpy.create_node('blackboard_retriever_node_from_planner_component')
         self._blackboard_executor = SingleThreadedExecutor()
@@ -167,7 +169,7 @@ class PlannerComponent(Node):
                         set())
         else:
             # search for all the pois done to compute the current state
-            for i in range(1, 11):
+            for i in range(1, self.max_vertex_index):
                 key = f'PoiDone{i}'
                 vertex_done = self.retrieve_blackboard_value(key)
                 # self.get_logger().info(f"Blackboard value for {key}: {vertex_done}")
@@ -191,8 +193,8 @@ class PlannerComponent(Node):
             last_vertex = self._visited_vertices[-1]
             # self.get_logger().info(f"Last visited vertex: {last_vertex}")
             # add the doors
-            for door in self.doors_passed[last_vertex]:
-                self._visited_vertices.append(door)
+            # for door in self.doors_passed[last_vertex]:
+            #     self._visited_vertices.append(door)
             self._time_for_occupancies = self.get_clock().now().seconds_nanoseconds()[0]
             return State(last_vertex, 
                         self.get_clock().now().seconds_nanoseconds()[0] - self._start_time,
@@ -352,6 +354,7 @@ def main(args=None):
         explain_time = config['explain_time']
         bt_file_path = config['bt_file_path']
         detections_topic = config['detections_topic']
+        max_vertex_index = config['max_vertex_index']
     else:
         if "--occupancy_map_path" in sys.argv and len(sys.argv) >= sys.argv.index("--occupancy_map_path") + 1:
             occupancy_map_path = sys.argv[sys.argv.index("--occupancy_map_path") + 1]
@@ -389,6 +392,10 @@ def main(args=None):
             detections_topic = sys.argv[sys.argv.index("--detections_topic") + 1]
         else:
             sys.exit("Error: detections_topic argument not provided")
+        if "--max_vertex_index" in sys.argv and len(sys.argv) >= sys.argv.index("--max_vertex_index") + 1:
+            max_vertex_index = int(sys.argv[sys.argv.index("--max_vertex_index") + 1])
+        else:
+            sys.exit("Error: max_vertex_index argument not provided")
     print("Starting Planner Component...")
     print("arguments parsed successfully.")
     print("occupancy_map_path:", occupancy_map_path)
@@ -400,7 +407,7 @@ def main(args=None):
     print("explain_time:", explain_time)
     print("bt_file_path:", bt_file_path)
     print("detections_topic:", detections_topic)
-
+    print("max_vertex_index:", max_vertex_index)
     with Executor() as executor: 
 
         planner_component = PlannerComponent(occupancy_map_path=occupancy_map_path,
@@ -412,7 +419,7 @@ def main(args=None):
                                             explain_time=explain_time,
                                             bt_file_path=bt_file_path,
                                             detections_topic=detections_topic,
-                                            
+                                            max_vertex_index=max_vertex_index
                                             )
         rclpy.spin(planner_component)
 
