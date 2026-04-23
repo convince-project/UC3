@@ -50,10 +50,10 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
 
     m_speechToTextPort.open(m_speechToTextClientName);
     // Try Automatic port connection
-    if (!yarp::os::Network::connect(m_speechToTextServerName, m_speechToTextClientName))
-    {
-        yWarning() << "[DialogComponent::start] Unable to connect to: " << m_speechToTextServerName;
-    }
+    // if (!yarp::os::Network::connect(m_speechToTextServerName, m_speechToTextClientName))
+    // {
+    //     yWarning() << "[DialogComponent::start] Unable to connect to: " << m_speechToTextServerName;
+    // }
 
     yDebug() << "[DialogComponent::start] Remote Port: " << m_speechToTextServerName;
     yDebug() << "[DialogComponent::start] Local Port: " << m_speechToTextClientName;
