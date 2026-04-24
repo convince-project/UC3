@@ -16,7 +16,6 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(text_to_speech_interfaces REQUIRED)
-find_package(dialog_interfaces REQUIRED)
 find_package(YCM REQUIRED)
 find_package(YARP 3.11 REQUIRED COMPONENTS dev os sig)
 
@@ -32,7 +31,7 @@ add_executable(${PROJECT_NAME})
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-ament_target_dependencies(${PROJECT_NAME} text_to_speech_interfaces dialog_interfaces rclcpp )
+ament_target_dependencies(${PROJECT_NAME} text_to_speech_interfaces rclcpp )
 target_link_libraries(${PROJECT_NAME} ${YARP_LIBRARIES})
 
 target_include_directories(${PROJECT_NAME}

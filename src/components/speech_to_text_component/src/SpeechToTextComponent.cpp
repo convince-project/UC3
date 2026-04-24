@@ -125,8 +125,6 @@ bool SpeechToTextComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
         return false;
     }
 
-    m_webStatus = true;
-
     return true;
 }
 
@@ -148,12 +146,6 @@ bool SpeechToTextComponent::start(int argc, char*argv[])
                                                                                                 this,
                                                                                                 std::placeholders::_1,
                                                                                                 std::placeholders::_2));
-
-    m_SetWebStatusService = m_node->create_service<dialog_interfaces::srv::SetWebStatus>("/SpeechToTextComponent/SetWebStatus",
-                                                                                         std::bind(&SpeechToTextComponent::SetWebStatus,
-                                                                                                   this,
-                                                                                                   std::placeholders::_1,
-                                                                                                   std::placeholders::_2));                                                                                            
 
     RCLCPP_INFO(m_node->get_logger(), "Started node");
     return true;
@@ -224,21 +216,12 @@ void SpeechToTextComponent::onRead(yarp::sig::Sound &msg)
         m_iAudioGrabberSound->stopRecording();
         yInfo() << "[SpeechToTextComponent::onRead] Stopping the recording";
     }
-
-    yarp::os::Bottle& outputText = m_transcriptionOutputPort.prepare();
-    outputText.clear();
-    std::string transcriptionText;
-    double confidence;
-    if(!m_webStatus) {
-        yError() << "[SpeechToTextComponent::onRead] Web status has been set to false, sending empty transcription.";
-        outputText.addString("");
-        outputText.addFloat64(1.0);
-        m_transcriptionOutputPort.write();
-        return;
-    }
     if (m_iSpeechTranscr)
     {
-        
+        yarp::os::Bottle& outputText = m_transcriptionOutputPort.prepare();
+        outputText.clear();
+        std::string transcriptionText;
+        double confidence;
         if(!m_iSpeechTranscr->transcribe(msg, transcriptionText, confidence))
 
         {
@@ -257,13 +240,4 @@ void SpeechToTextComponent::onRead(yarp::sig::Sound &msg)
     {
         yError() << "[SpeechToTextComponent::onRead] Error opening iSpeechSynth interface. Device not available";
     }
-}
-
-
-void SpeechToTextComponent::SetWebStatus(const std::shared_ptr<dialog_interfaces::srv::SetWebStatus::Request> request,
-                                   std::shared_ptr<dialog_interfaces::srv::SetWebStatus::Response> response)
-{
-    std::cout << "SpeechToTextComponent::SetWebStatus call received with status: " << request->is_web_reachable << std::endl;
-    m_webStatus = request->is_web_reachable;
-    response->is_ok = true;
 }
