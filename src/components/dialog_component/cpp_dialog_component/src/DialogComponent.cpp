@@ -397,6 +397,9 @@ bool DialogComponent::start(int argc, char *argv[])
     setMicrophoneClientNode = rclcpp::Node::make_shared("DialogComponentSetMicrophoneNode");
     setMicrophoneClient = setMicrophoneClientNode->create_client<text_to_speech_interfaces::srv::SetMicrophone>("/TextToSpeechComponent/SetMicrophone");
 
+    getContextClientNode = rclcpp::Node::make_shared("DialogComponentGetContextNode");
+    getContextClient = getContextClientNode->create_client<rag_interfaces::srv::GetContext>("/rag_llm/get_context");
+
     action_cb_group_ =
         m_node->create_callback_group(rclcpp::CallbackGroupType::Reentrant);
 
@@ -1410,6 +1413,13 @@ void DialogComponent::Answer(const std::shared_ptr<dialog_interfaces::srv::Answe
     }
     else if (request->context == "museum")
     {
+        // ros2 service call to /rag_llm/get_context with the question as input, and get the context of the museum, then pass it to the chatGPT prompt
+        std::string context = GetContext(request->interaction);
+
+        LLMQuestion += "\n Here is some useful information that you should take into account to answer the question: \n\n" + context;
+
+        yInfo() << "[DialogComponent::Answer] Question with context: " << LLMQuestion;
+
         if (!m_iMuseumChat->ask(LLMQuestion, answer))
         {
             yError() << "[DialogComponent::Answer] Unable to interact with chatGPT with question: " << request->interaction;
@@ -1829,4 +1839,29 @@ void DialogComponent::ResetState(const std::shared_ptr<dialog_interfaces::srv::R
     SetFaceExpression("happy");
 
     response->is_ok = true;
+}
+
+std::string DialogComponent::GetContext(std::string question)
+{
+    // ros2 service call to /rag_llm/get_context with the question as input, and get the context of the museum, then return it
+    auto requestGetContext = std::make_shared<rag_interfaces::srv::GetContext::Request>();
+    requestGetContext->question = question;
+    while (!getContextClient->wait_for_service(std::chrono::milliseconds(100)))
+    {
+        if (!rclcpp::ok())
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service 'GetContext'. Exiting.");
+        }
+    }
+    auto resultGetContext = getContextClient->async_send_request(requestGetContext);
+    if (rclcpp::spin_until_future_complete(getContextClientNode, resultGetContext) == rclcpp::FutureReturnCode::SUCCESS)
+    {
+        RCLCPP_INFO(m_node->get_logger(), "Get Context succeeded");
+        return resultGetContext.get()->prompt;
+    }
+    else
+    {
+        RCLCPP_ERROR(m_node->get_logger(), "Failed to call service GetContext");
+        return "";
+    }
 }
