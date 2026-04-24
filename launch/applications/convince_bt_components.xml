@@ -66,9 +66,9 @@
 
     <module>
         <name>ros2_check_network_component</name>
-        <parameters>run check_network_component check_network_component --address_name 192.168.101.10</parameters>
+        <parameters>run check_network_component check_network_component --address_name 192.168.101.143</parameters>
         <workdir/>
-        <node>bt-base</node>
+        <node>bt</node>
     </module>
 
     <module>
@@ -117,7 +117,7 @@
         <name>ros2_point_cloud_component</name>
         <parameters>run point_cloud_component point_cloud_component</parameters>
         <workdir>/home/user1/UC3</workdir>
-        <node>bt</node>
+        <node>opt</node>
     </module>
 
     <module>
