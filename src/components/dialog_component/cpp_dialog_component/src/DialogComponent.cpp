@@ -11,7 +11,7 @@ using namespace std::chrono_literals;
 DialogComponent::DialogComponent() : m_random_gen(m_rand_engine()),
                                      m_uniform_distrib(1, 2)
 {
-    m_jsonPath = "/home/user1/UC3/conf/tours-with-italian-dates-in-chars.json";
+    m_jsonPath = "/home/user1/UC3/conf/tours-cris.json";
     m_tourName = "TOUR_MADAMA_3";
     m_speechToTextClientName = "/DialogComponent/SpeechToTextClient:i";
     m_speechToTextServerName = "/SpeechToTextComponent/text:o";
@@ -63,7 +63,7 @@ bool DialogComponent::ConfigureYARP(yarp::os::ResourceFinder &rf)
     {
         okCheck = rf.check("POICHAT-CLIENT");
         device = "LLM_nwc_yarp";
-        std::string prompt_context = "convince";
+        std::string prompt_context = "tour_cris";
         std::string prompt_poi_file = "poi_madama_prompt.txt";
         std::string prompt_start_file = "Format_commands_welcome_prompt.txt";
         local = "/DialogComponent/chatBotClient/rpc:o";
@@ -700,7 +700,7 @@ bool DialogComponent::UpdatePoILLMPrompt()
         {
             m_currentPoiName = responseGetCurrentPoi->poi_name;
             // Set poi chat prompt
-            if (m_currentPoiName == "madama_start")
+            if (m_currentPoiName == "ingresso")
             {
                 m_iPoiChat->setPrompt(m_startPrompt);
             }
@@ -1144,7 +1144,7 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitFor
         do
         {
 
-            if (m_currentPoiName != "madama_start")
+            if (m_currentPoiName != "ingresso")
             {
                 auto currentTime = std::chrono::steady_clock::now();
                 auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(currentTime - startTime).count();
@@ -1217,7 +1217,7 @@ void DialogComponent::WaitForInteraction(const std::shared_ptr<GoalHandleWaitFor
         SetFaceExpression("thinking");
     }
 
-    if (m_currentPoiName != "madama_start")
+    if (m_currentPoiName != "ingresso")
     {
         auto msgInteraction = dialog_interfaces::msg::VerbalInteraction();
         msgInteraction.text = questionText;

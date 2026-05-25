@@ -22,21 +22,21 @@
 
     <module>
         <name>yarprobotinterface</name>
-        <parameters>--context convince --from madamaChat.ini</parameters>
+        <parameters>--context tour_cris --from madamaChat.ini</parameters>
         <environment></environment>
         <node>console-llm</node>
     </module>
 
     <module>
         <name>yarprobotinterface</name>
-        <parameters>--context convince --from welcomeChat.ini </parameters>
+        <parameters>--context tour_cris --from welcomeChat.ini </parameters>
         <environment></environment>
         <node>console-llm</node>
     </module>
 
     <module>
         <name>yarprobotinterface</name>
-        <parameters>--context convince --from welcomeTalkChat.ini </parameters>
+        <parameters>--context tour_cris --from welcomeTalkChat.ini </parameters>
         <environment></environment>
         <node>console-llm</node>
     </module>
