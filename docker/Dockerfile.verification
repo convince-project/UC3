@@ -8,7 +8,16 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update 
 RUN apt-get install -y libczmq-dev ros-jazzy-zmqpp-vendor-dbgsym ros-jazzy-zmqpp-vendor libczmq-dev libczmq4 curl 
 
-RUN apt install qtbase5-dev libqt5svg5-dev libzmq3-dev libdw-dev libboost-all-dev python3-websocket -y
+RUN apt install qtbase5-dev libqt5svg5-dev libzmq3-dev libdw-dev libboost-all-dev python3-websocket openjdk-21-jdk -y
+
+ARG MAVEN_VERSION=3.9.6
+ENV MAVEN_HOME=/opt/apache-maven-${MAVEN_VERSION}
+ENV PATH=${MAVEN_HOME}/bin:${PATH}
+
+RUN /bin/bash -c "cd /tmp && \
+    curl -fsSLO https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz && \
+    tar -xzf apache-maven-${MAVEN_VERSION}-bin.tar.gz -C /opt && \
+    rm apache-maven-${MAVEN_VERSION}-bin.tar.gz"
 
 RUN usermod -a -G audio user1
 # install behavior tree.cpp v3.8
@@ -42,9 +51,9 @@ RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
     cd /home/user1 && git clone https://github.com/ste93/ROSMonitoring.git -b ros2"
 
 RUN /bin/bash -c "cd /home/user1 && \
-    sudo apt install maven openjdk-21-jdk -y && \
     git clone https://github.com/apache/commons-scxml.git && \
     cd commons-scxml && \
+    mvn -version && \
     mvn && \
     mvn org.apache.maven.plugins:maven-install-plugin:2.5.2:install-file -Dfile=target/commons-scxml2-2.0-SNAPSHOT.jar"
 
