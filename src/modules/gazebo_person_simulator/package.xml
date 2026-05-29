@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>gazebo_person_simulator</name>
+  <version>0.0.1</version>
+  <description>Gazebo person/box simulator using /world/makeBox and /world/deleteObject services.</description>
+
+  <maintainer email="simone.micheletti@iit.it">Simone Micheletti</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>simulated_world_nws_ros2_msgs</depend>
+
+  <!-- YAML -->
+  <depend>yaml_cpp_vendor</depend>
+
+  <!-- opzionale: se nella tua distro esiste come rosdep -->
+  <!-- <depend>yaml-cpp</depend> -->
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

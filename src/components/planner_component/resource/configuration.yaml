@@ -8,3 +8,4 @@ wait_time: 20
 explain_time: 20
 bt_file_path: /home/user1/UC3/src/behavior_tree/BT/bt_scheduler.xml
 detections_topic: static_tracks
+max_vertex_index: 11

@@ -30,6 +30,10 @@
         <prefix></prefix>
     </application>
  
+    <application>
+        <name>convince_turrets</name>
+        <prefix></prefix>
+    </application>
 <!-- 
 
     <application>

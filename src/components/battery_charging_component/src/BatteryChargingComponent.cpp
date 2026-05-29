@@ -21,7 +21,7 @@ bool BatteryChargingComponent::start(int argc, char*argv[])
                                                                                                        this, 
                                                                                                        std::placeholders::_1)
                                                                                              );
-    m_publisherBatteryState = m_node->create_publisher<sensor_msgs::msg::BatteryState>("/battery_charging", 10);
+    m_publisherBatteryState = m_node->create_publisher<sensor_msgs::msg::BatteryState>("/BatteryComponent/battery_charging", 10);
     m_timer = m_node->create_wall_timer(std::chrono::seconds(1), std::bind(&BatteryChargingComponent::BatteryStatePublisherCallback, this));
     RCLCPP_INFO(m_node->get_logger(), "BatteryChargingComponent::start");
     return true;

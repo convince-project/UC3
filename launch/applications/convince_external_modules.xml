@@ -50,7 +50,7 @@
 
     <module>
         <name>yarprobotinterface</name>
-        <parameters>--context google --from googleTranscription.ini --transcription_lang it-IT</parameters>
+        <parameters>--context speechPipeline --from azureTranscription_tr.ini</parameters>
         <environment></environment>
         <node>console-llm</node>
     </module>
@@ -75,9 +75,22 @@
     </module>
 
     <module>
+        <name>yarpAudioPlayer</name>
+        <workdir>/home/user1/UC3/conf/</workdir>
+        <node>bt</node>
+    </module>
+
+    <module>
         <name>yarprobotinterface</name>
         <parameters>--context headSynchronizer --from faceDisplay.ini</parameters>
         <node>r1-face</node>
     </module>
+    
+    <module>
+        <name>ros2</name>
+        <parameters>run topic_tools relay /battery_status /BatteryComponent/battery_level</parameters>
+        <node>laptop</node>
+    </module>
+    
 
 </application>

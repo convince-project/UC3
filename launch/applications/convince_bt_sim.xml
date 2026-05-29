@@ -18,6 +18,16 @@
     </application>
 
     <application>
+        <name>convince_bt_skills_pois</name>
+        <prefix></prefix>
+    </application>
+
+    <application>
+        <name>convince_monitoring</name>
+        <prefix></prefix>
+    </application>
+
+    <application>
         <name>convince_bt_components_connections</name>
         <prefix></prefix>
     </application>
@@ -43,10 +53,5 @@
         <workdir>/home/user1/UC3</workdir>
         <node>bt</node>
     </module>
-
-    <application>
-        <name>convince_monitoring_sim</name>
-        <prefix></prefix>
-    </application>
 
 </application>

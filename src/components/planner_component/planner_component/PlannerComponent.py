@@ -4,12 +4,12 @@ import yaml
 import rclpy
 from rclpy.action import ActionServer, GoalResponse, CancelResponse
 from rclpy.node import Node
-from congestion_coverage_plan_museum.mdp.MDP import MDP, State
-from congestion_coverage_plan_museum.map_utils.OccupancyMap import OccupancyMap
-from congestion_coverage_plan_museum.cliff_predictor.PredictorCreator import create_generic_cliff_predictor
-from congestion_coverage_plan_museum.bt_utils.BTWriter import BTWriter
-from congestion_coverage_plan_museum.detections_retriever.DetectionsRetriever import DetectionsRetriever
-from congestion_coverage_plan_museum.solver.LrtdpTvmaAlgorithm import LrtdpTvmaAlgorithm
+from congestion_coverage_plan.mdp.MDP import MDP, State
+from congestion_coverage_plan.map_utils.OccupancyMap import OccupancyMap
+from congestion_coverage_plan.cliff_predictor.PredictorCreator import create_generic_cliff_predictor
+from congestion_coverage_plan.bt_utils.BTWriter import BTWriter
+from congestion_coverage_plan.detections_retriever.DetectionsRetriever import DetectionsRetriever
+from congestion_coverage_plan.solver.LrtdpTvmaAlgorithm import LrtdpTvmaAlgorithm
 from planner_interfaces.action import Plan
 from blackboard_interfaces.srv import GetIntBlackboard
 import sys
@@ -30,6 +30,7 @@ class PlannerComponent(Node):
                  explain_time,
                  detections_topic="static_tracks", 
                  bt_file_path="/home/user1/UC3/src/behavior_tree/BT/bt_scheduler.xml",
+                 max_vertex_index=None
                  ):
         super().__init__('planner_component')
         self._action_server = ActionServer(
@@ -57,6 +58,7 @@ class PlannerComponent(Node):
         self._time_for_occupancies = None
         self._btWriter = BTWriter(bt_file_path)
         self._mutex = Lock()
+        self.max_vertex_index = max_vertex_index
         # create new node to retrieve blackboard values
         self._blackboard_node = rclpy.create_node('blackboard_retriever_node_from_planner_component')
         self._blackboard_executor = SingleThreadedExecutor()
@@ -167,7 +169,7 @@ class PlannerComponent(Node):
                         set())
         else:
             # search for all the pois done to compute the current state
-            for i in range(1, 11):
+            for i in range(1, self.max_vertex_index):
                 key = f'PoiDone{i}'
                 vertex_done = self.retrieve_blackboard_value(key)
                 # self.get_logger().info(f"Blackboard value for {key}: {vertex_done}")
@@ -191,8 +193,8 @@ class PlannerComponent(Node):
             last_vertex = self._visited_vertices[-1]
             # self.get_logger().info(f"Last visited vertex: {last_vertex}")
             # add the doors
-            for door in self.doors_passed[last_vertex]:
-                self._visited_vertices.append(door)
+            # for door in self.doors_passed[last_vertex]:
+            #     self._visited_vertices.append(door)
             self._time_for_occupancies = self.get_clock().now().seconds_nanoseconds()[0]
             return State(last_vertex, 
                         self.get_clock().now().seconds_nanoseconds()[0] - self._start_time,
@@ -249,14 +251,16 @@ class PlannerComponent(Node):
         lrtdp = LrtdpTvmaAlgorithm(occupancy_map=occupancy_map,
                             initial_state_name=current_state.get_vertex(),
                             convergence_threshold=self._convergence_threshold,
-                            time_bound_real=self._time_bound_real,
-                            planner_time_bound=self._time_bound_lrtdp,
+                            planning_time_bound=self._time_bound_real,
+                            solution_time_bound=self._time_bound_lrtdp,
                             time_for_occupancies=self._time_for_occupancies,
                             time_start=self._start_time,
                             wait_time=self._wait_time,
                             explain_time=self._explain_time,
                             heuristic_function="madama_experiments",
-                            initial_state=current_state)
+                            initial_state=current_state, 
+                            is_museum_experiment=True
+                            )
 
 
         self.get_logger().info("Calling LRTDP solve...")
@@ -277,7 +281,7 @@ class PlannerComponent(Node):
             self.get_logger().error(f"Error during LRTDP solve: {e}")
             self.get_logger().error(traceback.format_exc())
             raise
-        policy = lrtdp.policy
+        policy = lrtdp.get_policy_to_execute()
         self.get_logger().info(f"After Policy LRTDP...")
         if result is None:
             self.get_logger().error('No plan found.')
@@ -309,13 +313,12 @@ class PlannerComponent(Node):
     
             
 
-
     def iterate_over_policy(self, policy, current_state):
         self.get_logger().info("Iterating over policy...")
         state = current_state
         sequence_of_pois = []
         # pois_already_done = current_state.get_pois_done()
-        while state is not None:
+        while str(state) in policy.keys() :
             self.get_logger().info(f"Current state: {state}")
             action = policy[str(state)][2] # get action
             self.get_logger().info(f"Action: {action}")
@@ -351,6 +354,7 @@ def main(args=None):
         explain_time = config['explain_time']
         bt_file_path = config['bt_file_path']
         detections_topic = config['detections_topic']
+        max_vertex_index = config['max_vertex_index']
     else:
         if "--occupancy_map_path" in sys.argv and len(sys.argv) >= sys.argv.index("--occupancy_map_path") + 1:
             occupancy_map_path = sys.argv[sys.argv.index("--occupancy_map_path") + 1]
@@ -388,6 +392,10 @@ def main(args=None):
             detections_topic = sys.argv[sys.argv.index("--detections_topic") + 1]
         else:
             sys.exit("Error: detections_topic argument not provided")
+        if "--max_vertex_index" in sys.argv and len(sys.argv) >= sys.argv.index("--max_vertex_index") + 1:
+            max_vertex_index = int(sys.argv[sys.argv.index("--max_vertex_index") + 1])
+        else:
+            sys.exit("Error: max_vertex_index argument not provided")
     print("Starting Planner Component...")
     print("arguments parsed successfully.")
     print("occupancy_map_path:", occupancy_map_path)
@@ -399,7 +407,7 @@ def main(args=None):
     print("explain_time:", explain_time)
     print("bt_file_path:", bt_file_path)
     print("detections_topic:", detections_topic)
-
+    print("max_vertex_index:", max_vertex_index)
     with Executor() as executor: 
 
         planner_component = PlannerComponent(occupancy_map_path=occupancy_map_path,
@@ -411,7 +419,7 @@ def main(args=None):
                                             explain_time=explain_time,
                                             bt_file_path=bt_file_path,
                                             detections_topic=detections_topic,
-                                            
+                                            max_vertex_index=max_vertex_index
                                             )
         rclpy.spin(planner_component)
 
