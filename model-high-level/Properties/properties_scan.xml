@@ -4,7 +4,7 @@
     <scxml_event_send event="srv_AlarmBatteryLowSkill__tick_response" origin="AlarmBatteryLowSkill" target="srv_handler_AlarmBatteryLowSkill__tick">
       <state_var id="battery_low_alarm" type="int32" expr="1" param="ros_fields__status"/>
     </scxml_event_send>
-    <scxml_event_send event="topic_BatteryComponent__battery_level_msg" origin="BatteryComponent" target="BatteryChargingSkill">
+    <scxml_event_send event="topic_BatteryComponent__battery_level_msg" origin="BatteryComponent" target="BatteryLevelSkill">
       <state_var id="battery_level" type="int32" expr="100" param="ros_fields__percentage"/>
       <event_var id="battery_published"/>
     </scxml_event_send>
