@@ -50,7 +50,7 @@ def abstract_message(message):
     if "topic" in message and "GetInt" in message['topic']:
         if "response" in message:
             for resp in message["response"]:
-                if resp.get("field_name") == "PoiDone3":
+                if resp.get("field_name") == "PoiDone5" or resp.get("field_name") == "PoiDone6":
                     predicates['poi3_completed'] = (resp.get("value") == 1)
 
     # reset tour (se ce l’hai): azzera stati e il “prev”

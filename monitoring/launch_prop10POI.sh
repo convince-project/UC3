@@ -24,6 +24,8 @@ for poi in "${POIS[@]}"; do
   tmux split-window -h -t $SESSION:"POI${poi}"
   tmux send-keys -t $SESSION:"POI${poi}".1 "cd ${WS_DIR} && source install/setup.bash && ros2 launch monitor/launch/monitor.launch" C-m
 
+  sleep 2
+
 done
 
 tmux select-window -t $SESSION:0

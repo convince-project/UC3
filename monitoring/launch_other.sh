@@ -25,6 +25,8 @@ for prop in "${PROPS[@]}"; do
   tmux split-window -h -t $SESSION:"PROP${prop}"
   tmux send-keys -t $SESSION:"PROP${prop}".1 "cd ${WS_DIR} && source install/setup.bash && ros2 launch monitor/launch/monitor.launch" C-m
 
+  sleep 2
+
 done
 
 tmux select-window -t $SESSION:0

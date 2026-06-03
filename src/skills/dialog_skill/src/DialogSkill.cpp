@@ -299,7 +299,7 @@ bool DialogSkill::start(int argc, char *argv[])
 
 
         auto setLanguageRequest = std::make_shared<dialog_interfaces::srv::SetLanguage::Request>();
-        setLanguageRequest->language = "it-IT";
+        setLanguageRequest->language = "en-US";
         wait_succeded = true;
         while (!clientSetLanguage->wait_for_service(std::chrono::milliseconds(100))) {
             if (!rclcpp::ok()) {
