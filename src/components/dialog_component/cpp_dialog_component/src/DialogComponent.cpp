@@ -1631,7 +1631,7 @@ void DialogComponent::Speak(const std::shared_ptr<GoalHandleSpeak> goal_handle)
     result->is_ok = true;
 
     goal_handle->succeed(result);
-    RCLCPP_INFO(m_node->get_logger(), "Goal succeeded");
+    RCLCPP_INFO(m_node->get_logger(), "speak Goal succeeded");
 }
 
 // Speak action fragment of code end

@@ -145,7 +145,7 @@ void ExecuteDanceComponent::ExecuteDance(const std::shared_ptr<execute_dance_int
                   << " and speed factor: " << speech_dance_synchronization_speed_factor << std::endl;
 
         danceName = bestDance->dance_name;
-        isSpeedFactorOk = (speech_dance_synchronization_speed_factor > 0.75) && (speech_dance_synchronization_speed_factor < 1.5);
+        isSpeedFactorOk = (speech_dance_synchronization_speed_factor > 0.75) && (speech_dance_synchronization_speed_factor < 1.6);
 
         speedFactor = speech_dance_synchronization_speed_factor;
         danceDuration = bestDance->dance_duration;
