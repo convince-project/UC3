@@ -1,0 +1,2 @@
+bool skip_questions
+bool skip_poi

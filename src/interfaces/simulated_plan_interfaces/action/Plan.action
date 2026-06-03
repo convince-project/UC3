@@ -1,0 +1,8 @@
+PoiCompleted[] pois_completed
+float32 current_tour_time
+float32 max_tour_time
+int32 remaining_pois
+float32 battery_percentage
+---
+ExecutePoi[] next_pois_actions
+---
