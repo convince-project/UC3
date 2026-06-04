@@ -1,0 +1,827 @@
+{
+  "TOUR_MADAMA_3": {
+    "m_activeTourPoIs": [
+      "ingresso",
+      "open_space",
+      "bar",
+      "ascensori",
+      "robot_arena"
+    ],
+    "m_availablePoIs": {
+      "en-US": {
+        "___generic___": {
+          "m_availableActions": {
+            "sayFollowMe": [
+              {
+                "m_isBlocking": false,
+                "m_param": "I kindly ask you to follow me to continue the tour.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "sayBye": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Thank you for visiting the Center for Robotics and Intelligent Systems with me. Goodbye!",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "sayDurationWarning": [
+              {
+                "m_isBlocking": false,
+                "m_param": "We are taking a little longer than planned. Please keep questions brief so that we can see every area.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "sayDurationExceeded": [
+              {
+                "m_isBlocking": false,
+                "m_param": "We have reached the maximum duration of this tour. Thank you for your attention.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "sayPeopleLeft": [
+              {
+                "m_isBlocking": false,
+                "m_param": "I cannot continue the tour because there are no visitors around me.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "saySkipQuestions": [
+              {
+                "m_isBlocking": false,
+                "m_param": "To complete the visit on time, I kindly ask you to follow me without further questions for now.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "goalNotAvailableError": [
+              {
+                "m_isBlocking": true,
+                "m_param": "My destination is occupied. Please make some space in front of me.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "localizationError": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Localization error. Please call for assistance.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "networkError": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Network error. Please call for assistance.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "motorsError": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Motor error. Please call for assistance.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "navigationError": [
+              {
+                "m_isBlocking": true,
+                "m_param": "I cannot navigate safely at the moment. Please make some space.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "touchedError": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Please do not touch me while I am moving.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "fallback": [
+              {
+                "m_isBlocking": false,
+                "m_param": "I'm sorry, I did not understand.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "questionMoreDetailsOpera": [
+              {
+                "m_isBlocking": false,
+                "m_param": "You can ask me about this space, the robots, the research activity, or how this demonstration works.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "warningNextNavigation": [
+              {
+                "m_isBlocking": true,
+                "m_param": "We will now move to the next area. Please leave a clear path.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "sayWhileNavigating": [],
+            "explainQuestionMainPiece": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Please ask me about one of the spaces or about the robotics activities you can see during the tour.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "explainQuestionTechnique": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Please ask me about how the robots perceive, navigate, or interact with people.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "explainQuestionAuthor": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Please ask me about the researchers and teams working in this center.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "explainGeneralMuseum": [
+              {
+                "m_isBlocking": false,
+                "m_param": "This is a research center dedicated to robotics and intelligent systems, where scientists and engineers design technologies that can operate safely with people.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ]
+          },
+          "m_name": "___generic___"
+        },
+        "ingresso": {
+          "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Welcome. When you are ready, please follow me from the entrance toward the working areas of the center.",
+                "m_type": "speak",
+                "m_dance": ""
+              }
+            ],
+            "greetings": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Good morning, I am R1 and I will accompany you through the Center for Robotics and Intelligent Systems. During this tour we will see where people meet, collaborate, take breaks, move between floors, and test robots in a dedicated arena.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "explainRoom": [
+              {
+                "m_isBlocking": false,
+                "m_param": "This entrance is the first point of contact with the company and its research environment. Visitors, collaborators, and staff arrive here before entering a workplace where robotics is developed through a combination of scientific ideas, engineering skills, and careful experimentation.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "The entrance is also a transition area: it welcomes guests, gives orientation, and helps daily activity begin in an orderly way. From here our route follows the same spaces used every day by researchers as they move from discussion and design to practical tests with intelligent machines.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "explainFunction": [
+              {
+                "m_isBlocking": false,
+                "m_param": "The entrance supports reception, access management, and the first exchange of information with guests. In an innovative organization, a clear and welcoming arrival area is important because collaboration often begins with visits, demonstrations, and meetings.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "explainDescription": [
+              {
+                "m_isBlocking": false,
+                "m_param": "This area introduces the identity of the center: an accessible workplace in which technology is created for real environments and real people. It prepares visitors to observe both the human work behind robotics and the robots themselves.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ]
+          },
+          "m_name": "ingresso"
+        },
+        "open_space": {
+          "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Please follow me to the open space, where much of the everyday research work is organized and discussed.",
+                "m_type": "speak",
+                "m_dance": ""
+              }
+            ],
+            "explainRoom": [
+              {
+                "m_isBlocking": false,
+                "m_param": "We are now in the open space of the reasearch group Humanoid Sensing and Perception directed by Lorenzo Natale. Researchers and engineers use this environment to write software, analyze experimental results, prepare new demonstrations, and compare solutions to difficult technical problems.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Robotics requires many different competences: perception, artificial intelligence, mechanics, control, electronics, and interaction design. Having desks and discussion areas close together makes it easier to exchange ideas quickly, review data with colleagues, and turn a promising concept into an experiment.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "explainFunction": [
+              {
+                "m_isBlocking": false,
+                "m_param": "The open space is designed for collaboration. A researcher can work independently on a specific task, then immediately speak with team members who handle sensors, robot motion, or user experience. This continuous dialogue is especially useful when a robot must behave reliably outside a laboratory scenario.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "explainDescription": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Although this looks like an office, it is an essential part of every robotic prototype. Behind each movement of a robot there are hours of programming, design choices, simulations, meetings, and analysis carried out in spaces like this one.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ]
+          },
+          "m_name": "open_space"
+        },
+        "bar": {
+          "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "We will now continue to the cafe, a quieter social area used throughout the working day.",
+                "m_type": "speak",
+                "m_dance": ""
+              }
+            ],
+            "explainRoom": [
+              {
+                "m_isBlocking": false,
+                "m_param": "This is the cafe and refreshment area, where staff and visitors can pause for a coffee or a short conversation. It may appear separate from research activity, but informal encounters are an important part of the life of a company that develops new technologies.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "An idea that begins during an experiment can often become clearer while colleagues talk away from their desks. In this welcoming shared space, people from different projects can meet, exchange experiences, welcome external partners, and build the relationships that make technical collaboration more effective.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "explainFunction": [
+              {
+                "m_isBlocking": false,
+                "m_param": "The bar supports breaks and social interaction, helping people recover attention during demanding work. It is also an informal meeting point, where visitors can be welcomed and colleagues who do not work on the same project can still discover useful connections between their activities.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "explainDescription": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Innovation depends not only on equipment, but also on communication and wellbeing. This area reminds us that a research center is a community of people: good conversations and comfortable pauses can contribute to better ideas and stronger teamwork.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ]
+          },
+          "m_name": "bar"
+        },
+        "ascensori": {
+          "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Please keep the path clear while we approach the elevator area, a connection point between the different floors of the building.",
+                "m_type": "speak",
+                "m_dance": ""
+              }
+            ],
+            "explainRoom": [
+              {
+                "m_isBlocking": false,
+                "m_param": "We have reached the elevator area. These elevators connect offices, laboratories, meeting spaces, and service areas across the building, allowing staff and guests to move comfortably between activities during a busy working day.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "For a mobile robot, spaces like this are also interesting examples of human environments. Corridors, doors, waiting people, and changing traffic require careful navigation, awareness of personal space, and behavior that remains predictable and safe for everyone nearby.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "explainFunction": [
+              {
+                "m_isBlocking": false,
+                "m_param": "The elevators make the building accessible and connect departments that may be working on different parts of a robotic system. They illustrate an important goal for service robotics: machines should be able to assist people in ordinary buildings without disrupting normal daily movement.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "explainDescription": [
+              {
+                "m_isBlocking": false,
+                "m_param": "This stop links the workplace to the research challenge. A robot that operates around elevators and passageways must understand its surroundings, plan smooth routes, wait when necessary, and communicate its intentions clearly to nearby people.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ]
+          },
+          "m_name": "ascensori"
+        },
+        "robot_arena": {
+          "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "For the final stop, follow me to the robot arena, where research becomes visible through experiments and demonstrations.",
+                "m_type": "speak",
+                "m_dance": ""
+              }
+            ],
+            "explainRoom": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Welcome to the robot arena, a dedicated experimental space where robotic systems can be tested in controlled and repeatable conditions. Here researchers observe how robots move, perceive objects and people, respond to instructions, and recover when a task does not go exactly as expected.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Experiments in the arena help transform software and mechanical components into complete systems capable of interacting with the world. The area can host demonstrations, data collection, navigation trials, and human-robot interaction studies, always with attention to safety and measurable results.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "In this area you can usually meet some of the humanoid robots developed at IIT. This is iCub, a research-grade humanoid platform designed for studying embodied artificial intelligence. Its shape and sensors allow researchers to explore perception, touch, manipulation, learning, and interaction with people. With fifty-three motors, dexterous hands, cameras, microphones, and sensorized skin, iCub has become an important tool for robotics laboratories in Italy and around the world.",
+                "m_type": "speak",
+                "m_dance": "point::POI1"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Next is ergoCub, a more recent humanoid robot developed by IIT together with INAIL and based on the experience gained with iCub. Its name refers to ergonomics: it is intended for physical collaboration tasks, such as helping a worker lift or move loads while reducing biomechanical risk. At about one metre and fifty centimetres tall and weighing about fifty-six kilograms, ergoCub can handle loads of approximately ten kilograms and uses vision, navigation, and force sensing to cooperate safely with people.",
+                "m_type": "speak",
+                "m_dance": "point::POI2"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "And finally, let me introduce myself more properly: I am R1, an IIT service humanoid robot created from the experience developed with iCub. My design is intended for interaction in everyday indoor environments such as offices, homes, and public spaces. I move on wheels, have an extensible torso, arms and hands for interaction, and cameras, microphones, a loudspeaker, and an expressive display in my head. Today I am using these abilities to guide you through this center.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Moreover, you can find a PANDA robot. Researchers use this robot to train their policies performing very complex grasping tasks.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "explainFunction": [
+              {
+                "m_isBlocking": false,
+                "m_param": "The arena is where prototypes are evaluated before they can be considered for more complex real-world applications. Researchers can repeat tasks, compare improvements, identify failures, and study how people naturally react when they share a space with an intelligent machine.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "explainDescription": [
+              {
+                "m_isBlocking": false,
+                "m_param": "This final space brings together the work introduced throughout our visit: ideas discussed in the open space, collaboration built across the center, and safe movement through human environments. Thank you for joining me in discovering where robots are designed, tested, and improved.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ]
+          },
+          "m_name": "robot_arena"
+        }
+      },
+      "it-IT": {
+        "___generic___": {
+          "m_availableActions": {
+            "sayFollowMe": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Vi chiedo cortesemente di seguirmi per continuare il tour.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "sayBye": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Grazie per aver visitato con me il Centro di Robotica e Sistemi Intelligenti. Arrivederci!",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "sayDurationWarning": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Stiamo impiegando un po' piu' tempo del previsto. Vi prego di mantenere brevi le domande, cosi' potremo vedere ogni area.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "sayDurationExceeded": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Abbiamo raggiunto la durata massima di questo tour. Grazie per la vostra attenzione.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "sayPeopleLeft": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Non posso continuare il tour perche' non ci sono visitatori intorno a me.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "saySkipQuestions": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Per completare la visita in tempo, vi chiedo gentilmente di seguirmi senza ulteriori domande per il momento.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "goalNotAvailableError": [
+              {
+                "m_isBlocking": true,
+                "m_param": "La mia destinazione e' occupata. Per favore, lasciate spazio davanti a me.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "localizationError": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Errore di localizzazione. Per favore, chiamate l'assistenza.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "networkError": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Errore di rete. Per favore, chiamate l'assistenza.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "motorsError": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Errore ai motori. Per favore, chiamate l'assistenza.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "navigationError": [
+              {
+                "m_isBlocking": true,
+                "m_param": "In questo momento non riesco a navigare in sicurezza. Per favore, lasciatemi spazio.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "touchedError": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Per favore, non toccatemi mentre mi muovo.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "fallback": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Mi dispiace, non ho capito.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "questionMoreDetailsOpera": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Potete chiedermi informazioni su questo spazio, sui robot, sull'attivita' di ricerca o sul funzionamento di questa dimostrazione.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "warningNextNavigation": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Ora ci sposteremo nell'area successiva. Per favore, lasciate libero il percorso.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "sayWhileNavigating": [],
+            "explainQuestionMainPiece": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Potete chiedermi informazioni su uno degli spazi o sulle attivita' di robotica che potete osservare durante il tour.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "explainQuestionTechnique": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Potete chiedermi come i robot percepiscono l'ambiente, navigano o interagiscono con le persone.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "explainQuestionAuthor": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Potete chiedermi informazioni sui ricercatori e sui gruppi di lavoro presenti in questo centro.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "explainGeneralMuseum": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Questo e' un centro di ricerca dedicato alla robotica e ai sistemi intelligenti, dove scienziati e ingegneri progettano tecnologie capaci di operare in sicurezza insieme alle persone.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ]
+          },
+          "m_name": "___generic___"
+        },
+        "ingresso": {
+          "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Benvenuti. Quando siete pronti, seguitemi dall'ingresso verso le aree di lavoro del centro.",
+                "m_type": "speak",
+                "m_dance": ""
+              }
+            ],
+            "greetings": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Buongiorno, sono R1 e vi accompagnero' nel Centro di Robotica e Sistemi Intelligenti. Durante questo tour vedremo dove le persone si incontrano, collaborano, fanno una pausa, si spostano tra i piani e sperimentano i robot in un'arena dedicata.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "explainRoom": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Questo ingresso e' il primo punto di contatto con l'azienda e con il suo ambiente di ricerca. Visitatori, collaboratori e personale arrivano qui prima di entrare in un luogo di lavoro dove la robotica viene sviluppata attraverso una combinazione di idee scientifiche, competenze ingegneristiche e sperimentazione accurata.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "L'ingresso e' anche un'area di passaggio: accoglie gli ospiti, fornisce orientamento e aiuta le attivita' quotidiane a iniziare in modo ordinato. Da qui il nostro percorso segue gli stessi spazi utilizzati ogni giorno dai ricercatori, mentre passano dalla discussione e dalla progettazione alle prove pratiche con macchine intelligenti.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "explainFunction": [
+              {
+                "m_isBlocking": false,
+                "m_param": "L'ingresso sostiene l'accoglienza, la gestione degli accessi e il primo scambio di informazioni con gli ospiti. In un'organizzazione innovativa, un'area di arrivo chiara e accogliente e' importante perche' la collaborazione spesso comincia con visite, dimostrazioni e incontri.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "explainDescription": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Quest'area introduce l'identita' del centro: un luogo di lavoro accessibile in cui la tecnologia viene creata per ambienti reali e persone reali. Prepara i visitatori a osservare sia il lavoro umano alla base della robotica, sia i robot stessi.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ]
+          },
+          "m_name": "ingresso"
+        },
+        "open_space": {
+          "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Seguitemi nell'open space, dove gran parte del lavoro quotidiano di ricerca viene organizzato e discusso.",
+                "m_type": "speak",
+                "m_dance": ""
+              }
+            ],
+            "explainRoom": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Ora siamo nell'open space del gruppo di ricerca Humanoid Sensing and Perception, diretto da Lorenzo Natale. Ricercatori e ingegneri utilizzano questo ambiente per scrivere software, analizzare i risultati sperimentali, preparare nuove dimostrazioni e confrontare soluzioni a problemi tecnici complessi.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "La robotica richiede molte competenze diverse: percezione, intelligenza artificiale, meccanica, controllo, elettronica e progettazione dell'interazione. Avere scrivanie e aree di confronto vicine facilita lo scambio rapido di idee, la revisione dei dati con i colleghi e la trasformazione di un concetto promettente in un esperimento.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "explainFunction": [
+              {
+                "m_isBlocking": false,
+                "m_param": "L'open space e' progettato per la collaborazione. Un ricercatore puo' lavorare in autonomia su un compito specifico e poi confrontarsi immediatamente con i membri del gruppo che si occupano di sensori, movimento del robot o esperienza dell'utente. Questo dialogo continuo e' particolarmente utile quando un robot deve comportarsi in modo affidabile fuori da uno scenario di laboratorio.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "explainDescription": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Anche se questo luogo sembra un ufficio, e' una parte essenziale di ogni prototipo robotico. Dietro ogni movimento di un robot ci sono ore di programmazione, scelte progettuali, simulazioni, riunioni e analisi svolte in spazi come questo.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ]
+          },
+          "m_name": "open_space"
+        },
+        "bar": {
+          "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Proseguiamo ora verso la caffetteria, un'area sociale piu' tranquilla utilizzata durante tutta la giornata lavorativa.",
+                "m_type": "speak",
+                "m_dance": ""
+              }
+            ],
+            "explainRoom": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Questa e' la caffetteria e area ristoro, dove personale e visitatori possono fermarsi per un caffe' o per una breve conversazione. Puo' apparire separata dall'attivita' di ricerca, ma gli incontri informali sono una parte importante della vita di un'azienda che sviluppa nuove tecnologie.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Un'idea che nasce durante un esperimento spesso puo' diventare piu' chiara mentre i colleghi parlano lontano dalle loro scrivanie. In questo spazio condiviso e accogliente, persone impegnate in progetti diversi possono incontrarsi, scambiare esperienze, accogliere partner esterni e costruire relazioni che rendono piu' efficace la collaborazione tecnica.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "explainFunction": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Il bar favorisce le pause e l'interazione sociale, aiutando le persone a recuperare attenzione durante attivita' impegnative. E' anche un punto d'incontro informale, dove i visitatori possono essere accolti e dove colleghi che non lavorano allo stesso progetto possono comunque scoprire connessioni utili tra le loro attivita'.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "explainDescription": [
+              {
+                "m_isBlocking": false,
+                "m_param": "L'innovazione non dipende soltanto dalle attrezzature, ma anche dalla comunicazione e dal benessere. Quest'area ricorda che un centro di ricerca e' una comunita' di persone: buone conversazioni e pause confortevoli possono contribuire a idee migliori e a un lavoro di squadra piu' solido.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ]
+          },
+          "m_name": "bar"
+        },
+        "ascensori": {
+          "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Per favore, lasciate libero il percorso mentre ci avviciniamo all'area ascensori, un punto di collegamento tra i diversi piani dell'edificio.",
+                "m_type": "speak",
+                "m_dance": ""
+              }
+            ],
+            "explainRoom": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Abbiamo raggiunto l'area ascensori. Questi ascensori collegano uffici, laboratori, spazi per riunioni e aree di servizio nell'edificio, consentendo al personale e agli ospiti di spostarsi comodamente tra le attivita' durante una giornata di lavoro intensa.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Per un robot mobile, spazi come questo sono anche esempi interessanti di ambienti umani. Corridoi, porte, persone in attesa e flussi di passaggio variabili richiedono una navigazione attenta, consapevolezza dello spazio personale e un comportamento che rimanga prevedibile e sicuro per chiunque si trovi nelle vicinanze.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "explainFunction": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Gli ascensori rendono l'edificio accessibile e collegano reparti che possono lavorare su parti diverse di un sistema robotico. Illustrano un obiettivo importante della robotica di servizio: le macchine dovrebbero poter assistere le persone negli edifici ordinari senza interferire con i normali spostamenti quotidiani.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "explainDescription": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Questa tappa collega il luogo di lavoro alla sfida di ricerca. Un robot che opera vicino ad ascensori e passaggi deve comprendere cio' che lo circonda, pianificare percorsi fluidi, attendere quando necessario e comunicare chiaramente le proprie intenzioni alle persone vicine.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ]
+          },
+          "m_name": "ascensori"
+        },
+        "robot_arena": {
+          "m_availableActions": {
+            "sayWhileNavigating": [
+              {
+                "m_isBlocking": true,
+                "m_param": "Per l'ultima tappa, seguitemi nella robot arena, dove la ricerca diventa visibile attraverso esperimenti e dimostrazioni.",
+                "m_type": "speak",
+                "m_dance": ""
+              }
+            ],
+            "explainRoom": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Benvenuti nella robot arena, uno spazio sperimentale dedicato nel quale i sistemi robotici possono essere provati in condizioni controllate e ripetibili. Qui i ricercatori osservano come i robot si muovono, percepiscono oggetti e persone, rispondono alle istruzioni e recuperano quando un compito non procede esattamente come previsto.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Gli esperimenti nell'arena aiutano a trasformare software e componenti meccanici in sistemi completi capaci di interagire con il mondo. L'area puo' ospitare dimostrazioni, raccolte di dati, prove di navigazione e studi sull'interazione tra esseri umani e robot, sempre con attenzione alla sicurezza e a risultati misurabili.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "In quest'area potete solitamente incontrare alcuni dei robot umanoidi sviluppati all'IIT. Questo e' iCub, una piattaforma umanoide da ricerca progettata per studiare l'intelligenza artificiale incarnata. La sua forma e i suoi sensori permettono ai ricercatori di esplorare percezione, tatto, manipolazione, apprendimento e interazione con le persone. Con cinquantatre motori, mani articolate, telecamere, microfoni e pelle sensorizzata, iCub e' diventato uno strumento importante per laboratori di robotica in Italia e in tutto il mondo.",
+                "m_type": "speak",
+                "m_dance": "point::POI1"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Il prossimo e' ergoCub, un robot umanoide piu' recente, sviluppato dall'IIT insieme a INAIL e basato sull'esperienza acquisita con iCub. Il suo nome richiama l'ergonomia: e' destinato a compiti di collaborazione fisica, come aiutare un lavoratore a sollevare o spostare carichi riducendo il rischio biomeccanico. Alto circa un metro e cinquanta centimetri e pesante circa cinquantasei chilogrammi, ergoCub puo' gestire carichi di circa dieci chilogrammi e utilizza visione, navigazione e sensori di forza per collaborare in sicurezza con le persone.",
+                "m_type": "speak",
+                "m_dance": "point::POI2"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Infine, permettetemi di presentarmi in modo piu' appropriato: sono R1, un robot umanoide di servizio dell'IIT creato a partire dall'esperienza sviluppata con iCub. Il mio design e' pensato per interagire in ambienti interni della vita quotidiana, come uffici, case e spazi pubblici. Mi muovo su ruote, ho un torso estensibile, braccia e mani per l'interazione, oltre a telecamere, microfoni, un altoparlante e un display espressivo nella testa. Oggi utilizzo queste capacita' per guidarvi attraverso questo centro.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Inoltre, potete trovare un robot PANDA. I ricercatori utilizzano questo robot per addestrare le loro strategie a eseguire compiti di presa molto complessi.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "explainFunction": [
+              {
+                "m_isBlocking": false,
+                "m_param": "L'arena e' il luogo nel quale i prototipi vengono valutati prima di poter essere presi in considerazione per applicazioni reali piu' complesse. I ricercatori possono ripetere compiti, confrontare miglioramenti, identificare errori e studiare come le persone reagiscono naturalmente quando condividono uno spazio con una macchina intelligente.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ],
+            "explainDescription": [
+              {
+                "m_isBlocking": false,
+                "m_param": "Questo spazio finale riunisce il lavoro presentato durante la nostra visita: le idee discusse nell'open space, la collaborazione costruita nel centro e il movimento sicuro negli ambienti umani. Grazie per avermi accompagnato alla scoperta del luogo in cui i robot vengono progettati, sperimentati e migliorati.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              }
+            ]
+          },
+          "m_name": "robot_arena"
+        }
+      }
+    }
+  }
+}
