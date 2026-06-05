@@ -203,6 +203,12 @@
                 "m_param": "The entrance is also a transition area: it welcomes guests, gives orientation, and helps daily activity begin in an orderly way. From here our route follows the same spaces used every day by researchers as they move from discussion and design to practical tests with intelligent machines.",
                 "m_type": "speak",
                 "m_dance": "gesture"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "If you have questions please just ask. Otherwise we can continue with the tour.",
+                "m_type": "speak",
+                "m_dance": "gesture"
               }
             ],
             "explainFunction": [
@@ -244,6 +250,12 @@
               {
                 "m_isBlocking": false,
                 "m_param": "Robotics requires many different competences: perception, artificial intelligence, mechanics, control, electronics, and interaction design. Having desks and discussion areas close together makes it easier to exchange ideas quickly, review data with colleagues, and turn a promising concept into an experiment.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Do you want to ask me something? I am here to answer to all your questions, or at least I will try. Otherwise we can continue with the tour.",
                 "m_type": "speak",
                 "m_dance": "gesture"
               }
@@ -289,6 +301,12 @@
                 "m_param": "An idea that begins during an experiment can often become clearer while colleagues talk away from their desks. In this welcoming shared space, people from different projects can meet, exchange experiences, welcome external partners, and build the relationships that make technical collaboration more effective.",
                 "m_type": "speak",
                 "m_dance": "gesture"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "If you have questions please just ask. Otherwise we can continue with the tour.",
+                "m_type": "speak",
+                "m_dance": "gesture"
               }
             ],
             "explainFunction": [
@@ -330,6 +348,12 @@
               {
                 "m_isBlocking": false,
                 "m_param": "For a mobile robot, spaces like this are also interesting examples of human environments. Corridors, doors, waiting people, and changing traffic require careful navigation, awareness of personal space, and behavior that remains predictable and safe for everyone nearby.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Do you have some questions? Otherwise we can continue with the tour.",
                 "m_type": "speak",
                 "m_dance": "gesture"
               }
@@ -380,13 +404,13 @@
                 "m_isBlocking": false,
                 "m_param": "In this area you can usually meet some of the humanoid robots developed at IIT. This is iCub, a research-grade humanoid platform designed for studying embodied artificial intelligence. Its shape and sensors allow researchers to explore perception, touch, manipulation, learning, and interaction with people. With fifty-three motors, dexterous hands, cameras, microphones, and sensorized skin, iCub has become an important tool for robotics laboratories in Italy and around the world.",
                 "m_type": "speak",
-                "m_dance": "point::POI1"
+                "m_dance": "point::ICUB"
               },
               {
                 "m_isBlocking": false,
                 "m_param": "Next is ergoCub, a more recent humanoid robot developed by IIT together with INAIL and based on the experience gained with iCub. Its name refers to ergonomics: it is intended for physical collaboration tasks, such as helping a worker lift or move loads while reducing biomechanical risk. At about one metre and fifty centimetres tall and weighing about fifty-six kilograms, ergoCub can handle loads of approximately ten kilograms and uses vision, navigation, and force sensing to cooperate safely with people.",
                 "m_type": "speak",
-                "m_dance": "point::POI2"
+                "m_dance": "point::ERGOCUB"
               },
               {
                 "m_isBlocking": false,
@@ -397,6 +421,12 @@
               {
                 "m_isBlocking": false,
                 "m_param": "Moreover, you can find a PANDA robot. Researchers use this robot to train their policies performing very complex grasping tasks.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "The tour has finished. Thank you for your attention. I will remain here to answer to all your questions if you have some.",
                 "m_type": "speak",
                 "m_dance": "gesture"
               }
@@ -610,6 +640,12 @@
                 "m_param": "L'ingresso e' anche un'area di passaggio: accoglie gli ospiti, fornisce orientamento e aiuta le attivita' quotidiane a iniziare in modo ordinato. Da qui il nostro percorso segue gli stessi spazi utilizzati ogni giorno dai ricercatori, mentre passano dalla discussione e dalla progettazione alle prove pratiche con macchine intelligenti.",
                 "m_type": "speak",
                 "m_dance": "gesture"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Se hai domande, chiedi pure. Altrimenti andiamo avanti con il tour.",
+                "m_type": "speak",
+                "m_dance": "gesture"
               }
             ],
             "explainFunction": [
@@ -651,6 +687,12 @@
               {
                 "m_isBlocking": false,
                 "m_param": "La robotica richiede molte competenze diverse: percezione, intelligenza artificiale, meccanica, controllo, elettronica e progettazione dell'interazione. Avere scrivanie e aree di confronto vicine facilita lo scambio rapido di idee, la revisione dei dati con i colleghi e la trasformazione di un concetto promettente in un esperimento.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Avete domande? Sono qui per rispondere ad ogni vostra curiosità, o almeno ci proverò. Altrimenti possiamo andare avanti con il tour.",
                 "m_type": "speak",
                 "m_dance": "gesture"
               }
@@ -696,6 +738,12 @@
                 "m_param": "Un'idea che nasce durante un esperimento spesso puo' diventare piu' chiara mentre i colleghi parlano lontano dalle loro scrivanie. In questo spazio condiviso e accogliente, persone impegnate in progetti diversi possono incontrarsi, scambiare esperienze, accogliere partner esterni e costruire relazioni che rendono piu' efficace la collaborazione tecnica.",
                 "m_type": "speak",
                 "m_dance": "gesture"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Se avete domande per favore non fatevi problemi. Altrimenti andiamo avanti.",
+                "m_type": "speak",
+                "m_dance": "gesture"
               }
             ],
             "explainFunction": [
@@ -737,6 +785,12 @@
               {
                 "m_isBlocking": false,
                 "m_param": "Per un robot mobile, spazi come questo sono anche esempi interessanti di ambienti umani. Corridoi, porte, persone in attesa e flussi di passaggio variabili richiedono una navigazione attenta, consapevolezza dello spazio personale e un comportamento che rimanga prevedibile e sicuro per chiunque si trovi nelle vicinanze.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "Avete domande? Sono qui per rispondere ad ogni vostra curiosità, o almeno ci proverò. Altrimenti possiamo andare avanti con il tour.",
                 "m_type": "speak",
                 "m_dance": "gesture"
               }
@@ -804,6 +858,12 @@
               {
                 "m_isBlocking": false,
                 "m_param": "Inoltre, potete trovare un robot PANDA. I ricercatori utilizzano questo robot per addestrare le loro strategie a eseguire compiti di presa molto complessi.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              },
+              {
+                "m_isBlocking": false,
+                "m_param": "IL tour è finito. Grazie per l'attenzione. Io rimarrò qui per rispondere alle vostre domande.",
                 "m_type": "speak",
                 "m_dance": "gesture"
               }
