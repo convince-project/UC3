@@ -188,6 +188,12 @@
             "explainRoom": [
               {
                 "m_isBlocking": false,
+                "m_param": "Good morning, I am R1 and I will accompany you through the Center for Robotics and Intelligent Systems. During this tour we will see where people meet, collaborate, take breaks, move between floors, and test robots in a dedicated arena.",
+                "m_type": "speak",
+                "m_dance": "gesture"
+              },
+              {
+                "m_isBlocking": false,
                 "m_param": "This entrance is the first point of contact with the company and its research environment. Visitors, collaborators, and staff arrive here before entering a workplace where robotics is developed through a combination of scientific ideas, engineering skills, and careful experimentation.",
                 "m_type": "speak",
                 "m_dance": "gesture"
