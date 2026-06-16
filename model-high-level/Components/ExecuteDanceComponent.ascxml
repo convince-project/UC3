@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ascxml
+  xmlns="http://www.w3.org/2005/07/scxml"
+  version="1.0"
+  name="ExecuteDanceComponent"
+  datamodel="ecmascript"
+  initial="idle">
+
+  <datamodel>
+    <data id="last_dance_name" type="string" expr="''"/>
+    <data id="last_speech_time" type="float32" expr="0.0"/>
+  </datamodel>
+
+  <!-- Primary service mirrored from ExecuteDanceComponent.cpp -->
+  <ros_service_server
+    service_name="/ExecuteDanceComponent/ExecuteDance"
+    type="execute_dance_interfaces/ExecuteDance"/>
+
+  <state id="idle">
+    <ros_service_handle_request name="/ExecuteDanceComponent/ExecuteDance" target="handle_execute_dance">
+      <assign location="last_dance_name" expr="_req.dance_name"/>
+      <assign location="last_speech_time" expr="_req.speech_time"/>
+    </ros_service_handle_request>
+  </state>
+
+  <state id="handle_execute_dance">
+    <onentry>
+      <if cond="last_dance_name == ''">
+        <ros_service_send_response name="/ExecuteDanceComponent/ExecuteDance">
+          <field name="is_ok" expr="false"/>
+          <field name="error_msg" expr="'Dance not found'"/>
+        </ros_service_send_response>
+      <else/>
+        <ros_service_send_response name="/ExecuteDanceComponent/ExecuteDance">
+          <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
+        </ros_service_send_response>
+      </if>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+</ascxml>

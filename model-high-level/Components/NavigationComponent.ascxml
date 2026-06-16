@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ascxml xmlns="http://www.w3.org/2005/07/scxml"
+       version="1.0"
+       name="NavigationComponent"
+       initial="idle"
+       datamodel="ecmascript">
+
+  <datamodel>
+    <data id="GOAL_REACHED" type="int32" expr="4" />
+    <data id="ABORTED" type="int32" expr="5" />
+    <data id="MOVING" type="int32" expr="2" />
+    <data id="IDLE" type="int32" expr="0" />
+    <data id="goal_name" type="string" expr="''" />
+    <data id="goal_id" type="int32" expr="0" />
+    <!-- Exec fields -->
+    <data id="is_near" type="bool" expr="false" />
+    <data id="status" type="int32" expr="0" />
+  </datamodel>
+
+  <!-- Service servers -->
+  <ros_service_server service_name="/NavigationComponent/GetNavigationStatus" type="navigation_interfaces/GetNavigationStatus"/>
+  <ros_service_server service_name="/NavigationComponent/StopNavigation" type="navigation_interfaces/StopNavigation"/>
+  <ros_service_server service_name="/NavigationComponent/CheckNearToPoi" type="navigation_interfaces/CheckNearToPoi"/>
+  <ros_service_server service_name="/NavigationComponent/TurnBack" type="navigation_interfaces/TurnBack"/>
+
+  <!-- Action server -->
+  <ros_action_server name="goto_act" action_name="/NavigationComponent/GoToPoi" type="navigation_interfaces/GoToPoi"/>
+
+  <state id="idle">
+    <!-- GetNavigationStatus -->
+    <ros_service_handle_request name="/NavigationComponent/GetNavigationStatus" target="idle">
+      <ros_service_send_response name="/NavigationComponent/GetNavigationStatus">
+        <field name="is_ok"         expr="true"/>
+        <field name="current_goal"  expr="goal_name"/>
+        <field name="status" expr="status"/>
+        <field name="error_msg"     expr="''"/>
+      </ros_service_send_response>
+    </ros_service_handle_request>
+
+    <!-- StopNavigation -->
+    <ros_service_handle_request name="/NavigationComponent/StopNavigation" target="NavigationAborted">
+      <ros_service_send_response name="/NavigationComponent/StopNavigation">
+        <field name="is_ok"      expr="true"/>
+        <field name="error_msg"  expr="''"/>
+      </ros_service_send_response>
+    </ros_service_handle_request>
+
+    <!-- CheckNearToPoi -->
+    <ros_service_handle_request name="/NavigationComponent/CheckNearToPoi" target="idle">
+      <ros_service_send_response name="/NavigationComponent/CheckNearToPoi">
+        <field name="poi_name"  expr="goal_name"/>
+        <field name="is_near"    expr="is_near"/>
+        <field name="is_ok"      expr="true"/>
+        <field name="error_msg"  expr="''"/>
+      </ros_service_send_response>
+    </ros_service_handle_request>
+  
+    <!-- TurnBack -->
+    <ros_service_handle_request name="/NavigationComponent/TurnBack" target="idle">
+      <ros_service_send_response name="/NavigationComponent/TurnBack">
+        <field name="is_ok"      expr="true"/>
+        <field name="error_msg"  expr="''"/>
+      </ros_service_send_response>
+    </ros_service_handle_request>
+
+    <!-- Action‐goal -->
+    <ros_action_handle_goal name="goto_act" target="HandleActionGoal">
+      <assign location="status" expr="MOVING"/>
+      <assign location="goal_name" expr="_goal.poi_name"/>
+      <!-- Set goal_id depending on goal_name: -->
+      <!-- - 0 for charging station -->
+      <!-- - 1 for everything else (PoIs) -->
+      <if cond="goal_name == 'charging_station'">
+        <assign location="goal_id" expr="0"/>
+      <else/>
+        <assign location="goal_id" expr="1"/>
+      </if>
+      <ros_action_accept_goal name="goto_act" goal_id="goal_id"/>
+    </ros_action_handle_goal>
+  </state>
+
+  <state id="NavigationAborted">
+    <onentry>
+      <assign location="goal_name" expr="''"/>
+      <assign location="goal_id"   expr="0"/>
+      <assign location="status"    expr="ABORTED"/>
+      <assign location="is_near"   expr="false"/>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+  <state id="HandleActionGoal">
+    <transition>
+      <target id="idle" prob="0.7">
+        <!-- success -->
+        <assign location="status" expr="GOAL_REACHED" />
+        <assign location="is_near" expr="true" />
+        <ros_action_succeed name="goto_act" goal_id="goal_id">
+          <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
+        </ros_action_succeed>
+      </target>
+      <target id="NavigationAborted" prob="0.3">
+        <!-- failure -->
+        <ros_action_aborted name="goto_act" goal_id="goal_id"/>
+      </target>
+    </transition>
+  </state>
+</ascxml>

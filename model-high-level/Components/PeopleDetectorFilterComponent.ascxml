@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ascxml xmlns="http://www.w3.org/2005/07/scxml"
+       version="1.0"
+       name="PeopleDetectorFilterComponent"
+       initial="idle"
+       datamodel="ecmascript">
+
+  <datamodel>
+    <!-- parameters -->
+    <data id="is_local"               type="bool" expr="false"/>
+    <!-- input flags -->
+    <data id="peopleDetected"         type="bool" expr="false"/>
+  </datamodel>
+
+  <!-- publications -->
+  <ros_topic_publisher topic="/PeopleDetectorFilterComponent/detection" type="people_detector_filter_interfaces/FilterStatus"/>
+  <ros_topic_publisher topic="/PeopleDetectorFilterComponent/filtered_detection" type="std_msgs/Bool"/>
+  <ros_topic_publisher topic="/PeopleDetectorFilterComponent/is_followed" type="std_msgs/Bool"/>
+
+  <!-- 1 Hz timer drives compute/publish -->
+  <ros_time_rate name="timer" rate_hz="1"/>
+
+  <state id="idle">
+    <ros_rate_callback name="timer">
+      <target id="publish" prob="0.8">
+        <assign location="peopleDetected" expr="true"/>
+      </target>
+      <target id="publish" prob="0.2">
+        <assign location="peopleDetected" expr="false"/>
+      </target>
+    </ros_rate_callback>
+  </state>
+
+
+
+  <!-- <state id="evaluate">
+
+    <transition> 
+      <target id="publish" prob="0.8">
+       <assign location="peopleDetected" expr="true"/>
+      </target>
+      <target id="publish" prob="0.2">
+        <assign location="peopleDetected" expr="false"/>
+      </target>
+    </transition>
+  </state> -->
+
+  <state id="publish">
+    <onentry>
+      <ros_topic_publish name="/PeopleDetectorFilterComponent/detection">
+        <field name="status" expr="peopleDetected"/>
+      </ros_topic_publish>
+      <ros_topic_publish name="/PeopleDetectorFilterComponent/filtered_detection">
+        <field name="data" expr="peopleDetected"/>
+      </ros_topic_publish>
+      <ros_topic_publish name="/PeopleDetectorFilterComponent/is_followed">
+        <field name="data" expr="peopleDetected"/>
+      </ros_topic_publish>
+    </onentry>
+    <transition target="idle"/>
+  </state>
+
+</ascxml>
+
