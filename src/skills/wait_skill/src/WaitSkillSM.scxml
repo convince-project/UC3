@@ -5,11 +5,16 @@
         <data id="SKILL_RUNNING" expr="2"/>
         <data id="wait_time_ms" expr="5000"/>
         <data id="start_time" expr="0"/>
+        <data id="wait_ticks" expr="0"/>
+        <data id="max_wait_ticks" expr="50"/>
+        <data id="wait_done" expr="false"/>
     </datamodel>
     <!-- WaitSkill is a server for tick from the ROS2Action plugin-->
     <!-- WaitSkill is a server for halt from the ROS2Action plugin-->
     <state id="idle">
-        <transition target="wait" event="CMD_TICK">
+        <transition target="idle" event="CMD_TICK">
+            <assign location="wait_ticks" expr="0"/>
+            <assign location="wait_done" expr="false"/>
             <send event="TICK_RESPONSE">
                 <param name="status" expr="SKILL_RUNNING"/>
                 <param name="is_ok" expr="true"/>
@@ -17,22 +22,6 @@
         </transition>
         <transition target="idle" event="CMD_HALT">
             <send event="HALT_RESPONSE">
-                <param name="is_ok" expr="true"/>
-            </send>
-        </transition>
-    </state>
-    <state id="wait">
-        <!-- <onentry>
-            <assign location="start_time" expr="Date.now()"/>
-        </onentry> -->
-        <transition target="idle" event="CMD_HALT">
-            <send event="HALT_RESPONSE">
-                <param name="is_ok" expr="true"/>
-            </send>
-        </transition>
-        <transition target="wait" event="CMD_TICK">
-            <send event="TICK_RESPONSE">
-                <param name="status" expr="SKILL_RUNNING"/>
                 <param name="is_ok" expr="true"/>
             </send>
         </transition>
