@@ -1,5 +1,9 @@
 <application>
     <name>convince_bt_sim_no_dialog_karim</name>
+    <application>
+        <name>Navigation_ROS2_R1Mk3_SIM</name>
+        <prefix></prefix>
+    </application>
 
     <!-- APPLICATIONS -->
     <application>
@@ -16,6 +20,7 @@
         <name>convince_bt_skills_pois</name>
         <prefix></prefix>
     </application>
+
 
     <!-- MODULES -->
     <module>
