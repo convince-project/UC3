@@ -31,6 +31,7 @@
 
 #include <text_to_speech_interfaces/srv/set_microphone.hpp>
 #include <text_to_speech_interfaces/action/batch_generation.hpp>
+#include <text_to_speech_interfaces/srv/set_language.hpp>
 
 #include <QThread>
 
