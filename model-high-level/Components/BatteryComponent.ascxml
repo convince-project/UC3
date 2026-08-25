@@ -10,8 +10,8 @@
     <data id="percentage" type="float32" expr="100.0" /> <!-- Valore iniziale in scala 0-1 -->
     <data id="min_percentage" type="float32" expr="6.0" />
     <data id="max_percentage" type="float32" expr="100.0" />
-    <data id="charge_step" type="float32" expr="2.0" />
-    <data id="discharge_step" type="float32" expr="1.0" />
+    <data id="charge_step" type="float32" expr="10.44" />
+    <data id="discharge_step" type="float32" expr="10.44" /> <!-- Discharges from 100 to 6 in 2.5 hours -->
     <data id="charging_station" type="string" expr="'charging_station'" />
     <data id="charging_distance" type="float32" expr="0.5" />
     <data id="charging_angle" type="float64" expr="360.0" />
@@ -37,7 +37,7 @@
 
   <ros_topic_publisher name="battery_level_pub" topic="/BatteryComponent/battery_level" type="sensor_msgs/BatteryState" />
   <ros_service_client service_name="/NavigationComponent/CheckNearToPoi" type="navigation_interfaces/CheckNearToPoi" />
-  <ros_time_rate name="battery_control_timer" rate_hz="1" />
+  <ros_time_rate name="battery_control_timer" rate_hz="0.001" />
 
   <state id="idle">
     <ros_service_handle_response name="/NavigationComponent/CheckNearToPoi" target="idle">

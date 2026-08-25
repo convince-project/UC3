@@ -15,6 +15,9 @@
     <!-- Exec fields -->
     <data id="is_near" type="bool" expr="false" />
     <data id="status" type="int32" expr="0" />
+    <!-- Navigation timing -->
+    <data id="elapsed_ticks" type="float32" expr="0" />
+    <data id="target_ticks" type="float32" expr="0" />
   </datamodel>
 
   <!-- Service servers -->
@@ -25,6 +28,9 @@
 
   <!-- Action server -->
   <ros_action_server name="goto_act" action_name="/NavigationComponent/GoToPoi" type="navigation_interfaces/GoToPoi"/>
+  
+  <!-- Timer for navigation duration (1 Hz) -->
+  <ros_time_rate name="navigation_timer" rate_hz="1"/>
 
   <state id="idle">
     <!-- GetNavigationStatus -->
@@ -64,7 +70,7 @@
     </ros_service_handle_request>
 
     <!-- Action‐goal -->
-    <ros_action_handle_goal name="goto_act" target="HandleActionGoal">
+    <ros_action_handle_goal name="goto_act" target="NavigationInProgress">
       <assign location="status" expr="MOVING"/>
       <assign location="goal_name" expr="_goal.poi_name"/>
       <!-- Set goal_id depending on goal_name: -->
@@ -76,6 +82,9 @@
         <assign location="goal_id" expr="1"/>
       </if>
       <ros_action_accept_goal name="goto_act" goal_id="goal_id"/>
+      <!-- Calculate random duration between 40 and 240 seconds -->
+      <assign location="target_ticks" expr="40 + Math.random() * 200"/>
+      <assign location="elapsed_ticks" expr="0"/>
     </ros_action_handle_goal>
   </state>
 
@@ -87,6 +96,33 @@
       <assign location="is_near"   expr="false"/>
     </onentry>
     <transition target="idle"/>
+  </state>
+
+  <state id="NavigationInProgress">
+    <!-- Timer callback to track navigation progress -->
+    <ros_rate_callback name="navigation_timer">
+      <target id="NavigationCheckComplete" prob="1.0">
+        <assign location="elapsed_ticks" expr="elapsed_ticks + 1"/>
+      </target>
+    </ros_rate_callback>
+  </state>
+
+  <state id="NavigationCheckComplete">
+    <transition>
+      <target id="idle" prob="0.7">
+        <!-- success -->
+        <assign location="status" expr="GOAL_REACHED" />
+        <assign location="is_near" expr="true" />
+        <ros_action_succeed name="goto_act" goal_id="goal_id">
+          <field name="is_ok" expr="true"/>
+          <field name="error_msg" expr="''"/>
+        </ros_action_succeed>
+      </target>
+      <target id="NavigationAborted" prob="0.3">
+        <!-- failure -->
+        <ros_action_aborted name="goto_act" goal_id="goal_id"/>
+      </target>
+    </transition>
   </state>
 
   <state id="HandleActionGoal">

@@ -12,8 +12,12 @@
     <data id="is_done"         type="bool" expr="true"/>
     <!-- track whether a stop was requested -->
     <data id="stopped"         type="bool" expr="false"/>
+    <!-- track elapsed ticks since narration started -->
+    <data id="elapsed_ticks"   type="float32" expr="0"/>
+    <!-- target number of ticks for narration to complete (30-60 seconds at given rate) -->
+    <data id="target_ticks"    type="float32" expr="0"/>
   </datamodel>
-  <ros_time_rate name="speak_timer" rate_hz="10"/>
+  <ros_time_rate name="speak_timer" rate_hz="0.01"/>
 
   <!-- ROS service servers -->
   <ros_service_server service_name="/NarrateComponent/Narrate" type="narrate_interfaces/Narrate"/>
@@ -33,9 +37,16 @@
     <ros_service_handle_request name="/NarrateComponent/Stop" target="HandleStop">
       <assign location="stopped" expr="true"/>
     </ros_service_handle_request>
-    <!-- periodically set narration to done -->
+    <!-- periodically check if narration is complete -->
     <ros_rate_callback name="speak_timer" target="idle">
-      <assign location="is_done" expr="true"/>
+      <!-- if a narration is in progress and not stopped, increment tick counter -->
+      <if cond="!is_done &amp;&amp; !stopped">
+        <assign location="elapsed_ticks" expr="elapsed_ticks + 0.01"/>
+        <!-- check if target duration has been reached -->
+        <if cond="elapsed_ticks &gt;= target_ticks">
+          <assign location="is_done" expr="true"/>
+        </if>
+      </if>
     </ros_rate_callback>
   </state>
 
@@ -49,7 +60,9 @@
       <!-- reset flags for a new narration cycle -->
       <assign location="is_done" expr="false"/>
       <assign location="stopped" expr="false"/>
-      <!-- here you could <send> an internal event to start the thread/task -->
+      <assign location="elapsed_ticks" expr="0"/>
+      <!-- calculate random target ticks for 30-60 seconds: ticks = seconds * rate_hz -->
+      <assign location="target_ticks" expr="(30 + Math.random() * 30) * 0.01"/>
     </onentry>
     <transition target="idle"/>
   </state>
