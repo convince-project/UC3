@@ -14,6 +14,7 @@
     <data id="goal_id" type="int32" expr="0" />
     <!-- Exec fields -->
     <data id="is_near" type="bool" expr="false" />
+    <data id="is_at_charging_station" type="bool" expr="false" />
     <data id="status" type="int32" expr="0" />
     <!-- Navigation timing -->
     <data id="elapsed_ticks" type="float32" expr="0" />
@@ -55,7 +56,7 @@
     <ros_service_handle_request name="/NavigationComponent/CheckNearToPoi" target="idle">
       <ros_service_send_response name="/NavigationComponent/CheckNearToPoi">
         <field name="poi_name"  expr="goal_name"/>
-        <field name="is_near"    expr="is_near"/>
+        <field name="is_near"    expr="is_at_charging_station"/>
         <field name="is_ok"      expr="true"/>
         <field name="error_msg"  expr="''"/>
       </ros_service_send_response>
@@ -73,6 +74,8 @@
     <ros_action_handle_goal name="goto_act" target="NavigationInProgress">
       <assign location="status" expr="MOVING"/>
       <assign location="goal_name" expr="_goal.poi_name"/>
+      <assign location="is_near" expr="false"/>
+      <assign location="is_at_charging_station" expr="false"/>
       <!-- Set goal_id depending on goal_name: -->
       <!-- - 0 for charging station -->
       <!-- - 1 for everything else (PoIs) -->
@@ -94,6 +97,7 @@
       <assign location="goal_id"   expr="0"/>
       <assign location="status"    expr="ABORTED"/>
       <assign location="is_near"   expr="false"/>
+      <assign location="is_at_charging_station" expr="false"/>
     </onentry>
     <transition target="idle"/>
   </state>
@@ -108,11 +112,17 @@
   </state>
 
   <state id="NavigationCheckComplete">
+    <transition target="NavigationInProgress" cond="elapsed_ticks &lt; target_ticks"/>
+    <transition target="NavigationResultChoice" cond="elapsed_ticks &gt;= target_ticks"/>
+  </state>
+
+  <state id="NavigationResultChoice">
     <transition>
       <target id="idle" prob="0.7">
         <!-- success -->
         <assign location="status" expr="GOAL_REACHED" />
         <assign location="is_near" expr="true" />
+        <assign location="is_at_charging_station" expr="goal_name == 'charging_station'" />
         <ros_action_succeed name="goto_act" goal_id="goal_id">
           <field name="is_ok" expr="true"/>
           <field name="error_msg" expr="''"/>

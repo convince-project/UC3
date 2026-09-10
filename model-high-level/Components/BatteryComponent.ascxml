@@ -10,8 +10,9 @@
     <data id="percentage" type="float32" expr="100.0" /> <!-- Valore iniziale in scala 0-1 -->
     <data id="min_percentage" type="float32" expr="6.0" />
     <data id="max_percentage" type="float32" expr="100.0" />
-    <data id="charge_step" type="float32" expr="10.44" />
-    <data id="discharge_step" type="float32" expr="10.44" /> <!-- Discharges from 100 to 6 in 2.5 hours -->
+    <!-- At 0.1 Hz, 0.1044% every 10 s changes 94% in approximately 2.5 h. -->
+    <data id="charge_step" type="float32" expr="0.1044" />
+    <data id="discharge_step" type="float32" expr="0.1044" />
     <data id="charging_station" type="string" expr="'charging_station'" />
     <data id="charging_distance" type="float32" expr="0.5" />
     <data id="charging_angle" type="float64" expr="360.0" />

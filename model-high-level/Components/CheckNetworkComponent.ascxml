@@ -15,8 +15,8 @@
   <ros_topic_publisher topic="/CheckNetworkComponent/NetworkStatus" type="std_msgs/Bool"/>
   <ros_topic_publisher topic="/CheckNetworkComponent/NetworkChanged" type="std_msgs/Bool"/>
 
-  <!-- fire at 1 Hz -->
-  <ros_time_rate name="evaluate_timer" rate_hz="10"/>
+  <!-- Sample and publish at 1 Hz, matching CheckNetworkComponent on the robot. -->
+  <ros_time_rate name="evaluate_timer" rate_hz="1"/>
   <ros_time_rate name="publish_timer" rate_hz="1"/>
 
   <state id="waiting">

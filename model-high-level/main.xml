@@ -13,7 +13,6 @@
     </behavior_tree>
 
     <node_models>
-        <input type="node-ascxml" src="./Components/AllowedToMoveComponent.ascxml" />
         <input type="node-ascxml" src="./Components/BatteryComponent.ascxml" />
         <input type="node-ascxml" src="./Components/BlackboardComponent.ascxml" />
         <input type="node-ascxml" src="./Components/CheckNetworkComponent.ascxml" />
@@ -37,7 +36,6 @@
         <input type="node-ascxml" id="DialogSkill" src="Skills/DialogSkill.ascxml" />
         <input type="node-ascxml" id="GoToChargingStationSkill" src="Skills/GoToChargingStationSkill.ascxml" />
         <input type="node-ascxml" id="GoToPoiActionSkill" src="Skills/GoToPoiActionSkill.ascxml" />
-        <input type="node-ascxml" id="IsAllowedToMoveSkill" src="Skills/IsAllowedToMoveSkill.ascxml" />
         <input type="node-ascxml" id="IsAllowedToTurnBackSkill" src="Skills/IsAllowedToTurnBackSkill.ascxml" />
         <input type="node-ascxml" id="IsAtChargingStationSkill" src="Skills/IsAtChargingStationSkill.ascxml" />
         <input type="node-ascxml" id="IsAtCurrentPoiSkill" src="Skills/IsAtCurrentPoiSkill.ascxml" />

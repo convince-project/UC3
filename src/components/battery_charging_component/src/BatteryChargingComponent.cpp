@@ -36,7 +36,6 @@ bool BatteryChargingComponent::start(int argc, char*argv[])
 
     m_navigationNode = rclcpp::Node::make_shared("BatteryChargingComponentNavigationNode");
     m_clientCheckNearToPoi = m_navigationNode->create_client<navigation_interfaces::srv::CheckNearToPoi>("/NavigationComponent/CheckNearToPoi");
-    m_clientGetNavigationStatus = m_navigationNode->create_client<navigation_interfaces::srv::GetNavigationStatus>("/NavigationComponent/GetNavigationStatus");
 
     RCLCPP_INFO(m_node->get_logger(), "BatteryChargingComponent::start");
     return true;
@@ -80,22 +79,6 @@ void BatteryChargingComponent::CheckChargingStationProximity()
         m_isNearChargingStation = response->is_ok && response->is_near;
         if (m_isNearChargingStation) {
             m_batteryCharging.store(true);
-        }
-    }
-}
-
-void BatteryChargingComponent::UpdateBatteryInfoFromNavigation()
-{
-    if (!m_clientGetNavigationStatus || !m_clientGetNavigationStatus->wait_for_service(std::chrono::milliseconds(200))) {
-        return;
-    }
-
-    auto request = std::make_shared<navigation_interfaces::srv::GetNavigationStatus::Request>();
-    auto future = m_clientGetNavigationStatus->async_send_request(request);
-    if (rclcpp::spin_until_future_complete(m_navigationNode, future, std::chrono::seconds(1)) == rclcpp::FutureReturnCode::SUCCESS) {
-        auto response = future.get();
-        if (response->is_ok) {
-            m_isNearChargingStation = m_isNearChargingStation || response->current_goal == "charging_station";
         }
     }
 }
@@ -170,13 +153,11 @@ void BatteryChargingComponent::BatteryStateSubscriptionCallback(const sensor_msg
     }
 
     CheckChargingStationProximity();
-    UpdateBatteryInfoFromNavigation();
     PublishBatteryState();
 }
 
 void BatteryChargingComponent::BatteryStatePublisherCallback()
 {
     CheckChargingStationProximity();
-    UpdateBatteryInfoFromNavigation();
     PublishBatteryState();
 }

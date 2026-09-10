@@ -9,7 +9,6 @@
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/battery_state.hpp>
 #include <navigation_interfaces/srv/check_near_to_poi.hpp>
-#include <navigation_interfaces/srv/get_navigation_status.hpp>
 #include <atomic>
 #include <vector>
 #include <queue>
@@ -31,7 +30,6 @@ public:
 
 private:
     void CheckChargingStationProximity();
-    void UpdateBatteryInfoFromNavigation();
     void PublishBatteryState();
 
     rclcpp::Node::SharedPtr m_node;
@@ -39,7 +37,6 @@ private:
     rclcpp::TimerBase::SharedPtr m_timer;
     rclcpp::Subscription<sensor_msgs::msg::BatteryState>::SharedPtr m_subscriptionBatteryState;
     rclcpp::Client<navigation_interfaces::srv::CheckNearToPoi>::SharedPtr m_clientCheckNearToPoi;
-    rclcpp::Client<navigation_interfaces::srv::GetNavigationStatus>::SharedPtr m_clientGetNavigationStatus;
     std::shared_ptr<rclcpp::Node> m_navigationNode;
     std::atomic<bool> m_batteryCharging{false};
     std::queue<double> m_lastBatteryVoltagesBeforeChange;

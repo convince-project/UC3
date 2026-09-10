@@ -13,11 +13,11 @@
     <!-- track whether a stop was requested -->
     <data id="stopped"         type="bool" expr="false"/>
     <!-- track elapsed ticks since narration started -->
-    <data id="elapsed_ticks"   type="float32" expr="0"/>
-    <!-- target number of ticks for narration to complete (30-60 seconds at given rate) -->
-    <data id="target_ticks"    type="float32" expr="0"/>
+    <data id="elapsed_ticks"   type="int32" expr="0"/>
+    <!-- target number of ticks for narration to complete (30-60 seconds at 10 Hz) -->
+    <data id="target_ticks"    type="int32" expr="0"/>
   </datamodel>
-  <ros_time_rate name="speak_timer" rate_hz="0.01"/>
+  <ros_time_rate name="speak_timer" rate_hz="10"/>
 
   <!-- ROS service servers -->
   <ros_service_server service_name="/NarrateComponent/Narrate" type="narrate_interfaces/Narrate"/>
@@ -41,7 +41,7 @@
     <ros_rate_callback name="speak_timer" target="idle">
       <!-- if a narration is in progress and not stopped, increment tick counter -->
       <if cond="!is_done &amp;&amp; !stopped">
-        <assign location="elapsed_ticks" expr="elapsed_ticks + 0.01"/>
+        <assign location="elapsed_ticks" expr="elapsed_ticks + 1"/>
         <!-- check if target duration has been reached -->
         <if cond="elapsed_ticks &gt;= target_ticks">
           <assign location="is_done" expr="true"/>
@@ -61,8 +61,8 @@
       <assign location="is_done" expr="false"/>
       <assign location="stopped" expr="false"/>
       <assign location="elapsed_ticks" expr="0"/>
-      <!-- calculate random target ticks for 30-60 seconds: ticks = seconds * rate_hz -->
-      <assign location="target_ticks" expr="(30 + Math.random() * 30) * 0.01"/>
+      <!-- calculate random target ticks for 30-60 seconds: ticks = seconds * 10 Hz -->
+      <assign location="target_ticks" expr="Math.floor((30 + Math.random() * 30) * 10)"/>
     </onentry>
     <transition target="idle"/>
   </state>

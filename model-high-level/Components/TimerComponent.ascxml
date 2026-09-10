@@ -11,7 +11,8 @@
     <data id="poi_timer_active" type="bool" expr="false" />
     <data id="tour_counter_ms" type="int32" expr="0" />
     <data id="poi_counter_ms" type="int32" expr="0" />
-    <data id="tour_counter_max_ms" type="int32" expr="30000" />
+    <!-- Match the 4 minute limit configured in time_component/config/config.ini. -->
+    <data id="tour_counter_max_ms" type="int32" expr="240000" />
   </datamodel>
 
   <ros_service_server service_name="/TimeComponent/StartTourTimer" type="time_interfaces/StartTourTimer"/>
@@ -20,7 +21,7 @@
   <ros_service_server service_name="/TimeComponent/StopPoiTimer" type="time_interfaces/StopPoiTimer"/>
   <!-- <ros_service_server service_name="/TimeComponent/ReloadConfigFile" type="time_interfaces/ReloadConfigFile"/> -->
   <ros_service_server service_name="/TimeComponent/IsMuseumClosing" type="time_interfaces/IsMuseumClosing"/>
-  <!-- <ros_topic_publisher name="/TimeComponent/TourTimer" type="std_msgs/String"/> -->
+  <ros_topic_publisher topic="/TimeComponent/tour_time" type="std_msgs/UInt32"/>
 
   <!-- 10 Hz callback: the tour timer advances every 100 millisecond while active. -->
   <ros_time_rate name="time_component_control_timer" rate_hz="10" />
@@ -29,6 +30,11 @@
     <ros_rate_callback name="time_component_control_timer" target="operational">
       <if cond="tour_timer_active">
         <assign location="tour_counter_ms" expr="tour_counter_ms + 100"/>
+        <if cond="tour_counter_ms % 1000 == 0">
+          <ros_topic_publish name="/TimeComponent/tour_time">
+            <field name="data" expr="Math.floor(tour_counter_ms / 1000)"/>
+          </ros_topic_publish>
+        </if>
       </if>
       <if cond="poi_timer_active">
         <!-- For simplicity, we use the same counter for both timers, but in a real implementation they would likely be separate. -->
@@ -38,6 +44,7 @@
 
     <ros_service_handle_request name="/TimeComponent/StartTourTimer" target="operational">
       <assign location="tour_timer_active" expr="true"/>
+      <assign location="tour_counter_ms" expr="0"/>
       <ros_service_send_response name="/TimeComponent/StartTourTimer">
         <field name="is_ok" expr="true"/>
         <field name="error_msg" expr="''"/>
@@ -47,6 +54,9 @@
     <ros_service_handle_request name="/TimeComponent/StopTourTimer" target="operational">
       <assign location="tour_timer_active" expr="false"/>
       <assign location="tour_counter_ms" expr="0"/>
+      <ros_topic_publish name="/TimeComponent/tour_time">
+        <field name="data" expr="0"/>
+      </ros_topic_publish>
       <ros_service_send_response name="/TimeComponent/StopTourTimer">
         <field name="is_ok" expr="true"/>
         <field name="error_msg" expr="''"/>
