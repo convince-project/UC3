@@ -37,13 +37,6 @@
     </module>
 
     <module>
-        <name>ros2_allowed_to_move_component</name>
-        <parameters>run allowed_to_move_component allowed_to_move_component</parameters>
-        <workdir />
-        <node>bt</node>
-    </module>
-
-    <module>
         <name>ros2_battery_charging_component</name>
         <parameters>run battery_charging_component battery_charging_component</parameters>
         <workdir />

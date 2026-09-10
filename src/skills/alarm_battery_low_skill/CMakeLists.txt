@@ -18,7 +18,6 @@ find_package(std_msgs REQUIRED)
 find_package(bt_interfaces_dummy REQUIRED)
 
 find_package(notify_user_interfaces REQUIRED)
-find_package(allowed_to_move_interfaces REQUIRED)
 find_package(Qt6 COMPONENTS Core Scxml StateMachine  REQUIRED)
 
 add_executable(${PROJECT_NAME} )
@@ -38,7 +37,6 @@ ament_target_dependencies(${PROJECT_NAME}
   rclcpp 
   rclcpp_action 
   notify_user_interfaces 
-  allowed_to_move_interfaces 
   
   )
 target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Scxml Qt6::StateMachine)

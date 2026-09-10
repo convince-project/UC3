@@ -12,7 +12,6 @@
 #include <bt_interfaces_dummy/msg/action_response.hpp>
 #include <notify_user_interfaces/srv/stop_alarm.hpp> 
 #include <notify_user_interfaces/srv/start_alarm.hpp> 
-#include <allowed_to_move_interfaces/srv/set_allowed_to_move.hpp> 
 
 
 
@@ -68,10 +67,7 @@ private:
 	std::shared_ptr<rclcpp::Client<notify_user_interfaces::srv::StopAlarm>> clientStopAlarm;
 	std::shared_ptr<rclcpp::Node> nodeStartAlarm;
 	std::shared_ptr<rclcpp::Client<notify_user_interfaces::srv::StartAlarm>> clientStartAlarm;
-	std::shared_ptr<rclcpp::Node> nodeSetAllowedToMove;
-	std::shared_ptr<rclcpp::Client<allowed_to_move_interfaces::srv::SetAllowedToMove>> clientSetAllowedToMove;
 	
 	
 
 };
-

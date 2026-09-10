@@ -14,6 +14,7 @@
 #include <string>
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/string.hpp>
+#include <std_msgs/msg/u_int32.hpp>
 #include <time_interfaces/srv/start_tour_timer.hpp>
 #include <time_interfaces/srv/stop_tour_timer.hpp>
 #include <time_interfaces/srv/start_poi_timer.hpp>
@@ -70,6 +71,7 @@ private:
     rclcpp::Service<time_interfaces::srv::ReloadConfigFile>::SharedPtr m_reloadConfigFileService;
     rclcpp::Service<time_interfaces::srv::IsMuseumClosing>::SharedPtr m_isMuseumClosingService;
     rclcpp::Publisher<std_msgs::msg::String>::SharedPtr m_publisherNotification;
+    rclcpp::Publisher<std_msgs::msg::UInt32>::SharedPtr m_publisherTourTime;
     // rclcpp::Publisher<std_msgs::msg::String>::SharedPtr m_publisherPoiTimer;
     std::thread m_threadTimerTour;
     std::thread m_threadTimerPoi;

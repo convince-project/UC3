@@ -68,6 +68,7 @@ bool TimeComponent::start(int argc, char*argv[])
 
     RCLCPP_DEBUG(m_node->get_logger(), "TimeComponent::start");
     m_publisherNotification = m_node->create_publisher<std_msgs::msg::String>("/LogComponent/add_to_log", 10);
+    m_publisherTourTime = m_node->create_publisher<std_msgs::msg::UInt32>("/TimeComponent/tour_time", 10);
     std::cout << "TimeComponent::start\n";        
     return true;
 
@@ -361,10 +362,17 @@ void TimeComponent::timerTaskTour()
     writeInBB(WARNING_BB_STRING, 0);
     writeInBB(TOUR_DURATION_BB_STRING, 0);
     publisher("Tour started!");
+    m_publisherTourTime->publish(std_msgs::msg::UInt32{});
     while(!l_stopped){
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
         l_millisecondsPassed++;
         l_secondsPassed = l_millisecondsPassed / 1000;
+        if(l_millisecondsPassed % 1000 == 0)
+        {
+            std_msgs::msg::UInt32 tourTime;
+            tourTime.data = static_cast<uint32_t>(l_secondsPassed);
+            m_publisherTourTime->publish(tourTime);
+        }
         if(l_secondsPassed == l_maxTime*60)
         {
             // std::cout << "Time exceeded" << std::endl;
@@ -394,6 +402,7 @@ void TimeComponent::timerTaskTour()
     writeInBB(WARNING_BB_STRING, 0);
     writeInBB(MAX_BB_STRING, 0);
     writeInBB(TOUR_DURATION_BB_STRING, 0);
+    m_publisherTourTime->publish(std_msgs::msg::UInt32{});
     publisher("Tour ended!");
     RCLCPP_INFO_STREAM(m_node->get_logger(), "End Timer ");
 }

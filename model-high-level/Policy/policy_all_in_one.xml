@@ -45,10 +45,6 @@
         </ReactiveFallback>
       </ReactiveFallback>
 
-        <ROS2Condition name="IsAllowedToMove"
-                        service_name="/IsAllowedToMoveSkill/tick" 
-                       interface="ROS2SERVICE"
-                       isMonitored="false"/>
         <ROS2Action name="NotifyCharged"
                     service_name_tick="/NotifyChargedSkill/tick"
                     service_name_halt="/NotifyChargedSkill/halt"

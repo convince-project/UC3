@@ -48,15 +48,9 @@
           </Parallel>
         </ReactiveSequence>
       </ReactiveFallback>
-      <Parallel failure_threshold="1"
-                success_threshold="2">
-        <ROS2Action name="NotifyCharged"
-                    interface="ROS2SERVICE"
-                    isMonitored="false"/>
-        <ROS2Condition name="IsAllowedToMove"
-                       interface="ROS2SERVICE"
-                       isMonitored="false"/>
-      </Parallel>
+      <ROS2Action name="NotifyCharged"
+                  interface="ROS2SERVICE"
+                  isMonitored="false"/>
     </ReactiveSequence>
   </BehaviorTree>
 

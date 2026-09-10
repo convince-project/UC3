@@ -15,11 +15,11 @@ bool ChargeBatteryComponent::start(int argc, char*argv[])
     {
         rclcpp::init(/*argc*/ argc, /*argv*/ argv);
     }
-    m_node = rclcpp::Node::make_shared("BatteryChargingComponentNode");
+    m_node = rclcpp::Node::make_shared("ChargeBatteryComponentNode");
 
     m_node->declare_parameter<std::string>("yarp_remote_charge_rpc", "/battery_charge/rpc");
-    m_node->declare_parameter<std::string>("yarp_local_rpc", "/BatteryChargingComponent/rpc");
-    m_node->declare_parameter<std::string>("ros2_service_name", "/BatteryChargingComponent/set_charge");
+    m_node->declare_parameter<std::string>("yarp_local_rpc", "/ChargeBatteryComponent/rpc");
+    m_node->declare_parameter<std::string>("ros2_service_name", "/ChargeBatteryComponent/set_charge");
 
     std::string localRpcPort = m_node->get_parameter("yarp_local_rpc").as_string();
     std::string remoteRpcPort = m_node->get_parameter("yarp_remote_charge_rpc").as_string();

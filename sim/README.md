@@ -66,13 +66,17 @@ Launch all the modules **in the order specified by the application**, and then c
 
 ### Step 4: Start the Tour
 
-Once all pipelines are running, you can start the tour by executing the following commands:
+Once all pipelines are running, set the tour language. The tour starts automatically when the robot is charged:
 
 ```bash
 ros2 service call /DialogComponent/SetLanguage dialog_interfaces/srv/SetLanguage "{language: \"it-IT\"}"
 
-ros2 service call /AllowedToMoveComponent/SetAllowedToMove allowed_to_move_interfaces/srv/SetAllowedToMove is_allowed_to_move:\ true
+```
 
+The elapsed tour duration is available as seconds on `/TimeComponent/tour_time`:
+
+```bash
+ros2 topic echo /TimeComponent/tour_time
 ```
 
 ## Using docker compose

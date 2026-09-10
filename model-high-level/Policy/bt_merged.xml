@@ -28,10 +28,7 @@
             </Parallel>
           </ReactiveSequence>
         </ReactiveFallback>
-        <Parallel failure_threshold="1" success_threshold="2">
-          <ROS2Action name="NotifyCharged" interface="ROS2SERVICE" isMonitored="false" service_name_tick="/NotifyChargedSkill/tick" service_name_halt="/NotifyChargedSkill/halt" />
-          <ROS2Condition name="IsAllowedToMove" interface="ROS2SERVICE" isMonitored="false" service_name="/IsAllowedToMoveSkill/tick" />
-        </Parallel>
+        <ROS2Action name="NotifyCharged" interface="ROS2SERVICE" isMonitored="false" service_name_tick="/NotifyChargedSkill/tick" service_name_halt="/NotifyChargedSkill/halt" />
       </ReactiveSequence>
       <Fallback>
         <Inverter>

@@ -56,10 +56,6 @@
                   interface="ROS2SERVICE"
                   isMonitored="false"
                   nodeName=""/>
-      <ROS2Condition name="IsAllowedToMove"
-                     interface="ROS2SERVICE"
-                     isMonitored="false"
-                     nodeName=""/>
     </ReactiveSequence>
   </BehaviorTree>
 

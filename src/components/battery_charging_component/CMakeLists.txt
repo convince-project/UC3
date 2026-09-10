@@ -18,6 +18,8 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(navigation_interfaces REQUIRED)
+find_package(ament_cmake_gtest REQUIRED)
 # find_package(nlohmann_json 3.10.5 REQUIRED)
 add_executable(${PROJECT_NAME} )
 
@@ -29,7 +31,7 @@ include(FetchContent)
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-ament_target_dependencies(${PROJECT_NAME} sensor_msgs rclcpp)
+ament_target_dependencies(${PROJECT_NAME} sensor_msgs rclcpp navigation_interfaces)
 
 target_include_directories(${PROJECT_NAME}
   PUBLIC

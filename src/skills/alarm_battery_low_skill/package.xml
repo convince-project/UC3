@@ -14,7 +14,6 @@
   <depend>bt_interfaces_dummy</depend>
   
   <depend>notify_user_interfaces</depend>
-  <depend>allowed_to_move_interfaces</depend>
   <depend>std_msgs</depend>
 
   <test_depend>ament_lint_auto</test_depend>
