@@ -31,7 +31,19 @@
     </ros_service_client>
 
 
+    <!-- FIX: as in BT.CPP, a node is halted only if it is RUNNING. The AS2FM control nodes halt
+         all their children, so the plugin filters the halts: a node that is not running
+         acknowledges the halt without calling the skill's halt service. -->
     <state id="idle">
+        <bt_tick target="handle_response_tick">
+            <ros_service_send_request name="srv_tick"/>
+        </bt_tick>
+        <bt_halt target="idle">
+            <bt_return_halted />
+        </bt_halt>
+    </state>
+
+    <state id="running">
         <bt_tick target="handle_response_tick">
             <ros_service_send_request name="srv_tick"/>
         </bt_tick>
@@ -47,7 +59,7 @@
         <ros_service_handle_response name="srv_tick" cond="_res.status == SKILL_FAILURE" target="idle" >
             <bt_return_status status="FAILURE" />
         </ros_service_handle_response>
-        <ros_service_handle_response name="srv_tick" cond="_res.status == SKILL_RUNNING" target="idle" >
+        <ros_service_handle_response name="srv_tick" cond="_res.status == SKILL_RUNNING" target="running" >
             <bt_return_status status="RUNNING" />
         </ros_service_handle_response>
     </state>

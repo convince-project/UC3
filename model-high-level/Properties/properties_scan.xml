@@ -20,14 +20,18 @@
     <scxml_event_send event="srv_BlackboardComponent__SetInt_req_client_SetCurrentPoiDoneSkill" origin="SetCurrentPoiDoneSkill" target="srv_handler_BlackboardComponent__SetInt">
         <state_var id="bb_field" type="string" expr="''" param="ros_fields__field_name"/>
         <state_var id="bb_value" type="int32" expr="0" param="ros_fields__value"/>
-    </scxml_event_send>
-    <scxml_event_send event="srv_BlackboardComponent__SetInt_request" origin="srv_handler_BlackboardComponent__SetInt" target="BlackboardComponent">
-      <event_var id="poi_done"/>
+        <!-- FIX: poi_done was an event on ANY SetInt request (also StartPoiTimer, StartTourTimer...),
+             while bb_field/bb_value keep the last SetCurrentPoiDone values: the next unrelated SetInt
+             after a POI change violated isPOIxCompletedAfterSelection. -->
+        <event_var id="poi_done"/>
     </scxml_event_send>
     <scxml_event_send event="topic_CheckNetworkComponent__NetworkStatus_msg" origin="CheckNetworkComponent" target="SystemMonitorComponent">
       <event_var id="connected_to_network"/>
     </scxml_event_send>
   </ports>
+  <!-- FIX: time unit = 100 ms. The InTime windows were 100 (10 s), while a navigation alone takes
+       40-240 s: now 9000 (15 min) from POI selection to PoiDone (observed in traces: 84-600 s), and
+       3000 (5 min) from the low battery alarm to the charging station. -->
   <guarantees>
     <property id="noAlarmWithHighBattery" expr="historically({ !(battery_level &gt; 30 &amp;&amp; is_at_charging_station == 1) || (battery_low_alarm == 1) })"/>
     <property id="alarmWithLowBattery" expr="historically( not( not({ battery_low_alarm == 2 }) since[50:] ({ battery_level &lt;= 30 &amp;&amp; is_at_charging_station == 1 }) ) )"/>
@@ -35,18 +39,18 @@
     <property id="isPeopleFollowingPublished" expr="historically( (once[70:] true) -&gt; (once[:70]{ people_following_published }) )"/>
     <property id="notCriticalBattery" expr="historically({ battery_level &gt; 10 })"/>
     <property id="isPOI0CompletedAfterSelection" expr="historically( { poi_done &amp;&amp; bb_field == 'PoiDone0' &amp;&amp; bb_value == 1 } -&gt; { poi_selected == 0 } )"/>
-    <property id="isPOI0CompletedInTime" expr="historically( not( not({ bb_field == 'PoiDone0' &amp;&amp; bb_value == 1 }) since[100:] ({ poi_selected == 0 }) ) )"/>
+    <property id="isPOI0CompletedInTime" expr="historically( not( not({ bb_field == 'PoiDone0' &amp;&amp; bb_value == 1 }) since[9000:] ({ poi_selected == 0 }) ) )"/>
     <property id="isPOI2CompletedAfterSelection" expr="historically( { poi_done &amp;&amp; bb_field == 'PoiDone2' &amp;&amp; bb_value == 1 } -&gt; { poi_selected == 2 } )"/>
-    <property id="isPOI2CompletedInTime" expr="historically( not( not({ bb_field == 'PoiDone2' &amp;&amp; bb_value == 1 }) since[100:] ({ poi_selected == 2 }) ) )"/>
+    <property id="isPOI2CompletedInTime" expr="historically( not( not({ bb_field == 'PoiDone2' &amp;&amp; bb_value == 1 }) since[9000:] ({ poi_selected == 2 }) ) )"/>
     <property id="isPOI4CompletedAfterSelection" expr="historically( { poi_done &amp;&amp; bb_field == 'PoiDone4' &amp;&amp; bb_value == 1 } -&gt; { poi_selected == 4 } )"/>
-    <property id="isPOI4CompletedInTime" expr="historically( not( not({ bb_field == 'PoiDone4' &amp;&amp; bb_value == 1 }) since[100:] ({ poi_selected == 4 }) ) )"/>
+    <property id="isPOI4CompletedInTime" expr="historically( not( not({ bb_field == 'PoiDone4' &amp;&amp; bb_value == 1 }) since[9000:] ({ poi_selected == 4 }) ) )"/>
     <property id="isPOI5CompletedAfterSelection" expr="historically( { poi_done &amp;&amp; bb_field == 'PoiDone5' &amp;&amp; bb_value == 1 } -&gt; { poi_selected == 5 } )"/>
-    <property id="isPOI5CompletedInTime" expr="historically( not( not({ bb_field == 'PoiDone5' &amp;&amp; bb_value == 1 }) since[100:] ({ poi_selected == 5 }) ) )"/>
+    <property id="isPOI5CompletedInTime" expr="historically( not( not({ bb_field == 'PoiDone5' &amp;&amp; bb_value == 1 }) since[9000:] ({ poi_selected == 5 }) ) )"/>
     <property id="isPOI8CompletedAfterSelection" expr="historically( { poi_done &amp;&amp; bb_field == 'PoiDone8' &amp;&amp; bb_value == 1 } -&gt; { poi_selected == 8 } )"/>
-    <property id="isPOI8CompletedInTime" expr="historically( not( not({ bb_field == 'PoiDone8' &amp;&amp; bb_value == 1 }) since[100:] ({ poi_selected == 8 }) ) )"/>
+    <property id="isPOI8CompletedInTime" expr="historically( not( not({ bb_field == 'PoiDone8' &amp;&amp; bb_value == 1 }) since[9000:] ({ poi_selected == 8 }) ) )"/>
     <property id="isPOI10CompletedAfterSelection" expr="historically( { poi_done &amp;&amp; bb_field == 'PoiDone10' &amp;&amp; bb_value == 1 } -&gt; { poi_selected == 10 } )"/>
-    <property id="isPOI10CompletedInTime" expr="historically( not( not({ bb_field == 'PoiDone10' &amp;&amp; bb_value == 1 }) since[100:] ({ poi_selected == 10 }) ) )"/>
+    <property id="isPOI10CompletedInTime" expr="historically( not( not({ bb_field == 'PoiDone10' &amp;&amp; bb_value == 1 }) since[9000:] ({ poi_selected == 10 }) ) )"/>
     <property id="isExternalPCConnected" expr="historically( (once[30:] true) -&gt; (once[:30]{ connected_to_network }) )"/>
-    <property id="isArrivedAtChargingStationInTime" expr="historically( not( not({ is_at_charging_station == 0 }) since[100:] ({ battery_low_alarm == 2 }) ) )"/>
+    <property id="isArrivedAtChargingStationInTime" expr="historically( not( not({ is_at_charging_station == 0 }) since[3000:] ({ battery_low_alarm == 2 }) ) )"/>
   </guarantees>
 </properties>

@@ -55,10 +55,12 @@
                 <field name="is_ok" expr="true"/>
             </ros_service_send_response>
         </transition>
-        <transition cond="status == false" target="checkTimer">
+        <!-- FIX: wait for the StartTimer response. Before, the target was checkTimer: startTimer
+             was unreachable, the response was never handled and the tick result used the
+             IsTimerActive is_ok instead of the StartTimer one. -->
+        <transition cond="status == false" target="startTimer">
             <ros_service_send_request name="/TimerCheckForPeopleComponent/StartTimer"/>
         </transition>
-        <transition target="idle" event="CMD_HALT"/>
     </state>
 
     <state id="startTimer">
@@ -80,6 +82,5 @@
                 <field name="is_ok" expr="true"/>
             </ros_service_send_response>
         </transition>
-        <transition target="idle" event="CMD_HALT"/>
     </state>
 </ascxml>

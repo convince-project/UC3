@@ -23,6 +23,7 @@
 
   <!-- Clients for navigation calls -->
   <ros_action_client name="go_to_poi_action" action_name="/NavigationComponent/GoToPoi" type="navigation_interfaces/GoToPoi" />
+  <ros_service_client service_name="/NavigationComponent/StopNavigation" type="navigation_interfaces/StopNavigation"/>
 
 
   <state id="idle">
@@ -51,16 +52,12 @@
       </ros_service_send_response>
     </ros_service_handle_request>
 
-    <ros_service_handle_request name="/GoToChargingStationSkill/halt" target="idle"/>
+    <!-- FIX: before, this went to "idle" without answering the halt, deadlocking the BT -->
+    <ros_service_handle_request name="/GoToChargingStationSkill/halt" target="haltGoalResponse"/>
   </state>
 
   <state id="haltGoalResponse">
-    <ros_action_handle_goal_response name="go_to_poi_action" accept="idle" reject="idle"/>
-    <onexit>
-      <ros_service_send_response name="/GoToChargingStationSkill/halt">
-        <field name="is_ok" expr="true"/>
-      </ros_service_send_response>
-    </onexit>
+    <ros_action_handle_goal_response name="go_to_poi_action" accept="haltCancel" reject="halt"/>
   </state>
 
   <state id="wait_result">
@@ -81,15 +78,29 @@
 
     <ros_action_handle_aborted_result name="go_to_poi_action" target="send_failure"/>
 
-    <ros_service_handle_request name="/GoToChargingStationSkill/halt" target="haltWaitResult"/>
+    <ros_service_handle_request name="/GoToChargingStationSkill/halt" target="haltCancel"/>
   </state>
 
-    <state id="haltWaitResult">
-      <!-- Wait for pending action result to arrive, then move to halt -->
-      <ros_action_handle_success_result name="go_to_poi_action" target="halt"/>
+  <!-- FIX: on halt, stop the navigation instead of waiting (up to minutes, blocking the BT) for
+       the goal to end on its own. Both the StopNavigation response and the goal result
+       arrive, in any order: wait for both before answering the halt. -->
+  <state id="haltCancel">
+    <onentry>
+      <ros_service_send_request name="/NavigationComponent/StopNavigation"/>
+    </onentry>
+    <ros_action_handle_success_result name="go_to_poi_action" target="haltWaitStop"/>
+    <ros_action_handle_aborted_result name="go_to_poi_action" target="haltWaitStop"/>
+    <ros_service_handle_response name="/NavigationComponent/StopNavigation" target="haltWaitResult"/>
+  </state>
 
-      <ros_action_handle_aborted_result name="go_to_poi_action" target="halt"/>
-    </state>
+  <state id="haltWaitStop">
+    <ros_service_handle_response name="/NavigationComponent/StopNavigation" target="halt"/>
+  </state>
+
+  <state id="haltWaitResult">
+    <ros_action_handle_success_result name="go_to_poi_action" target="halt"/>
+    <ros_action_handle_aborted_result name="go_to_poi_action" target="halt"/>
+  </state>
 
   <state id="goal_done">
     <ros_service_handle_request name="/GoToChargingStationSkill/tick" target="idle">
@@ -102,13 +113,17 @@
     <ros_service_handle_request name="/GoToChargingStationSkill/halt" target="halt"/>
   </state>  
 
+  <!-- FIX: report the failure at the next tick. Before, the response was sent right away,
+       without a pending tick request, and was lost. -->
   <state id="send_failure">
-    <transition target="idle">
+    <ros_service_handle_request name="/GoToChargingStationSkill/tick" target="idle">
       <ros_service_send_response name="/GoToChargingStationSkill/tick">
         <field name="is_ok" expr="true"/>
         <field name="status" expr="SKILL_FAILURE"/>
       </ros_service_send_response>
-    </transition>
+    </ros_service_handle_request>
+
+    <ros_service_handle_request name="/GoToChargingStationSkill/halt" target="halt"/>
   </state>
 
   <state id="halt">

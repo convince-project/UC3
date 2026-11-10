@@ -99,12 +99,10 @@
         </ros_service_send_request>
     </transition>
 
-    <transition cond="!is_ok" target="idle">
-        <ros_service_send_response name="/SetCurrentPoiDoneSkill/tick">
-        <field name="status" expr="SKILL_FAILURE"/>
-        <field name="is_ok" expr="true"/>
-        </ros_service_send_response>
-    </transition>
+    <!-- FIX: the tick was already answered (RUNNING): report the failure at the next tick
+         (checkSetIntSucceeded with is_ok false). Before, a tick response was sent without a
+         pending tick request. -->
+    <transition cond="!is_ok" target="checkSetIntSucceeded"/>
     </state>
 
 
@@ -119,8 +117,9 @@
                 <field name="is_ok" expr="true"/>
             </ros_service_send_response>
         </ros_service_handle_request>
-        <!-- Aggiungere gestione halt -->
-        <ros_service_handle_request name="/SetCurrentPoiDoneSkill/halt" target="halted"/>
+        <!-- FIX: wait for the pending SetInt response before answering the halt (haltSetInt was
+             unreachable) -->
+        <ros_service_handle_request name="/SetCurrentPoiDoneSkill/halt" target="haltSetInt"/>
     </state>
 
     <state id="haltSetInt">
@@ -150,7 +149,6 @@
         <onentry>
             <assign location="poi_number" expr="0"/>
             <assign location="value" expr="1"/>
-            <send event="CMD_HALT"/> <!-- Mittente aggiunto -->
             <ros_service_send_response name="/SetCurrentPoiDoneSkill/halt">
                 <field name="is_ok" expr="true"/>
             </ros_service_send_response>
