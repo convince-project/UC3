@@ -24,6 +24,8 @@
     <ros_service_client service_name="/SchedulerComponent/GetCurrentPoiForNavigation" type ="scheduler_interfaces/GetCurrentPoi"/>
     <!-- GoToPoiActionSkill is a client for GoToPoi action from the Navigation Component -->
     <ros_action_client name="go_to_poi_action" action_name="/NavigationComponent/GoToPoi" type="navigation_interfaces/GoToPoi" />
+    <!-- FIX: used to stop the navigation on halt -->
+    <ros_service_client service_name="/NavigationComponent/StopNavigation" type="navigation_interfaces/StopNavigation"/>
 
     <state id="idle">
         <ros_service_handle_request name="/GoToPoiActionSkill/tick" target="getPoi">
@@ -69,11 +71,13 @@
                 <field name="status" expr="SKILL_RUNNING"/>
             </ros_service_send_response>
         </ros_service_handle_request>
-        <ros_service_handle_request name="/GoToPoiActionSkill/halt" target="idle">
-            <ros_service_send_response name="/GoToPoiActionSkill/halt">
-                <field name="is_ok" expr="true"/>
-            </ros_service_send_response>
-        </ros_service_handle_request>
+        <!-- FIX: before, the halt was answered right away and the goal kept running: the robot
+             kept navigating after the BT halted the node (e.g. to turn back to the visitors) -->
+        <ros_service_handle_request name="/GoToPoiActionSkill/halt" target="haltGoalResponse"/>
+    </state>
+
+    <state id="haltGoalResponse">
+        <ros_action_handle_goal_response name="go_to_poi_action" accept="haltCancel" reject="halt"/>
     </state>
 
     <state id="wait_result">
@@ -100,12 +104,36 @@
             <assign location="result" expr="false" />
         </ros_action_handle_aborted_result>
 
-        <!-- Handle halt -->
-        <ros_service_handle_request name="/GoToPoiActionSkill/halt" target="idle">
+        <!-- Handle halt. FIX: stop the navigation (see haltCancel) -->
+        <ros_service_handle_request name="/GoToPoiActionSkill/halt" target="haltCancel"/>
+    </state>
+
+    <!-- FIX: on halt, stop the navigation. Both the StopNavigation response and the goal result
+         arrive, in any order: wait for both before answering the halt. -->
+    <state id="haltCancel">
+        <onentry>
+            <ros_service_send_request name="/NavigationComponent/StopNavigation"/>
+        </onentry>
+        <ros_action_handle_success_result name="go_to_poi_action" target="haltWaitStop"/>
+        <ros_action_handle_aborted_result name="go_to_poi_action" target="haltWaitStop"/>
+        <ros_service_handle_response name="/NavigationComponent/StopNavigation" target="haltWaitResult"/>
+    </state>
+
+    <state id="haltWaitStop">
+        <ros_service_handle_response name="/NavigationComponent/StopNavigation" target="halt"/>
+    </state>
+
+    <state id="haltWaitResult">
+        <ros_action_handle_success_result name="go_to_poi_action" target="halt"/>
+        <ros_action_handle_aborted_result name="go_to_poi_action" target="halt"/>
+    </state>
+
+    <state id="halt">
+        <transition target="idle">
             <ros_service_send_response name="/GoToPoiActionSkill/halt">
                 <field name="is_ok" expr="true"/>
             </ros_service_send_response>
-        </ros_service_handle_request>
+        </transition>
     </state>
 
     <state id="goal_done">

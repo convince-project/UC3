@@ -71,7 +71,17 @@
         <field name="is_ok" expr="true"/>
       </ros_service_send_response>
     </onentry>
-    <transition target="getStatus"/>
+    <transition target="running"/>
+  </state>
+
+  <!-- FIX: wait for the next tick before polling the navigation status again. Before,
+       runningReply went straight back to getStatus, polling in a loop and sending tick
+       responses without a pending tick. -->
+  <state id="running">
+    <ros_service_handle_request name="/StopAndTurnBackSkill/tick" target="getStatus"/>
+    <ros_service_handle_request name="/StopAndTurnBackSkill/halt" target="callStopNav">
+      <ros_service_send_request name="/NavigationComponent/StopNavigation"/>
+    </ros_service_handle_request>
   </state>
 
   <state id="setBBFlag">

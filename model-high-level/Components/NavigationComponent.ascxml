@@ -12,6 +12,7 @@
     <data id="IDLE" type="int32" expr="0" />
     <data id="goal_name" type="string" expr="''" />
     <data id="goal_id" type="int32" expr="0" />
+    <data id="preempted_goal_id" type="int32" expr="0" />
     <!-- Exec fields -->
     <data id="is_near" type="bool" expr="false" />
     <data id="is_at_charging_station" type="bool" expr="false" />
@@ -19,6 +20,15 @@
     <!-- Navigation timing -->
     <data id="elapsed_ticks" type="float32" expr="0" />
     <data id="target_ticks" type="float32" expr="0" />
+    <!-- FIX: progress of a navigation interrupted by StopNavigation, resumed if the same POI is
+         requested again (the robot does not go back to where it started) -->
+    <data id="resume_goal_name" type="string" expr="''" />
+    <data id="resume_elapsed_ticks" type="float32" expr="0" />
+    <data id="resume_target_ticks" type="float32" expr="0" />
+    <!-- FIX: TurnBack is modelled as a short rotation in place: status MOVING for TURN_TICKS
+         timer ticks, then GOAL_REACHED (polled by StopAndTurnBackSkill) -->
+    <data id="TURN_TICKS" type="int32" expr="3" />
+    <data id="turn_ticks" type="int32" expr="0" />
   </datamodel>
 
   <!-- Service servers -->
@@ -62,12 +72,15 @@
       </ros_service_send_response>
     </ros_service_handle_request>
   
-    <!-- TurnBack -->
-    <ros_service_handle_request name="/NavigationComponent/TurnBack" target="idle">
+    <!-- TurnBack. FIX: the robot turns towards the visitors (see TurningBack). Before, the
+         status stayed IDLE/REACHED and StopAndTurnBackSkill never saw the turn. -->
+    <ros_service_handle_request name="/NavigationComponent/TurnBack" target="TurningBack">
       <ros_service_send_response name="/NavigationComponent/TurnBack">
         <field name="is_ok"      expr="true"/>
         <field name="error_msg"  expr="''"/>
       </ros_service_send_response>
+      <assign location="status" expr="MOVING"/>
+      <assign location="turn_ticks" expr="0"/>
     </ros_service_handle_request>
 
     <!-- Action‐goal -->
@@ -76,19 +89,94 @@
       <assign location="goal_name" expr="_goal.poi_name"/>
       <assign location="is_near" expr="false"/>
       <assign location="is_at_charging_station" expr="false"/>
-      <!-- Set goal_id depending on goal_name: -->
-      <!-- - 0 for charging station -->
-      <!-- - 1 for everything else (PoIs) -->
-      <if cond="goal_name == 'charging_station'">
-        <assign location="goal_id" expr="0"/>
-      <else/>
-        <assign location="goal_id" expr="1"/>
-      </if>
+      <!-- FIX: use the goal id assigned by the action handler, instead of deriving it from the
+           goal name (results are routed back to the client by this id). -->
+      <assign location="goal_id" expr="_action.goal_id"/>
       <ros_action_accept_goal name="goto_act" goal_id="goal_id"/>
-      <!-- Calculate random duration between 40 and 240 seconds -->
-      <assign location="target_ticks" expr="40 + Math.random() * 200"/>
-      <assign location="elapsed_ticks" expr="0"/>
+      <if cond="goal_name == resume_goal_name">
+        <!-- FIX: resume the interrupted navigation to the same POI -->
+        <assign location="target_ticks" expr="resume_target_ticks"/>
+        <assign location="elapsed_ticks" expr="resume_elapsed_ticks"/>
+      <else/>
+        <!-- Calculate random duration between 40 and 240 seconds -->
+        <assign location="target_ticks" expr="40 + Math.random() * 200"/>
+        <assign location="elapsed_ticks" expr="0"/>
+      </if>
+      <assign location="resume_goal_name" expr="''"/>
     </ros_action_handle_goal>
+  </state>
+
+  <!-- FIX: rotation in place requested by TurnBack. The navigation goal (if any) has already
+       been aborted, keeping its progress: a new goal to the same POI resumes it. -->
+  <state id="TurningBack">
+    <ros_service_handle_request name="/NavigationComponent/GetNavigationStatus" target="TurningBack">
+      <ros_service_send_response name="/NavigationComponent/GetNavigationStatus">
+        <field name="is_ok"         expr="true"/>
+        <field name="current_goal"  expr="goal_name"/>
+        <field name="status" expr="status"/>
+        <field name="error_msg"     expr="''"/>
+      </ros_service_send_response>
+    </ros_service_handle_request>
+
+    <!-- StopNavigation: there is no navigation goal to stop. The rotation is short and
+         completes anyway: when the robot turns, the BT halts GoToPoiActionSkill, which sends
+         StopNavigation right after TurnBack, and stopping the rotation would make
+         StopAndTurnBackSkill fail. -->
+    <ros_service_handle_request name="/NavigationComponent/StopNavigation" target="TurningBack">
+      <ros_service_send_response name="/NavigationComponent/StopNavigation">
+        <field name="is_ok"      expr="true"/>
+        <field name="error_msg"  expr="''"/>
+      </ros_service_send_response>
+    </ros_service_handle_request>
+
+    <ros_service_handle_request name="/NavigationComponent/CheckNearToPoi" target="TurningBack">
+      <ros_service_send_response name="/NavigationComponent/CheckNearToPoi">
+        <field name="poi_name"  expr="goal_name"/>
+        <field name="is_near"    expr="is_at_charging_station"/>
+        <field name="is_ok"      expr="true"/>
+        <field name="error_msg"  expr="''"/>
+      </ros_service_send_response>
+    </ros_service_handle_request>
+
+    <!-- A new TurnBack restarts the rotation -->
+    <ros_service_handle_request name="/NavigationComponent/TurnBack" target="TurningBack">
+      <ros_service_send_response name="/NavigationComponent/TurnBack">
+        <field name="is_ok"      expr="true"/>
+        <field name="error_msg"  expr="''"/>
+      </ros_service_send_response>
+      <assign location="turn_ticks" expr="0"/>
+    </ros_service_handle_request>
+
+    <!-- A new goal interrupts the rotation (same handling as in idle) -->
+    <ros_action_handle_goal name="goto_act" target="NavigationInProgress">
+      <assign location="status" expr="MOVING"/>
+      <assign location="goal_name" expr="_goal.poi_name"/>
+      <assign location="is_near" expr="false"/>
+      <assign location="is_at_charging_station" expr="false"/>
+      <assign location="goal_id" expr="_action.goal_id"/>
+      <ros_action_accept_goal name="goto_act" goal_id="goal_id"/>
+      <if cond="goal_name == resume_goal_name">
+        <assign location="target_ticks" expr="resume_target_ticks"/>
+        <assign location="elapsed_ticks" expr="resume_elapsed_ticks"/>
+      <else/>
+        <assign location="target_ticks" expr="40 + Math.random() * 200"/>
+        <assign location="elapsed_ticks" expr="0"/>
+      </if>
+      <assign location="resume_goal_name" expr="''"/>
+    </ros_action_handle_goal>
+
+    <ros_rate_callback name="navigation_timer">
+      <target id="TurnCheckComplete" prob="1.0">
+        <assign location="turn_ticks" expr="turn_ticks + 1"/>
+      </target>
+    </ros_rate_callback>
+  </state>
+
+  <state id="TurnCheckComplete">
+    <transition target="TurningBack" cond="turn_ticks &lt; TURN_TICKS"/>
+    <transition target="idle" cond="turn_ticks &gt;= TURN_TICKS">
+      <assign location="status" expr="GOAL_REACHED"/>
+    </transition>
   </state>
 
   <state id="NavigationAborted">
@@ -103,6 +191,79 @@
   </state>
 
   <state id="NavigationInProgress">
+    <!-- FIX: a ROS server answers requests in any state. Before, all services were handled
+         only in "idle": requests arriving during navigation were discarded, deadlocking
+         their callers and the service handlers. -->
+    <ros_service_handle_request name="/NavigationComponent/GetNavigationStatus" target="NavigationInProgress">
+      <ros_service_send_response name="/NavigationComponent/GetNavigationStatus">
+        <field name="is_ok"         expr="true"/>
+        <field name="current_goal"  expr="goal_name"/>
+        <field name="status" expr="status"/>
+        <field name="error_msg"     expr="''"/>
+      </ros_service_send_response>
+    </ros_service_handle_request>
+
+    <!-- StopNavigation: abort the active goal, keeping its progress in case it is resumed -->
+    <ros_service_handle_request name="/NavigationComponent/StopNavigation" target="NavigationAborted">
+      <ros_service_send_response name="/NavigationComponent/StopNavigation">
+        <field name="is_ok"      expr="true"/>
+        <field name="error_msg"  expr="''"/>
+      </ros_service_send_response>
+      <ros_action_aborted name="goto_act" goal_id="goal_id"/>
+      <assign location="resume_goal_name" expr="goal_name"/>
+      <assign location="resume_elapsed_ticks" expr="elapsed_ticks"/>
+      <assign location="resume_target_ticks" expr="target_ticks"/>
+    </ros_service_handle_request>
+
+    <ros_service_handle_request name="/NavigationComponent/CheckNearToPoi" target="NavigationInProgress">
+      <ros_service_send_response name="/NavigationComponent/CheckNearToPoi">
+        <field name="poi_name"  expr="goal_name"/>
+        <field name="is_near"    expr="is_at_charging_station"/>
+        <field name="is_ok"      expr="true"/>
+        <field name="error_msg"  expr="''"/>
+      </ros_service_send_response>
+    </ros_service_handle_request>
+
+    <!-- FIX: the robot stops and turns back to the visitors. The active goal is aborted
+         (GoToPoiActionSkill fails) and its progress is kept, so that the navigation resumes
+         when the same POI is requested again. Before, TurnBack did nothing and the
+         navigation kept going. -->
+    <ros_service_handle_request name="/NavigationComponent/TurnBack" target="TurningBack">
+      <ros_service_send_response name="/NavigationComponent/TurnBack">
+        <field name="is_ok"      expr="true"/>
+        <field name="error_msg"  expr="''"/>
+      </ros_service_send_response>
+      <ros_action_aborted name="goto_act" goal_id="goal_id"/>
+      <assign location="resume_goal_name" expr="goal_name"/>
+      <assign location="resume_elapsed_ticks" expr="elapsed_ticks"/>
+      <assign location="resume_target_ticks" expr="target_ticks"/>
+      <assign location="status" expr="MOVING"/>
+      <assign location="turn_ticks" expr="0"/>
+    </ros_service_handle_request>
+
+    <!-- New goal while navigating: it preempts the active one, which is aborted.
+         The goal is accepted first, since the action handler routes results only after
+         the pending goal has been accepted. If the same client sends a new goal, it already
+         abandoned the old one: do not send it a result it would mistake for the new goal.
+         A new goal to the same POI continues the current navigation. -->
+    <ros_action_handle_goal name="goto_act" target="NavigationInProgress">
+      <if cond="_goal.poi_name != goal_name">
+        <assign location="target_ticks" expr="40 + Math.random() * 200"/>
+        <assign location="elapsed_ticks" expr="0"/>
+      </if>
+      <assign location="preempted_goal_id" expr="goal_id"/>
+      <assign location="status" expr="MOVING"/>
+      <assign location="goal_name" expr="_goal.poi_name"/>
+      <assign location="is_near" expr="false"/>
+      <assign location="is_at_charging_station" expr="false"/>
+      <assign location="goal_id" expr="_action.goal_id"/>
+      <ros_action_accept_goal name="goto_act" goal_id="goal_id"/>
+      <if cond="preempted_goal_id != goal_id">
+        <ros_action_aborted name="goto_act" goal_id="preempted_goal_id"/>
+      </if>
+      <assign location="resume_goal_name" expr="''"/>
+    </ros_action_handle_goal>
+
     <!-- Timer callback to track navigation progress -->
     <ros_rate_callback name="navigation_timer">
       <target id="NavigationCheckComplete" prob="1.0">
@@ -113,7 +274,10 @@
 
   <state id="NavigationCheckComplete">
     <transition target="NavigationInProgress" cond="elapsed_ticks &lt; target_ticks"/>
-    <transition target="NavigationResultChoice" cond="elapsed_ticks &gt;= target_ticks"/>
+    <transition target="NavigationResultChoice" cond="elapsed_ticks &gt;= target_ticks">
+      <!-- The navigation ended: nothing left to resume -->
+      <assign location="resume_goal_name" expr="''"/>
+    </transition>
   </state>
 
   <state id="NavigationResultChoice">
@@ -135,21 +299,4 @@
     </transition>
   </state>
 
-  <state id="HandleActionGoal">
-    <transition>
-      <target id="idle" prob="0.7">
-        <!-- success -->
-        <assign location="status" expr="GOAL_REACHED" />
-        <assign location="is_near" expr="true" />
-        <ros_action_succeed name="goto_act" goal_id="goal_id">
-          <field name="is_ok" expr="true"/>
-          <field name="error_msg" expr="''"/>
-        </ros_action_succeed>
-      </target>
-      <target id="NavigationAborted" prob="0.3">
-        <!-- failure -->
-        <ros_action_aborted name="goto_act" goal_id="goal_id"/>
-      </target>
-    </transition>
-  </state>
 </ascxml>

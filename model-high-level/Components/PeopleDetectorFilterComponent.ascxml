@@ -10,6 +10,10 @@
     <data id="is_local"               type="bool" expr="false"/>
     <!-- input flags -->
     <data id="peopleDetected"         type="bool" expr="false"/>
+    <!-- FIX: filtered output, set to false only after FILTER_NEGATIVES raw negatives in a row -->
+    <data id="FILTER_NEGATIVES"       type="int32" expr="3"/>
+    <data id="negatives_count"        type="int32" expr="0"/>
+    <data id="peopleFollowing"        type="bool" expr="false"/>
   </datamodel>
 
   <!-- publications -->
@@ -47,14 +51,26 @@
 
   <state id="publish">
     <onentry>
+      <!-- FIX: the raw detection is drawn independently every second, so a single negative made
+           the robot stop. Filter it: visitors stop following only after several negatives in a
+           row. The raw value is still published on "detection". -->
+      <if cond="peopleDetected">
+        <assign location="negatives_count" expr="0"/>
+        <assign location="peopleFollowing" expr="true"/>
+      <else/>
+        <assign location="negatives_count" expr="negatives_count + 1"/>
+        <if cond="negatives_count &gt;= FILTER_NEGATIVES">
+          <assign location="peopleFollowing" expr="false"/>
+        </if>
+      </if>
       <ros_topic_publish name="/PeopleDetectorFilterComponent/detection">
         <field name="status" expr="peopleDetected"/>
       </ros_topic_publish>
       <ros_topic_publish name="/PeopleDetectorFilterComponent/filtered_detection">
-        <field name="data" expr="peopleDetected"/>
+        <field name="data" expr="peopleFollowing"/>
       </ros_topic_publish>
       <ros_topic_publish name="/PeopleDetectorFilterComponent/is_followed">
-        <field name="data" expr="peopleDetected"/>
+        <field name="data" expr="peopleFollowing"/>
       </ros_topic_publish>
     </onentry>
     <transition target="idle"/>

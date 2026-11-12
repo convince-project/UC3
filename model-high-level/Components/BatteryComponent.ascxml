@@ -10,9 +10,10 @@
     <data id="percentage" type="float32" expr="100.0" /> <!-- Valore iniziale in scala 0-1 -->
     <data id="min_percentage" type="float32" expr="6.0" />
     <data id="max_percentage" type="float32" expr="100.0" />
-    <!-- At 0.1 Hz, 0.1044% every 10 s changes 94% in approximately 2.5 h. -->
-    <data id="charge_step" type="float32" expr="0.1044" />
-    <data id="discharge_step" type="float32" expr="0.1044" />
+    <!-- FIX: at 1 Hz (was 0.1 Hz, slower than the isBatteryPublished window of 5 s),
+         0.01044% every 1 s changes 94% in approximately 2.5 h, as before. -->
+    <data id="charge_step" type="float32" expr="0.01044" />
+    <data id="discharge_step" type="float32" expr="0.01044" />
     <data id="charging_station" type="string" expr="'charging_station'" />
     <data id="charging_distance" type="float32" expr="0.5" />
     <data id="charging_angle" type="float64" expr="360.0" />
@@ -37,8 +38,11 @@
   </datamodel>
 
   <ros_topic_publisher topic="/BatteryComponent/battery_level" type="sensor_msgs/BatteryState" />
+  <!-- FIX: BatteryChargingSkill subscribes to this topic, which nobody published: BatteryCharging
+       was always FAILURE. In the real system it is published by the charging component. -->
+  <ros_topic_publisher topic="/BatteryComponent/battery_charging" type="sensor_msgs/BatteryState" />
   <ros_service_client service_name="/NavigationComponent/CheckNearToPoi" type="navigation_interfaces/CheckNearToPoi" />
-  <ros_time_rate name="battery_control_timer" rate_hz="0.1" />
+  <ros_time_rate name="battery_control_timer" rate_hz="1.0" />
 
   <state id="idle">
     <ros_service_handle_response name="/NavigationComponent/CheckNearToPoi" target="idle">
@@ -77,6 +81,38 @@
         </if>
 
         <ros_topic_publish name="/BatteryComponent/battery_level">
+          <field name="header.stamp.sec" expr="header_stamp_sec" />
+          <field name="header.stamp.nanosec" expr="header_stamp_nanosec" />
+          <field name="header.frame_id" expr="header_frame_id" />
+          <field name="percentage" expr="percentage" />
+          <field name="voltage" expr="voltage" />
+          <field name="current" expr="current" />
+          <field name="temperature" expr="temperature" />
+          <field name="charge" expr="charge" />
+          <field name="capacity" expr="capacity" />
+          <field name="design_capacity" expr="design_capacity" />
+          <field name="power_supply_status" expr="power_supply_status" />
+          <field name="power_supply_health" expr="power_supply_health" />
+          <field name="power_supply_technology" expr="power_supply_technology" />
+          <field name="present" expr="present" />
+          <field name="cell_voltage" expr="cell_voltage" />
+          <field name="cell_temperature" expr="cell_temperature" />
+          <field name="location" expr="location" />
+          <field name="serial_number" expr="serial_number" />
+        </ros_topic_publish>
+
+        <!-- FIX: power_supply_status: 1=charging, 2=discharging, 4=full. When the battery is full
+             it is no longer charging: BatteryCharging fails and the robot can leave the station. -->
+        <if cond="is_charging">
+          <if cond="percentage &lt; max_percentage">
+            <assign location="power_supply_status" expr="1" />
+          <else/>
+            <assign location="power_supply_status" expr="4" />
+          </if>
+        <else/>
+          <assign location="power_supply_status" expr="2" />
+        </if>
+        <ros_topic_publish name="/BatteryComponent/battery_charging">
           <field name="header.stamp.sec" expr="header_stamp_sec" />
           <field name="header.stamp.nanosec" expr="header_stamp_nanosec" />
           <field name="header.frame_id" expr="header_frame_id" />
